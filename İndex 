@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تقييم الأداء المؤسسي | CORE SYSTEM</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080f;--surface:#0f0f18;--card:#14141f;--border:#22223a;--border2:#2e2e4a;
+  --accent:#4a6cf7;--accent2:#7c3aed;--success:#10b981;--warning:#d97706;--danger:#dc2626;
+  --text:#e8e8f2;--muted:#5a5a7a;--light:#9090b0;--white:#ffffff;
+}
+html{scroll-behavior:smooth}
+body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* ── LANDING ── */
+#screen-landing{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg)}
+.landing-inner{max-width:460px;width:100%}
+.wordmark{letter-spacing:6px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
+.wordmark span{color:var(--accent)}
+.landing-eyebrow{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;font-family:'IBM Plex Mono',monospace}
+.landing-title{font-size:clamp(24px,5.5vw,36px);font-weight:700;line-height:1.3;color:var(--white);margin-bottom:20px}
+.landing-title em{font-style:normal;color:var(--light);font-weight:300}
+.landing-sub{font-size:14px;color:var(--light);line-height:1.85;margin-bottom:40px;font-weight:300}
+.pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:32px}
+.pillar{background:var(--card);padding:18px 12px;text-align:center}
+.pillar-num{font-size:20px;font-weight:700;color:var(--white);font-family:'IBM Plex Mono',monospace}
+.pillar-lbl{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
+.ticker{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:28px;font-size:12px;color:var(--light);font-weight:300}
+.ticker-dot{width:6px;height:6px;border-radius:50%;background:var(--success);flex-shrink:0;animation:blink 2.5s ease-in-out infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.btn-primary{width:100%;padding:16px;background:var(--white);color:var(--bg);border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:14px;letter-spacing:.5px;transition:background .2s}
+.btn-primary:active{background:#e0e0e0}
+.trust-row{display:flex;justify-content:center;gap:20px;font-size:11px;color:var(--muted)}
+
+/* ── FORM ── */
+.form-screen{flex-direction:column}
+.progress-wrap{height:2px;background:var(--surface);position:sticky;top:0;z-index:10}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease}
+.form-nav{padding:18px 24px 0;display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;width:100%}
+.nav-step{font-size:10px;color:var(--muted);letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase}
+.form-body{padding:28px 24px 48px;max-width:520px;margin:0 auto;width:100%;flex:1}
+.q-eyebrow{font-size:10px;letter-spacing:2px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
+.q-title{font-size:18px;font-weight:600;color:var(--white);margin-bottom:6px;line-height:1.4}
+.q-sub{font-size:12px;color:var(--muted);margin-bottom:22px;font-family:'IBM Plex Mono',monospace}
+.field{margin-bottom:16px}
+.field-label{display:block;font-size:11px;color:var(--light);margin-bottom:7px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.field-input,.field-select{width:100%;padding:13px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;transition:border-color .2s;-webkit-appearance:none}
+.field-input:focus,.field-select:focus{outline:none;border-color:var(--accent)}
+.field-input::placeholder{color:var(--muted)}
+.opts{display:grid;gap:8px}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:right;color:var(--light);font-family:inherit;font-size:13px;transition:all .15s;width:100%;font-weight:400}
+.opt:hover{border-color:var(--border2);color:var(--text)}
+.opt.sel{border-color:var(--accent);background:rgba(74,108,247,.08);color:var(--white)}
+.opt-letter{width:26px;height:26px;border-radius:6px;background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;transition:all .15s}
+.opt.sel .opt-letter{background:var(--accent);color:var(--white)}
+.divider{height:1px;background:var(--border);margin:24px 0}
+.btn-next{width:100%;padding:14px;background:var(--white);color:var(--bg);border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:24px;opacity:.2;pointer-events:none;transition:opacity .2s}
+.btn-next.on{opacity:1;pointer-events:all}
+
+/* ── LEAD ── */
+#screen-lead{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 60% 40% at 50% 20%,rgba(74,108,247,.08) 0%,transparent 60%),var(--bg)}
+.lead-inner{max-width:400px;width:100%}
+.lead-marker{width:36px;height:2px;background:var(--accent);margin-bottom:24px}
+.lead-title{font-size:20px;font-weight:700;color:var(--white);margin-bottom:10px;line-height:1.4}
+.lead-sub{font-size:13px;color:var(--light);margin-bottom:32px;line-height:1.8;font-weight:300}
+
+/* ── LOADING ── */
+#screen-loading{justify-content:center;align-items:center;padding:40px 24px;background:var(--bg)}
+.load-inner{max-width:320px;width:100%}
+.load-wordmark{font-family:'IBM Plex Mono',monospace;letter-spacing:6px;font-size:12px;color:var(--muted);text-align:center;margin-bottom:48px}
+.load-status{font-size:13px;color:var(--light);text-align:center;margin-bottom:20px;min-height:20px;font-weight:300}
+.load-bar-bg{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin-bottom:10px}
+.load-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .9s ease;width:0%}
+.load-pct{font-size:11px;color:var(--muted);text-align:center;font-family:'IBM Plex Mono',monospace}
+
+/* ── RESULTS ── */
+#screen-results{flex-direction:column;padding-bottom:80px}
+.results-top{padding:36px 24px 28px;text-align:center;border-bottom:1px solid var(--border);background:var(--surface)}
+.results-name{font-size:11px;letter-spacing:2px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:20px;text-transform:uppercase}
+.score-big{font-size:76px;font-weight:700;line-height:1;font-family:'IBM Plex Mono',monospace;letter-spacing:-3px}
+.score-denom{font-size:16px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.score-tier{display:inline-block;padding:5px 18px;border-radius:4px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin:12px 0 8px}
+.score-market{font-size:12px;color:var(--light);font-weight:300}
+
+.results-body{padding:24px;max-width:540px;margin:0 auto;width:100%}
+
+/* Dim cards with explanation */
+.dim-cards{display:grid;gap:10px;margin-bottom:24px}
+.dim-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;display:flex;gap:16px;align-items:flex-start}
+.dim-card-left{text-align:center;min-width:56px}
+.dim-val{font-size:32px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1}
+.dim-sublbl{font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:3px;font-family:'IBM Plex Mono',monospace}
+.dim-card-right{flex:1}
+.dim-title{font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px}
+.dim-en{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:8px}
+.dim-desc{font-size:12px;color:var(--light);line-height:1.7;font-weight:300}
+.dim-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
+.dim-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
+
+/* Analysis section */
+.section-label{font-size:9px;letter-spacing:3px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:12px;margin-top:24px}
+
+.insight-primary{background:var(--card);border:1px solid var(--border);border-right:2px solid var(--accent);border-radius:8px;padding:20px;margin-bottom:12px}
+.insight-eye{font-size:9px;letter-spacing:3px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
+.insight-text{font-size:14px;color:var(--text);line-height:1.85;font-weight:300}
+
+.analysis-grid{display:grid;gap:8px;margin-bottom:12px}
+.analysis-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
+.analysis-item-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.analysis-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.analysis-item-title{font-size:12px;font-weight:600;color:var(--white)}
+.analysis-item-text{font-size:12px;color:var(--light);line-height:1.7;font-weight:300;padding-right:16px}
+
+.opportunity-box{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:16px;margin-bottom:20px}
+.opportunity-eye{font-size:9px;letter-spacing:3px;color:var(--success);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:8px}
+.opportunity-text{font-size:13px;color:var(--light);line-height:1.75;font-weight:300}
+
+/* CTA */
+.wa-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:17px;background:#128C7E;color:var(--white);border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;text-decoration:none;margin-bottom:10px;transition:opacity .2s}
+.wa-btn:active{opacity:.85}
+.pdf-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:transparent;color:var(--light);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;margin-bottom:20px;transition:border-color .2s,color .2s}
+.pdf-btn:hover{border-color:var(--border2);color:var(--white)}
+
+/* ════════════════════════════
+   PDF TEMPLATE — BILINGUAL
+   ════════════════════════════ */
+#pdf-content{
+  display:none;
+  font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
+  background:#ffffff;
+  color:#111111;
+  width:210mm;
+  padding:0;
+  direction:rtl;
+}
+
+.pdf-page{
+  width:210mm;
+  min-height:297mm;
+  padding:14mm 14mm 12mm;
+  background:#fff;
+  position:relative;
+}
+
+/* PDF Header */
+.pdf-hd{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  padding-bottom:10px;
+  border-bottom:2.5px solid #111;
+  margin-bottom:18px;
+}
+.pdf-logo-block{}
+.pdf-logo-text{
+  font-family:'IBM Plex Mono',monospace,Arial;
+  letter-spacing:5px;
+  font-size:15px;
+  font-weight:700;
+  color:#111;
+  display:block;
+}
+.pdf-logo-sub{
+  font-size:9px;
+  color:#888;
+  letter-spacing:2px;
+  font-family:monospace;
+  margin-top:3px;
+  display:block;
+}
+.pdf-hd-right{text-align:left;direction:ltr}
+.pdf-hd-date{font-size:10px;color:#666;margin-bottom:3px}
+.pdf-hd-ref{font-size:9px;color:#aaa;font-family:monospace;letter-spacing:1px}
+
+/* PDF Title block */
+.pdf-title-block{
+  margin-bottom:16px;
+  padding-bottom:14px;
+  border-bottom:1px solid #e8e8e8;
+}
+.pdf-report-label{font-size:9px;letter-spacing:3px;color:#888;font-family:monospace;text-transform:uppercase;margin-bottom:6px;display:block}
+.pdf-doctor-name{font-size:20px;font-weight:700;color:#111;margin-bottom:2px}
+.pdf-report-sub{font-size:11px;color:#666;direction:ltr;text-align:left;font-family:monospace}
+
+/* Score hero */
+.pdf-score-hero{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  background:#f8f9ff;
+  border:1px solid #e0e4ff;
+  border-radius:8px;
+  padding:16px 20px;
+  margin-bottom:16px;
+}
+.pdf-score-left{}
+.pdf-score-label-ar{font-size:10px;color:#666;margin-bottom:4px}
+.pdf-score-num{font-size:56px;font-weight:700;line-height:1;font-family:monospace;color:#111}
+.pdf-score-denom{font-size:16px;color:#888;font-family:monospace}
+.pdf-score-right{text-align:left;direction:ltr}
+.pdf-tier-badge{display:inline-block;padding:5px 14px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:monospace;margin-bottom:8px}
+.pdf-market-ar{font-size:11px;color:#555;direction:rtl;text-align:right;margin-bottom:3px}
+.pdf-market-en{font-size:10px;color:#888;direction:ltr;font-family:monospace}
+
+/* Dim table */
+.pdf-dims-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
+.pdf-dims-table th{background:#111;color:#fff;padding:8px 10px;text-align:right;font-weight:600;font-size:10px;letter-spacing:1px}
+.pdf-dims-table th.en{text-align:left;direction:ltr;font-family:monospace}
+.pdf-dims-table td{padding:10px;border-bottom:1px solid #eee;vertical-align:top}
+.pdf-dims-table tr:last-child td{border-bottom:none}
+.pdf-dims-table .val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
+.pdf-dims-table .ar-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.pdf-dims-table .en-name{font-size:9px;color:#888;font-family:monospace;letter-spacing:1px}
+.pdf-dims-table .desc-ar{font-size:11px;color:#444;line-height:1.6}
+.pdf-dims-table .desc-en{font-size:9px;color:#888;font-family:monospace;line-height:1.6;direction:ltr}
+.pdf-bar-bg{height:4px;background:#eee;border-radius:2px;margin-top:6px}
+.pdf-bar-fill{height:100%;border-radius:2px}
+
+/* Analysis section */
+.pdf-section-title{
+  font-size:10px;letter-spacing:3px;color:#888;font-family:monospace;
+  text-transform:uppercase;border-bottom:1px solid #eee;
+  padding-bottom:6px;margin-bottom:12px;
+  display:flex;justify-content:space-between;
+}
+.pdf-insight-box{
+  border-right:3px solid #4a6cf7;
+  padding:12px 16px;
+  background:#f8f9ff;
+  border-radius:4px;
+  margin-bottom:12px;
+}
+.pdf-insight-eye-ar{font-size:11px;font-weight:600;color:#4a6cf7;margin-bottom:4px}
+.pdf-insight-eye-en{font-size:9px;color:#aaa;font-family:monospace;letter-spacing:1px;margin-bottom:8px;direction:ltr}
+.pdf-insight-ar{font-size:12px;color:#222;line-height:1.8}
+.pdf-insight-en{font-size:10px;color:#666;line-height:1.6;direction:ltr;margin-top:8px;border-top:1px solid #e8e8e8;padding-top:8px;font-family:monospace}
+
+.pdf-analysis-row{display:flex;gap:8px;margin-bottom:8px}
+.pdf-analysis-cell{flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:4px;padding:10px}
+.pdf-cell-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px;vertical-align:middle}
+.pdf-cell-title-ar{font-size:11px;font-weight:600;color:#222;margin-bottom:3px}
+.pdf-cell-title-en{font-size:9px;color:#aaa;font-family:monospace;direction:ltr;margin-bottom:6px}
+.pdf-cell-text-ar{font-size:10px;color:#444;line-height:1.6}
+
+/* Footer */
+.pdf-footer{
+  position:absolute;
+  bottom:10mm;
+  left:14mm;
+  right:14mm;
+  border-top:1px solid #eee;
+  padding-top:8px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.pdf-footer-left{font-size:9px;color:#aaa;font-family:monospace;direction:ltr}
+.pdf-footer-right{font-size:9px;color:#aaa}
+</style>
+</head>
+<body>
+
+<!-- ═══════ LANDING ═══════ -->
+<section id="screen-landing" class="screen active">
+  <div class="landing-inner">
+    <span class="wordmark">CORE <span>SYSTEM</span></span>
+    <div class="landing-eyebrow">Clinic Performance Evaluator</div>
+    <h1 class="landing-title">تقييم كيفية عمل عيادتك<br><em>وإمكانيات التطوير</em></h1>
+    <p class="landing-sub">تحليل تشخيصي مؤسسي لنضج العمليات، كفاءة التواصل مع المرضى، واستدامة العلاقة — خلال أقل من دقيقتين.</p>
+    <div class="pillars">
+      <div class="pillar"><div class="pillar-num">03</div><div class="pillar-lbl">أبعاد<br>مؤسسية</div></div>
+      <div class="pillar"><div class="pillar-num">08</div><div class="pillar-lbl">مؤشر<br>تشغيلي</div></div>
+      <div class="pillar"><div class="pillar-num">&lt;2م</div><div class="pillar-lbl">وقت<br>التقييم</div></div>
+    </div>
+    <div class="ticker"><div class="ticker-dot"></div><span id="ticker-text">تم تحليل عيادة منذ 3 دقائق</span></div>
+    <button class="btn-primary" onclick="goTo('screen-profile')">ابدأ التقييم المؤسسي</button>
+    <div class="trust-row"><span>بيانات محمية</span><span style="color:var(--border)">·</span><span>بدون التزامات</span><span style="color:var(--border)">·</span><span>تقرير PDF مجاني</span></div>
+  </div>
+</section>
+
+<!-- ═══════ PROFILE ═══════ -->
+<section id="screen-profile" class="screen form-screen">
+  <div class="progress-wrap"><div class="progress-fill" style="width:8%"></div></div>
+  <div class="form-nav"><span class="nav-step">01 / 04</span><span class="nav-step">ملف العيادة</span></div>
+  <div class="form-body">
+    <div class="q-eyebrow">Clinic Profile</div>
+    <h2 class="q-title">معلومات العيادة الأساسية</h2>
+    <p class="q-sub">لتخصيص معايير المقارنة المؤسسية</p>
+    <div class="field"><label class="field-label">التخصص الطبي</label>
+      <select class="field-select" id="specialty" onchange="checkProfile()">
+        <option value="">اختر التخصص</option>
+        <option value="cosmetic">تجميل وليزر</option><option value="dental">أسنان</option>
+        <option value="general">عام وعائلي</option><option value="derma">جلدية</option>
+        <option value="ortho">عظام وعلاج طبيعي</option><option value="eye">عيون</option>
+        <option value="other">تخصص آخر</option>
+      </select></div>
+    <div class="field"><label class="field-label">سنوات التشغيل</label>
+      <select class="field-select" id="years" onchange="checkProfile()">
+        <option value="">اختر</option><option value="1">أقل من سنة</option>
+        <option value="2">1 – 3 سنوات</option><option value="3">3 – 7 سنوات</option>
+        <option value="4">أكثر من 7 سنوات</option>
+      </select></div>
+    <div class="field"><label class="field-label">حجم الفريق</label>
+      <select class="field-select" id="staff" onchange="checkProfile()">
+        <option value="">اختر</option><option value="1">1 – 3 أفراد</option>
+        <option value="2">4 – 8 أفراد</option><option value="3">9 – 15 فرداً</option>
+        <option value="4">أكثر من 15</option>
+      </select></div>
+    <button class="btn-next" id="btn-profile" onclick="goTo('screen-q1')">التالي</button>
+  </div>
+</section>
+
+<!-- ═══════ Q1 ═══════ -->
+<section id="screen-q1" class="screen form-screen">
+  <div class="progress-wrap"><div class="progress-fill" style="width:28%"></div></div>
+  <div class="form-nav"><span class="nav-step">02 / 04</span><span class="nav-step">Process Maturity</span></div>
+  <div class="form-body">
+    <div class="q-eyebrow">نضج العمليات والإدارة</div>
+    <h2 class="q-title">عندما يتواصل مريض جديد — ما وقت الاستجابة الأول؟</h2>
+    <p class="q-sub">Response Time — Patient Journey Entry Point</p>
+    <div class="opts" id="q1-opts">
+      <button class="opt" onclick="sel('q1','A',this)"><span class="opt-letter">A</span><span>فوري — أقل من 5 دقائق</span></button>
+      <button class="opt" onclick="sel('q1','B',this)"><span class="opt-letter">B</span><span>أقل من ساعة</span></button>
+      <button class="opt" onclick="sel('q1','C',this)"><span class="opt-letter">C</span><span>عدة ساعات</span></button>
+      <button class="opt" onclick="sel('q1','D',this)"><span class="opt-letter">D</span><span>لا يوجد بروتوكول محدد</span></button>
+    </div>
+    <div class="divider"></div>
+    <h2 class="q-title">ما طبيعة نظام المتابعة بعد الزيارة؟</h2>
+    <p class="q-sub">Post-Visit Follow-up System</p>
+    <div class="opts" id="q2-opts">
+      <button class="opt" onclick="sel('q2','A',this)"><span class="opt-letter">A</span><span>نظام منظم وآلي (رسائل + مواعيد تلقائية)</span></button>
+      <button class="opt" onclick="sel('q2','B',this)"><span class="opt-letter">B</span><span>شبه منظم — متابعة دورية</span></button>
+      <button class="opt" onclick="sel('q2','C',this)"><span class="opt-letter">C</span><span>يدوي وغير منتظم</span></button>
+      <button class="opt" onclick="sel('q2','D',this)"><span class="opt-letter">D</span><span>لا توجد منظومة متابعة</span></button>
+    </div>
+    <button class="btn-next" id="btn-q1" onclick="goTo('screen-lead')">التالي</button>
+  </div>
+</section>
+
+<!-- ═══════ LEAD ═══════ -->
+<section id="screen-lead" class="screen">
+  <div class="lead-inner" style="padding:40px 24px;margin:auto">
+    <div class="lead-marker"></div>
+    <h2 class="lead-title">أدخل بياناتك لاستكمال التقرير التشخيصي</h2>
+    <p class="lead-sub">سيتضمن تقريرك مقارنة مؤسسية معيارية مع عيادات مشابهة وتشخيصاً للفجوات التشغيلية الأكثر تأثيراً.</p>
+    <div class="field"><label class="field-label">الاسم الكامل</label><input class="field-input" type="text" id="lead-name" placeholder="د. محمد العمري" oninput="checkLead()"></div>
+    <div class="field"><label class="field-label">رقم الواتساب</label><input class="field-input" type="tel" id="lead-phone" placeholder="00962XXXXXXXXX" oninput="checkLead()"></div>
+    <div class="field"><label class="field-label">البريد الإلكتروني</label><input class="field-input" type="email" id="lead-email" placeholder="doctor@clinic.com" oninput="checkLead()"></div>
+    <button class="btn-next" id="btn-lead" onclick="submitLead()" style="opacity:.2;pointer-events:none">أكمل التقييم</button>
+    <div style="margin-top:14px;font-size:11px;color:var(--muted);text-align:center;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">CORE SYSTEM — بياناتك لن تُشارك مع أي طرف ثالث</div>
+  </div>
+</section>
+
+<!-- ═══════ Q2 ═══════ -->
+<section id="screen-q2" class="screen form-screen">
+  <div class="progress-wrap"><div class="progress-fill" style="width:58%"></div></div>
+  <div class="form-nav"><span class="nav-step">03 / 04</span><span class="nav-step">Patient Engagement</span></div>
+  <div class="form-body">
+    <div class="q-eyebrow">كفاءة التواصل مع المرضى</div>
+    <h2 class="q-title">كيف يدير فريقك اعتراضات التسعير؟</h2>
+    <p class="q-sub">Objection Handling — Price vs Value Protocol</p>
+    <div class="opts" id="q3-opts">
+      <button class="opt" onclick="sel('q3','A',this)"><span class="opt-letter">A</span><span>بروتوكول موثق يطبقه الفريق</span></button>
+      <button class="opt" onclick="sel('q3','B',this)"><span class="opt-letter">B</span><span>بناءً على خبرة شخصية غير موثقة</span></button>
+      <button class="opt" onclick="sel('q3','C',this)"><span class="opt-letter">C</span><span>يعتمد على شخص بعينه</span></button>
+      <button class="opt" onclick="sel('q3','D',this)"><span class="opt-letter">D</span><span>لا يوجد نهج إدارة للتوقعات</span></button>
+    </div>
+    <div class="divider"></div>
+    <h2 class="q-title">هل تقيسون Patient Acceptance Rate؟</h2>
+    <p class="q-sub">معدل تحويل الاستفسارات إلى مواعيد مؤكدة</p>
+    <div class="opts" id="q4-opts">
+      <button class="opt" onclick="sel('q4','A',this)"><span class="opt-letter">A</span><span>نعرفه بدقة ونراجعه دورياً</span></button>
+      <button class="opt" onclick="sel('q4','B',this)"><span class="opt-letter">B</span><span>نقدّره تقريباً</span></button>
+      <button class="opt" onclick="sel('q4','C',this)"><span class="opt-letter">C</span><span>لا نقيسه لكن نريد ذلك</span></button>
+      <button class="opt" onclick="sel('q4','D',this)"><span class="opt-letter">D</span><span>لم نفكر بقياسه</span></button>
+    </div>
+    <button class="btn-next" id="btn-q2" onclick="goTo('screen-q3')">التالي</button>
+  </div>
+</section>
+
+<!-- ═══════ Q3 ═══════ -->
+<section id="screen-q3" class="screen form-screen">
+  <div class="progress-wrap"><div class="progress-fill" style="width:82%"></div></div>
+  <div class="form-nav"><span class="nav-step">04 / 04</span><span class="nav-step">Patient Loyalty</span></div>
+  <div class="form-body">
+    <div class="q-eyebrow">استدامة العلاقة مع المرضى</div>
+    <h2 class="q-title">كيف تديرون حالات No-Show؟</h2>
+    <p class="q-sub">No-Show Management Protocol</p>
+    <div class="opts" id="q5-opts">
+      <button class="opt" onclick="sel('q5','A',this)"><span class="opt-letter">A</span><span>نظام تذكير تلقائي + إعادة جدولة</span></button>
+      <button class="opt" onclick="sel('q5','B',this)"><span class="opt-letter">B</span><span>إرسال تذكيرات فقط</span></button>
+      <button class="opt" onclick="sel('q5','C',this)"><span class="opt-letter">C</span><span>نتصل أحياناً بعد الغياب</span></button>
+      <button class="opt" onclick="sel('q5','D',this)"><span class="opt-letter">D</span><span>لا توجد آلية متابعة</span></button>
+    </div>
+    <div class="divider"></div>
+    <h2 class="q-title">ما مستوى نضج قياس مؤشرات الأداء؟</h2>
+    <p class="q-sub">Operational KPI Tracking Maturity</p>
+    <div class="opts" id="q6-opts">
+      <button class="opt" onclick="sel('q6','A',this)"><span class="opt-letter">A</span><span>KPIs موثقة ومراجعة أسبوعياً</span></button>
+      <button class="opt" onclick="sel('q6','B',this)"><span class="opt-letter">B</span><span>مراجعة دورية غير منتظمة</span></button>
+      <button class="opt" onclick="sel('q6','C',this)"><span class="opt-letter">C</span><span>أرقام عامة فقط (إيراد شهري)</span></button>
+      <button class="opt" onclick="sel('q6','D',this)"><span class="opt-letter">D</span><span>لا يوجد قياس منهجي</span></button>
+    </div>
+    <button class="btn-next" id="btn-q3" onclick="runAnalysis()">احصل على التقرير التشخيصي</button>
+  </div>
+</section>
+
+<!-- ═══════ LOADING ═══════ -->
+<section id="screen-loading" class="screen">
+  <div class="load-inner">
+    <div class="load-wordmark">CORE SYSTEM</div>
+    <p class="load-status" id="load-status">تحليل البيانات التشغيلية...</p>
+    <div class="load-bar-bg"><div class="load-bar-fill" id="load-bar"></div></div>
+    <div class="load-pct" id="load-pct">0%</div>
+  </div>
+</section>
+
+<!-- ═══════ RESULTS ═══════ -->
+<section id="screen-results" class="screen">
+  <div class="results-top">
+    <div class="results-name" id="r-name">تقرير التشخيص المهني</div>
+    <div><span class="score-big" id="r-score">--</span><span class="score-denom"> / 100</span></div>
+    <div class="score-tier" id="r-tier">--</div>
+    <div class="score-market" id="r-market">--</div>
+  </div>
+
+  <div class="results-body">
+
+    <!-- 3 Dimension Cards -->
+    <div class="section-label">تحليل الأبعاد الثلاثة — Dimensional Analysis</div>
+    <div class="dim-cards">
+
+      <div class="dim-card">
+        <div class="dim-card-left">
+          <div class="dim-val" id="d-op" style="color:#4a6cf7">--</div>
+          <div class="dim-sublbl">/ 100</div>
+        </div>
+        <div class="dim-card-right">
+          <div class="dim-title">نضج العمليات والإدارة</div>
+          <div class="dim-en">PROCESS MATURITY</div>
+          <div class="dim-desc" id="d-op-desc">يقيس هذا البعد مدى وجود أنظمة وبروتوكولات موثقة تدير العمليات اليومية بصورة مستقلة عن الأفراد — من سرعة الاستجابة إلى آليات المتابعة.</div>
+          <div class="dim-bar-bg"><div class="dim-bar-fill" id="d-op-bar" style="background:#4a6cf7;width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="dim-card">
+        <div class="dim-card-left">
+          <div class="dim-val" id="d-com" style="color:#d97706">--</div>
+          <div class="dim-sublbl">/ 100</div>
+        </div>
+        <div class="dim-card-right">
+          <div class="dim-title">كفاءة التواصل مع المرضى</div>
+          <div class="dim-en">PATIENT ENGAGEMENT</div>
+          <div class="dim-desc" id="d-com-desc">يقيس قدرة الفريق على تحويل الاستفسارات إلى مواعيد مؤكدة، وإدارة اعتراضات التسعير بأسلوب يركز على القيمة لا السعر.</div>
+          <div class="dim-bar-bg"><div class="dim-bar-fill" id="d-com-bar" style="background:#d97706;width:0%"></div></div>
+        </div>
+      </div>
+
+      <div class="dim-card">
+        <div class="dim-card-left">
+          <div class="dim-val" id="d-ret" style="color:#10b981">--</div>
+          <div class="dim-sublbl">/ 100</div>
+        </div>
+        <div class="dim-card-right">
+          <div class="dim-title">استدامة العلاقة مع المرضى</div>
+          <div class="dim-en">PATIENT LOYALTY</div>
+          <div class="dim-desc" id="d-ret-desc">يقيس قدرة العيادة على الاحتفاظ بالمرضى الحاليين وتعظيم قيمتهم طويلة الأمد عبر أنظمة No-Show وقياس مؤشرات الأداء.</div>
+          <div class="dim-bar-bg"><div class="dim-bar-fill" id="d-ret-bar" style="background:#10b981;width:0%"></div></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Primary Insight -->
+    <div class="section-label">التشخيص الهيكلي — Structural Diagnosis</div>
+    <div class="insight-primary">
+      <div class="insight-eye">الفجوة التشغيلية الرئيسية</div>
+      <div class="insight-text" id="r-insight">--</div>
+    </div>
+
+    <!-- Detailed Analysis -->
+    <div class="section-label">تحليل تفصيلي — Detailed Findings</div>
+    <div class="analysis-grid" id="r-analysis"></div>
+
+    <!-- Opportunity -->
+    <div class="opportunity-box">
+      <div class="opportunity-eye">فرصة النمو المباشرة — Growth Opportunity</div>
+      <div class="opportunity-text" id="r-opportunity">--</div>
+    </div>
+
+    <!-- CTA -->
+    <a id="wa-btn" class="wa-btn" href="#" target="_blank">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      احجز جلسة تشخيص استراتيجية — 15 دقيقة
+    </a>
+    <button class="pdf-btn" onclick="exportPDF()">تحميل التقرير التشخيصي — PDF</button>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════
+     PDF TEMPLATE — BILINGUAL PROFESSIONAL
+═══════════════════════════════════════ -->
+<div id="pdf-content">
+  <div class="pdf-page">
+
+    <!-- Header -->
+    <div class="pdf-hd">
+      <div class="pdf-logo-block">
+        <span class="pdf-logo-text">CORE SYSTEM</span>
+        <span class="pdf-logo-sub">CLINIC INTELLIGENCE PLATFORM</span>
+      </div>
+      <div class="pdf-hd-right">
+        <div class="pdf-hd-date" id="pdf-date"></div>
+        <div class="pdf-hd-ref" id="pdf-ref"></div>
+      </div>
+    </div>
+
+    <!-- Title -->
+    <div class="pdf-title-block">
+      <span class="pdf-report-label">Clinic Performance Diagnostic Report | تقرير التشخيص المؤسسي</span>
+      <div class="pdf-doctor-name" id="pdf-doctor"></div>
+      <div class="pdf-report-sub" id="pdf-specialty-line"></div>
+    </div>
+
+    <!-- Score Hero -->
+    <div class="pdf-score-hero">
+      <div class="pdf-score-left">
+        <div class="pdf-score-label-ar">النتيجة الإجمالية — Overall Score</div>
+        <div><span class="pdf-score-num" id="pdf-score">--</span><span class="pdf-score-denom"> / 100</span></div>
+      </div>
+      <div class="pdf-score-right">
+        <div class="pdf-tier-badge" id="pdf-tier">--</div>
+        <div class="pdf-market-ar" id="pdf-market-ar">--</div>
+        <div class="pdf-market-en" id="pdf-market-en">--</div>
+      </div>
+    </div>
+
+    <!-- Dims Table -->
+    <div class="pdf-section-title"><span>تحليل الأبعاد الثلاثة</span><span style="direction:ltr">Dimensional Breakdown</span></div>
+    <table class="pdf-dims-table">
+      <thead>
+        <tr>
+          <th style="width:14%">النتيجة<br><span style="font-family:monospace;font-size:8px">Score</span></th>
+          <th style="width:28%">البعد<br><span style="font-family:monospace;font-size:8px">Dimension</span></th>
+          <th>التحليل<br><span style="font-family:monospace;font-size:8px">Analysis</span></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><div class="val" id="pdf-op" style="color:#4a6cf7">--</div>
+              <div class="pdf-bar-bg" style="margin-top:6px"><div class="pdf-bar-fill" id="pdf-op-bar" style="background:#4a6cf7;width:0%"></div></div></td>
+          <td><div class="ar-name">نضج العمليات والإدارة</div><div class="en-name">PROCESS MATURITY</div></td>
+          <td><div class="desc-ar" id="pdf-op-analysis">--</div><div class="desc-en" id="pdf-op-analysis-en">--</div></td>
+        </tr>
+        <tr>
+          <td><div class="val" id="pdf-com" style="color:#d97706">--</div>
+              <div class="pdf-bar-bg" style="margin-top:6px"><div class="pdf-bar-fill" id="pdf-com-bar" style="background:#d97706;width:0%"></div></div></td>
+          <td><div class="ar-name">كفاءة التواصل مع المرضى</div><div class="en-name">PATIENT ENGAGEMENT</div></td>
+          <td><div class="desc-ar" id="pdf-com-analysis">--</div><div class="desc-en" id="pdf-com-analysis-en">--</div></td>
+        </tr>
+        <tr>
+          <td><div class="val" id="pdf-ret" style="color:#10b981">--</div>
+              <div class="pdf-bar-bg" style="margin-top:6px"><div class="pdf-bar-fill" id="pdf-ret-bar" style="background:#10b981;width:0%"></div></div></td>
+          <td><div class="ar-name">استدامة العلاقة مع المرضى</div><div class="en-name">PATIENT LOYALTY</div></td>
+          <td><div class="desc-ar" id="pdf-ret-analysis">--</div><div class="desc-en" id="pdf-ret-analysis-en">--</div></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Structural Diagnosis -->
+    <div class="pdf-section-title" style="margin-top:14px"><span>التشخيص الهيكلي الرئيسي</span><span style="direction:ltr">Primary Structural Diagnosis</span></div>
+    <div class="pdf-insight-box">
+      <div class="pdf-insight-eye-ar">الفجوة التشغيلية المحورية</div>
+      <div class="pdf-insight-eye-en">CORE OPERATIONAL GAP</div>
+      <div class="pdf-insight-ar" id="pdf-insight-ar">--</div>
+      <div class="pdf-insight-en" id="pdf-insight-en">--</div>
+    </div>
+
+    <!-- Findings Grid -->
+    <div class="pdf-section-title"><span>نتائج التشخيص التفصيلي</span><span style="direction:ltr">Detailed Findings</span></div>
+    <div id="pdf-findings"></div>
+
+    <!-- Footer -->
+    <div class="pdf-footer">
+      <div class="pdf-footer-left">CORE SYSTEM™ — Confidential Diagnostic Report</div>
+      <div class="pdf-footer-right" id="pdf-footer-name"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const CFG={whatsapp:'+962786595990',supabase_url:'',supabase_key:''};
+const ST={answers:{},lead:{},profile:{},result:null};
+
+function goTo(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0)}
+
+const TICKS=['تم تحليل عيادة منذ 3 دقائق','يتم إنشاء تقرير تشخيصي الآن','تحديث معايير المقارنة المؤسسية','تحليل جديد اكتمل للتو','مراجعة بيانات عيادة مشابهة حالياً','تم رصد فجوة تشغيلية هيكلية للتو'];
+let ti=0;setInterval(()=>{ti=(ti+1)%TICKS.length;const el=document.getElementById('ticker-text');if(el)el.textContent=TICKS[ti]},4000);
+
+function checkProfile(){const s=document.getElementById('specialty').value,y=document.getElementById('years').value,st=document.getElementById('staff').value,btn=document.getElementById('btn-profile');if(s&&y&&st){btn.classList.add('on');ST.profile={specialty:s,years:y,staff:st}}else btn.classList.remove('on')}
+
+function sel(qKey,val,el){el.closest('.opts').querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');ST.answers[qKey]=val;checkBlocks()}
+function checkBlocks(){if(ST.answers.q1&&ST.answers.q2)document.getElementById('btn-q1')?.classList.add('on');if(ST.answers.q3&&ST.answers.q4)document.getElementById('btn-q2')?.classList.add('on');if(ST.answers.q5&&ST.answers.q6)document.getElementById('btn-q3')?.classList.add('on')}
+
+function checkLead(){const name=document.getElementById('lead-name').value.trim(),phone=document.getElementById('lead-phone').value.trim(),email=document.getElementById('lead-email').value.trim(),btn=document.getElementById('btn-lead');if(name&&phone.length>=10&&email.includes('@')){btn.style.opacity='1';btn.style.pointerEvents='all';ST.lead={name,phone,email}}else{btn.style.opacity='.2';btn.style.pointerEvents='none'}}
+function submitLead(){saveDB('leads',{...ST.lead,...ST.profile,created_at:new Date().toISOString()});goTo('screen-q2')}
+
+// SCORING
+const SC={q1:{A:{op:100,com:90},B:{op:75,com:70},C:{op:40,com:35},D:{op:10,com:10}},q2:{A:{op:100,com:95},B:{op:65,com:60},C:{op:35,com:30},D:{op:5,com:5}},q3:{A:{com:100,op:70},B:{com:70,op:50},C:{com:35,op:25},D:{com:5,op:5}},q4:{A:{com:100,op:60},B:{com:65,op:40},C:{com:30,op:20},D:{com:5,op:5}},q5:{A:{ret:100,com:70},B:{ret:65,com:50},C:{ret:30,com:25},D:{ret:5,com:5}},q6:{A:{ret:100,op:90},B:{ret:65,op:55},C:{ret:30,op:25},D:{ret:5,op:5}}};
+
+function calcScore(){const a=ST.answers,avg=(...v)=>v.reduce((s,x)=>s+x,0)/v.length;const op=avg(SC.q1[a.q1]?.op||0,SC.q2[a.q2]?.op||0,SC.q3[a.q3]?.op||0,SC.q4[a.q4]?.op||0),com=avg(SC.q1[a.q1]?.com||0,SC.q2[a.q2]?.com||0,SC.q3[a.q3]?.com||0,SC.q4[a.q4]?.com||0),ret=avg(SC.q5[a.q5]?.ret||0,SC.q6[a.q6]?.ret||0);let rel=1.0;if(a.q1==='A'&&a.q2==='D')rel-=.10;if(a.q4==='A'&&a.q6==='D')rel-=.15;if(a.q2==='A'&&a.q6==='D')rel-=.10;rel=Math.max(.65,rel);return{operational:Math.round(op),commercial:Math.round(com),retention:Math.round(ret),reliability:Math.round(rel*100),final:Math.round(((op*.5)+(com*.3)+(ret*.2))*rel)}}
+
+function getBench(s){if(s>=80)return{label:'أداء مؤسسي متقدم',labelEn:'ADVANCED INSTITUTIONAL',color:'#10b981',marketAr:'أعلى من 90% من العيادات المشابهة',marketEn:'Top 10% of comparable clinics'};if(s>=65)return{label:'أداء تشغيلي جيد',labelEn:'SOLID OPERATIONAL',color:'#4a6cf7',marketAr:'أعلى من 70% من العيادات المشابهة',marketEn:'Top 30% of comparable clinics'};if(s>=45)return{label:'مرحلة النمو',labelEn:'GROWTH STAGE',color:'#d97706',marketAr:'أعلى من 45% من العيادات المشابهة',marketEn:'Mid-range performance'};if(s>=25)return{label:'بداية التأسيس',labelEn:'EARLY STAGE',color:'#dc2626',marketAr:'أعلى من 20% من العيادات المشابهة',marketEn:'Below market average'};return{label:'يتطلب تدخلاً هيكلياً',labelEn:'REQUIRES INTERVENTION',color:'#7f1d1d',marketAr:'في أدنى 20% من السوق',marketEn:'Bottom 20% — urgent restructuring needed'}}
+
+// INSIGHT ENGINE
+function getContent(r){
+  const a=ST.answers;
+  const dims={operational:r.operational,commercial:r.commercial,retention:r.retention};
+  const sorted=Object.entries(dims).sort((x,y)=>x[1]-y[1]);
+  const lowest=sorted[0][0];
+
+  const insights={
+    operational:{
+      ar:'الاعتماد على الجهد اليدوي في إدارة العمليات اليومية يُنتج اختناقات إدارية تؤثر مباشرة على تجربة المريض وكفاءة الفريق — هذه البيئة قابلة للأتمتة الجزئية أو الكاملة.',
+      en:'Manual dependency in daily operations creates administrative bottlenecks that directly impact patient experience and team efficiency — this environment is ready for partial or full automation.',
+    },
+    commercial:{
+      ar:'غياب بروتوكول إدارة التوقعات يضطر المريض للمقارنة بناءً على السعر بدلاً من القيمة — وهذا هو الجذر الهيكلي لاعتراضات التسعير المتكررة التي يواجهها الفريق.',
+      en:'The absence of a structured expectation-management protocol forces patients to compare based on price rather than value — this is the structural root of recurring pricing objections.',
+    },
+    retention:{
+      ar:'تكلفة استقطاب مريض جديد تفوق 5 أضعاف تكلفة الاحتفاظ بمريض حالي — قاعدة المرضى الموجودة تمثل فرصة نمو مباشرة غير مُفعَّلة بعد.',
+      en:'Acquiring a new patient costs 5x more than retaining an existing one — the current patient base represents a direct, untapped growth opportunity.',
+    },
+  };
+
+  const opportunities={
+    operational:'أتمتة نقاط الاحتكاك الرئيسية في Patient Journey (الاستجابة الأولى، التذكير، إعادة الجدولة) يمكن أن يُحرر ما بين 30–50% من الطاقة التشغيلية الحالية للفريق.',
+    commercial:'بناء بروتوكول Value Presentation موحد يطبقه الفريق بدلاً من الاعتماد على الخبرة الفردية — يمكن أن يرفع Patient Acceptance Rate بنسبة تصل إلى 25% في غضون 60 يوماً.',
+    retention:'تفعيل دورة متابعة منتظمة للمرضى غير النشطين (No-Show Recovery + Reactivation Campaigns) يمكن أن يُضاف كإيراد إضافي بدون أي تكلفة استقطاب.',
+  };
+
+  // Detailed findings per dim
+  const findings=[];
+  findings.push({
+    color:'#4a6cf7',
+    titleAr:'نضج العمليات والإدارة',
+    titleEn:'Process Maturity',
+    score:r.operational,
+    textAr: r.operational>=70
+      ? 'العمليات التشغيلية في مستوى جيد. الأولوية: توثيق البروتوكولات الحالية لضمان استمراريتها بمعزل عن الأفراد.'
+      : r.operational>=40
+      ? 'العمليات تعتمد بشكل كبير على الجهد الشخصي. الأولوية: تحديد 3 نقاط احتكاك رئيسية وأتمتتها أو هيكلتها.'
+      : 'العمليات في مرحلة تأسيسية تعتمد كلياً على الأفراد. الأولوية: بناء SOP أساسية لكل نقطة تواصل مع المريض.',
+    textEn: r.operational>=70
+      ? 'Operations are at a good level. Priority: document existing protocols to ensure sustainability independent of individuals.'
+      : r.operational>=40
+      ? 'Operations are heavily reliant on personal effort. Priority: identify 3 key friction points and automate or structure them.'
+      : 'Operations are in a foundational stage. Priority: build basic SOPs for every patient touchpoint.',
+  });
+  findings.push({
+    color:'#d97706',
+    titleAr:'كفاءة التواصل مع المرضى',
+    titleEn:'Patient Engagement',
+    score:r.commercial,
+    textAr: r.commercial>=70
+      ? 'فريق التواصل يمتلك أدوات جيدة لإدارة التوقعات. الأولوية: توحيد المنهجية وتوثيقها لتقليل الاعتماد على الأفراد.'
+      : r.commercial>=40
+      ? 'هناك تسرب في Patient Acceptance Rate. الأولوية: بناء Value Script موحد وتدريب الفريق على تقنيات إدارة الاعتراضات.'
+      : 'غياب شبه كامل لبروتوكول التواصل. الأولوية: تعريف Patient Journey بوضوح وتحديد نقطة القرار الرئيسية.',
+    textEn: r.commercial>=70
+      ? 'The communication team has good expectation-management tools. Priority: unify and document methodology.'
+      : r.commercial>=40
+      ? 'There is leakage in the Patient Acceptance Rate. Priority: build a unified Value Script and train the team.'
+      : 'Almost complete absence of a communication protocol. Priority: define the Patient Journey and the key decision point.',
+  });
+  findings.push({
+    color:'#10b981',
+    titleAr:'استدامة العلاقة مع المرضى',
+    titleEn:'Patient Loyalty',
+    score:r.retention,
+    textAr: r.retention>=70
+      ? 'منظومة الاحتفاظ بالمرضى في مستوى متقدم. الأولوية: تحليل LTV segments وتطوير برامج ولاء مخصصة.'
+      : r.retention>=40
+      ? 'الاحتفاظ يحدث بصورة غير منتظمة. الأولوية: تفعيل No-Show Recovery وبناء خط متابعة منتظم للمرضى الحاليين.'
+      : 'لا توجد منظومة احتفاظ فعلية. الأولوية: البدء بقاعدة بيانات المرضى وبناء دورة تواصل بسيطة ومنتظمة.',
+    textEn: r.retention>=70
+      ? 'Patient retention system is at an advanced level. Priority: analyze LTV segments and develop personalized loyalty programs.'
+      : r.retention>=40
+      ? 'Retention happens irregularly. Priority: activate No-Show Recovery and build a regular follow-up cadence.'
+      : 'No actual retention system exists. Priority: start with a patient database and build a simple, regular communication cycle.',
+  });
+
+  return{
+    insight:insights[lowest],
+    opportunity:opportunities[lowest],
+    findings,
+  };
+}
+
+// LOADING
+function runAnalysis(){
+  goTo('screen-loading');
+  const steps=[
+    {p:12,t:'تحليل نضج العمليات والإدارة...'},
+    {p:30,t:'قياس كفاءة التواصل مع المرضى...'},
+    {p:55,t:'تقييم استدامة العلاقة والـ No-Show...'},
+    {p:75,t:'مقارنة مع المعايير المؤسسية...'},
+    {p:90,t:'بناء التقرير التشخيصي...'},
+    {p:100,t:'التقرير جاهز'},
+  ];
+  let i=0;
+  const bar=document.getElementById('load-bar'),sta=document.getElementById('load-status'),pct=document.getElementById('load-pct');
+  const tick=setInterval(()=>{
+    if(i>=steps.length){clearInterval(tick);const r=calcScore();ST.result=r;saveDB('assessments',{...ST.lead,...ST.profile,...ST.answers,...r,created_at:new Date().toISOString()});renderResults(r);return}
+    bar.style.width=steps[i].p+'%';sta.textContent=steps[i].t;pct.textContent=steps[i].p+'%';i++;
+  },950);
+}
+
+// RENDER RESULTS
+function renderResults(r){
+  const b=getBench(r.final);
+  const content=getContent(r);
+  const dn=ST.lead.name||'';
+
+  // Screen
+  document.getElementById('r-name').textContent=dn?'تقرير التشخيص المهني — '+dn:'تقرير التشخيص المهني';
+  document.getElementById('r-score').textContent=r.final;
+  document.getElementById('r-score').style.color=b.color;
+  document.getElementById('r-tier').textContent=b.label;
+  document.getElementById('r-tier').style.background=b.color+'18';
+  document.getElementById('r-tier').style.color=b.color;
+  document.getElementById('r-market').textContent=b.marketAr;
+
+  // Dim bars (animated)
+  setTimeout(()=>{
+    document.getElementById('d-op-bar').style.width=r.operational+'%';
+    document.getElementById('d-com-bar').style.width=r.commercial+'%';
+    document.getElementById('d-ret-bar').style.width=r.retention+'%';
+  },300);
+  document.getElementById('d-op').textContent=r.operational;
+  document.getElementById('d-com').textContent=r.commercial;
+  document.getElementById('d-ret').textContent=r.retention;
+
+  // Insight
+  document.getElementById('r-insight').textContent=content.insight.ar;
+  document.getElementById('r-opportunity').textContent=content.opportunity;
+
+  // Analysis items
+  const grid=document.getElementById('r-analysis');
+  grid.innerHTML='';
+  content.findings.forEach(f=>{
+    const scoreLabel=f.score>=70?'جيد':f.score>=40?'يحتاج تطوير':'أولوية قصوى';
+    const div=document.createElement('div');
+    div.className='analysis-item';
+    div.innerHTML=`<div class="analysis-item-header"><div class="analysis-dot" style="background:${f.color}"></div><div class="analysis-item-title">${f.titleAr} — <span style="font-family:monospace;font-size:10px;color:var(--muted)">${f.titleEn}</span></div><span style="margin-right:auto;font-size:10px;color:${f.color};font-family:monospace">${f.score} / 100</span></div><div class="analysis-item-text">${f.textAr}</div>`;
+    grid.appendChild(div);
+  });
+
+  // WhatsApp
+  const msg=encodeURIComponent('مرحباً، أكملت تقييم الأداء المؤسسي عبر Core System وحصلت على نتيجة '+r.final+'/100 ('+b.label+'). أرغب بمراجعة التقرير التشخيصي.');
+  document.getElementById('wa-btn').href='https://wa.me/'+CFG.whatsapp+'?text='+msg;
+
+  // Prepare PDF
+  const specialtyMap={cosmetic:'تجميل وليزر',dental:'أسنان',general:'عام وعائلي',derma:'جلدية',ortho:'عظام وعلاج طبيعي',eye:'عيون',other:'تخصص طبي'};
+  const spLabel=specialtyMap[ST.profile.specialty]||'';
+  document.getElementById('pdf-date').textContent=new Date().toLocaleDateString('ar-JO',{year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('pdf-ref').textContent='REF: CS-'+Date.now().toString(36).toUpperCase();
+  document.getElementById('pdf-doctor').textContent=dn||'تقرير التشخيص المهني';
+  document.getElementById('pdf-specialty-line').textContent='Specialty: '+spLabel+' | Staff: '+ST.profile.staff+' | Years: '+ST.profile.years;
+  document.getElementById('pdf-score').textContent=r.final;
+  document.getElementById('pdf-tier').textContent=b.labelEn;
+  document.getElementById('pdf-tier').style.background=b.color+'18';
+  document.getElementById('pdf-tier').style.color=b.color;
+  document.getElementById('pdf-market-ar').textContent=b.marketAr;
+  document.getElementById('pdf-market-en').textContent=b.marketEn;
+  document.getElementById('pdf-op').textContent=r.operational;
+  document.getElementById('pdf-com').textContent=r.commercial;
+  document.getElementById('pdf-ret').textContent=r.retention;
+  document.getElementById('pdf-op-bar').style.width=r.operational+'%';
+  document.getElementById('pdf-com-bar').style.width=r.commercial+'%';
+  document.getElementById('pdf-ret-bar').style.width=r.retention+'%';
+
+  document.getElementById('pdf-op-analysis').textContent=content.findings[0].textAr;
+  document.getElementById('pdf-op-analysis-en').textContent=content.findings[0].textEn;
+  document.getElementById('pdf-com-analysis').textContent=content.findings[1].textAr;
+  document.getElementById('pdf-com-analysis-en').textContent=content.findings[1].textEn;
+  document.getElementById('pdf-ret-analysis').textContent=content.findings[2].textAr;
+  document.getElementById('pdf-ret-analysis-en').textContent=content.findings[2].textEn;
+
+  document.getElementById('pdf-insight-ar').textContent=content.insight.ar;
+  document.getElementById('pdf-insight-en').textContent=content.insight.en;
+
+  // PDF findings grid
+  const pf=document.getElementById('pdf-findings');
+  pf.innerHTML='';
+  const row=document.createElement('div');
+  row.className='pdf-analysis-row';
+  content.findings.forEach(f=>{
+    const cell=document.createElement('div');
+    cell.className='pdf-analysis-cell';
+    cell.innerHTML=`<div><span class="pdf-cell-dot" style="background:${f.color}"></span><span style="font-size:11px;font-weight:700">${f.titleAr}</span></div><div class="pdf-cell-title-en">${f.titleEn} — ${f.score}/100</div><div class="pdf-cell-text-ar">${f.textAr}</div>`;
+    row.appendChild(cell);
+  });
+  pf.appendChild(row);
+
+  document.getElementById('pdf-footer-name').textContent=dn;
+
+  goTo('screen-results');
+}
+
+// PDF EXPORT
+function exportPDF(){
+  const el=document.getElementById('pdf-content');
+  el.style.display='block';
+  html2pdf().set({
+    margin:[0,0,0,0],
+    filename:'CORE-SYSTEM-Diagnostic-'+(ST.lead.name||'Report')+'.pdf',
+    image:{type:'jpeg',quality:.98},
+    html2canvas:{scale:2,useCORS:true,letterRendering:true},
+    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+  }).from(el).save().then(()=>{el.style.display='none'});
+}
+
+async function saveDB(table,data){if(!CFG.supabase_url)return;try{await fetch(CFG.supabase_url+'/rest/v1/'+table,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabase_key,'Authorization':'Bearer '+CFG.supabase_key,'Prefer':'return=minimal'},body:JSON.stringify(data)})}catch(e){console.warn('DB:',e)}}
+</script>
+</body>
+</html>
