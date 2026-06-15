@@ -2,18 +2,35 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="description" content="تقييم تشخيصي مؤسسي لأداء العيادات الطبية — تحليل نضج العمليات، كفاءة التواصل مع المرضى، واستدامة العلاقة. تقرير PDF مجاني.">
+<meta name="keywords" content="تقييم العيادات, أداء مؤسسي, رحلة المريض, Core System, عيادات الأردن">
+<meta name="author" content="Core System">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="تقييم الأداء المؤسسي | CORE SYSTEM">
+<meta property="og:description" content="تحليل تشخيصي مؤسسي لنضج العمليات، كفاءة التواصل مع المرضى، واستدامة العلاقة — خلال أقل من دقيقتين.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://clinicevaluat.pages.dev/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="theme-color" content="#08080f">
+<link rel="canonical" href="https://clinicevaluat.pages.dev/">
 <title>تقييم الأداء المؤسسي | CORE SYSTEM</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🏥%3C/text%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect fill='%234a6cf7' width='100' height='100' rx='20'/%3E%3Ctext x='50' y='65' text-anchor='middle' fill='white' font-family='monospace' font-size='40' font-weight='700'%3ECS%3C/text%3E%3C/svg%3E">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+/* Font loading optimized with display=swap for better performance */
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+/* Accessibility: Focus styles for keyboard navigation */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
+/* Smooth scrolling for anchor links */
+html{scroll-behavior:smooth}
 :root{
   --bg:#08080f;--surface:#0f0f18;--card:#14141f;--border:#22223a;--border2:#2e2e4a;
   --accent:#4a6cf7;--accent2:#7c3aed;--success:#10b981;--warning:#d97706;--danger:#dc2626;
   --text:#e8e8f2;--muted:#5a5a7a;--light:#9090b0;--white:#ffffff;
 }
-html{scroll-behavior:smooth}
 body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
 .screen{display:none;min-height:100vh}
 .screen.active{display:flex;flex-direction:column}
@@ -263,10 +280,39 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
 .pdf-footer-left{font-size:9px;color:#aaa;font-family:monospace;direction:ltr}
 .pdf-footer-right{font-size:9px;color:#aaa}
 </style>
+<!-- Google Analytics 4 - Replace GA_MEASUREMENT_ID with your actual ID -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'GA_MEASUREMENT_ID');
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "تقييم الأداء المؤسسي | CORE SYSTEM",
+  "description": "أداة تقييم تشخيصية مؤسسية لأداء العيادات الطبية",
+  "url": "https://clinicevaluat.pages.dev/",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "inLanguage": "ar",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "JOD"
+  }
+}
+</script>
+<base target="_blank">
 </head>
 <body>
+<a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;z-index:9999;padding:8px 16px;background:var(--accent);color:var(--white);text-decoration:none;border-radius:0 0 8px 0;font-size:13px;font-weight:600;">تخطي إلى المحتوى الرئيسي</a>
+<main id="main-content">
 
 <!-- ═══════ LANDING ═══════ -->
+<noscript style="display:block;padding:20px;background:var(--danger);color:var(--white);text-align:center;font-weight:600;">⚠️ يتطلب هذا الموقع تفعيل JavaScript للعمل بشكل صحيح.</noscript>
 <section id="screen-landing" class="screen active">
   <div class="landing-inner">
     <span class="wordmark">CORE <span>SYSTEM</span></span>
@@ -279,7 +325,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
       <div class="pillar"><div class="pillar-num">&lt;2م</div><div class="pillar-lbl">وقت<br>التقييم</div></div>
     </div>
     <div class="ticker"><div class="ticker-dot"></div><span id="ticker-text">تم تحليل عيادة منذ 3 دقائق</span></div>
-    <button class="btn-primary" onclick="goTo('screen-profile')">ابدأ التقييم المؤسسي</button>
+    <button class="btn-primary" onclick="goTo('screen-profile')" aria-label="ابدأ تقييم الأداء المؤسسي للعيادة">ابدأ التقييم المؤسسي</button>
     <div class="trust-row"><span>بيانات محمية</span><span style="color:var(--border)">·</span><span>بدون التزامات</span><span style="color:var(--border)">·</span><span>تقرير PDF مجاني</span></div>
   </div>
 </section>
@@ -826,10 +872,16 @@ function exportPDF(){
     image:{type:'jpeg',quality:.98},
     html2canvas:{scale:2,useCORS:true,letterRendering:true},
     jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-  }).from(el).save().then(()=>{el.style.display='none'});
+  }).from(el).save().catch(function(err){
+    console.error('PDF Export Error:', err);
+    alert('حدث خطأ أثناء تصدير PDF. يرجى المحاولة مرة أخرى.');
+  }).finally(function(){
+    el.style.display='none';
+  });
 }
 
 async function saveDB(table,data){if(!CFG.supabase_url)return;try{await fetch(CFG.supabase_url+'/rest/v1/'+table,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabase_key,'Authorization':'Bearer '+CFG.supabase_key,'Prefer':'return=minimal'},body:JSON.stringify(data)})}catch(e){console.warn('DB:',e)}}
 </script>
+</main>
 </body>
 </html>
