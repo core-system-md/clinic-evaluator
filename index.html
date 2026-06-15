@@ -148,21 +148,28 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
    PDF TEMPLATE — BILINGUAL
    ════════════════════════════ */
 #pdf-content{
-  display:none;
+  position:absolute;
+  left:-9999px;
+  top:0;
   font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
   background:#ffffff;
   color:#111111;
   width:210mm;
   padding:0;
   direction:rtl;
+  z-index:-1;
+  opacity:0;
+  pointer-events:none;
 }
 
 .pdf-page{
   width:210mm;
   min-height:297mm;
   padding:14mm 14mm 12mm;
-  background:#fff;
+  background:#ffffff !important;
   position:relative;
+  box-sizing:border-box;
+  overflow:hidden;
 }
 
 /* PDF Header */
@@ -865,19 +872,38 @@ function renderResults(r){
 // PDF EXPORT
 function exportPDF(){
   const el=document.getElementById('pdf-content');
-  el.style.display='block';
-  html2pdf().set({
-    margin:[0,0,0,0],
-    filename:'CORE-SYSTEM-Diagnostic-'+(ST.lead.name||'Report')+'.pdf',
-    image:{type:'jpeg',quality:.98},
-    html2canvas:{scale:2,useCORS:true,letterRendering:true},
-    jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-  }).from(el).save().catch(function(err){
-    console.error('PDF Export Error:', err);
-    alert('حدث خطأ أثناء تصدير PDF. يرجى المحاولة مرة أخرى.');
-  }).finally(function(){
-    el.style.display='none';
-  });
+  // Make element visible for html2pdf to render properly
+  const originalPosition = el.style.position;
+  const originalLeft = el.style.left;
+  const originalOpacity = el.style.opacity;
+  const originalZIndex = el.style.zIndex;
+
+  el.style.position = 'static';
+  el.style.left = 'auto';
+  el.style.opacity = '1';
+  el.style.zIndex = '1';
+  el.style.display = 'block';
+
+  // Small delay to ensure rendering
+  setTimeout(function(){
+    html2pdf().set({
+      margin:[0,0,0,0],
+      filename:'CORE-SYSTEM-Diagnostic-'+(ST.lead.name||'Report')+'.pdf',
+      image:{type:'jpeg',quality:.98},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
+      jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+    }).from(el).save().catch(function(err){
+      console.error('PDF Export Error:', err);
+      alert('حدث خطأ أثناء تصدير PDF. يرجى المحاولة مرة أخرى.');
+    }).finally(function(){
+      // Restore original styles
+      el.style.position = originalPosition;
+      el.style.left = originalLeft;
+      el.style.opacity = originalOpacity;
+      el.style.zIndex = originalZIndex;
+      el.style.display = '';
+    });
+  }, 100);
 }
 
 async function saveDB(table,data){if(!CFG.supabase_url)return;try{await fetch(CFG.supabase_url+'/rest/v1/'+table,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabase_key,'Authorization':'Bearer '+CFG.supabase_key,'Prefer':'return=minimal'},body:JSON.stringify(data)})}catch(e){console.warn('DB:',e)}}
