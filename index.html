@@ -36,25 +36,25 @@
 /* Smooth scrolling for anchor links */
 :root{
   --bg:#0a1628;--surface:#0f1d32;--card:#141f35;--border:#1a2d4a;--border2:#243555;
-  --accent:#4a6cf7;--accent2:#7c3aed;--success:#10b981;--warning:#d97706;--danger:#dc2626;
-  --text:#e8e8f2;--muted:#5a5a7a;--light:#9090b0;--white:#ffffff;
+  --accent:#5a7cf7;--accent2:#7c3aed;--success:#12d18e;--warning:#f0900a;--danger:#e53e3e;
+  --text:#f0f0f5;--muted:#7a7a9a;--light:#a0a0c0;--white:#ffffff;
 }
-body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;height:100dvh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow-x:hidden;margin:0;padding:0}
-html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;background:var(--bg)}
-.screen{display:none;min-height:100dvh;max-width:100vw;overflow-x:hidden}
-.screen.active{display:flex;flex-direction:column;max-width:100vw;min-height:100dvh;height:100dvh}
+body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;font-size:16px;line-height:1.65;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow-x:hidden;margin:0;padding:0;text-rendering:optimizeLegibility}
+html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;background:var(--bg)}
+.screen{display:none;min-height:100vh;min-height:100dvh;max-width:100vw;overflow-x:hidden;box-sizing:border-box}
+.screen.active{display:flex;flex-direction:column;max-width:100vw;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh}
 *{max-width:100vw}
 
 /* ── LANDING ── */
-#screen-landing{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg);min-height:100dvh;height:100dvh;box-sizing:border-box}
+#screen-landing{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;box-sizing:border-box}
 .landing-inner{max-width:460px;width:100%;padding:0 16px;box-sizing:border-box}
 @media(max-width:480px){.landing-inner{padding:0 12px}.landing-title{font-size:22px}.landing-sub{font-size:13px}.pillars{grid-template-columns:1fr;gap:8px}.pillar{padding:14px 8px}.btn-primary{padding:14px;font-size:13px}}
 .wordmark{letter-spacing:6px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
 .wordmark span{color:var(--accent)}
 .landing-eyebrow{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;font-family:'IBM Plex Mono',monospace}
-.landing-title{font-size:clamp(24px,5.5vw,36px);font-weight:700;line-height:1.3;color:var(--white);margin-bottom:20px}
+.landing-title{font-size:clamp(26px,5.5vw,38px);font-weight:700;line-height:1.35;color:var(--white);margin-bottom:20px;text-shadow:0 2px 4px rgba(0,0,0,0.3)}
 .landing-title em{font-style:normal;color:var(--light);font-weight:300}
-.landing-sub{font-size:14px;color:var(--light);line-height:1.85;margin-bottom:40px;font-weight:300}
+.landing-sub{font-size:15px;color:var(--light);line-height:1.85;margin-bottom:40px;font-weight:400;letter-spacing:0.2px}
 .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:32px}
 .pillar{background:var(--card);padding:18px 12px;text-align:center}
 .pillar-num{font-size:20px;font-weight:700;color:var(--white);font-family:'IBM Plex Mono',monospace}
@@ -75,7 +75,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 .form-body{padding:28px 24px 48px;max-width:520px;margin:0 auto;width:100%;flex:1;box-sizing:border-box}
 @media(max-width:480px){.form-body{padding:20px 16px 40px}.form-nav{padding:14px 16px 0}.q-title{font-size:16px}.opt{padding:12px 14px;font-size:12px}}
 .q-eyebrow{font-size:10px;letter-spacing:2px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
-.q-title{font-size:18px;font-weight:600;color:var(--white);margin-bottom:6px;line-height:1.4}
+.q-title{font-size:19px;font-weight:600;color:var(--white);margin-bottom:6px;line-height:1.45;letter-spacing:0.3px}
 .q-sub{font-size:12px;color:var(--muted);margin-bottom:22px;font-family:'IBM Plex Mono',monospace}
 .field{margin-bottom:16px}
 .field-label{display:block;font-size:11px;color:var(--light);margin-bottom:7px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
@@ -84,7 +84,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 .field-input:focus,.field-select:focus{outline:none;border-color:var(--accent)}
 .field-input::placeholder{color:var(--muted)}
 .opts{display:grid;gap:8px}
-.opt{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:right;color:var(--light);font-family:inherit;font-size:13px;transition:all .15s;width:100%;font-weight:400}
+.opt{display:flex;align-items:center;gap:14px;padding:14px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;text-align:right;color:var(--light);font-family:inherit;font-size:14px;transition:all .15s;width:100%;font-weight:400;line-height:1.5}
 .opt:hover{border-color:var(--border2);color:var(--text)}
 .opt.sel{border-color:var(--accent);background:rgba(74,108,247,.08);color:var(--white)}
 .opt-letter{width:26px;height:26px;border-radius:6px;background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;transition:all .15s}
@@ -113,7 +113,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 #screen-results{flex-direction:column;padding-bottom:80px}
 .results-top{padding:36px 24px 28px;text-align:center;border-bottom:1px solid var(--border);background:var(--surface)}
 .results-name{font-size:11px;letter-spacing:2px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:20px;text-transform:uppercase}
-.score-big{font-size:76px;font-weight:700;line-height:1;font-family:'IBM Plex Mono',monospace;letter-spacing:-3px}
+.score-big{font-size:76px;font-weight:700;line-height:1;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;text-shadow:0 2px 8px rgba(74,108,247,0.3)}
 .score-denom{font-size:16px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
 .score-tier{display:inline-block;padding:5px 18px;border-radius:4px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin:12px 0 8px}
 .score-market{font-size:12px;color:var(--light);font-weight:300}
@@ -129,7 +129,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 .dim-card-right{flex:1}
 .dim-title{font-size:13px;font-weight:700;color:var(--white);margin-bottom:4px}
 .dim-en{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:8px}
-.dim-desc{font-size:12px;color:var(--light);line-height:1.7;font-weight:300}
+.dim-desc{font-size:13px;color:var(--light);line-height:1.75;font-weight:400;letter-spacing:0.2px}
 .dim-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
 .dim-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
 
@@ -138,14 +138,14 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 
 .insight-primary{background:var(--card);border:1px solid var(--border);border-right:2px solid var(--accent);border-radius:8px;padding:20px;margin-bottom:12px}
 .insight-eye{font-size:9px;letter-spacing:3px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
-.insight-text{font-size:14px;color:var(--text);line-height:1.85;font-weight:300}
+.insight-text{font-size:15px;color:var(--text);line-height:1.85;font-weight:400;letter-spacing:0.2px}
 
 .analysis-grid{display:grid;gap:8px;margin-bottom:12px}
 .analysis-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
 .analysis-item-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .analysis-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .analysis-item-title{font-size:12px;font-weight:600;color:var(--white)}
-.analysis-item-text{font-size:12px;color:var(--light);line-height:1.7;font-weight:300;padding-right:16px}
+.analysis-item-text{font-size:13px;color:var(--light);line-height:1.75;font-weight:400;padding-right:16px;letter-spacing:0.2px}
 
 .opportunity-box{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:16px;margin-bottom:20px}
 .opportunity-eye{font-size:9px;letter-spacing:3px;color:var(--success);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:8px}
@@ -177,12 +177,17 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 
 .pdf-page{
   width:210mm;
-  min-height:297mm;
+  height:297mm;
   padding:14mm 14mm 12mm;
   background:#ffffff !important;
   position:relative;
   box-sizing:border-box;
   overflow:hidden;
+  page-break-after:always;
+  page-break-inside:avoid;
+}
+.pdf-page:last-child{
+  page-break-after:auto;
 }
 
 /* PDF Header */
@@ -190,9 +195,9 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
   display:flex;
   justify-content:space-between;
   align-items:flex-start;
-  padding-bottom:10px;
-  border-bottom:2.5px solid #111;
-  margin-bottom:18px;
+  padding-bottom:8px;
+  border-bottom:2px solid #111;
+  margin-bottom:14px;
 }
 .pdf-logo-block{}
 .pdf-logo-text{
@@ -217,8 +222,8 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 
 /* PDF Title block */
 .pdf-title-block{
-  margin-bottom:16px;
-  padding-bottom:14px;
+  margin-bottom:12px;
+  padding-bottom:10px;
   border-bottom:1px solid #e8e8e8;
 }
 .pdf-report-label{font-size:9px;letter-spacing:1px;color:#888;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;text-transform:uppercase;margin-bottom:6px;display:block}
@@ -233,8 +238,8 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
   background:#f8f9ff;
   border:1px solid #e0e4ff;
   border-radius:8px;
-  padding:16px 20px;
-  margin-bottom:16px;
+  padding:12px 16px;
+  margin-bottom:12px;
 }
 .pdf-score-left{}
 .pdf-score-label-ar{font-size:10px;color:#666;margin-bottom:4px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
@@ -246,10 +251,10 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 .pdf-market-en{font-size:10px;color:#888;direction:ltr;font-family:monospace}
 
 /* Dim table */
-.pdf-dims-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
+.pdf-dims-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px}
 .pdf-dims-table th{background:#111;color:#fff;padding:8px 10px;text-align:right;font-weight:600;font-size:10px;letter-spacing:0;font-family:'IBM Plex Sans Arabic',Arial,sans-serif}
 .pdf-dims-table th.en{text-align:left;direction:ltr;font-family:monospace;letter-spacing:1px}
-.pdf-dims-table td{padding:10px;border-bottom:1px solid #eee;vertical-align:top}
+.pdf-dims-table td{padding:8px;border-bottom:1px solid #eee;vertical-align:top}
 .pdf-dims-table tr:last-child td{border-bottom:none}
 .pdf-dims-table .val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
 .pdf-dims-table .ar-name{font-size:12px;font-weight:600;margin-bottom:2px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
@@ -263,15 +268,15 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 .pdf-section-title{
   font-size:10px;letter-spacing:1px;color:#888;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
   text-transform:uppercase;border-bottom:1px solid #eee;
-  padding-bottom:6px;margin-bottom:12px;
+  padding-bottom:4px;margin-bottom:10px;
   display:flex;justify-content:space-between;
 }
 .pdf-insight-box{
   border-right:3px solid #4a6cf7;
-  padding:12px 16px;
+  padding:10px 14px;
   background:#f8f9ff;
   border-radius:4px;
-  margin-bottom:12px;
+  margin-bottom:10px;
 }
 .pdf-insight-eye-ar{font-size:11px;font-weight:600;color:#4a6cf7;margin-bottom:4px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-insight-eye-en{font-size:9px;color:#aaa;font-family:monospace;letter-spacing:1px;margin-bottom:8px;direction:ltr}
@@ -279,7 +284,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 .pdf-insight-en{font-size:10px;color:#666;line-height:1.6;direction:ltr;margin-top:8px;border-top:1px solid #e8e8e8;padding-top:8px;font-family:monospace}
 
 .pdf-analysis-row{display:flex;gap:8px;margin-bottom:8px}
-.pdf-analysis-cell{flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:4px;padding:10px}
+.pdf-analysis-cell{flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:4px;padding:8px}
 .pdf-cell-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px;vertical-align:middle}
 .pdf-cell-title-ar{font-size:11px;font-weight:600;color:#222;margin-bottom:3px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-cell-title-en{font-size:9px;color:#aaa;font-family:monospace;direction:ltr;margin-bottom:6px}
@@ -288,11 +293,11 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
 /* Footer */
 .pdf-footer{
   position:absolute;
-  bottom:10mm;
+  bottom:8mm;
   left:14mm;
   right:14mm;
   border-top:1px solid #eee;
-  padding-top:8px;
+  padding-top:6px;
   display:flex;
   justify-content:space-between;
   align-items:center;
@@ -499,7 +504,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100dvh;height:100dvh;ba
     <div class="field"><label class="field-label">الاسم الكامل</label><input class="field-input" type="text" id="lead-name" placeholder="د. محمد العمري" oninput="checkLead()"></div>
     <div class="field"><label class="field-label">رقم الواتساب</label><input class="field-input" type="tel" id="lead-phone" placeholder="00962XXXXXXXXX" oninput="checkLead()"></div>
     <div class="field"><label class="field-label">البريد الإلكتروني</label><input class="field-input" type="email" id="lead-email" placeholder="doctor@clinic.com" oninput="checkLead()"></div>
-    <button class="btn-next" id="btn-lead" onclick="submitLead()" style="opacity:.2;pointer-events:none">أكمل التقييم</button>
+    <button class="btn-next" id="btn-lead" onclick="validateAndSubmit()" style="opacity:.2;pointer-events:none">أكمل التقييم</button>
     <div style="margin-top:14px;font-size:11px;color:var(--muted);text-align:center;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">CORE SYSTEM — بياناتك لن تُشارك مع أي طرف ثالث</div>
   </div>
 </section>
@@ -756,7 +761,73 @@ function checkProfile(){const s=document.getElementById('specialty').value,y=doc
 function sel(qKey,val,el){el.closest('.opts').querySelectorAll('.opt').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');ST.answers[qKey]=val;checkBlocks()}
 function checkBlocks(){if(ST.answers.q1&&ST.answers.q2)document.getElementById('btn-q1')?.classList.add('on');if(ST.answers.q3&&ST.answers.q4)document.getElementById('btn-q2')?.classList.add('on');if(ST.answers.q5&&ST.answers.q6)document.getElementById('btn-q3')?.classList.add('on')}
 
-function checkLead(){const name=document.getElementById('lead-name').value.trim(),phone=document.getElementById('lead-phone').value.trim(),email=document.getElementById('lead-email').value.trim(),btn=document.getElementById('btn-lead');if(name&&phone.length>=10&&email.includes('@')){btn.style.opacity='1';btn.style.pointerEvents='all';ST.lead={name,phone,email}}else{btn.style.opacity='.2';btn.style.pointerEvents='none'}}
+function checkLead(){
+  const name=document.getElementById('lead-name').value.trim();
+  const phone=document.getElementById('lead-phone').value.trim();
+  const email=document.getElementById('lead-email').value.trim();
+  const btn=document.getElementById('btn-lead');
+
+  // Validate name (at least 2 words, Arabic or English letters)
+  const nameValid = /^[؀-ۿa-zA-Z\s]{3,}$/.test(name);
+
+  // Validate phone: starts with + or 00 followed by country code and digits
+  // Common formats: +962, 00962, +966, 00966, +971, 00971, +20, 0020, etc.
+  const phoneValid = /^[\+]?[0-9]{10,15}$/.test(phone.replace(/\s/g,'')) || 
+                     /^00[0-9]{10,14}$/.test(phone.replace(/\s/g,''));
+
+  // Validate email with proper regex
+  const emailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
+
+  if(nameValid && phoneValid && emailValid){
+    btn.style.opacity='1';
+    btn.style.pointerEvents='all';
+    ST.lead={name,phone,email};
+    // Clear any error messages
+    document.querySelectorAll('.field-error').forEach(el=>el.remove());
+  } else {
+    btn.style.opacity='.2';
+    btn.style.pointerEvents='none';
+  }
+}
+
+function showFieldError(fieldId, message){
+  const field = document.getElementById(fieldId);
+  const existing = field.parentElement.querySelector('.field-error');
+  if(existing) existing.remove();
+  const error = document.createElement('div');
+  error.className='field-error';
+  error.style.cssText='color:var(--danger);font-size:11px;margin-top:6px;font-weight:500;';
+  error.textContent=message;
+  field.parentElement.appendChild(error);
+}
+
+function validateAndSubmit(){
+  const name=document.getElementById('lead-name').value.trim();
+  const phone=document.getElementById('lead-phone').value.trim();
+  const email=document.getElementById('lead-email').value.trim();
+
+  let valid = true;
+
+  if(!/^[؀-ۿa-zA-Z\s]{3,}$/.test(name)){
+    showFieldError('lead-name','الرجاء إدخال اسم صحيح (3 أحرف على الأقل)');
+    valid = false;
+  }
+
+  const phoneClean = phone.replace(/\s/g,'');
+  if(!/^[\+]?[0-9]{10,15}$/.test(phoneClean) && !/^00[0-9]{10,14}$/.test(phoneClean)){
+    showFieldError('lead-phone','الرجاء إدخال رقم هاتف صحيح (مثال: 00962XXXXXXXXX)');
+    valid = false;
+  }
+
+  if(!/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)){
+    showFieldError('lead-email','الرجاء إدخال بريد إلكتروني صحيح');
+    valid = false;
+  }
+
+  if(valid){
+    submitLead();
+  }
+}
 function submitLead(){saveDB('leads',{...ST.lead,...ST.profile,created_at:new Date().toISOString()});goTo('screen-q2')}
 
 // SCORING
@@ -965,39 +1036,55 @@ function renderResults(r){
 
 // PDF EXPORT
 function exportPDF(){
-  const el=document.getElementById('pdf-content');
-  // Make element visible for html2pdf to render properly
-  const originalPosition = el.style.position;
-  const originalLeft = el.style.left;
-  const originalOpacity = el.style.opacity;
-  const originalZIndex = el.style.zIndex;
+  // Create a temporary visible container
+  const tempContainer = document.createElement('div');
+  tempContainer.style.cssText = 'position:fixed;top:0;left:0;width:210mm;z-index:99999;background:#ffffff;opacity:0;pointer-events:none;';
+  document.body.appendChild(tempContainer);
 
-  el.style.position = 'static';
-  el.style.left = 'auto';
-  el.style.opacity = '1';
-  el.style.zIndex = '1';
-  el.style.display = 'block';
+  // Clone the PDF content
+  const original = document.getElementById('pdf-content');
+  const clone = original.cloneNode(true);
+  clone.style.display = 'block';
+  clone.style.position = 'static';
+  clone.style.left = 'auto';
+  clone.style.opacity = '1';
+  clone.style.width = '210mm';
+  clone.style.background = '#ffffff';
+  tempContainer.appendChild(clone);
 
-  // Small delay to ensure rendering
-  setTimeout(function(){
+  // Wait for fonts to load
+  document.fonts.ready.then(function(){
     html2pdf().set({
       margin:[0,0,0,0],
       filename:'CORE-SYSTEM-Diagnostic-'+(ST.lead.name||'Report')+'.pdf',
       image:{type:'jpeg',quality:.98},
-      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
+      html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff',logging:true},
       jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
-    }).from(el).save().catch(function(err){
+      pagebreak:{mode:['css-class'],cssClass:'pdf-page'}
+    }).from(clone).save().catch(function(err){
       console.error('PDF Export Error:', err);
       alert('حدث خطأ أثناء تصدير PDF. يرجى المحاولة مرة أخرى.');
     }).finally(function(){
-      // Restore original styles
-      el.style.position = originalPosition;
-      el.style.left = originalLeft;
-      el.style.opacity = originalOpacity;
-      el.style.zIndex = originalZIndex;
-      el.style.display = '';
+      document.body.removeChild(tempContainer);
     });
-  }, 100);
+  }).catch(function(){
+    // Fallback if fonts API not available
+    setTimeout(function(){
+      html2pdf().set({
+        margin:[0,0,0,0],
+        filename:'CORE-SYSTEM-Diagnostic-'+(ST.lead.name||'Report')+'.pdf',
+        image:{type:'jpeg',quality:.98},
+        html2canvas:{scale:2,useCORS:true,letterRendering:true,backgroundColor:'#ffffff'},
+        jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},
+        pagebreak:{mode:['css-class'],cssClass:'pdf-page'}
+      }).from(clone).save().catch(function(err){
+        console.error('PDF Export Error:', err);
+        alert('حدث خطأ أثناء تصدير PDF. يرجى المحاولة مرة أخرى.');
+      }).finally(function(){
+        document.body.removeChild(tempContainer);
+      });
+    }, 500);
+  });
 }
 
 async function saveDB(table,data){if(!CFG.supabase_url)return;try{await fetch(CFG.supabase_url+'/rest/v1/'+table,{method:'POST',headers:{'Content-Type':'application/json','apikey':CFG.supabase_key,'Authorization':'Bearer '+CFG.supabase_key,'Prefer':'return=minimal'},body:JSON.stringify(data)})}catch(e){console.warn('DB:',e)}}
