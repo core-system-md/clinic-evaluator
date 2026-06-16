@@ -39,7 +39,7 @@
   --accent:#5a7cf7;--accent2:#7c3aed;--success:#12d18e;--warning:#f0900a;--danger:#e53e3e;
   --text:#ffffff;--muted:#b0b0c8;--light:#c8c8d8;--white:#ffffff;
 }
-body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;width:100vw;max-width:100vw;font-size:18px;line-height:1.7;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow-x:hidden;margin:0;padding:0;text-rendering:optimizeLegibility;box-sizing:border-box}
+body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;width:100vw;max-width:100vw;font-size:18px;line-height:1.7;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow-x:hidden;margin:0;padding:0;text-rendering:optimizeLegibility;box-sizing:border-box;font-weight:500}
 html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;width:100vw;max-width:100vw;background:var(--bg);box-sizing:border-box}
 .screen{display:none;min-height:100vh;min-height:100dvh;max-width:100vw;width:100vw;overflow-x:hidden;box-sizing:border-box}
 .screen.active{display:flex;flex-direction:column;max-width:100vw;width:100vw;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh}
@@ -49,42 +49,42 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
 #screen-landing{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;width:100vw;max-width:100vw;box-sizing:border-box}
 .landing-inner{max-width:460px;width:100%;padding:0 16px;box-sizing:border-box}
 @media(max-width:480px){.landing-inner{padding:0 12px}.landing-title{font-size:22px}.landing-sub{font-size:13px}.pillars{grid-template-columns:1fr;gap:8px}.pillar{padding:14px 8px}.btn-primary{padding:14px;font-size:13px}}
-.wordmark{letter-spacing:6px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
+.wordmark{letter-spacing:6px;font-size:14px;font-weight:700;color:var(--light);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
 .wordmark span{color:var(--accent)}
-.landing-eyebrow{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;font-family:'IBM Plex Mono',monospace}
-.landing-title{font-size:clamp(28px,6vw,42px);font-weight:700;line-height:1.3;color:var(--white);margin-bottom:20px;text-shadow:0 2px 8px rgba(0,0,0,0.4)}
+.landing-eyebrow{font-size:12px;letter-spacing:3px;color:var(--light);text-transform:uppercase;margin-bottom:20px;font-family:'IBM Plex Mono',monospace;font-weight:600}
+.landing-title{font-size:clamp(32px,7vw,48px);font-weight:800;line-height:1.25;color:var(--white);margin-bottom:20px;text-shadow:0 2px 12px rgba(0,0,0,0.5)}
 .landing-title em{font-style:normal;color:var(--light);font-weight:300}
-.landing-sub{font-size:17px;color:var(--light);line-height:1.8;margin-bottom:40px;font-weight:400;letter-spacing:0.3px}
+.landing-sub{font-size:18px;color:var(--light);line-height:1.8;margin-bottom:40px;font-weight:500;letter-spacing:0.3px}
 .pillars{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:32px}
 .pillar{background:var(--card);padding:18px 12px;text-align:center}
 .pillar-num{font-size:20px;font-weight:700;color:var(--white);font-family:'IBM Plex Mono',monospace}
 .pillar-lbl{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
-.ticker{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:28px;font-size:12px;color:var(--light);font-weight:300}
+.ticker{display:flex;align-items:center;gap:10px;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:28px;font-size:13px;color:var(--text);font-weight:500}
 .ticker-dot{width:6px;height:6px;border-radius:50%;background:var(--success);flex-shrink:0;animation:blink 2.5s ease-in-out infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
 .btn-primary{width:100%;padding:18px;background:var(--white);color:var(--bg);border:none;border-radius:12px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;margin-bottom:14px;letter-spacing:.5px;transition:background .2s}
 .btn-primary:active{background:#e0e0e0}
-.trust-row{display:flex;justify-content:center;gap:20px;font-size:11px;color:var(--muted)}
+.trust-row{display:flex;justify-content:center;gap:20px;font-size:12px;color:var(--light);font-weight:500}
 
 /* ── FORM ── */
 .form-screen{flex-direction:column}
 .progress-wrap{height:2px;background:var(--surface);position:sticky;top:0;z-index:10}
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease}
 .form-nav{padding:18px 24px 0;display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;width:100%}
-.nav-step{font-size:10px;color:var(--muted);letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase}
+.nav-step{font-size:11px;color:var(--light);letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase;font-weight:600}
 .form-body{padding:28px 24px 48px;max-width:520px;margin:0 auto;width:100%;flex:1;box-sizing:border-box}
 @media(max-width:480px){.form-body{padding:20px 16px 40px}.form-nav{padding:14px 16px 0}.q-title{font-size:16px}.opt{padding:12px 14px;font-size:12px}}
-.q-eyebrow{font-size:10px;letter-spacing:2px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
-.q-title{font-size:20px;font-weight:600;color:var(--white);margin-bottom:8px;line-height:1.4;letter-spacing:0.3px}
-.q-sub{font-size:13px;color:var(--muted);margin-bottom:22px;font-family:'IBM Plex Mono',monospace}
+.q-eyebrow{font-size:11px;letter-spacing:2px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px;font-weight:600}
+.q-title{font-size:22px;font-weight:700;color:var(--white);margin-bottom:8px;line-height:1.35;letter-spacing:0.3px}
+.q-sub{font-size:14px;color:var(--muted);margin-bottom:22px;font-family:'IBM Plex Mono',monospace}
 .field{margin-bottom:16px}
-.field-label{display:block;font-size:11px;color:var(--light);margin-bottom:7px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.field-label{display:block;font-size:12px;color:var(--text);margin-bottom:7px;font-weight:700;letter-spacing:1px;text-transform:uppercase}
 .field-input,.field-select{width:100%;padding:14px 18px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:18px;transition:border-color .2s;-webkit-appearance:none;box-sizing:border-box}
 @media(max-width:480px){.field-input,.field-select{font-size:18px}}
 .field-input:focus,.field-select:focus{outline:none;border-color:var(--accent)}
 .field-input::placeholder{color:var(--muted)}
 .opts{display:grid;gap:8px}
-.opt{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:right;color:var(--light);font-family:inherit;font-size:16px;transition:all .15s;width:100%;font-weight:400;line-height:1.5}
+.opt{display:flex;align-items:center;gap:14px;padding:16px 18px;background:var(--card);border:1px solid var(--border);border-radius:10px;cursor:pointer;text-align:right;color:var(--text);font-family:inherit;font-size:16px;transition:all .15s;width:100%;font-weight:500;line-height:1.5}
 .opt:hover{border-color:var(--border2);color:var(--text)}
 .opt.sel{border-color:var(--accent);background:rgba(74,108,247,.08);color:var(--white)}
 .opt-letter{width:28px;height:28px;border-radius:8px;background:var(--surface);color:var(--muted);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;flex-shrink:0;font-family:'IBM Plex Mono',monospace;transition:all .15s}
@@ -98,13 +98,13 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
 .lead-inner{max-width:400px;width:100%}
 .lead-marker{width:36px;height:2px;background:var(--accent);margin-bottom:24px}
 .lead-title{font-size:20px;font-weight:700;color:var(--white);margin-bottom:10px;line-height:1.4}
-.lead-sub{font-size:13px;color:var(--light);margin-bottom:32px;line-height:1.8;font-weight:300}
+.lead-sub{font-size:15px;color:var(--light);margin-bottom:32px;line-height:1.8;font-weight:500}
 
 /* ── LOADING ── */
 #screen-loading{justify-content:center;align-items:center;padding:40px 24px;background:var(--bg)}
 .load-inner{max-width:320px;width:100%}
 .load-wordmark{font-family:'IBM Plex Mono',monospace;letter-spacing:6px;font-size:12px;color:var(--muted);text-align:center;margin-bottom:48px}
-.load-status{font-size:13px;color:var(--light);text-align:center;margin-bottom:20px;min-height:20px;font-weight:300}
+.load-status{font-size:14px;color:var(--text);text-align:center;margin-bottom:20px;min-height:20px;font-weight:500}
 .load-bar-bg{height:2px;background:var(--border);border-radius:1px;overflow:hidden;margin-bottom:10px}
 .load-bar-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .9s ease;width:0%}
 .load-pct{font-size:11px;color:var(--muted);text-align:center;font-family:'IBM Plex Mono',monospace}
@@ -112,11 +112,11 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
 /* ── RESULTS ── */
 #screen-results{flex-direction:column;padding-bottom:80px}
 .results-top{padding:36px 24px 28px;text-align:center;border-bottom:1px solid var(--border);background:var(--surface)}
-.results-name{font-size:11px;letter-spacing:2px;color:var(--muted);font-family:'IBM Plex Mono',monospace;margin-bottom:20px;text-transform:uppercase}
+.results-name{font-size:12px;letter-spacing:2px;color:var(--light);font-family:'IBM Plex Mono',monospace;margin-bottom:20px;text-transform:uppercase;font-weight:600}
 .score-big{font-size:80px;font-weight:700;line-height:1;font-family:'IBM Plex Mono',monospace;letter-spacing:-2px;text-shadow:0 2px 12px rgba(90,124,247,0.4)}
 .score-denom{font-size:16px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
 .score-tier{display:inline-block;padding:5px 18px;border-radius:4px;font-size:12px;font-weight:600;letter-spacing:2px;text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin:12px 0 8px}
-.score-market{font-size:12px;color:var(--light);font-weight:300}
+.score-market{font-size:13px;color:var(--text);font-weight:500}
 
 .results-body{padding:24px;max-width:540px;margin:0 auto;width:100%}
 
@@ -129,32 +129,32 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
 .dim-card-right{flex:1}
 .dim-title{font-size:15px;font-weight:700;color:var(--white);margin-bottom:6px}
 .dim-en{font-size:10px;color:var(--muted);font-family:'IBM Plex Mono',monospace;letter-spacing:1px;margin-bottom:8px}
-.dim-desc{font-size:14px;color:var(--light);line-height:1.8;font-weight:400;letter-spacing:0.3px}
+.dim-desc{font-size:15px;color:var(--text);line-height:1.8;font-weight:500;letter-spacing:0.3px}
 .dim-bar-bg{height:3px;background:var(--border);border-radius:2px;margin-top:10px;overflow:hidden}
 .dim-bar-fill{height:100%;border-radius:2px;transition:width 1s ease}
 
 /* Analysis section */
-.section-label{font-size:9px;letter-spacing:3px;color:var(--muted);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:12px;margin-top:24px}
+.section-label{font-size:10px;letter-spacing:3px;color:var(--light);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:12px;margin-top:24px;font-weight:600}
 
 .insight-primary{background:var(--card);border:1px solid var(--border);border-right:2px solid var(--accent);border-radius:8px;padding:20px;margin-bottom:12px}
 .insight-eye{font-size:9px;letter-spacing:3px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
-.insight-text{font-size:16px;color:var(--text);line-height:1.85;font-weight:400;letter-spacing:0.3px}
+.insight-text{font-size:17px;color:var(--text);line-height:1.85;font-weight:500;letter-spacing:0.3px}
 
 .analysis-grid{display:grid;gap:8px;margin-bottom:12px}
 .analysis-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:14px 16px}
 .analysis-item-header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
 .analysis-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
 .analysis-item-title{font-size:12px;font-weight:600;color:var(--white)}
-.analysis-item-text{font-size:14px;color:var(--light);line-height:1.8;font-weight:400;padding-right:16px;letter-spacing:0.3px}
+.analysis-item-text{font-size:15px;color:var(--text);line-height:1.8;font-weight:500;padding-right:16px;letter-spacing:0.3px}
 
 .opportunity-box{background:rgba(16,185,129,.06);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:16px;margin-bottom:20px}
 .opportunity-eye{font-size:9px;letter-spacing:3px;color:var(--success);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:8px}
-.opportunity-text{font-size:13px;color:var(--light);line-height:1.75;font-weight:300}
+.opportunity-text{font-size:15px;color:var(--text);line-height:1.75;font-weight:500}
 
 /* CTA */
-.wa-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:17px;background:#128C7E;color:var(--white);border:none;border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;text-decoration:none;margin-bottom:10px;transition:opacity .2s}
+.wa-btn{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;padding:18px;background:#128C7E;color:var(--white);border:none;border-radius:10px;font-size:16px;font-weight:700;font-family:inherit;cursor:pointer;text-decoration:none;margin-bottom:10px;transition:opacity .2s}
 .wa-btn:active{opacity:.85}
-.pdf-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:transparent;color:var(--light);border:1px solid var(--border);border-radius:8px;font-size:13px;font-weight:500;font-family:inherit;cursor:pointer;margin-bottom:20px;transition:border-color .2s,color .2s}
+.pdf-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:20px;transition:border-color .2s,color .2s}
 .pdf-btn:hover{border-color:var(--border2);color:var(--white)}
 
 /* ════════════════════════════
@@ -332,40 +332,40 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
 @media(max-width:480px){
   /* Landing */
   .landing-inner{padding:0 16px}
-  .landing-title{font-size:26px}
-  .landing-sub{font-size:16px}
+  .landing-title{font-size:28px}
+  .landing-sub{font-size:17px}
   .pillars{grid-template-columns:1fr;gap:10px}
-  .pillar{padding:16px 12px}
-  .btn-primary{padding:16px;font-size:16px}
-  .wordmark{font-size:12px;letter-spacing:4px}
-  .ticker{font-size:13px;padding:12px 14px}
+  .pillar{padding:18px 14px}
+  .btn-primary{padding:18px;font-size:17px}
+  .wordmark{font-size:13px;letter-spacing:4px}
+  .ticker{font-size:14px;padding:14px 16px}
 
   /* Form screens */
   .form-nav{padding:16px 16px 0}
   .form-body{padding:24px 16px 40px}
-  .q-title{font-size:18px}
-  .q-sub{font-size:12px}
-  .opt{padding:14px 16px;font-size:15px}
-  .opt-letter{width:26px;height:26px;font-size:12px}
-  .field-label{font-size:12px}
-  .field-input,.field-select{padding:14px 16px;font-size:18px}
+  .q-title{font-size:20px}
+  .q-sub{font-size:13px}
+  .opt{padding:16px 18px;font-size:16px}
+  .opt-letter{width:28px;height:28px;font-size:14px}
+  .field-label{font-size:13px}
+  .field-input,.field-select{padding:16px 18px;font-size:18px}
 
   /* Lead screen */
   .lead-inner{padding:24px 16px}
-  .lead-title{font-size:20px}
-  .lead-sub{font-size:14px}
+  .lead-title{font-size:22px}
+  .lead-sub{font-size:16px}
 
   /* Results */
   .results-top{padding:28px 16px 24px}
-  .score-big{font-size:64px}
+  .score-big{font-size:68px}
   .results-body{padding:24px 16px}
-  .dim-card{padding:16px;gap:14px}
-  .dim-val{font-size:28px}
-  .dim-title{font-size:14px}
-  .dim-desc{font-size:13px}
-  .insight-text{font-size:15px}
-  .analysis-item{padding:14px 16px}
-  .wa-btn,.pdf-btn{padding:16px;font-size:15px}
+  .dim-card{padding:18px;gap:16px}
+  .dim-val{font-size:30px}
+  .dim-title{font-size:16px}
+  .dim-desc{font-size:14px}
+  .insight-text{font-size:16px}
+  .analysis-item{padding:16px 18px}
+  .wa-btn,.pdf-btn{padding:18px;font-size:16px}
 
   /* Prevent horizontal scroll */
   body,html{overflow-x:hidden}
@@ -420,19 +420,21 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
     <div class="pillars">
       <div class="pillar"><div class="pillar-num">03</div><div class="pillar-lbl">أبعاد<br>مؤسسية</div></div>
       <div class="pillar"><div class="pillar-num">08</div><div class="pillar-lbl">مؤشر<br>تشغيلي</div></div>
-      <div class="pillar"><div class="pillar-num">&lt;2م</div><div class="pillar-lbl">وقت<br>التقييم</div></div>
+      <div class="pillar"><div class="pillar-num">&lt;2د</div><div class="pillar-lbl">وقت<br>التقييم</div></div>
     </div>
     <div class="ticker"><div class="ticker-dot"></div><span id="ticker-text">تم تحليل عيادة منذ 3 دقائق</span></div>
     <button class="btn-primary" onclick="goTo('screen-profile')" aria-label="ابدأ تقييم الأداء المؤسسي للعيادة">ابدأ التقييم المؤسسي</button>
     <div class="trust-row"><span>بيانات محمية</span><span style="color:var(--border)">·</span><span>بدون التزامات</span><span style="color:var(--border)">·</span><span>تقرير PDF مجاني</span></div>
-<div class="pwa-install-section" id="pwa-install-section" style="display:none;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
-  <div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">تثبيت سريع</div>
-  <button class="btn-primary" id="pwa-install-btn" style="background:var(--accent);color:var(--white);margin-bottom:8px;font-size:13px">
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:8px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+<div class="pwa-install-section" id="pwa-install-section" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
+  <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;font-weight:600">تثبيت سريع</div>
+  <button class="btn-primary" id="pwa-install-btn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--white);margin-bottom:10px;font-size:15px;font-weight:700;padding:16px">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     تثبيت التطبيق على الشاشة الرئيسية
   </button>
-  <div style="font-size:10px;color:var(--muted);line-height:1.6">
-    أو افتح من متصفح Chrome/Safari ← اضغط ⋮ أو ⬆️ ← "أضف إلى الشاشة الرئيسية"
+  <div id="pwa-manual-hint" style="font-size:12px;color:var(--light);line-height:1.7;font-weight:500">
+    💡 <strong>Chrome Android:</strong> اضغط ⋮ ← "أضف إلى الشاشة الرئيسية"<br>
+    💡 <strong>Safari iOS:</strong> اضغط ⬆️ ← "أضف إلى الشاشة الرئيسية"<br>
+    💡 <strong>Chrome Desktop:</strong> اضغط ⋮ ← "تثبيت Core-E"
   </div>
 </div>
   </div>
@@ -476,7 +478,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
   <div class="form-nav"><span class="nav-step">02 / 04</span><span class="nav-step">Process Maturity</span></div>
   <div class="form-body">
     <div class="q-eyebrow">نضج العمليات والإدارة</div>
-    <h2 class="q-title">عندما يتواصل مريض جديد — ما وقت الاستجابة الأول؟</h2>
+    <h2 class="q-title">عندما يتواصل مريض جديد (اتصال، واتساب، رسائل) — ما وقت الاستجابة والرد؟</h2>
     <p class="q-sub">Response Time — Patient Journey Entry Point</p>
     <div class="opts" id="q1-opts">
       <button class="opt" onclick="sel('q1','A',this)"><span class="opt-letter">A</span><span>فوري — أقل من 5 دقائق</span></button>
@@ -485,7 +487,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
       <button class="opt" onclick="sel('q1','D',this)"><span class="opt-letter">D</span><span>لا يوجد بروتوكول محدد</span></button>
     </div>
     <div class="divider"></div>
-    <h2 class="q-title">ما طبيعة نظام المتابعة بعد الزيارة؟</h2>
+    <h2 class="q-title">كيف يتم المتابعة مع المريض أو المراجع بعد الزيارة؟</h2>
     <p class="q-sub">Post-Visit Follow-up System</p>
     <div class="opts" id="q2-opts">
       <button class="opt" onclick="sel('q2','A',this)"><span class="opt-letter">A</span><span>نظام منظم وآلي (رسائل + مواعيد تلقائية)</span></button>
@@ -517,16 +519,16 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
   <div class="form-nav"><span class="nav-step">03 / 04</span><span class="nav-step">Patient Engagement</span></div>
   <div class="form-body">
     <div class="q-eyebrow">كفاءة التواصل مع المرضى</div>
-    <h2 class="q-title">كيف يدير فريقك اعتراضات التسعير؟</h2>
+    <h2 class="q-title">عند اعتراض المريض أو المراجع على السعر، كيف يتم إدارة ذلك؟</h2>
     <p class="q-sub">Objection Handling — Price vs Value Protocol</p>
     <div class="opts" id="q3-opts">
       <button class="opt" onclick="sel('q3','A',this)"><span class="opt-letter">A</span><span>بروتوكول موثق يطبقه الفريق</span></button>
-      <button class="opt" onclick="sel('q3','B',this)"><span class="opt-letter">B</span><span>بناءً على خبرة شخصية غير موثقة</span></button>
-      <button class="opt" onclick="sel('q3','C',this)"><span class="opt-letter">C</span><span>يعتمد على شخص بعينه</span></button>
-      <button class="opt" onclick="sel('q3','D',this)"><span class="opt-letter">D</span><span>لا يوجد نهج إدارة للتوقعات</span></button>
+      <button class="opt" onclick="sel('q3','B',this)"><span class="opt-letter">B</span><span>بناءً على خبرة شخصية</span></button>
+      <button class="opt" onclick="sel('q3','C',this)"><span class="opt-letter">C</span><span>يعتمد على الطبيب أو إدارة العيادة</span></button>
+      <button class="opt" onclick="sel('q3','D',this)"><span class="opt-letter">D</span><span>كل حالة تعامل بشكل مستقل وأي شخص في فريق العيادة يمكنه التعامل مع الأمر</span></button>
     </div>
     <div class="divider"></div>
-    <h2 class="q-title">هل تقيسون Patient Acceptance Rate؟</h2>
+    <h2 class="q-title">هل تقيسون (Patient Acceptance Rate)؟ معدل تحويل الاستفسارات إلى مواعيد مؤكدة</h2>
     <p class="q-sub">معدل تحويل الاستفسارات إلى مواعيد مؤكدة</p>
     <div class="opts" id="q4-opts">
       <button class="opt" onclick="sel('q4','A',this)"><span class="opt-letter">A</span><span>نعرفه بدقة ونراجعه دورياً</span></button>
@@ -544,22 +546,22 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
   <div class="form-nav"><span class="nav-step">04 / 04</span><span class="nav-step">Patient Loyalty</span></div>
   <div class="form-body">
     <div class="q-eyebrow">استدامة العلاقة مع المرضى</div>
-    <h2 class="q-title">كيف تديرون حالات No-Show؟</h2>
+    <h2 class="q-title">كيف تديرون حالات عدم الالتزام بالمواعيد (No-Show)؟</h2>
     <p class="q-sub">No-Show Management Protocol</p>
     <div class="opts" id="q5-opts">
-      <button class="opt" onclick="sel('q5','A',this)"><span class="opt-letter">A</span><span>نظام تذكير تلقائي + إعادة جدولة</span></button>
-      <button class="opt" onclick="sel('q5','B',this)"><span class="opt-letter">B</span><span>إرسال تذكيرات فقط</span></button>
-      <button class="opt" onclick="sel('q5','C',this)"><span class="opt-letter">C</span><span>نتصل أحياناً بعد الغياب</span></button>
-      <button class="opt" onclick="sel('q5','D',this)"><span class="opt-letter">D</span><span>لا توجد آلية متابعة</span></button>
+      <button class="opt" onclick="sel('q5','A',this)"><span class="opt-letter">A</span><span>نظام تذكير تلقائي مؤتمت + إعادة جدولة وتذكير</span></button>
+      <button class="opt" onclick="sel('q5','B',this)"><span class="opt-letter">B</span><span>إعادة جدولة وتواصل عبر الهاتف أو الرسائل فقط</span></button>
+      <button class="opt" onclick="sel('q5','C',this)"><span class="opt-letter">C</span><span>اتصال فقط للتذكير</span></button>
+      <button class="opt" onclick="sel('q5','D',this)"><span class="opt-letter">D</span><span>لا يوجد آلية متابعة منتظمة</span></button>
     </div>
     <div class="divider"></div>
-    <h2 class="q-title">ما مستوى نضج قياس مؤشرات الأداء؟</h2>
+    <h2 class="q-title">كيف تقيسون أداء العيادة، هل لديكم مؤشرات ونظام إلكتروني يقيسها؟</h2>
     <p class="q-sub">Operational KPI Tracking Maturity</p>
     <div class="opts" id="q6-opts">
       <button class="opt" onclick="sel('q6','A',this)"><span class="opt-letter">A</span><span>KPIs موثقة ومراجعة أسبوعياً</span></button>
-      <button class="opt" onclick="sel('q6','B',this)"><span class="opt-letter">B</span><span>مراجعة دورية غير منتظمة</span></button>
-      <button class="opt" onclick="sel('q6','C',this)"><span class="opt-letter">C</span><span>أرقام عامة فقط (إيراد شهري)</span></button>
-      <button class="opt" onclick="sel('q6','D',this)"><span class="opt-letter">D</span><span>لا يوجد قياس منهجي</span></button>
+      <button class="opt" onclick="sel('q6','B',this)"><span class="opt-letter">B</span><span>مراجعة دورية من خلال المحاسب أو النظام المحاسبي</span></button>
+      <button class="opt" onclick="sel('q6','C',this)"><span class="opt-letter">C</span><span>تقارير شهرية بالإيرادات والمصاريف (أرقام عامة)</span></button>
+      <button class="opt" onclick="sel('q6','D',this)"><span class="opt-letter">D</span><span>لا يوجد، لكن نهتم بأن يكون ذلك واضحاً لنا</span></button>
     </div>
     <button class="btn-next" id="btn-q3" onclick="runAnalysis()">احصل على التقرير التشخيصي</button>
   </div>
