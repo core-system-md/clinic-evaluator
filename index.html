@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes, viewport-fit=cover">
 <meta name="description" content="تقييم تشخيصي مؤسسي لأداء العيادات الطبية — تحليل نضج العمليات، كفاءة التواصل مع المرضى، واستدامة العلاقة. تقرير PDF مجاني.">
 <meta name="keywords" content="تقييم العيادات, أداء مؤسسي, رحلة المريض, Core System, عيادات الأردن">
 <meta name="author" content="Core System">
@@ -25,19 +25,21 @@
 /* Accessibility: Focus styles for keyboard navigation */
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 /* Smooth scrolling for anchor links */
-html{scroll-behavior:smooth}
 :root{
-  --bg:#08080f;--surface:#0f0f18;--card:#14141f;--border:#22223a;--border2:#2e2e4a;
+  --bg:#0a1628;--surface:#0f1d32;--card:#141f35;--border:#1a2d4a;--border2:#243555;
   --accent:#4a6cf7;--accent2:#7c3aed;--success:#10b981;--warning:#d97706;--danger:#dc2626;
   --text:#e8e8f2;--muted:#5a5a7a;--light:#9090b0;--white:#ffffff;
 }
-body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased}
-.screen{display:none;min-height:100vh}
-.screen.active{display:flex;flex-direction:column}
+body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent;touch-action:manipulation;overflow-x:hidden}
+html{overflow-x:hidden;scroll-behavior:smooth}
+.screen{display:none;min-height:100vh;max-width:100vw;overflow-x:hidden}
+.screen.active{display:flex;flex-direction:column;max-width:100vw}
+*{max-width:100vw}
 
 /* ── LANDING ── */
 #screen-landing{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg)}
-.landing-inner{max-width:460px;width:100%}
+.landing-inner{max-width:460px;width:100%;padding:0 16px;box-sizing:border-box}
+@media(max-width:480px){.landing-inner{padding:0 12px}.landing-title{font-size:22px}.landing-sub{font-size:13px}.pillars{grid-template-columns:1fr;gap:8px}.pillar{padding:14px 8px}.btn-primary{padding:14px;font-size:13px}}
 .wordmark{letter-spacing:6px;font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
 .wordmark span{color:var(--accent)}
 .landing-eyebrow{font-size:11px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;margin-bottom:20px;font-family:'IBM Plex Mono',monospace}
@@ -61,13 +63,15 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
 .progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .5s ease}
 .form-nav{padding:18px 24px 0;display:flex;justify-content:space-between;align-items:center;max-width:520px;margin:0 auto;width:100%}
 .nav-step{font-size:10px;color:var(--muted);letter-spacing:2px;font-family:'IBM Plex Mono',monospace;text-transform:uppercase}
-.form-body{padding:28px 24px 48px;max-width:520px;margin:0 auto;width:100%;flex:1}
+.form-body{padding:28px 24px 48px;max-width:520px;margin:0 auto;width:100%;flex:1;box-sizing:border-box}
+@media(max-width:480px){.form-body{padding:20px 16px 40px}.form-nav{padding:14px 16px 0}.q-title{font-size:16px}.opt{padding:12px 14px;font-size:12px}}
 .q-eyebrow{font-size:10px;letter-spacing:2px;color:var(--accent);font-family:'IBM Plex Mono',monospace;text-transform:uppercase;margin-bottom:10px}
 .q-title{font-size:18px;font-weight:600;color:var(--white);margin-bottom:6px;line-height:1.4}
 .q-sub{font-size:12px;color:var(--muted);margin-bottom:22px;font-family:'IBM Plex Mono',monospace}
 .field{margin-bottom:16px}
 .field-label{display:block;font-size:11px;color:var(--light);margin-bottom:7px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
-.field-input,.field-select{width:100%;padding:13px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:14px;transition:border-color .2s;-webkit-appearance:none}
+.field-input,.field-select{width:100%;padding:13px 16px;background:var(--card);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:16px;transition:border-color .2s;-webkit-appearance:none;box-sizing:border-box}
+@media(max-width:480px){.field-input,.field-select{font-size:16px}}
 .field-input:focus,.field-select:focus{outline:none;border-color:var(--accent)}
 .field-input::placeholder{color:var(--muted)}
 .opts{display:grid;gap:8px}
@@ -183,8 +187,8 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
 }
 .pdf-logo-block{}
 .pdf-logo-text{
-  font-family:'IBM Plex Mono',monospace,Arial;
-  letter-spacing:5px;
+  font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
+  letter-spacing:2px;
   font-size:15px;
   font-weight:700;
   color:#111;
@@ -193,13 +197,13 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
 .pdf-logo-sub{
   font-size:9px;
   color:#888;
-  letter-spacing:2px;
-  font-family:monospace;
+  letter-spacing:1px;
+  font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
   margin-top:3px;
   display:block;
 }
 .pdf-hd-right{text-align:left;direction:ltr}
-.pdf-hd-date{font-size:10px;color:#666;margin-bottom:3px}
+.pdf-hd-date{font-size:10px;color:#666;margin-bottom:3px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif}
 .pdf-hd-ref{font-size:9px;color:#aaa;font-family:monospace;letter-spacing:1px}
 
 /* PDF Title block */
@@ -208,7 +212,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
   padding-bottom:14px;
   border-bottom:1px solid #e8e8e8;
 }
-.pdf-report-label{font-size:9px;letter-spacing:3px;color:#888;font-family:monospace;text-transform:uppercase;margin-bottom:6px;display:block}
+.pdf-report-label{font-size:9px;letter-spacing:1px;color:#888;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;text-transform:uppercase;margin-bottom:6px;display:block}
 .pdf-doctor-name{font-size:20px;font-weight:700;color:#111;margin-bottom:2px}
 .pdf-report-sub{font-size:11px;color:#666;direction:ltr;text-align:left;font-family:monospace}
 
@@ -224,22 +228,22 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
   margin-bottom:16px;
 }
 .pdf-score-left{}
-.pdf-score-label-ar{font-size:10px;color:#666;margin-bottom:4px}
+.pdf-score-label-ar{font-size:10px;color:#666;margin-bottom:4px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-score-num{font-size:56px;font-weight:700;line-height:1;font-family:monospace;color:#111}
 .pdf-score-denom{font-size:16px;color:#888;font-family:monospace}
 .pdf-score-right{text-align:left;direction:ltr}
-.pdf-tier-badge{display:inline-block;padding:5px 14px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:2px;text-transform:uppercase;font-family:monospace;margin-bottom:8px}
-.pdf-market-ar{font-size:11px;color:#555;direction:rtl;text-align:right;margin-bottom:3px}
+.pdf-tier-badge{display:inline-block;padding:5px 14px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:uppercase;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;margin-bottom:8px}
+.pdf-market-ar{font-size:11px;color:#555;direction:rtl;text-align:right;margin-bottom:3px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-market-en{font-size:10px;color:#888;direction:ltr;font-family:monospace}
 
 /* Dim table */
 .pdf-dims-table{width:100%;border-collapse:collapse;margin-bottom:16px;font-size:12px}
-.pdf-dims-table th{background:#111;color:#fff;padding:8px 10px;text-align:right;font-weight:600;font-size:10px;letter-spacing:1px}
-.pdf-dims-table th.en{text-align:left;direction:ltr;font-family:monospace}
+.pdf-dims-table th{background:#111;color:#fff;padding:8px 10px;text-align:right;font-weight:600;font-size:10px;letter-spacing:0;font-family:'IBM Plex Sans Arabic',Arial,sans-serif}
+.pdf-dims-table th.en{text-align:left;direction:ltr;font-family:monospace;letter-spacing:1px}
 .pdf-dims-table td{padding:10px;border-bottom:1px solid #eee;vertical-align:top}
 .pdf-dims-table tr:last-child td{border-bottom:none}
 .pdf-dims-table .val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
-.pdf-dims-table .ar-name{font-size:12px;font-weight:600;margin-bottom:2px}
+.pdf-dims-table .ar-name{font-size:12px;font-weight:600;margin-bottom:2px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-dims-table .en-name{font-size:9px;color:#888;font-family:monospace;letter-spacing:1px}
 .pdf-dims-table .desc-ar{font-size:11px;color:#444;line-height:1.6}
 .pdf-dims-table .desc-en{font-size:9px;color:#888;font-family:monospace;line-height:1.6;direction:ltr}
@@ -248,7 +252,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
 
 /* Analysis section */
 .pdf-section-title{
-  font-size:10px;letter-spacing:3px;color:#888;font-family:monospace;
+  font-size:10px;letter-spacing:1px;color:#888;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;
   text-transform:uppercase;border-bottom:1px solid #eee;
   padding-bottom:6px;margin-bottom:12px;
   display:flex;justify-content:space-between;
@@ -260,17 +264,17 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
   border-radius:4px;
   margin-bottom:12px;
 }
-.pdf-insight-eye-ar{font-size:11px;font-weight:600;color:#4a6cf7;margin-bottom:4px}
+.pdf-insight-eye-ar{font-size:11px;font-weight:600;color:#4a6cf7;margin-bottom:4px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-insight-eye-en{font-size:9px;color:#aaa;font-family:monospace;letter-spacing:1px;margin-bottom:8px;direction:ltr}
-.pdf-insight-ar{font-size:12px;color:#222;line-height:1.8}
+.pdf-insight-ar{font-size:12px;color:#222;line-height:1.8;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-insight-en{font-size:10px;color:#666;line-height:1.6;direction:ltr;margin-top:8px;border-top:1px solid #e8e8e8;padding-top:8px;font-family:monospace}
 
 .pdf-analysis-row{display:flex;gap:8px;margin-bottom:8px}
 .pdf-analysis-cell{flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:4px;padding:10px}
 .pdf-cell-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px;vertical-align:middle}
-.pdf-cell-title-ar{font-size:11px;font-weight:600;color:#222;margin-bottom:3px}
+.pdf-cell-title-ar{font-size:11px;font-weight:600;color:#222;margin-bottom:3px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-cell-title-en{font-size:9px;color:#aaa;font-family:monospace;direction:ltr;margin-bottom:6px}
-.pdf-cell-text-ar{font-size:10px;color:#444;line-height:1.6}
+.pdf-cell-text-ar{font-size:10px;color:#444;line-height:1.6;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 
 /* Footer */
 .pdf-footer{
@@ -285,7 +289,75 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
   align-items:center;
 }
 .pdf-footer-left{font-size:9px;color:#aaa;font-family:monospace;direction:ltr}
-.pdf-footer-right{font-size:9px;color:#aaa}
+.pdf-footer-right{font-size:9px;color:#aaa;font-family:'IBM Plex Sans Arabic',Arial,sans-serif}
+
+
+/* iOS Safe Area support */
+@supports(padding:max(0px)){
+  .form-body,.landing-inner,.lead-inner,.results-body{
+    padding-left:max(24px, env(safe-area-inset-left));
+    padding-right:max(24px, env(safe-area-inset-right));
+  }
+  @media(max-width:480px){
+    .form-body,.landing-inner,.lead-inner,.results-body{
+      padding-left:max(16px, env(safe-area-inset-left));
+      padding-right:max(16px, env(safe-area-inset-right));
+    }
+  }
+}
+
+/* ════════════════════════════
+   MOBILE RESPONSIVE FIXES
+   ════════════════════════════ */
+@media(max-width:480px){
+  /* Landing */
+  .landing-inner{padding:0 12px}
+  .landing-title{font-size:22px}
+  .landing-sub{font-size:13px}
+  .pillars{grid-template-columns:1fr;gap:8px}
+  .pillar{padding:14px 8px}
+  .btn-primary{padding:14px;font-size:13px}
+  .wordmark{font-size:11px;letter-spacing:4px}
+  .ticker{font-size:11px;padding:10px 12px}
+
+  /* Form screens */
+  .form-nav{padding:14px 16px 0}
+  .form-body{padding:20px 16px 40px}
+  .q-title{font-size:16px}
+  .q-sub{font-size:11px}
+  .opt{padding:12px 14px;font-size:12px}
+  .opt-letter{width:22px;height:22px;font-size:10px}
+  .field-label{font-size:10px}
+  .field-input,.field-select{padding:12px 14px;font-size:16px}
+
+  /* Lead screen */
+  .lead-inner{padding:24px 16px}
+  .lead-title{font-size:18px}
+  .lead-sub{font-size:12px}
+
+  /* Results */
+  .results-top{padding:24px 16px 20px}
+  .score-big{font-size:56px}
+  .results-body{padding:20px 16px}
+  .dim-card{padding:14px;gap:12px}
+  .dim-val{font-size:24px}
+  .dim-title{font-size:12px}
+  .dim-desc{font-size:11px}
+  .insight-text{font-size:13px}
+  .analysis-item{padding:12px 14px}
+  .wa-btn,.pdf-btn{padding:14px;font-size:13px}
+
+  /* Prevent horizontal scroll */
+  body,html{overflow-x:hidden}
+  .screen{max-width:100vw}
+}
+
+/* iOS Safari specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* CSS specific to iOS devices */
+  input, select, textarea { font-size: 16px !important; }
+  .btn-primary, .btn-next, .opt { -webkit-touch-callout: none; }
+}
 </style>
 <!-- Google Analytics 4 - Replace GA_MEASUREMENT_ID with your actual ID -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID"></script>
@@ -312,7 +384,6 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg
   }
 }
 </script>
-<base target="_blank">
 </head>
 <body>
 <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;z-index:9999;padding:8px 16px;background:var(--accent);color:var(--white);text-decoration:none;border-radius:0 0 8px 0;font-size:13px;font-weight:600;">تخطي إلى المحتوى الرئيسي</a>
