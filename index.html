@@ -47,7 +47,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
 
 /* ── LANDING ── */
 #screen-landing{justify-content:center;align-items:center;padding:32px 24px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;width:100vw;max-width:100vw;box-sizing:border-box}
-.landing-inner{max-width:460px;width:100%;padding:0 16px;box-sizing:border-box}
+.landing-inner{max-width:460px;width:100%;padding:24px 16px 0;box-sizing:border-box;margin-top:0}
 @media(max-width:480px){.landing-inner{padding:0 12px}.landing-title{font-size:22px}.landing-sub{font-size:13px}.pillars{grid-template-columns:1fr;gap:8px}.pillar{padding:14px 8px}.btn-primary{padding:14px;font-size:13px}}
 .wordmark{letter-spacing:6px;font-size:14px;font-weight:700;color:var(--light);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
 .wordmark span{color:var(--accent)}
@@ -427,7 +427,7 @@ html{overflow-x:hidden;scroll-behavior:smooth;min-height:100vh;min-height:100dvh
     <div class="trust-row"><span>بيانات محمية</span><span style="color:var(--border)">·</span><span>بدون التزامات</span><span style="color:var(--border)">·</span><span>تقرير PDF مجاني</span></div>
 <div class="pwa-install-section" id="pwa-install-section" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
   <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;font-weight:600">تثبيت سريع</div>
-  <button class="btn-primary" id="pwa-install-btn" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--white);margin-bottom:10px;font-size:15px;font-weight:700;padding:16px">
+  <button class="btn-primary" id="pwa-install-btn" onclick="handlePWAInstall()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--white);margin-bottom:10px;font-size:15px;font-weight:700;padding:16px;border:none;border-radius:12px;cursor:pointer;width:100%">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
     تثبيت التطبيق على الشاشة الرئيسية
   </button>
