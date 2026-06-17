@@ -49,7 +49,6 @@ h1{font-size:24px;font-weight:700}
 </head>
 <body>
 
-<!-- شاشة تسجيل الدخول -->
 <div id="login-screen" class="login-screen">
   <div class="login-box">
     <h2>🔐 Admin Panel</h2>
@@ -60,7 +59,6 @@ h1{font-size:24px;font-weight:700}
   </div>
 </div>
 
-<!-- المحتوى الرئيسي -->
 <div id="main-content" class="hidden">
   <div class="container">
     <div class="header">
@@ -111,12 +109,9 @@ h1{font-size:24px;font-weight:700}
 </div>
 
 <script>
-// ⚠️ استبدل هذه القيم بإعدادات Supabase الخاصة بك
 const SUPABASE_URL = 'https://oaqpzaarppcchnepffxx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2huZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
-
-// غيّر كلمة المرور هنا
-const ADMIN_PASSWORD = 'admin123';
+const ADMIN_PASSWORD = 'core2024';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
