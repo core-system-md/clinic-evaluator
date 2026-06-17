@@ -1217,15 +1217,17 @@ var allAdminAssessments = [];
 var adminCurrentTab = 'leads';
 
 function checkAdminMode() {
-  if (window.location.search.includes('admin=1')) {
+  var path = window.location.pathname;
+  if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
     document.getElementById('admin-panel').style.display = 'block';
-    document.querySelector('main').style.display = 'none';
+    var main = document.querySelector('main');
+    if (main) main.style.display = 'none';
     loadAdminData();
   }
 }
 
 function closeAdmin() {
-  window.location.href = window.location.pathname;
+  window.location.href = '/';
 }
 
 function switchAdminTab(tab) {
