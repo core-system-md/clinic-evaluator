@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel | CORE SYSTEM</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a1628;--surface:#0f1d32;--card:#141f35;--border:#1a2d4a;--accent:#5a7cf7;--accent2:#8c4afd;--success:#12d18e;--warning:#f0900a;--danger:#e53e3e;--text:#ffffff;--muted:#a0a0c0}
+body{font-family:'IBM Plex Sans Arabic',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding:24px}
+.container{max-width:1200px;margin:0 auto}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+h1{font-size:24px;font-weight:700}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
+.stat-num{font-size:36px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace}
+.stat-label{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
+.tabs{display:flex;gap:8px;margin-bottom:24px}
+.tab-btn{padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s}
+.tab-btn.active{background:var(--accent);color:var(--white);border-color:var(--accent)}
+.search-box{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;margin-bottom:16px}
+.search-box:focus{outline:none;border-color:var(--accent)}
+.card-grid{display:grid;gap:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
+.card-header{display:flex;justify-content:space-between;margin-bottom:10px}
+.card-name{font-weight:700}
+.card-date{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.card-meta{font-size:13px;color:var(--muted);margin-bottom:4px}
+.card-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.tag{background:var(--surface);border-radius:6px;padding:4px 10px;font-size:12px}
+.score-badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:700;font-family:'IBM Plex Mono',monospace}
+.score-high{background:rgba(18,209,142,.15);color:var(--success)}
+.score-mid{background:rgba(240,144,10,.15);color:var(--warning)}
+.score-low{background:rgba(229,62,62,.15);color:var(--danger)}
+.btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600}
+.btn:hover{background:#4a6ce5}
+.btn-export{background:var(--success)}
+.login-screen{position:fixed;inset:0;background:var(--bg);display:flex;justify-content:center;align-items:center;z-index:1000}
+.login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px;max-width:400px;width:100%;text-align:center}
+.login-box h2{margin-bottom:8px}
+.login-box p{color:var(--muted);margin-bottom:24px;font-size:14px}
+.login-input{width:100%;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;margin-bottom:16px;text-align:center}
+.login-input:focus{outline:none;border-color:var(--accent)}
+.error{color:var(--danger);font-size:13px;margin-top:8px;display:none}
+.hidden{display:none !important}
+</style>
+</head>
+<body>
+
+<!-- شاشة تسجيل الدخول -->
+<div id="login-screen" class="login-screen">
+  <div class="login-box">
+    <h2>🔐 Admin Panel</h2>
+    <p>أدخل كلمة المرور</p>
+    <input type="password" id="admin-pass" class="login-input" placeholder="كلمة المرور" onkeypress="if(event.key==='Enter')doLogin()">
+    <button class="btn" onclick="doLogin()" style="width:100%">دخول</button>
+    <div id="login-error" class="error">كلمة المرور غير صحيحة</div>
+  </div>
+</div>
+
+<!-- المحتوى الرئيسي -->
+<div id="main-content" class="hidden">
+  <div class="container">
+    <div class="header">
+      <div>
+        <h1>لوحة التحكم</h1>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">CORE SYSTEM</div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn btn-export" onclick="exportCSV()">📥 تصدير CSV</button>
+        <button class="btn" onclick="location.href='/'" style="background:var(--danger)">خروج</button>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat-card">
+        <div class="stat-num" id="stat-total">0</div>
+        <div class="stat-label">إجمالي التقييمات</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-avg">0</div>
+        <div class="stat-label">متوسط النتيجة</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-today">0</div>
+        <div class="stat-label">اليوم</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-leads">0</div>
+        <div class="stat-label">العملاء المحتملين</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('assessments')" id="tab-assessments">التقييمات</button>
+      <button class="tab-btn" onclick="switchTab('leads')" id="tab-leads">العملاء المحتملين</button>
+    </div>
+
+    <input type="text" class="search-box" id="search-box" placeholder="🔍 بحث..." oninput="doSearch()">
+
+    <div id="content-assessments">
+      <div class="card-grid" id="cards-assessments"></div>
+    </div>
+
+    <div id="content-leads" class="hidden">
+      <div class="card-grid" id="cards-leads"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ⚠️ استبدل هذه القيم بإعدادات Supabase الخاصة بك
+const SUPABASE_URL = 'https://oaqpzaarppcchnepffxx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2huZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
+
+// غيّر كلمة المرور هنا
+const ADMIN_PASSWORD = 'admin123';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let allAssessments = [];
+let allLeads = [];
+let currentTab = 'assessments';
+
+function doLogin() {
+  const pass = document.getElementById('admin-pass').value;
+  if (pass === ADMIN_PASSWORD) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('main-content').classList.remove('hidden');
+    loadData();
+  } else {
+    document.getElementById('login-error').style.display = 'block';
+  }
+}
+
+async function loadData() {
+  try {
+    const { data: assessments } = await sb.from('assessments').select('*').order('created_at', { ascending: false });
+    allAssessments = assessments || [];
+    renderAssessments(allAssessments);
+
+    const { data: leads } = await sb.from('leads').select('*').order('created_at', { ascending: false });
+    allLeads = leads || [];
+    renderLeads(allLeads);
+
+    updateStats();
+  } catch (err) {
+    alert('خطأ: ' + err.message);
+  }
+}
+
+function renderAssessments(data) {
+  const container = document.getElementById('cards-assessments');
+  if (!data.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">لا توجد تقييمات</div>'; return; }
+  
+  container.innerHTML = data.map(row => {
+    const score = row.final || 0;
+    let badgeClass = 'score-low';
+    if (score >= 80) badgeClass = 'score-high';
+    else if (score >= 65) badgeClass = 'score-mid';
+    
+    const date = new Date(row.created_at).toLocaleDateString('ar-JO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-name">${row.name || '—'}</div>
+          <span class="score-badge ${badgeClass}">${score}/100</span>
+        </div>
+        <div class="card-date">${date}</div>
+        <div class="card-tags">
+          <span class="tag">عمليات: ${row.operational || 0}</span>
+          <span class="tag">تواصل: ${row.commercial || 0}</span>
+          <span class="tag">ولاء: ${row.retention || 0}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderLeads(data) {
+  const container = document.getElementById('cards-leads');
+  if (!data.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">لا توجد بيانات</div>'; return; }
+  
+  const specMap = { cosmetic: 'تجميل', dental: 'أسنان', general: 'عام', derma: 'جلدية', ortho: 'عظام', eye: 'عيون', other: 'آخر' };
+  
+  container.innerHTML = data.map(row => {
+    const date = new Date(row.created_at).toLocaleDateString('ar-JO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+    
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div class="card-name">${row.name || '—'}</div>
+          <span style="font-size:11px;color:var(--muted);font-family:monospace">${date}</span>
+        </div>
+        <div class="card-meta">📱 ${row.phone || '—'}</div>
+        <div class="card-meta">✉️ ${row.email || '—'}</div>
+        <div class="card-tags">
+          <span class="tag">${specMap[row.specialty] || row.specialty || '—'}</span>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = allAssessments.length;
+  const avg = allAssessments.length ? Math.round(allAssessments.reduce((a, b) => a + (b.final || 0), 0) / allAssessments.length) : 0;
+  document.getElementById('stat-avg').textContent = avg;
+  const today = new Date().toDateString();
+  document.getElementById('stat-today').textContent = allAssessments.filter(r => new Date(r.created_at).toDateString() === today).length;
+  document.getElementById('stat-leads').textContent = allLeads.length;
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-assessments').classList.toggle('active', tab === 'assessments');
+  document.getElementById('tab-leads').classList.toggle('active', tab === 'leads');
+  document.getElementById('content-assessments').classList.toggle('hidden', tab !== 'assessments');
+  document.getElementById('content-leads').classList.toggle('hidden', tab !== 'leads');
+}
+
+function doSearch() {
+  const q = document.getElementById('search-box').value.toLowerCase();
+  if (currentTab === 'assessments') {
+    renderAssessments(allAssessments.filter(r => (r.name || '').toLowerCase().includes(q) || (r.final || '').toString().includes(q)));
+  } else {
+    renderLeads(allLeads.filter(r => (r.name || '').toLowerCase().includes(q) || (r.phone || '').includes(q)));
+  }
+}
+
+function exportCSV() {
+  const data = currentTab === 'leads' ? allLeads : allAssessments;
+  const filename = currentTab === 'leads' ? 'core-leads.csv' : 'core-assessments.csv';
+  if (!data.length) { alert('لا توجد بيانات'); return; }
+  
+  const headers = Object.keys(data[0]).join(',');
+  const rows = data.map(row => Object.values(row).map(v => {
+    let val = v === null ? '' : String(v);
+    if (val.includes(',') || val.includes('"')) val = '"' + val.replace(/"/g, '""') + '"';
+    return val;
+  }).join(','));
+  
+  const csv = '\uFEFF' + headers + '\n' + rows.join('\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>
