@@ -54,14 +54,18 @@ async function loadAdminData() {
     return;
   }
   try {
-    var leadsRes = await supabaseClient.from('leads').select('*').order('created_at', {ascending: false}).limit(200);
-    var assessmentsRes = await supabaseClient.from('assessments').select('*').order('created_at', {ascending: false}).limit(200);
+    var leadsRes = await supabaseClient.from('leads').select('*').order('created_at', {ascending: false}).limit(500);
+    var assessmentsRes = await supabaseClient.from('assessments').select('*').order('created_at', {ascending: false}).limit(500);
 
     if (leadsRes.error) throw leadsRes.error;
     if (assessmentsRes.error) throw assessmentsRes.error;
 
-    renderAdminTable('admin-leads-table', leadsRes.data, ['name','phone','email','specialty','years','staff','created_at']);
-    renderAdminTable('admin-assessments-table', assessmentsRes.data, ['name','phone','email','specialty','final','operational','commercial','retention','created_at']);
+    adminLeadsData = leadsRes.data || [];
+    adminAssessmentsData = assessmentsRes.data || [];
+
+    updateKPIs();
+    renderAdminTable('admin-leads-table', adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+    renderAdminTable('admin-assessments-table', adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
   } catch (e) {
     console.error('[CORE] Admin load error:', e);
     alert('خطأ في تحميل البيانات: ' + (e.message || e));
@@ -144,6 +148,168 @@ function formatCell(col, val) {
   if (col === 'q5') return '<b style="color:var(--accent)">No-Show:</b> ' + (ANSWER_MAP.q5[val] || val);
   if (col === 'q6') return '<b style="color:var(--accent)">KPIs:</b> ' + (ANSWER_MAP.q6[val] || val);
   return val;
+}
+
+var adminLeadsData = [];
+var adminAssessmentsData = [];
+
+function updateKPIs() {
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('kpi-total-assessments').textContent = adminAssessmentsData.length;
+  document.getElementById('kpi-total-leads').textContent = adminLeadsData.length;
+  var todayAssessments = adminAssessmentsData.filter(function(r) {
+    return r.created_at && r.created_at.startsWith(today);
+  }).length;
+  var todayLeads = adminLeadsData.filter(function(r) {
+    return r.created_at && r.created_at.startsWith(today);
+  }).length;
+  document.getElementById('kpi-today-assessments').textContent = todayAssessments;
+  document.getElementById('kpi-today-leads').textContent = todayLeads;
+}
+
+function applyAdminFilter() {
+  var fromVal = document.getElementById('admin-date-from').value;
+  var toVal = document.getElementById('admin-date-to').value;
+  var fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  var toDate = toVal ? new Date(toVal + 'T23:59:59') : null;
+
+  function inRange(row) {
+    if (!row.created_at) return true;
+    var d = new Date(row.created_at);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    return true;
+  }
+
+  var filteredLeads = adminLeadsData.filter(inRange);
+  var filteredAssessments = adminAssessmentsData.filter(inRange);
+
+  renderAdminTable('admin-leads-table', filteredLeads, ['name','phone','email','specialty','years','staff','created_at']);
+  renderAdminTable('admin-assessments-table', filteredAssessments, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+}
+
+function clearAdminFilter() {
+  document.getElementById('admin-date-from').value = '';
+  document.getElementById('admin-date-to').value = '';
+  renderAdminTable('admin-leads-table', adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+  renderAdminTable('admin-assessments-table', adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+}
+
+function exportTableCSV(tableName) {
+  var data = tableName === 'leads' ? adminLeadsData : adminAssessmentsData;
+  var columns = tableName === 'leads'
+    ? ['name','phone','email','specialty','years','staff','created_at']
+    : ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at'];
+  if (!data || data.length === 0) {
+    alert('لا توجد بيانات للتصدير');
+    return;
+  }
+  var csv = '';
+  var headers = columns.map(function(c) {
+    if (c === 'specialty') return 'التخصص';
+    if (c === 'years') return 'سنوات';
+    if (c === 'staff') return 'الفريق';
+    if (c === 'name') return 'الاسم';
+    if (c === 'phone') return 'الهاتف';
+    if (c === 'email') return 'البريد';
+    if (c === 'created_at') return 'التاريخ';
+    if (c === 'final') return 'النتيجة';
+    if (c === 'operational') return 'العمليات';
+    if (c === 'commercial') return 'التواصل';
+    if (c === 'retention') return 'الولاء';
+    if (c === 'q1') return 'الاستجابة';
+    if (c === 'q2') return 'المتابعة';
+    if (c === 'q3') return 'الاعتراض';
+    if (c === 'q4') return 'القبول';
+    if (c === 'q5') return 'No-Show';
+    if (c === 'q6') return 'KPIs';
+    return c;
+  });
+  csv += '\uFEFF' + headers.join(',') + '\n';
+  data.forEach(function(row) {
+    var vals = columns.map(function(col) {
+      var v = row[col];
+      if (v == null) return '';
+      if (col === 'created_at') return new Date(v).toLocaleString('ar-JO');
+      if (['q1','q2','q3','q4','q5','q6'].indexOf(col) !== -1) {
+        var map = ANSWER_MAP[col];
+        return map && map[v] ? map[v] : v;
+      }
+      if (col === 'specialty') return SPECIALTY_MAP[v] || v;
+      if (col === 'years') return YEARS_MAP[v] || v;
+      if (col === 'staff') return STAFF_MAP[v] || v;
+      var s = String(v).replace(/"/g, '""');
+      if (s.indexOf(',') !== -1 || s.indexOf('\n') !== -1) s = '"' + s + '"';
+      return s;
+    });
+    csv += vals.join(',') + '\n';
+  });
+  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'CORE_' + tableName + '_' + new Date().toISOString().split('T')[0] + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function printAdminReport() {
+  var win = window.open('', '_blank');
+  if (!win) { alert('تم حظر النافذة المنبثقة — يرجى السماح بالنوافذ المنبثقة'); return; }
+  var today = new Date().toLocaleDateString('ar-JO');
+  var html = '<html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير الإدارة — Core System</title>';
+  html += '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h1{font-size:18px;border-bottom:2px solid #111;padding-bottom:8px}h2{font-size:14px;margin-top:20px;border-bottom:1px solid #ccc;padding-bottom:4px}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}th,td{border:1px solid #ccc;padding:6px;text-align:right}th{background:#f0f0f0;font-weight:700}.kpi{display:inline-block;padding:10px 16px;border:1px solid #ccc;margin:4px;border-radius:4px;text-align:center}.kpi-num{font-size:20px;font-weight:700;color:#4a6cf7}.kpi-lbl{font-size:10px;color:#666}</style></head><body>';
+  html += '<h1>تقرير لوحة الإدارة — Core System</h1>';
+  html += '<div style="margin-bottom:10px;font-size:12px;color:#666">التاريخ: ' + today + '</div>';
+  html += '<div style="margin-bottom:16px">';
+  html += '<div class="kpi"><div class="kpi-num">' + adminAssessmentsData.length + '</div><div class="kpi-lbl">إجمالي التقييمات</div></div>';
+  html += '<div class="kpi"><div class="kpi-num">' + adminLeadsData.length + '</div><div class="kpi-lbl">إجمالي العملاء</div></div>';
+  html += '</div>';
+  html += '<h2>العملاء المحتملون — Leads (' + adminLeadsData.length + ')</h2>';
+  html += buildPrintTable(adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+  html += '<h2>التقييمات — Assessments (' + adminAssessmentsData.length + ')</h2>';
+  html += buildPrintTable(adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+  html += '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
+}
+
+function buildPrintTable(data, columns) {
+  if (!data || data.length === 0) return '<p style="color:#666;font-size:12px">لا توجد بيانات.</p>';
+  var html = '<table><thead><tr>';
+  columns.forEach(function(col) {
+    var label = col;
+    if (col === 'specialty') label = 'التخصص';
+    if (col === 'years') label = 'سنوات';
+    if (col === 'staff') label = 'الفريق';
+    if (col === 'name') label = 'الاسم';
+    if (col === 'phone') label = 'الهاتف';
+    if (col === 'email') label = 'البريد';
+    if (col === 'created_at') label = 'التاريخ';
+    if (col === 'final') label = 'النتيجة';
+    if (col === 'operational') label = 'العمليات';
+    if (col === 'commercial') label = 'التواصل';
+    if (col === 'retention') label = 'الولاء';
+    if (col === 'q1') label = 'الاستجابة';
+    if (col === 'q2') label = 'المتابعة';
+    if (col === 'q3') label = 'الاعتراض';
+    if (col === 'q4') label = 'القبول';
+    if (col === 'q5') label = 'No-Show';
+    if (col === 'q6') label = 'KPIs';
+    html += '<th>' + label + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  data.forEach(function(row) {
+    html += '<tr>';
+    columns.forEach(function(col) {
+      html += '<td>' + formatCell(col, row[col]).replace(/<[^>]*>/g, '') + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
 }
 
 function renderAdminTable(containerId, data, columns) {
@@ -216,14 +382,18 @@ async function loadAdminData() {
     return;
   }
   try {
-    var leadsRes = await supabaseClient.from('leads').select('*').order('created_at', {ascending: false}).limit(200);
-    var assessmentsRes = await supabaseClient.from('assessments').select('*').order('created_at', {ascending: false}).limit(200);
+    var leadsRes = await supabaseClient.from('leads').select('*').order('created_at', {ascending: false}).limit(500);
+    var assessmentsRes = await supabaseClient.from('assessments').select('*').order('created_at', {ascending: false}).limit(500);
 
     if (leadsRes.error) throw leadsRes.error;
     if (assessmentsRes.error) throw assessmentsRes.error;
 
-    renderAdminTable('admin-leads-table', leadsRes.data, ['name','phone','email','specialty','years','staff','created_at']);
-    renderAdminTable('admin-assessments-table', assessmentsRes.data, ['name','phone','email','specialty','final','operational','commercial','retention','created_at']);
+    adminLeadsData = leadsRes.data || [];
+    adminAssessmentsData = assessmentsRes.data || [];
+
+    updateKPIs();
+    renderAdminTable('admin-leads-table', adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+    renderAdminTable('admin-assessments-table', adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
   } catch (e) {
     console.error('[CORE] Admin load error:', e);
     alert('خطأ في تحميل البيانات: ' + (e.message || e));
@@ -306,6 +476,168 @@ function formatCell(col, val) {
   if (col === 'q5') return '<b style="color:var(--accent)">No-Show:</b> ' + (ANSWER_MAP.q5[val] || val);
   if (col === 'q6') return '<b style="color:var(--accent)">KPIs:</b> ' + (ANSWER_MAP.q6[val] || val);
   return val;
+}
+
+var adminLeadsData = [];
+var adminAssessmentsData = [];
+
+function updateKPIs() {
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('kpi-total-assessments').textContent = adminAssessmentsData.length;
+  document.getElementById('kpi-total-leads').textContent = adminLeadsData.length;
+  var todayAssessments = adminAssessmentsData.filter(function(r) {
+    return r.created_at && r.created_at.startsWith(today);
+  }).length;
+  var todayLeads = adminLeadsData.filter(function(r) {
+    return r.created_at && r.created_at.startsWith(today);
+  }).length;
+  document.getElementById('kpi-today-assessments').textContent = todayAssessments;
+  document.getElementById('kpi-today-leads').textContent = todayLeads;
+}
+
+function applyAdminFilter() {
+  var fromVal = document.getElementById('admin-date-from').value;
+  var toVal = document.getElementById('admin-date-to').value;
+  var fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  var toDate = toVal ? new Date(toVal + 'T23:59:59') : null;
+
+  function inRange(row) {
+    if (!row.created_at) return true;
+    var d = new Date(row.created_at);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    return true;
+  }
+
+  var filteredLeads = adminLeadsData.filter(inRange);
+  var filteredAssessments = adminAssessmentsData.filter(inRange);
+
+  renderAdminTable('admin-leads-table', filteredLeads, ['name','phone','email','specialty','years','staff','created_at']);
+  renderAdminTable('admin-assessments-table', filteredAssessments, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+}
+
+function clearAdminFilter() {
+  document.getElementById('admin-date-from').value = '';
+  document.getElementById('admin-date-to').value = '';
+  renderAdminTable('admin-leads-table', adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+  renderAdminTable('admin-assessments-table', adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+}
+
+function exportTableCSV(tableName) {
+  var data = tableName === 'leads' ? adminLeadsData : adminAssessmentsData;
+  var columns = tableName === 'leads'
+    ? ['name','phone','email','specialty','years','staff','created_at']
+    : ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at'];
+  if (!data || data.length === 0) {
+    alert('لا توجد بيانات للتصدير');
+    return;
+  }
+  var csv = '';
+  var headers = columns.map(function(c) {
+    if (c === 'specialty') return 'التخصص';
+    if (c === 'years') return 'سنوات';
+    if (c === 'staff') return 'الفريق';
+    if (c === 'name') return 'الاسم';
+    if (c === 'phone') return 'الهاتف';
+    if (c === 'email') return 'البريد';
+    if (c === 'created_at') return 'التاريخ';
+    if (c === 'final') return 'النتيجة';
+    if (c === 'operational') return 'العمليات';
+    if (c === 'commercial') return 'التواصل';
+    if (c === 'retention') return 'الولاء';
+    if (c === 'q1') return 'الاستجابة';
+    if (c === 'q2') return 'المتابعة';
+    if (c === 'q3') return 'الاعتراض';
+    if (c === 'q4') return 'القبول';
+    if (c === 'q5') return 'No-Show';
+    if (c === 'q6') return 'KPIs';
+    return c;
+  });
+  csv += '\uFEFF' + headers.join(',') + '\n';
+  data.forEach(function(row) {
+    var vals = columns.map(function(col) {
+      var v = row[col];
+      if (v == null) return '';
+      if (col === 'created_at') return new Date(v).toLocaleString('ar-JO');
+      if (['q1','q2','q3','q4','q5','q6'].indexOf(col) !== -1) {
+        var map = ANSWER_MAP[col];
+        return map && map[v] ? map[v] : v;
+      }
+      if (col === 'specialty') return SPECIALTY_MAP[v] || v;
+      if (col === 'years') return YEARS_MAP[v] || v;
+      if (col === 'staff') return STAFF_MAP[v] || v;
+      var s = String(v).replace(/"/g, '""');
+      if (s.indexOf(',') !== -1 || s.indexOf('\n') !== -1) s = '"' + s + '"';
+      return s;
+    });
+    csv += vals.join(',') + '\n';
+  });
+  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'CORE_' + tableName + '_' + new Date().toISOString().split('T')[0] + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function printAdminReport() {
+  var win = window.open('', '_blank');
+  if (!win) { alert('تم حظر النافذة المنبثقة — يرجى السماح بالنوافذ المنبثقة'); return; }
+  var today = new Date().toLocaleDateString('ar-JO');
+  var html = '<html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير الإدارة — Core System</title>';
+  html += '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h1{font-size:18px;border-bottom:2px solid #111;padding-bottom:8px}h2{font-size:14px;margin-top:20px;border-bottom:1px solid #ccc;padding-bottom:4px}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}th,td{border:1px solid #ccc;padding:6px;text-align:right}th{background:#f0f0f0;font-weight:700}.kpi{display:inline-block;padding:10px 16px;border:1px solid #ccc;margin:4px;border-radius:4px;text-align:center}.kpi-num{font-size:20px;font-weight:700;color:#4a6cf7}.kpi-lbl{font-size:10px;color:#666}</style></head><body>';
+  html += '<h1>تقرير لوحة الإدارة — Core System</h1>';
+  html += '<div style="margin-bottom:10px;font-size:12px;color:#666">التاريخ: ' + today + '</div>';
+  html += '<div style="margin-bottom:16px">';
+  html += '<div class="kpi"><div class="kpi-num">' + adminAssessmentsData.length + '</div><div class="kpi-lbl">إجمالي التقييمات</div></div>';
+  html += '<div class="kpi"><div class="kpi-num">' + adminLeadsData.length + '</div><div class="kpi-lbl">إجمالي العملاء</div></div>';
+  html += '</div>';
+  html += '<h2>العملاء المحتملون — Leads (' + adminLeadsData.length + ')</h2>';
+  html += buildPrintTable(adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+  html += '<h2>التقييمات — Assessments (' + adminAssessmentsData.length + ')</h2>';
+  html += buildPrintTable(adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+  html += '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
+}
+
+function buildPrintTable(data, columns) {
+  if (!data || data.length === 0) return '<p style="color:#666;font-size:12px">لا توجد بيانات.</p>';
+  var html = '<table><thead><tr>';
+  columns.forEach(function(col) {
+    var label = col;
+    if (col === 'specialty') label = 'التخصص';
+    if (col === 'years') label = 'سنوات';
+    if (col === 'staff') label = 'الفريق';
+    if (col === 'name') label = 'الاسم';
+    if (col === 'phone') label = 'الهاتف';
+    if (col === 'email') label = 'البريد';
+    if (col === 'created_at') label = 'التاريخ';
+    if (col === 'final') label = 'النتيجة';
+    if (col === 'operational') label = 'العمليات';
+    if (col === 'commercial') label = 'التواصل';
+    if (col === 'retention') label = 'الولاء';
+    if (col === 'q1') label = 'الاستجابة';
+    if (col === 'q2') label = 'المتابعة';
+    if (col === 'q3') label = 'الاعتراض';
+    if (col === 'q4') label = 'القبول';
+    if (col === 'q5') label = 'No-Show';
+    if (col === 'q6') label = 'KPIs';
+    html += '<th>' + label + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  data.forEach(function(row) {
+    html += '<tr>';
+    columns.forEach(function(col) {
+      html += '<td>' + formatCell(col, row[col]).replace(/<[^>]*>/g, '') + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
 }
 
 function renderAdminTable(containerId, data, columns) {
@@ -862,7 +1194,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
   </div>
 </div>
 <section id="screen-admin" class="screen">
-  <div style="padding:24px;max-width:960px;margin:0 auto;width:100%;box-sizing:border-box">
+  <div style="padding:24px;max-width:1100px;margin:0 auto;width:100%;box-sizing:border-box">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;border-bottom:1px solid var(--border);padding-bottom:16px">
       <h2 style="font-size:20px;font-weight:700;color:var(--white);margin:0">لوحة الإدارة — Admin Panel</h2>
       <button type="button" class="btn-primary" style="width:auto;padding:10px 18px;font-size:14px" onclick="window.location.hash='';var base=window.location.pathname.replace(/\/admin/g,'');if(base!==window.location.pathname){history.replaceState(null,'',base||'/');}goTo('screen-landing')">العودة للتطبيق</button>
@@ -875,15 +1207,62 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
       <button type="button" class="btn-primary" style="margin-top:16px" onclick="checkAdminPassword()">دخول</button>
     </div>
     <div id="admin-content" style="display:none">
+      <!-- KPI Dashboard -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:28px">
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace" id="kpi-total-assessments">0</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px">إجمالي التقييمات</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--success);font-family:'IBM Plex Mono',monospace" id="kpi-total-leads">0</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px">إجمالي العملاء المحتملين</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--warning);font-family:'IBM Plex Mono',monospace" id="kpi-today-assessments">0</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px">تقييمات اليوم</div>
+        </div>
+        <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:18px;text-align:center">
+          <div style="font-size:32px;font-weight:700;color:var(--light);font-family:'IBM Plex Mono',monospace" id="kpi-today-leads">0</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:1px">عملاء اليوم</div>
+        </div>
+      </div>
+      <!-- Date Filter -->
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:24px">
+        <div style="display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end">
+          <div style="flex:1;min-width:140px">
+            <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:1px">من تاريخ</label>
+            <input type="date" id="admin-date-from" class="field-input" style="font-size:14px;padding:10px 12px" onchange="applyAdminFilter()">
+          </div>
+          <div style="flex:1;min-width:140px">
+            <label style="display:block;font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;letter-spacing:1px">إلى تاريخ</label>
+            <input type="date" id="admin-date-to" class="field-input" style="font-size:14px;padding:10px 12px" onchange="applyAdminFilter()">
+          </div>
+          <div style="display:flex;gap:8px">
+            <button type="button" class="btn-primary" style="width:auto;padding:10px 16px;font-size:13px" onclick="applyAdminFilter()">تصفية</button>
+            <button type="button" class="btn-primary" style="width:auto;padding:10px 16px;font-size:13px;background:var(--card);color:var(--text);border:1px solid var(--border)" onclick="clearAdminFilter()">إلغاء التصفية</button>
+          </div>
+        </div>
+      </div>
+      <!-- Leads Table -->
       <div style="margin-bottom:32px">
-        <h3 style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:12px">العملاء المحتملون — Leads</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--white);margin:0">العملاء المحتملون — Leads</h3>
+          <button type="button" class="btn-primary" style="width:auto;padding:8px 14px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border)" onclick="exportTableCSV('leads')">تنزيل CSV</button>
+        </div>
         <div id="admin-leads-table" style="overflow-x:auto"></div>
       </div>
+      <!-- Assessments Table -->
       <div style="margin-bottom:32px">
-        <h3 style="font-size:16px;font-weight:700;color:var(--white);margin-bottom:12px">التقييمات — Assessments</h3>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <h3 style="font-size:16px;font-weight:700;color:var(--white);margin:0">التقييمات — Assessments</h3>
+          <button type="button" class="btn-primary" style="width:auto;padding:8px 14px;font-size:12px;background:var(--card);color:var(--text);border:1px solid var(--border)" onclick="exportTableCSV('assessments')">تنزيل CSV</button>
+        </div>
         <div id="admin-assessments-table" style="overflow-x:auto"></div>
       </div>
-      <button type="button" class="btn-primary" style="width:auto;padding:10px 18px;font-size:14px;background:var(--card);color:var(--text);border:1px solid var(--border)" onclick="loadAdminData()">تحديث البيانات</button>
+      <div style="display:flex;gap:10px">
+        <button type="button" class="btn-primary" style="width:auto;padding:10px 18px;font-size:14px;background:var(--card);color:var(--text);border:1px solid var(--border)" onclick="loadAdminData()">تحديث البيانات</button>
+        <button type="button" class="btn-primary" style="width:auto;padding:10px 18px;font-size:14px;background:var(--card);color:var(--text);border:1px solid var(--border)" onclick="printAdminReport()">طباعة / حفظ PDF</button>
+      </div>
     </div>
   </div>
 </section>
@@ -1576,14 +1955,18 @@ async function loadAdminData() {
     return;
   }
   try {
-    var leadsRes = await supabaseClient.from('leads').select('*').order('created_at', {ascending: false}).limit(200);
-    var assessmentsRes = await supabaseClient.from('assessments').select('*').order('created_at', {ascending: false}).limit(200);
+    var leadsRes = await supabaseClient.from('leads').select('*').order('created_at', {ascending: false}).limit(500);
+    var assessmentsRes = await supabaseClient.from('assessments').select('*').order('created_at', {ascending: false}).limit(500);
 
     if (leadsRes.error) throw leadsRes.error;
     if (assessmentsRes.error) throw assessmentsRes.error;
 
-    renderAdminTable('admin-leads-table', leadsRes.data, ['name','phone','email','specialty','years','staff','created_at']);
-    renderAdminTable('admin-assessments-table', assessmentsRes.data, ['name','phone','email','specialty','final','operational','commercial','retention','created_at']);
+    adminLeadsData = leadsRes.data || [];
+    adminAssessmentsData = assessmentsRes.data || [];
+
+    updateKPIs();
+    renderAdminTable('admin-leads-table', adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+    renderAdminTable('admin-assessments-table', adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
   } catch (e) {
     console.error('[CORE] Admin load error:', e);
     alert('خطأ في تحميل البيانات: ' + (e.message || e));
@@ -1666,6 +2049,168 @@ function formatCell(col, val) {
   if (col === 'q5') return '<b style="color:var(--accent)">No-Show:</b> ' + (ANSWER_MAP.q5[val] || val);
   if (col === 'q6') return '<b style="color:var(--accent)">KPIs:</b> ' + (ANSWER_MAP.q6[val] || val);
   return val;
+}
+
+var adminLeadsData = [];
+var adminAssessmentsData = [];
+
+function updateKPIs() {
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('kpi-total-assessments').textContent = adminAssessmentsData.length;
+  document.getElementById('kpi-total-leads').textContent = adminLeadsData.length;
+  var todayAssessments = adminAssessmentsData.filter(function(r) {
+    return r.created_at && r.created_at.startsWith(today);
+  }).length;
+  var todayLeads = adminLeadsData.filter(function(r) {
+    return r.created_at && r.created_at.startsWith(today);
+  }).length;
+  document.getElementById('kpi-today-assessments').textContent = todayAssessments;
+  document.getElementById('kpi-today-leads').textContent = todayLeads;
+}
+
+function applyAdminFilter() {
+  var fromVal = document.getElementById('admin-date-from').value;
+  var toVal = document.getElementById('admin-date-to').value;
+  var fromDate = fromVal ? new Date(fromVal + 'T00:00:00') : null;
+  var toDate = toVal ? new Date(toVal + 'T23:59:59') : null;
+
+  function inRange(row) {
+    if (!row.created_at) return true;
+    var d = new Date(row.created_at);
+    if (fromDate && d < fromDate) return false;
+    if (toDate && d > toDate) return false;
+    return true;
+  }
+
+  var filteredLeads = adminLeadsData.filter(inRange);
+  var filteredAssessments = adminAssessmentsData.filter(inRange);
+
+  renderAdminTable('admin-leads-table', filteredLeads, ['name','phone','email','specialty','years','staff','created_at']);
+  renderAdminTable('admin-assessments-table', filteredAssessments, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+}
+
+function clearAdminFilter() {
+  document.getElementById('admin-date-from').value = '';
+  document.getElementById('admin-date-to').value = '';
+  renderAdminTable('admin-leads-table', adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+  renderAdminTable('admin-assessments-table', adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+}
+
+function exportTableCSV(tableName) {
+  var data = tableName === 'leads' ? adminLeadsData : adminAssessmentsData;
+  var columns = tableName === 'leads'
+    ? ['name','phone','email','specialty','years','staff','created_at']
+    : ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at'];
+  if (!data || data.length === 0) {
+    alert('لا توجد بيانات للتصدير');
+    return;
+  }
+  var csv = '';
+  var headers = columns.map(function(c) {
+    if (c === 'specialty') return 'التخصص';
+    if (c === 'years') return 'سنوات';
+    if (c === 'staff') return 'الفريق';
+    if (c === 'name') return 'الاسم';
+    if (c === 'phone') return 'الهاتف';
+    if (c === 'email') return 'البريد';
+    if (c === 'created_at') return 'التاريخ';
+    if (c === 'final') return 'النتيجة';
+    if (c === 'operational') return 'العمليات';
+    if (c === 'commercial') return 'التواصل';
+    if (c === 'retention') return 'الولاء';
+    if (c === 'q1') return 'الاستجابة';
+    if (c === 'q2') return 'المتابعة';
+    if (c === 'q3') return 'الاعتراض';
+    if (c === 'q4') return 'القبول';
+    if (c === 'q5') return 'No-Show';
+    if (c === 'q6') return 'KPIs';
+    return c;
+  });
+  csv += '\uFEFF' + headers.join(',') + '\n';
+  data.forEach(function(row) {
+    var vals = columns.map(function(col) {
+      var v = row[col];
+      if (v == null) return '';
+      if (col === 'created_at') return new Date(v).toLocaleString('ar-JO');
+      if (['q1','q2','q3','q4','q5','q6'].indexOf(col) !== -1) {
+        var map = ANSWER_MAP[col];
+        return map && map[v] ? map[v] : v;
+      }
+      if (col === 'specialty') return SPECIALTY_MAP[v] || v;
+      if (col === 'years') return YEARS_MAP[v] || v;
+      if (col === 'staff') return STAFF_MAP[v] || v;
+      var s = String(v).replace(/"/g, '""');
+      if (s.indexOf(',') !== -1 || s.indexOf('\n') !== -1) s = '"' + s + '"';
+      return s;
+    });
+    csv += vals.join(',') + '\n';
+  });
+  var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
+  var link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'CORE_' + tableName + '_' + new Date().toISOString().split('T')[0] + '.csv';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+function printAdminReport() {
+  var win = window.open('', '_blank');
+  if (!win) { alert('تم حظر النافذة المنبثقة — يرجى السماح بالنوافذ المنبثقة'); return; }
+  var today = new Date().toLocaleDateString('ar-JO');
+  var html = '<html dir="rtl" lang="ar"><head><meta charset="UTF-8"><title>تقرير الإدارة — Core System</title>';
+  html += '<style>body{font-family:Arial,sans-serif;padding:20px;color:#111}h1{font-size:18px;border-bottom:2px solid #111;padding-bottom:8px}h2{font-size:14px;margin-top:20px;border-bottom:1px solid #ccc;padding-bottom:4px}table{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}th,td{border:1px solid #ccc;padding:6px;text-align:right}th{background:#f0f0f0;font-weight:700}.kpi{display:inline-block;padding:10px 16px;border:1px solid #ccc;margin:4px;border-radius:4px;text-align:center}.kpi-num{font-size:20px;font-weight:700;color:#4a6cf7}.kpi-lbl{font-size:10px;color:#666}</style></head><body>';
+  html += '<h1>تقرير لوحة الإدارة — Core System</h1>';
+  html += '<div style="margin-bottom:10px;font-size:12px;color:#666">التاريخ: ' + today + '</div>';
+  html += '<div style="margin-bottom:16px">';
+  html += '<div class="kpi"><div class="kpi-num">' + adminAssessmentsData.length + '</div><div class="kpi-lbl">إجمالي التقييمات</div></div>';
+  html += '<div class="kpi"><div class="kpi-num">' + adminLeadsData.length + '</div><div class="kpi-lbl">إجمالي العملاء</div></div>';
+  html += '</div>';
+  html += '<h2>العملاء المحتملون — Leads (' + adminLeadsData.length + ')</h2>';
+  html += buildPrintTable(adminLeadsData, ['name','phone','email','specialty','years','staff','created_at']);
+  html += '<h2>التقييمات — Assessments (' + adminAssessmentsData.length + ')</h2>';
+  html += buildPrintTable(adminAssessmentsData, ['name','phone','email','specialty','final','operational','commercial','retention','q1','q2','q3','q4','q5','q6','created_at']);
+  html += '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(function() { win.print(); }, 500);
+}
+
+function buildPrintTable(data, columns) {
+  if (!data || data.length === 0) return '<p style="color:#666;font-size:12px">لا توجد بيانات.</p>';
+  var html = '<table><thead><tr>';
+  columns.forEach(function(col) {
+    var label = col;
+    if (col === 'specialty') label = 'التخصص';
+    if (col === 'years') label = 'سنوات';
+    if (col === 'staff') label = 'الفريق';
+    if (col === 'name') label = 'الاسم';
+    if (col === 'phone') label = 'الهاتف';
+    if (col === 'email') label = 'البريد';
+    if (col === 'created_at') label = 'التاريخ';
+    if (col === 'final') label = 'النتيجة';
+    if (col === 'operational') label = 'العمليات';
+    if (col === 'commercial') label = 'التواصل';
+    if (col === 'retention') label = 'الولاء';
+    if (col === 'q1') label = 'الاستجابة';
+    if (col === 'q2') label = 'المتابعة';
+    if (col === 'q3') label = 'الاعتراض';
+    if (col === 'q4') label = 'القبول';
+    if (col === 'q5') label = 'No-Show';
+    if (col === 'q6') label = 'KPIs';
+    html += '<th>' + label + '</th>';
+  });
+  html += '</tr></thead><tbody>';
+  data.forEach(function(row) {
+    html += '<tr>';
+    columns.forEach(function(col) {
+      html += '<td>' + formatCell(col, row[col]).replace(/<[^>]*>/g, '') + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  return html;
 }
 
 function renderAdminTable(containerId, data, columns) {
