@@ -1139,7 +1139,7 @@ function getContent(r) {
   };
 }
 
-function runAnalysis() {
+async function runAnalysis() {
   goTo('screen-loading');
   clearTicker();
   trackEvent('CompleteRegistration', {value: 1});
@@ -1152,47 +1152,43 @@ function runAnalysis() {
     {p: 90, t: 'بناء التقرير التشخيصي...'},
     {p: 100, t: 'التقرير جاهز'},
   ];
-  let i = 0;
   const bar = document.getElementById('load-bar');
   const sta = document.getElementById('load-status');
   const pct = document.getElementById('load-pct');
 
-  const tick = setInterval(function() {
-    if (i >= steps.length) {
-      clearInterval(tick);
-      const r = calcScore();
-      ST.result = r;
-      var saveResult = await saveDB('assessments', {
-        name: ST.lead.name || null,
-        phone: ST.lead.phone || null,
-        email: ST.lead.email || null,
-        specialty: ST.profile.specialty || null,
-        years: ST.profile.years || null,
-        staff: ST.profile.staff || null,
-        q1: ST.answers.q1,
-        q2: ST.answers.q2,
-        q3: ST.answers.q3,
-        q4: ST.answers.q4,
-        q5: ST.answers.q5,
-        q6: ST.answers.q6,
-        operational: r.operational,
-        commercial: r.commercial,
-        retention: r.retention,
-        reliability: r.reliability,
-        final: r.final,
-        created_at: new Date().toISOString()
-      });
-      if (!saveResult.success) {
-        console.error('[CORE] Assessment save failed:', saveResult.error);
-      }
-      renderResults(r);
-      return;
-    }
+  for (let i = 0; i < steps.length; i++) {
+    await new Promise(function(resolve) { setTimeout(resolve, 950); });
     bar.style.width = steps[i].p + '%';
     sta.textContent = steps[i].t;
     pct.textContent = steps[i].p + '%';
-    i++;
-  }, 950);
+  }
+
+  const r = calcScore();
+  ST.result = r;
+  var saveResult = await saveDB('assessments', {
+    name: ST.lead.name || null,
+    phone: ST.lead.phone || null,
+    email: ST.lead.email || null,
+    specialty: ST.profile.specialty || null,
+    years: ST.profile.years || null,
+    staff: ST.profile.staff || null,
+    q1: ST.answers.q1,
+    q2: ST.answers.q2,
+    q3: ST.answers.q3,
+    q4: ST.answers.q4,
+    q5: ST.answers.q5,
+    q6: ST.answers.q6,
+    operational: r.operational,
+    commercial: r.commercial,
+    retention: r.retention,
+    reliability: r.reliability,
+    final: r.final,
+    created_at: new Date().toISOString()
+  });
+  if (!saveResult.success) {
+    console.error('[CORE] Assessment save failed:', saveResult.error);
+  }
+  renderResults(r);
 }
 
 function renderResults(r) {
