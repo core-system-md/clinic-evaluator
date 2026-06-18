@@ -1814,7 +1814,7 @@ function renderResults(r) {
     grid.appendChild(div);
   });
 
-  const msg = encodeURIComponent('مرحباً، أكملت تقييم الأداء المؤسسي عبر Core System وحصلت على نتيجة ' + r.final + '/100 (' + b.label + '). أرغب بمراجعة التقرير التشخيصي.');
+  const msg = encodeURIComponent('مرحباً،\nأكملت تقييم Core System الأولي\nوحصلت على التقرير.\nأرغب بحجز الجلسة التشخيصية المجانية (15 دقيقة).\n\n[' + (ST.lead.name || '') + ']');
   document.getElementById('wa-btn').href = 'https://wa.me/' + CFG.whatsapp + '?text=' + msg;
 
   const specialtyMap = {cosmetic: 'تجميل وليزر', dental: 'أسنان', general: 'عام وعائلي', derma: 'جلدية', ortho: 'عظام وعلاج طبيعي', eye: 'عيون', other: 'تخصص طبي'};
