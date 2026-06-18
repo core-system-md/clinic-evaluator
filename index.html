@@ -143,44 +143,6 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 .pdf-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:16px;background:transparent;color:var(--text);border:1px solid var(--border);border-radius:10px;font-size:15px;font-weight:600;font-family:inherit;cursor:pointer;margin-bottom:20px;transition:border-color .2s,color .2s}
 .pdf-btn:hover{border-color:var(--border2);color:var(--white)}
 
-/* ADMIN PANEL STYLES */
-#admin-panel{display:none;position:fixed;inset:0;background:var(--bg);z-index:9999;overflow-y:auto}
-.admin-container{max-width:1200px;margin:0 auto;padding:24px}
-.admin-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid var(--border)}
-.admin-header h1{font-size:24px;font-weight:700}
-.admin-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:32px}
-.admin-stat-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px}
-.admin-stat-num{font-size:36px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace}
-.admin-stat-label{font-size:12px;color:var(--muted);margin-top:4px;text-transform:uppercase;letter-spacing:1px}
-.admin-tabs{display:flex;gap:8px;margin-bottom:24px}
-.admin-tab-btn{padding:10px 20px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--muted);font-family:inherit;font-size:14px;cursor:pointer;transition:all .2s}
-.admin-tab-btn.active{background:var(--accent);color:var(--white);border-color:var(--accent)}
-.admin-search{width:100%;padding:12px 16px;background:var(--card);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:14px;margin-bottom:16px}
-.admin-search:focus{outline:none;border-color:var(--accent)}
-.admin-card-grid{display:grid;gap:10px}
-.admin-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px}
-.admin-card-header{display:flex;justify-content:space-between;margin-bottom:10px}
-.admin-card-name{font-weight:700}
-.admin-card-date{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
-.admin-card-meta{font-size:13px;color:var(--muted);margin-bottom:4px}
-.admin-card-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
-.admin-tag{background:var(--surface);border-radius:6px;padding:4px 10px;font-size:12px}
-.admin-score-badge{display:inline-block;padding:4px 12px;border-radius:4px;font-size:12px;font-weight:700;font-family:'IBM Plex Mono',monospace}
-.admin-score-high{background:rgba(18,209,142,.15);color:var(--success)}
-.admin-score-mid{background:rgba(240,144,10,.15);color:var(--warning)}
-.admin-score-low{background:rgba(229,62,62,.15);color:var(--danger)}
-.admin-btn{padding:10px 20px;background:var(--accent);color:#fff;border:none;border-radius:8px;cursor:pointer;font-family:inherit;font-size:14px;font-weight:600}
-.admin-btn:hover{background:#4a6ce5}
-.admin-btn-export{background:var(--success)}
-.admin-login-screen{position:fixed;inset:0;background:var(--bg);display:flex;justify-content:center;align-items:center;z-index:10000}
-.admin-login-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:40px;max-width:400px;width:100%;text-align:center}
-.admin-login-box h2{margin-bottom:8px}
-.admin-login-box p{color:var(--muted);margin-bottom:24px;font-size:14px}
-.admin-login-input{width:100%;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text);font-family:inherit;font-size:16px;margin-bottom:16px;text-align:center}
-.admin-login-input:focus{outline:none;border-color:var(--accent)}
-.admin-error{color:var(--danger);font-size:13px;margin-top:8px;display:none}
-.admin-hidden{display:none !important}
-
 #pdf-content{position:absolute;left:-9999px;top:0;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;background:#ffffff;color:#111111;width:210mm;padding:0;direction:rtl;z-index:-1;opacity:0;pointer-events:none}
 .pdf-page{width:210mm;height:297mm;padding:14mm 14mm 12mm;background:#ffffff !important;position:relative;box-sizing:border-box;overflow:hidden;page-break-after:always;page-break-inside:avoid}
 .pdf-page:last-child{page-break-after:auto}
@@ -262,7 +224,6 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
   .wa-btn,.pdf-btn{padding:18px;font-size:16px}
   body,html{overflow-x:hidden}
   .screen{max-width:100vw}
-  .admin-stats{grid-template-columns:repeat(2,1fr)}
 }
 @supports(padding:max(0px)){
   .form-body,.landing-inner,.lead-inner,.results-body{padding-left:max(24px, env(safe-area-inset-left));padding-right:max(24px, env(safe-area-inset-right))}
@@ -278,63 +239,6 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 </head>
 <body>
 <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;z-index:9999;padding:8px 16px;background:var(--accent);color:var(--white);text-decoration:none;border-radius:0 0 8px 0;font-size:13px;font-weight:600;">تخطي إلى المحتوى الرئيسي</a>
-
-<!-- ADMIN PANEL -->
-<div id="admin-panel">
-  <div id="admin-login-screen" class="admin-login-screen">
-    <div class="admin-login-box">
-      <h2>🔐 Admin Panel</h2>
-      <p>أدخل كلمة المرور للوصول إلى لوحة التحكم</p>
-      <input type="password" id="admin-pass-input" class="admin-login-input" placeholder="كلمة المرور" onkeypress="if(event.key==='Enter')doAdminLogin()">
-      <button class="admin-btn" onclick="doAdminLogin()" style="width:100%">دخول</button>
-      <div id="admin-login-error" class="admin-error">كلمة المرور غير صحيحة</div>
-    </div>
-  </div>
-  <div id="admin-main-content" class="admin-hidden">
-    <div class="admin-container">
-      <div class="admin-header">
-        <div>
-          <h1>لوحة التحكم</h1>
-          <div style="font-size:12px;color:var(--muted);margin-top:4px">CORE SYSTEM — Clinic Intelligence</div>
-        </div>
-        <div style="display:flex;gap:12px">
-          <button class="admin-btn admin-btn-export" onclick="exportAdminData()">📥 تصدير CSV</button>
-          <button class="admin-btn" onclick="closeAdmin()" style="background:var(--danger)">خروج</button>
-        </div>
-      </div>
-      <div class="admin-stats">
-        <div class="admin-stat-card">
-          <div class="admin-stat-num" id="admin-stat-total">0</div>
-          <div class="admin-stat-label">إجمالي التقييمات</div>
-        </div>
-        <div class="admin-stat-card">
-          <div class="admin-stat-num" id="admin-stat-avg">0</div>
-          <div class="admin-stat-label">متوسط النتيجة</div>
-        </div>
-        <div class="admin-stat-card">
-          <div class="admin-stat-num" id="admin-stat-today">0</div>
-          <div class="admin-stat-label">اليوم</div>
-        </div>
-        <div class="admin-stat-card">
-          <div class="admin-stat-num" id="admin-stat-leads">0</div>
-          <div class="admin-stat-label">العملاء المحتملين</div>
-        </div>
-      </div>
-      <div class="admin-tabs">
-        <button class="admin-tab-btn active" onclick="switchAdminTab('assessments')" id="admin-tab-assessments">التقييمات</button>
-        <button class="admin-tab-btn" onclick="switchAdminTab('leads')" id="admin-tab-leads">العملاء المحتملين</button>
-      </div>
-      <input type="text" class="admin-search" id="admin-search-box" placeholder="🔍 بحث..." oninput="doAdminSearch()">
-      <div id="admin-content-assessments">
-        <div class="admin-card-grid" id="admin-cards-assessments"></div>
-      </div>
-      <div id="admin-content-leads" class="admin-hidden">
-        <div class="admin-card-grid" id="admin-cards-leads"></div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <main id="main-content">
 
 <section id="screen-landing" class="screen active">
@@ -637,12 +541,10 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
   </div>
 </div>
 
-</main>
-
 <script>
 const CFG = {
   supabase_url: 'https://oaqpzaarppcchnepffxx.supabase.co',
-  supabase_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2huZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA',
+  supabase_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA',
   whatsapp: '+962786595990',
   meta_pixel: '1720575785622975',
   ga_id: 'G-4PY7KFCP0F',
@@ -830,7 +732,7 @@ function checkLead() {
   var email = document.getElementById('lead-email').value.trim();
   var btn = document.getElementById('btn-lead');
 
-  var nameValid = /^[؀-ۿa-zA-Z\s]{3,}$/.test(name);
+  var nameValid = /^[\u0600-\u06FFa-zA-Z\s]{3,}$/.test(name);
   var phoneClean = phone.replace(/\s/g, '');
   var phoneValid = /^[\+\d]{10,15}$/.test(phoneClean) || /^00\d{10,14}$/.test(phoneClean);
   var emailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
@@ -864,7 +766,7 @@ async function validateAndSubmit() {
 
   var valid = true;
 
-  if (!/^[؀-ۿa-zA-Z\s]{3,}$/.test(name)) {
+  if (!/^[\u0600-\u06FFa-zA-Z\s]{3,}$/.test(name)) {
     showFieldError('lead-name', 'الرجاء إدخال اسم صحيح (3 أحرف على الأقل)');
     valid = false;
   }
@@ -883,11 +785,7 @@ async function validateAndSubmit() {
   if (valid) {
     console.log('[CORE] 🚀 Submitting lead...');
     trackEvent('Lead', {content_name: 'clinic_evaluator_lead'});
-
-    // FIX: Ensure ST.lead is properly set before saving
-    ST.lead = {name: name, phone: phone, email: email};
-
-    var leadData = {
+    await saveDB('leads', {
       name: name,
       phone: phone,
       email: email,
@@ -895,33 +793,27 @@ async function validateAndSubmit() {
       years: ST.profile.years || null,
       staff: ST.profile.staff || null,
       created_at: new Date().toISOString()
-    };
-
-    console.log('[CORE] Lead data prepared:', leadData);
-    await saveDB('leads', leadData);
+    });
     console.log('[CORE] ✅ Lead submitted, navigating to Q2');
     goTo('screen-q2');
   }
 }
 
 async function saveDB(table, data) {
-  console.log('[CORE] 💾 saveDB called:', table, JSON.stringify(data));
+  console.log('[CORE] 💾 saveDB called:', table, data);
   if (!supabaseClient) {
     console.error('[CORE] ❌ Supabase client is null — cannot save. Check console for init errors.');
-    alert('خطأ: لا يمكن الاتصال بقاعدة البيانات. تأكد من اتصال الإنترنت.');
     return;
   }
   try {
     var result = await supabaseClient.from(table).insert([data]);
     if (result.error) {
       console.error('[CORE] ❌ Supabase insert error:', result.error);
-      alert('خطأ في حفظ البيانات: ' + result.error.message);
     } else {
       console.log('[CORE] ✅ Saved to', table, result.data);
     }
   } catch (e) {
     console.error('[CORE] ❌ Supabase save exception:', e);
-    alert('خطأ في حفظ البيانات: ' + e.message);
   }
 }
 
@@ -1117,31 +1009,26 @@ function runAnalysis() {
       clearInterval(tick);
       const r = calcScore();
       ST.result = r;
-
-      // FIX: Ensure all data is properly set before saving
-      var assessmentData = {
+      saveDB('assessments', {
         name: ST.lead.name || null,
         phone: ST.lead.phone || null,
         email: ST.lead.email || null,
         specialty: ST.profile.specialty || null,
         years: ST.profile.years || null,
         staff: ST.profile.staff || null,
-        q1: ST.answers.q1 || null,
-        q2: ST.answers.q2 || null,
-        q3: ST.answers.q3 || null,
-        q4: ST.answers.q4 || null,
-        q5: ST.answers.q5 || null,
-        q6: ST.answers.q6 || null,
+        q1: ST.answers.q1,
+        q2: ST.answers.q2,
+        q3: ST.answers.q3,
+        q4: ST.answers.q4,
+        q5: ST.answers.q5,
+        q6: ST.answers.q6,
         operational: r.operational,
         commercial: r.commercial,
         retention: r.retention,
         reliability: r.reliability,
         final: r.final,
         created_at: new Date().toISOString()
-      };
-
-      console.log('[CORE] Assessment data prepared:', JSON.stringify(assessmentData));
-      saveDB('assessments', assessmentData);
+      });
       renderResults(r);
       return;
     }
@@ -1149,7 +1036,7 @@ function runAnalysis() {
     sta.textContent = steps[i].t;
     pct.textContent = steps[i].p + '%';
     i++;
-  }, 950);
+    }, 950);
 }
 
 function renderResults(r) {
@@ -1295,22 +1182,11 @@ function handlePWAInstall() {
   var isAndroid = /Android/.test(navigator.userAgent);
 
   if (isIOS) {
-    alert('📱 iPhone/iPad:
-
-1. اضغط ⬆️ (زر المشاركة)
-2. اضغط "أضف إلى الشاشة الرئيسية"
-3. اضغط "إضافة"');
+    alert('📱 iPhone/iPad:\n\n1. اضغط ⬆️ (زر المشاركة)\n2. اضغط "أضف إلى الشاشة الرئيسية"\n3. اضغط "إضافة"');
   } else if (isAndroid) {
-    alert('📱 Android:
-
-1. اضغط ⋮ (النقاط الثلاث)
-2. اضغط "أضف إلى الشاشة الرئيسية"
-3. اضغط "تثبيت"');
+    alert('📱 Android:\n\n1. اضغط ⋮ (النقاط الثلاث)\n2. اضغط "أضف إلى الشاشة الرئيسية"\n3. اضغط "تثبيت"');
   } else {
-    alert('📱 للتثبيت:
-
-• Chrome: اضغط ⋮ ← "تثبيت Core-E"
-• Edge: اضغط ⋮ ← "تثبيت كتطبيق"');
+    alert('📱 للتثبيت:\n\n• Chrome: اضغط ⋮ ← "تثبيت Core-E"\n• Edge: اضغط ⋮ ← "تثبيت كتطبيق"');
   }
 }
 
@@ -1338,8 +1214,7 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
 // ═══════════════════════════════════════
 var allAdminLeads = [];
 var allAdminAssessments = [];
-var adminCurrentTab = 'assessments';
-const ADMIN_PASSWORD = 'core2024'; // CHANGE THIS!
+var adminCurrentTab = 'leads';
 
 function checkAdminMode() {
   var path = window.location.pathname;
@@ -1347,17 +1222,7 @@ function checkAdminMode() {
     document.getElementById('admin-panel').style.display = 'block';
     var main = document.querySelector('main');
     if (main) main.style.display = 'none';
-  }
-}
-
-function doAdminLogin() {
-  var pass = document.getElementById('admin-pass-input').value;
-  if (pass === ADMIN_PASSWORD) {
-    document.getElementById('admin-login-screen').classList.add('admin-hidden');
-    document.getElementById('admin-main-content').classList.remove('admin-hidden');
     loadAdminData();
-  } else {
-    document.getElementById('admin-login-error').style.display = 'block';
   }
 }
 
@@ -1367,10 +1232,12 @@ function closeAdmin() {
 
 function switchAdminTab(tab) {
   adminCurrentTab = tab;
-  document.getElementById('admin-tab-assessments').classList.toggle('active', tab === 'assessments');
-  document.getElementById('admin-tab-leads').classList.toggle('active', tab === 'leads');
-  document.getElementById('admin-content-assessments').classList.toggle('admin-hidden', tab !== 'assessments');
-  document.getElementById('admin-content-leads').classList.toggle('admin-hidden', tab !== 'leads');
+  document.getElementById('admin-content-leads').style.display = tab === 'leads' ? 'block' : 'none';
+  document.getElementById('admin-content-assessments').style.display = tab === 'assessments' ? 'block' : 'none';
+  document.getElementById('admin-tab-leads').style.background = tab === 'leads' ? 'var(--accent)' : 'var(--surface)';
+  document.getElementById('admin-tab-leads').style.color = tab === 'leads' ? 'var(--white)' : 'var(--muted)';
+  document.getElementById('admin-tab-assessments').style.background = tab === 'assessments' ? 'var(--accent)' : 'var(--surface)';
+  document.getElementById('admin-tab-assessments').style.color = tab === 'assessments' ? 'var(--white)' : 'var(--muted)';
 }
 
 async function loadAdminData() {
@@ -1390,7 +1257,6 @@ async function loadAdminData() {
     updateAdminStats();
   } catch(e) {
     console.error('[ADMIN] Error:', e);
-    alert('خطأ في تحميل البيانات: ' + e.message);
   }
 }
 
@@ -1401,31 +1267,34 @@ function renderAdminLeads(list) {
   list.forEach(function(row) {
     var date = new Date(row.created_at).toLocaleDateString('ar-JO', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
     var spec = {cosmetic:'تجميل',dental:'أسنان',general:'عام',derma:'جلدية',ortho:'عظام',eye:'عيون',other:'آخر'}[row.specialty] || row.specialty || '-';
-    html += '<div class="admin-card">';
-    html += '<div class="admin-card-header"><div class="admin-card-name">' + (row.name || '—') + '</div><span class="admin-card-date">' + date + '</span></div>';
-    html += '<div class="admin-card-meta">📱 ' + (row.phone || '—') + '</div>';
-    html += '<div class="admin-card-meta">✉️ ' + (row.email || '—') + '</div>';
-    html += '<div class="admin-card-tags"><span class="admin-tag">' + spec + '</span></div>';
+    html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px">';
+    html += '<div style="display:flex;justify-content:space-between;margin-bottom:10px"><strong>' + (row.name || '—') + '</strong><span style="font-size:11px;color:var(--muted);font-family:monospace">' + date + '</span></div>';
+    html += '<div style="font-size:13px;color:var(--muted);margin-bottom:4px">📱 ' + (row.phone || '—') + '</div>';
+    html += '<div style="font-size:13px;color:var(--muted);margin-bottom:4px">✉️ ' + (row.email || '—') + '</div>';
+    html += '<div style="display:flex;gap:8px;margin-top:10px"><span style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px">' + spec + '</span></div>';
     html += '</div>';
   });
   container.innerHTML = html;
 }
 
 function renderAdminAssess(list) {
-  var container = document.getElementById('admin-cards-assessments');
+  var container = document.getElementById('admin-cards-assess');
   if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">لا توجد تقييمات</div>'; return; }
   var html = '';
   list.forEach(function(row) {
     var date = new Date(row.created_at).toLocaleDateString('ar-JO', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
     var score = row.final || 0;
-    var scoreClass = score >= 80 ? 'admin-score-high' : score >= 65 ? 'admin-score-mid' : 'admin-score-low';
-    html += '<div class="admin-card">';
-    html += '<div class="admin-card-header"><div class="admin-card-name">' + (row.name || '—') + '</div><span class="admin-score-badge ' + scoreClass + '">' + score + '/100</span></div>';
-    html += '<div class="admin-card-date">' + date + '</div>';
-    html += '<div class="admin-card-tags">';
-    html += '<span class="admin-tag">عمليات: ' + (row.operational || 0) + '</span>';
-    html += '<span class="admin-tag">تواصل: ' + (row.commercial || 0) + '</span>';
-    html += '<span class="admin-tag">ولاء: ' + (row.retention || 0) + '</span>';
+    var scoreColor = score >= 80 ? '#10b981' : score >= 65 ? '#5a7cf7' : score >= 45 ? '#f0900a' : '#e53e3e';
+    html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px">';
+    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
+    html += '<strong>' + (row.name || '—') + '</strong>';
+    html += '<span style="font-family:monospace;font-weight:700;color:' + scoreColor + '">' + score + '/100</span>';
+    html += '</div>';
+    html += '<div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-family:monospace">' + date + '</div>';
+    html += '<div style="display:flex;gap:8px;font-size:12px">';
+    html += '<span style="background:var(--surface);border-radius:6px;padding:4px 8px">عمليات: ' + (row.operational || 0) + '</span>';
+    html += '<span style="background:var(--surface);border-radius:6px;padding:4px 8px">تواصل: ' + (row.commercial || 0) + '</span>';
+    html += '<span style="background:var(--surface);border-radius:6px;padding:4px 8px">ولاء: ' + (row.retention || 0) + '</span>';
     html += '</div>';
     html += '</div>';
   });
@@ -1433,26 +1302,27 @@ function renderAdminAssess(list) {
 }
 
 function updateAdminStats() {
-  document.getElementById('admin-stat-total').textContent = allAdminAssessments.length;
+  document.getElementById('stat-leads').textContent = allAdminLeads.length;
+  document.getElementById('stat-assess').textContent = allAdminAssessments.length;
   var avg = allAdminAssessments.length ? Math.round(allAdminAssessments.reduce(function(s,r){return s+(r.final||0)},0)/allAdminAssessments.length) : 0;
-  document.getElementById('admin-stat-avg').textContent = avg;
+  document.getElementById('stat-avg').textContent = avg;
   var today = new Date().toDateString();
   var todayCount = allAdminAssessments.filter(function(r){return new Date(r.created_at).toDateString()===today}).length;
-  document.getElementById('admin-stat-today').textContent = todayCount;
-  document.getElementById('admin-stat-leads').textContent = allAdminLeads.length;
+  document.getElementById('stat-today').textContent = todayCount;
 }
 
-function doAdminSearch() {
-  var q = document.getElementById('admin-search-box').value.toLowerCase();
-  if (adminCurrentTab === 'assessments') {
-    renderAdminAssess(allAdminAssessments.filter(function(r){
-      return (r.name||'').toLowerCase().includes(q) || (r.final||'').toString().includes(q);
-    }));
-  } else {
-    renderAdminLeads(allAdminLeads.filter(function(r){
-      return (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q) || (r.email||'').toLowerCase().includes(q);
-    }));
-  }
+function filterAdminLeads(q) {
+  q = q.toLowerCase();
+  renderAdminLeads(allAdminLeads.filter(function(r){
+    return (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q) || (r.email||'').toLowerCase().includes(q);
+  }));
+}
+
+function filterAdminAssess(q) {
+  q = q.toLowerCase();
+  renderAdminAssess(allAdminAssessments.filter(function(r){
+    return (r.name||'').toLowerCase().includes(q) || (r.final||'').toString().includes(q);
+  }));
 }
 
 function exportAdminData() {
