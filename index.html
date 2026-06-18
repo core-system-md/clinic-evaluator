@@ -68,6 +68,84 @@ async function loadAdminData() {
   }
 }
 
+const ANSWER_MAP = {
+  q1: {
+    A: 'فوري — أقل من 5 دقائق',
+    B: 'أقل من ساعة',
+    C: 'عدة ساعات',
+    D: 'لا يوجد بروتوكول محدد'
+  },
+  q2: {
+    A: 'نظام منظم وآلي (رسائل + مواعيد تلقائية)',
+    B: 'شبه منظم — متابعة دورية',
+    C: 'يدوي وغير منتظم',
+    D: 'لا توجد منظومة متابعة'
+  },
+  q3: {
+    A: 'بروتوكول موثق يطبقه الفريق',
+    B: 'بناءً على خبرة شخصية',
+    C: 'يعتمد على الطبيب أو إدارة العيادة',
+    D: 'كل حالة تعامل بشكل مستقل'
+  },
+  q4: {
+    A: 'نعرفه بدقة ونراجعه دورياً',
+    B: 'نقدّره تقريباً',
+    C: 'لا نقيسه لكن نريد ذلك',
+    D: 'لم نفكر بقياسه'
+  },
+  q5: {
+    A: 'نظام تذكير تلقائي مؤتمت + إعادة جدولة',
+    B: 'إعادة جدولة وتواصل عبر الهاتف أو الرسائل',
+    C: 'اتصال فقط للتذكير',
+    D: 'لا يوجد آلية متابعة منتظمة'
+  },
+  q6: {
+    A: 'KPIs موثقة ومراجعة أسبوعياً',
+    B: 'مراجعة دورية من خلال المحاسب',
+    C: 'تقارير شهرية بالإيرادات والمصاريف',
+    D: 'لا يوجد، لكن نهتم بأن يكون ذلك واضحاً'
+  }
+};
+
+const SPECIALTY_MAP = {
+  cosmetic: 'تجميل وليزر',
+  dental: 'أسنان',
+  general: 'عام وعائلي',
+  derma: 'جلدية',
+  ortho: 'عظام وعلاج طبيعي',
+  eye: 'عيون',
+  other: 'تخصص آخر'
+};
+
+const YEARS_MAP = {
+  '1': 'أقل من سنة',
+  '2': '1 – 3 سنوات',
+  '3': '3 – 7 سنوات',
+  '4': 'أكثر من 7 سنوات'
+};
+
+const STAFF_MAP = {
+  '1': '1 – 3 أفراد',
+  '2': '4 – 8 أفراد',
+  '3': '9 – 15 فرداً',
+  '4': 'أكثر من 15'
+};
+
+function formatCell(col, val) {
+  if (val == null || val === '') return '-';
+  if (col === 'created_at') return new Date(val).toLocaleString('ar-JO');
+  if (col === 'specialty') return SPECIALTY_MAP[val] || val;
+  if (col === 'years') return YEARS_MAP[val] || val;
+  if (col === 'staff') return STAFF_MAP[val] || val;
+  if (col === 'q1') return '<b style="color:var(--accent)">استجابة:</b> ' + (ANSWER_MAP.q1[val] || val);
+  if (col === 'q2') return '<b style="color:var(--accent)">متابعة:</b> ' + (ANSWER_MAP.q2[val] || val);
+  if (col === 'q3') return '<b style="color:var(--accent)">اعتراض:</b> ' + (ANSWER_MAP.q3[val] || val);
+  if (col === 'q4') return '<b style="color:var(--accent)">معدل قبول:</b> ' + (ANSWER_MAP.q4[val] || val);
+  if (col === 'q5') return '<b style="color:var(--accent)">No-Show:</b> ' + (ANSWER_MAP.q5[val] || val);
+  if (col === 'q6') return '<b style="color:var(--accent)">KPIs:</b> ' + (ANSWER_MAP.q6[val] || val);
+  return val;
+}
+
 function renderAdminTable(containerId, data, columns) {
   var container = document.getElementById(containerId);
   if (!data || data.length === 0) {
@@ -77,17 +155,32 @@ function renderAdminTable(containerId, data, columns) {
   var html = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
   html += '<thead><tr>';
   columns.forEach(function(col) {
-    html += '<th style="text-align:right;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px">' + col + '</th>';
+    var label = col;
+    if (col === 'specialty') label = 'التخصص';
+    if (col === 'years') label = 'سنوات';
+    if (col === 'staff') label = 'الفريق';
+    if (col === 'name') label = 'الاسم';
+    if (col === 'phone') label = 'الهاتف';
+    if (col === 'email') label = 'البريد';
+    if (col === 'created_at') label = 'التاريخ';
+    if (col === 'final') label = 'النتيجة';
+    if (col === 'operational') label = 'العمليات';
+    if (col === 'commercial') label = 'التواصل';
+    if (col === 'retention') label = 'الولاء';
+    if (col === 'q1') label = 'الاستجابة';
+    if (col === 'q2') label = 'المتابعة';
+    if (col === 'q3') label = 'الاعتراض';
+    if (col === 'q4') label = 'القبول';
+    if (col === 'q5') label = 'No-Show';
+    if (col === 'q6') label = 'KPIs';
+    html += '<th style="text-align:right;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px;white-space:nowrap">' + label + '</th>';
   });
   html += '</tr></thead><tbody>';
   data.forEach(function(row) {
     html += '<tr>';
     columns.forEach(function(col) {
-      var val = row[col] || '-';
-      if (col === 'created_at' && val) {
-        val = new Date(val).toLocaleString('ar-JO');
-      }
-      html += '<td style="padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500">' + val + '</td>';
+      var val = formatCell(col, row[col]);
+      html += '<td style="padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500;line-height:1.6">' + val + '</td>';
     });
     html += '</tr>';
   });
@@ -137,6 +230,84 @@ async function loadAdminData() {
   }
 }
 
+const ANSWER_MAP = {
+  q1: {
+    A: 'فوري — أقل من 5 دقائق',
+    B: 'أقل من ساعة',
+    C: 'عدة ساعات',
+    D: 'لا يوجد بروتوكول محدد'
+  },
+  q2: {
+    A: 'نظام منظم وآلي (رسائل + مواعيد تلقائية)',
+    B: 'شبه منظم — متابعة دورية',
+    C: 'يدوي وغير منتظم',
+    D: 'لا توجد منظومة متابعة'
+  },
+  q3: {
+    A: 'بروتوكول موثق يطبقه الفريق',
+    B: 'بناءً على خبرة شخصية',
+    C: 'يعتمد على الطبيب أو إدارة العيادة',
+    D: 'كل حالة تعامل بشكل مستقل'
+  },
+  q4: {
+    A: 'نعرفه بدقة ونراجعه دورياً',
+    B: 'نقدّره تقريباً',
+    C: 'لا نقيسه لكن نريد ذلك',
+    D: 'لم نفكر بقياسه'
+  },
+  q5: {
+    A: 'نظام تذكير تلقائي مؤتمت + إعادة جدولة',
+    B: 'إعادة جدولة وتواصل عبر الهاتف أو الرسائل',
+    C: 'اتصال فقط للتذكير',
+    D: 'لا يوجد آلية متابعة منتظمة'
+  },
+  q6: {
+    A: 'KPIs موثقة ومراجعة أسبوعياً',
+    B: 'مراجعة دورية من خلال المحاسب',
+    C: 'تقارير شهرية بالإيرادات والمصاريف',
+    D: 'لا يوجد، لكن نهتم بأن يكون ذلك واضحاً'
+  }
+};
+
+const SPECIALTY_MAP = {
+  cosmetic: 'تجميل وليزر',
+  dental: 'أسنان',
+  general: 'عام وعائلي',
+  derma: 'جلدية',
+  ortho: 'عظام وعلاج طبيعي',
+  eye: 'عيون',
+  other: 'تخصص آخر'
+};
+
+const YEARS_MAP = {
+  '1': 'أقل من سنة',
+  '2': '1 – 3 سنوات',
+  '3': '3 – 7 سنوات',
+  '4': 'أكثر من 7 سنوات'
+};
+
+const STAFF_MAP = {
+  '1': '1 – 3 أفراد',
+  '2': '4 – 8 أفراد',
+  '3': '9 – 15 فرداً',
+  '4': 'أكثر من 15'
+};
+
+function formatCell(col, val) {
+  if (val == null || val === '') return '-';
+  if (col === 'created_at') return new Date(val).toLocaleString('ar-JO');
+  if (col === 'specialty') return SPECIALTY_MAP[val] || val;
+  if (col === 'years') return YEARS_MAP[val] || val;
+  if (col === 'staff') return STAFF_MAP[val] || val;
+  if (col === 'q1') return '<b style="color:var(--accent)">استجابة:</b> ' + (ANSWER_MAP.q1[val] || val);
+  if (col === 'q2') return '<b style="color:var(--accent)">متابعة:</b> ' + (ANSWER_MAP.q2[val] || val);
+  if (col === 'q3') return '<b style="color:var(--accent)">اعتراض:</b> ' + (ANSWER_MAP.q3[val] || val);
+  if (col === 'q4') return '<b style="color:var(--accent)">معدل قبول:</b> ' + (ANSWER_MAP.q4[val] || val);
+  if (col === 'q5') return '<b style="color:var(--accent)">No-Show:</b> ' + (ANSWER_MAP.q5[val] || val);
+  if (col === 'q6') return '<b style="color:var(--accent)">KPIs:</b> ' + (ANSWER_MAP.q6[val] || val);
+  return val;
+}
+
 function renderAdminTable(containerId, data, columns) {
   var container = document.getElementById(containerId);
   if (!data || data.length === 0) {
@@ -146,17 +317,32 @@ function renderAdminTable(containerId, data, columns) {
   var html = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
   html += '<thead><tr>';
   columns.forEach(function(col) {
-    html += '<th style="text-align:right;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px">' + col + '</th>';
+    var label = col;
+    if (col === 'specialty') label = 'التخصص';
+    if (col === 'years') label = 'سنوات';
+    if (col === 'staff') label = 'الفريق';
+    if (col === 'name') label = 'الاسم';
+    if (col === 'phone') label = 'الهاتف';
+    if (col === 'email') label = 'البريد';
+    if (col === 'created_at') label = 'التاريخ';
+    if (col === 'final') label = 'النتيجة';
+    if (col === 'operational') label = 'العمليات';
+    if (col === 'commercial') label = 'التواصل';
+    if (col === 'retention') label = 'الولاء';
+    if (col === 'q1') label = 'الاستجابة';
+    if (col === 'q2') label = 'المتابعة';
+    if (col === 'q3') label = 'الاعتراض';
+    if (col === 'q4') label = 'القبول';
+    if (col === 'q5') label = 'No-Show';
+    if (col === 'q6') label = 'KPIs';
+    html += '<th style="text-align:right;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px;white-space:nowrap">' + label + '</th>';
   });
   html += '</tr></thead><tbody>';
   data.forEach(function(row) {
     html += '<tr>';
     columns.forEach(function(col) {
-      var val = row[col] || '-';
-      if (col === 'created_at' && val) {
-        val = new Date(val).toLocaleString('ar-JO');
-      }
-      html += '<td style="padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500">' + val + '</td>';
+      var val = formatCell(col, row[col]);
+      html += '<td style="padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500;line-height:1.6">' + val + '</td>';
     });
     html += '</tr>';
   });
@@ -1404,6 +1590,84 @@ async function loadAdminData() {
   }
 }
 
+const ANSWER_MAP = {
+  q1: {
+    A: 'فوري — أقل من 5 دقائق',
+    B: 'أقل من ساعة',
+    C: 'عدة ساعات',
+    D: 'لا يوجد بروتوكول محدد'
+  },
+  q2: {
+    A: 'نظام منظم وآلي (رسائل + مواعيد تلقائية)',
+    B: 'شبه منظم — متابعة دورية',
+    C: 'يدوي وغير منتظم',
+    D: 'لا توجد منظومة متابعة'
+  },
+  q3: {
+    A: 'بروتوكول موثق يطبقه الفريق',
+    B: 'بناءً على خبرة شخصية',
+    C: 'يعتمد على الطبيب أو إدارة العيادة',
+    D: 'كل حالة تعامل بشكل مستقل'
+  },
+  q4: {
+    A: 'نعرفه بدقة ونراجعه دورياً',
+    B: 'نقدّره تقريباً',
+    C: 'لا نقيسه لكن نريد ذلك',
+    D: 'لم نفكر بقياسه'
+  },
+  q5: {
+    A: 'نظام تذكير تلقائي مؤتمت + إعادة جدولة',
+    B: 'إعادة جدولة وتواصل عبر الهاتف أو الرسائل',
+    C: 'اتصال فقط للتذكير',
+    D: 'لا يوجد آلية متابعة منتظمة'
+  },
+  q6: {
+    A: 'KPIs موثقة ومراجعة أسبوعياً',
+    B: 'مراجعة دورية من خلال المحاسب',
+    C: 'تقارير شهرية بالإيرادات والمصاريف',
+    D: 'لا يوجد، لكن نهتم بأن يكون ذلك واضحاً'
+  }
+};
+
+const SPECIALTY_MAP = {
+  cosmetic: 'تجميل وليزر',
+  dental: 'أسنان',
+  general: 'عام وعائلي',
+  derma: 'جلدية',
+  ortho: 'عظام وعلاج طبيعي',
+  eye: 'عيون',
+  other: 'تخصص آخر'
+};
+
+const YEARS_MAP = {
+  '1': 'أقل من سنة',
+  '2': '1 – 3 سنوات',
+  '3': '3 – 7 سنوات',
+  '4': 'أكثر من 7 سنوات'
+};
+
+const STAFF_MAP = {
+  '1': '1 – 3 أفراد',
+  '2': '4 – 8 أفراد',
+  '3': '9 – 15 فرداً',
+  '4': 'أكثر من 15'
+};
+
+function formatCell(col, val) {
+  if (val == null || val === '') return '-';
+  if (col === 'created_at') return new Date(val).toLocaleString('ar-JO');
+  if (col === 'specialty') return SPECIALTY_MAP[val] || val;
+  if (col === 'years') return YEARS_MAP[val] || val;
+  if (col === 'staff') return STAFF_MAP[val] || val;
+  if (col === 'q1') return '<b style="color:var(--accent)">استجابة:</b> ' + (ANSWER_MAP.q1[val] || val);
+  if (col === 'q2') return '<b style="color:var(--accent)">متابعة:</b> ' + (ANSWER_MAP.q2[val] || val);
+  if (col === 'q3') return '<b style="color:var(--accent)">اعتراض:</b> ' + (ANSWER_MAP.q3[val] || val);
+  if (col === 'q4') return '<b style="color:var(--accent)">معدل قبول:</b> ' + (ANSWER_MAP.q4[val] || val);
+  if (col === 'q5') return '<b style="color:var(--accent)">No-Show:</b> ' + (ANSWER_MAP.q5[val] || val);
+  if (col === 'q6') return '<b style="color:var(--accent)">KPIs:</b> ' + (ANSWER_MAP.q6[val] || val);
+  return val;
+}
+
 function renderAdminTable(containerId, data, columns) {
   var container = document.getElementById(containerId);
   if (!data || data.length === 0) {
@@ -1413,17 +1677,32 @@ function renderAdminTable(containerId, data, columns) {
   var html = '<table style="width:100%;border-collapse:collapse;font-size:13px">';
   html += '<thead><tr>';
   columns.forEach(function(col) {
-    html += '<th style="text-align:right;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px">' + col + '</th>';
+    var label = col;
+    if (col === 'specialty') label = 'التخصص';
+    if (col === 'years') label = 'سنوات';
+    if (col === 'staff') label = 'الفريق';
+    if (col === 'name') label = 'الاسم';
+    if (col === 'phone') label = 'الهاتف';
+    if (col === 'email') label = 'البريد';
+    if (col === 'created_at') label = 'التاريخ';
+    if (col === 'final') label = 'النتيجة';
+    if (col === 'operational') label = 'العمليات';
+    if (col === 'commercial') label = 'التواصل';
+    if (col === 'retention') label = 'الولاء';
+    if (col === 'q1') label = 'الاستجابة';
+    if (col === 'q2') label = 'المتابعة';
+    if (col === 'q3') label = 'الاعتراض';
+    if (col === 'q4') label = 'القبول';
+    if (col === 'q5') label = 'No-Show';
+    if (col === 'q6') label = 'KPIs';
+    html += '<th style="text-align:right;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--muted);font-weight:600;font-size:11px;letter-spacing:0.5px;white-space:nowrap">' + label + '</th>';
   });
   html += '</tr></thead><tbody>';
   data.forEach(function(row) {
     html += '<tr>';
     columns.forEach(function(col) {
-      var val = row[col] || '-';
-      if (col === 'created_at' && val) {
-        val = new Date(val).toLocaleString('ar-JO');
-      }
-      html += '<td style="padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500">' + val + '</td>';
+      var val = formatCell(col, row[col]);
+      html += '<td style="padding:10px 8px;border-bottom:1px solid var(--border);color:var(--text);font-weight:500;line-height:1.6">' + val + '</td>';
     });
     html += '</tr>';
   });
