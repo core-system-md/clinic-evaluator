@@ -43,6 +43,42 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 .screen.active{display:flex;flex-direction:column;max-width:100vw;width:100vw;min-height:100vh;min-height:100dvh;height:100vh;height:100dvh}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px}
 
+/* ===== ADMIN PANEL ===== */
+#admin-panel{display:none;position:fixed;top:0;left:0;right:0;bottom:0;background:var(--bg);z-index:1000;overflow-y:auto;flex-direction:column}
+#admin-panel.active{display:flex}
+.admin-header{display:flex;justify-content:space-between;align-items:center;padding:20px 24px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+.admin-title{font-size:18px;font-weight:700;color:var(--white);font-family:'IBM Plex Mono',monospace;letter-spacing:2px}
+.admin-close-btn{background:var(--danger);color:var(--white);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
+.admin-close-btn:active{opacity:.85}
+.admin-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:20px 24px;background:var(--card);border-bottom:1px solid var(--border)}
+.admin-stat-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;text-align:center}
+.admin-stat-value{font-size:28px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono',monospace}
+.admin-stat-label{font-size:11px;color:var(--muted);margin-top:4px;font-weight:500}
+.admin-tabs{display:flex;gap:8px;padding:16px 24px;background:var(--card);border-bottom:1px solid var(--border)}
+.admin-tab-btn{flex:1;padding:12px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:8px;font-size:14px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .2s}
+.admin-tab-btn.active{background:var(--accent);color:var(--white);border-color:var(--accent)}
+.admin-tab-btn:active{opacity:.9}
+.admin-search{padding:16px 24px;background:var(--card);border-bottom:1px solid var(--border)}
+.admin-search-input{width:100%;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:inherit;font-size:15px;transition:border-color .2s}
+.admin-search-input:focus{outline:none;border-color:var(--accent)}
+.admin-search-input::placeholder{color:var(--muted)}
+.admin-content{flex:1;padding:16px 24px;overflow-y:auto}
+.admin-content-section{display:none}
+.admin-content-section.active{display:block}
+.admin-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;transition:border-color .2s}
+.admin-card:hover{border-color:var(--border2)}
+.admin-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.admin-card-name{font-size:15px;font-weight:700;color:var(--white)}
+.admin-card-date{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace}
+.admin-card-row{font-size:13px;color:var(--light);margin-bottom:4px;line-height:1.6}
+.admin-card-tags{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.admin-card-tag{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;color:var(--muted)}
+.admin-card-score{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px}
+.admin-export-btn{width:calc(100% - 48px);margin:0 24px 20px;padding:14px;background:var(--accent);color:var(--white);border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;transition:opacity .2s}
+.admin-export-btn:active{opacity:.85}
+.admin-empty{text-align:center;padding:60px 20px;color:var(--muted);font-size:15px}
+.admin-last-update{font-size:11px;color:var(--muted);text-align:center;padding:8px;font-family:'IBM Plex Mono',monospace}
+
 #screen-landing{justify-content:flex-start;align-items:center;padding:80px 24px 32px;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(74,108,247,.12) 0%,transparent 60%),var(--bg);min-height:100vh;min-height:100dvh;height:100vh;height:100dvh;box-sizing:border-box}
 .landing-inner{max-width:460px;width:100%;padding:0 16px;box-sizing:border-box}
 .wordmark{letter-spacing:6px;font-size:14px;font-weight:700;color:var(--light);text-transform:uppercase;font-family:'IBM Plex Mono',monospace;margin-bottom:48px;display:block}
@@ -144,7 +180,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 .pdf-btn:hover{border-color:var(--border2);color:var(--white)}
 
 #pdf-content{position:absolute;left:-9999px;top:0;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;background:#ffffff;color:#111111;width:210mm;padding:0;direction:rtl;z-index:-1;opacity:0;pointer-events:none}
-.pdf-page{width:210mm;height:297mm;padding:14mm 14mm 12mm;background:#ffffff !important;position:relative;box-sizing:border-box;overflow:hidden;page-break-after:always;page-break-inside:avoid}
+.pdf-page{width:210mm;min-height:297mm;padding:14mm 14mm 12mm;background:#ffffff !important;position:relative;box-sizing:border-box;overflow:hidden;page-break-after:always;break-inside:avoid}
 .pdf-page:last-child{page-break-after:auto}
 .pdf-hd{display:flex;justify-content:space-between;align-items:flex-start;padding-bottom:8px;border-bottom:2px solid #111;margin-bottom:14px}
 .pdf-logo-text{font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:2px;font-size:15px;font-weight:700;color:#111;display:block}
@@ -164,10 +200,10 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 .pdf-tier-badge{display:inline-block;padding:5px 14px;border-radius:4px;font-size:11px;font-weight:700;letter-spacing:0;text-transform:uppercase;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;margin-bottom:8px}
 .pdf-market-ar{font-size:11px;color:#555;direction:rtl;text-align:right;margin-bottom:3px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-market-en{font-size:10px;color:#888;direction:ltr;font-family:monospace}
-.pdf-dims-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px}
+.pdf-dims-table{width:100%;border-collapse:collapse;margin-bottom:12px;font-size:11px;page-break-inside:avoid;break-inside:avoid}
 .pdf-dims-table th{background:#111;color:#fff;padding:8px 10px;text-align:right;font-weight:600;font-size:10px;letter-spacing:0;font-family:'IBM Plex Sans Arabic',Arial,sans-serif}
 .pdf-dims-table th.en{text-align:left;direction:ltr;font-family:monospace;letter-spacing:1px}
-.pdf-dims-table td{padding:8px;border-bottom:1px solid #eee;vertical-align:top}
+.pdf-dims-table td{padding:8px;border-bottom:1px solid #eee;vertical-align:top;page-break-inside:avoid;break-inside:avoid}
 .pdf-dims-table tr:last-child td{border-bottom:none}
 .pdf-dims-table .val{font-size:22px;font-weight:700;font-family:monospace;line-height:1}
 .pdf-dims-table .ar-name{font-size:12px;font-weight:600;margin-bottom:2px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
@@ -177,13 +213,13 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 .pdf-bar-bg{height:4px;background:#eee;border-radius:2px;margin-top:6px}
 .pdf-bar-fill{height:100%;border-radius:2px}
 .pdf-section-title{font-size:10px;letter-spacing:1px;color:#888;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;text-transform:uppercase;border-bottom:1px solid #eee;padding-bottom:4px;margin-bottom:10px;display:flex;justify-content:space-between}
-.pdf-insight-box{border-right:3px solid #4a6cf7;padding:10px 14px;background:#f8f9ff;border-radius:4px;margin-bottom:10px}
+.pdf-insight-box{border-right:3px solid #4a6cf7;padding:10px 14px;background:#f8f9ff;border-radius:4px;margin-bottom:10px;page-break-inside:avoid;break-inside:avoid}
 .pdf-insight-eye-ar{font-size:11px;font-weight:600;color:#4a6cf7;margin-bottom:4px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-insight-eye-en{font-size:9px;color:#aaa;font-family:monospace;letter-spacing:1px;margin-bottom:8px;direction:ltr}
 .pdf-insight-ar{font-size:12px;color:#222;line-height:1.8;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-insight-en{font-size:10px;color:#666;line-height:1.6;direction:ltr;margin-top:8px;border-top:1px solid #e8e8e8;padding-top:8px;font-family:monospace}
 .pdf-analysis-row{display:flex;gap:8px;margin-bottom:8px}
-.pdf-analysis-cell{flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:4px;padding:8px}
+.pdf-analysis-cell{flex:1;background:#f8f8f8;border:1px solid #eee;border-radius:4px;padding:8px;page-break-inside:avoid;break-inside:avoid}
 .pdf-cell-dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-left:6px;vertical-align:middle}
 .pdf-cell-title-ar{font-size:11px;font-weight:600;color:#222;margin-bottom:3px;font-family:'IBM Plex Sans Arabic',Arial,sans-serif;letter-spacing:0}
 .pdf-cell-title-en{font-size:9px;color:#aaa;font-family:monospace;direction:ltr;margin-bottom:6px}
@@ -224,6 +260,9 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
   .wa-btn,.pdf-btn{padding:18px;font-size:16px}
   body,html{overflow-x:hidden}
   .screen{max-width:100vw}
+  .admin-stats{grid-template-columns:repeat(2,1fr)}
+  .admin-header{padding:16px}
+  .admin-title{font-size:15px}
 }
 @supports(padding:max(0px)){
   .form-body,.landing-inner,.lead-inner,.results-body{padding-left:max(24px, env(safe-area-inset-left));padding-right:max(24px, env(safe-area-inset-right))}
@@ -241,6 +280,50 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
 <a href="#main-content" class="skip-link" style="position:absolute;left:-9999px;z-index:9999;padding:8px 16px;background:var(--accent);color:var(--white);text-decoration:none;border-radius:0 0 8px 0;font-size:13px;font-weight:600;">تخطي إلى المحتوى الرئيسي</a>
 <main id="main-content">
 
+<!-- ===== ADMIN PANEL ===== -->
+<div id="admin-panel">
+  <div class="admin-header">
+    <div class="admin-title">CORE SYSTEM — لوحة الإدارة</div>
+    <button type="button" class="admin-close-btn" onclick="closeAdmin()">إغلاق</button>
+  </div>
+  <div class="admin-stats">
+    <div class="admin-stat-card">
+      <div class="admin-stat-value" id="stat-leads">0</div>
+      <div class="admin-stat-label">العملاء المحتملين</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-value" id="stat-assess">0</div>
+      <div class="admin-stat-label">التقييمات</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-value" id="stat-avg">0</div>
+      <div class="admin-stat-label">متوسط النتيجة</div>
+    </div>
+    <div class="admin-stat-card">
+      <div class="admin-stat-value" id="stat-today">0</div>
+      <div class="admin-stat-label">تقييمات اليوم</div>
+    </div>
+  </div>
+  <div class="admin-tabs">
+    <button type="button" class="admin-tab-btn active" id="admin-tab-leads" onclick="switchAdminTab('leads')">العملاء المحتملين</button>
+    <button type="button" class="admin-tab-btn" id="admin-tab-assessments" onclick="switchAdminTab('assessments')">التقييمات</button>
+  </div>
+  <div class="admin-search">
+    <input type="text" class="admin-search-input" id="admin-search-input" placeholder="بحث بالاسم، الهاتف، أو الإيميل..." oninput="handleAdminSearch(this.value)">
+  </div>
+  <div class="admin-content">
+    <div class="admin-content-section active" id="admin-content-leads">
+      <div id="admin-cards-leads"></div>
+    </div>
+    <div class="admin-content-section" id="admin-content-assessments">
+      <div id="admin-cards-assess"></div>
+    </div>
+  </div>
+  <button type="button" class="admin-export-btn" onclick="exportAdminData()">تصدير البيانات — CSV</button>
+  <div class="admin-last-update" id="admin-last-update"></div>
+</div>
+
+
 <section id="screen-landing" class="screen active">
   <div class="landing-inner">
     <span class="wordmark">CORE <span>SYSTEM</span></span>
@@ -253,11 +336,11 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
       <div class="pillar"><div class="pillar-num">&lt;2د</div><div class="pillar-lbl">وقت<br>التقييم</div></div>
     </div>
     <div class="ticker"><div class="ticker-dot"></div><span id="ticker-text">تم تحليل عيادة منذ 3 دقائق</span></div>
-    <button class="btn-primary" onclick="goTo('screen-profile');trackEvent('begin_assessment')" aria-label="ابدأ تقييم الأداء المؤسسي للعيادة">ابدأ التقييم المؤسسي</button>
+    <button type="button" class="btn-primary" onclick="goTo('screen-profile');trackEvent('begin_assessment')" aria-label="ابدأ تقييم الأداء المؤسسي للعيادة">ابدأ التقييم المؤسسي</button>
     <div class="trust-row"><span>بيانات محمية</span><span style="color:var(--border)">·</span><span>بدون التزامات</span><span style="color:var(--border)">·</span><span>تقرير PDF مجاني</span></div>
     <div class="pwa-install-section" id="pwa-install-section" style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border)">
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;font-family:'IBM Plex Mono',monospace;letter-spacing:1px;font-weight:600">تثبيت سريع</div>
-      <button class="btn-primary" id="pwa-install-btn" onclick="handlePWAInstall()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--white);margin-bottom:10px;font-size:15px;font-weight:700;padding:16px;border:none;border-radius:12px;cursor:pointer;width:100%">
+      <button type="button" class="btn-primary" id="pwa-install-btn" onclick="handlePWAInstall()" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:var(--white);margin-bottom:10px;font-size:15px;font-weight:700;padding:16px;border:none;border-radius:12px;cursor:pointer;width:100%">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="vertical-align:middle;margin-left:10px"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         تثبيت التطبيق على الشاشة الرئيسية
       </button>
@@ -297,7 +380,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
         <option value="2">4 – 8 أفراد</option><option value="3">9 – 15 فرداً</option>
         <option value="4">أكثر من 15</option>
       </select></div>
-    <button class="btn-next" id="btn-profile" onclick="goTo('screen-q1')">التالي</button>
+    <button type="button" class="btn-next" id="btn-profile" onclick="goTo('screen-q1')">التالي</button>
   </div>
 </section>
 
@@ -309,21 +392,21 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
     <h2 class="q-title">عندما يتواصل مريض جديد (اتصال، واتساب، رسائل) — ما وقت الاستجابة والرد؟</h2>
     <p class="q-sub">Response Time — Patient Journey Entry Point</p>
     <div class="opts" id="q1-opts">
-      <button class="opt" onclick="sel('q1','A',this)"><span class="opt-letter">A</span><span>فوري — أقل من 5 دقائق</span></button>
-      <button class="opt" onclick="sel('q1','B',this)"><span class="opt-letter">B</span><span>أقل من ساعة</span></button>
-      <button class="opt" onclick="sel('q1','C',this)"><span class="opt-letter">C</span><span>عدة ساعات</span></button>
-      <button class="opt" onclick="sel('q1','D',this)"><span class="opt-letter">D</span><span>لا يوجد بروتوكول محدد</span></button>
+      <button type="button" class="opt" onclick="sel('q1','A',this)"><span class="opt-letter">A</span><span>فوري — أقل من 5 دقائق</span></button>
+      <button type="button" class="opt" onclick="sel('q1','B',this)"><span class="opt-letter">B</span><span>أقل من ساعة</span></button>
+      <button type="button" class="opt" onclick="sel('q1','C',this)"><span class="opt-letter">C</span><span>عدة ساعات</span></button>
+      <button type="button" class="opt" onclick="sel('q1','D',this)"><span class="opt-letter">D</span><span>لا يوجد بروتوكول محدد</span></button>
     </div>
     <div class="divider"></div>
     <h2 class="q-title">كيف يتم المتابعة مع المريض أو المراجع بعد الزيارة؟</h2>
     <p class="q-sub">Post-Visit Follow-up System</p>
     <div class="opts" id="q2-opts">
-      <button class="opt" onclick="sel('q2','A',this)"><span class="opt-letter">A</span><span>نظام منظم وآلي (رسائل + مواعيد تلقائية)</span></button>
-      <button class="opt" onclick="sel('q2','B',this)"><span class="opt-letter">B</span><span>شبه منظم — متابعة دورية</span></button>
-      <button class="opt" onclick="sel('q2','C',this)"><span class="opt-letter">C</span><span>يدوي وغير منتظم</span></button>
-      <button class="opt" onclick="sel('q2','D',this)"><span class="opt-letter">D</span><span>لا توجد منظومة متابعة</span></button>
+      <button type="button" class="opt" onclick="sel('q2','A',this)"><span class="opt-letter">A</span><span>نظام منظم وآلي (رسائل + مواعيد تلقائية)</span></button>
+      <button type="button" class="opt" onclick="sel('q2','B',this)"><span class="opt-letter">B</span><span>شبه منظم — متابعة دورية</span></button>
+      <button type="button" class="opt" onclick="sel('q2','C',this)"><span class="opt-letter">C</span><span>يدوي وغير منتظم</span></button>
+      <button type="button" class="opt" onclick="sel('q2','D',this)"><span class="opt-letter">D</span><span>لا توجد منظومة متابعة</span></button>
     </div>
-    <button class="btn-next" id="btn-q1" onclick="goTo('screen-lead')">التالي</button>
+    <button type="button" class="btn-next" id="btn-q1" onclick="goTo('screen-lead')">التالي</button>
   </div>
 </section>
 
@@ -335,7 +418,7 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
     <div class="field"><label class="field-label">الاسم الكامل</label><input class="field-input" type="text" id="lead-name" placeholder="د. محمد العمري" oninput="checkLead()"></div>
     <div class="field"><label class="field-label">رقم الواتساب</label><input class="field-input" type="tel" id="lead-phone" placeholder="00962XXXXXXXXX" oninput="checkLead()"></div>
     <div class="field"><label class="field-label">البريد الإلكتروني</label><input class="field-input" type="email" id="lead-email" placeholder="doctor@clinic.com" oninput="checkLead()"></div>
-    <button class="btn-next" id="btn-lead" onclick="validateAndSubmit()" style="opacity:.2;pointer-events:none">أكمل التقييم</button>
+    <button type="button" class="btn-next" id="btn-lead" onclick="validateAndSubmit()" style="opacity:.2;pointer-events:none">أكمل التقييم</button>
     <div style="margin-top:14px;font-size:11px;color:var(--muted);text-align:center;font-family:'IBM Plex Mono',monospace;letter-spacing:1px">CORE SYSTEM — بياناتك لن تُشارك مع أي طرف ثالث</div>
   </div>
 </section>
@@ -348,21 +431,21 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
     <h2 class="q-title">عند اعتراض المريض أو المراجع على السعر، كيف يتم إدارة ذلك؟</h2>
     <p class="q-sub">Objection Handling — Price vs Value Protocol</p>
     <div class="opts" id="q3-opts">
-      <button class="opt" onclick="sel('q3','A',this)"><span class="opt-letter">A</span><span>بروتوكول موثق يطبقه الفريق</span></button>
-      <button class="opt" onclick="sel('q3','B',this)"><span class="opt-letter">B</span><span>بناءً على خبرة شخصية</span></button>
-      <button class="opt" onclick="sel('q3','C',this)"><span class="opt-letter">C</span><span>يعتمد على الطبيب أو إدارة العيادة</span></button>
-      <button class="opt" onclick="sel('q3','D',this)"><span class="opt-letter">D</span><span>كل حالة تعامل بشكل مستقل وأي شخص في فريق العيادة يمكنه التعامل مع الأمر</span></button>
+      <button type="button" class="opt" onclick="sel('q3','A',this)"><span class="opt-letter">A</span><span>بروتوكول موثق يطبقه الفريق</span></button>
+      <button type="button" class="opt" onclick="sel('q3','B',this)"><span class="opt-letter">B</span><span>بناءً على خبرة شخصية</span></button>
+      <button type="button" class="opt" onclick="sel('q3','C',this)"><span class="opt-letter">C</span><span>يعتمد على الطبيب أو إدارة العيادة</span></button>
+      <button type="button" class="opt" onclick="sel('q3','D',this)"><span class="opt-letter">D</span><span>كل حالة تعامل بشكل مستقل وأي شخص في فريق العيادة يمكنه التعامل مع الأمر</span></button>
     </div>
     <div class="divider"></div>
     <h2 class="q-title">هل تقيسون (Patient Acceptance Rate)؟ معدل تحويل الاستفسارات إلى مواعيد مؤكدة</h2>
     <p class="q-sub">معدل تحويل الاستفسارات إلى مواعيد مؤكدة</p>
     <div class="opts" id="q4-opts">
-      <button class="opt" onclick="sel('q4','A',this)"><span class="opt-letter">A</span><span>نعرفه بدقة ونراجعه دورياً</span></button>
-      <button class="opt" onclick="sel('q4','B',this)"><span class="opt-letter">B</span><span>نقدّره تقريباً</span></button>
-      <button class="opt" onclick="sel('q4','C',this)"><span class="opt-letter">C</span><span>لا نقيسه لكن نريد ذلك</span></button>
-      <button class="opt" onclick="sel('q4','D',this)"><span class="opt-letter">D</span><span>لم نفكر بقياسه</span></button>
+      <button type="button" class="opt" onclick="sel('q4','A',this)"><span class="opt-letter">A</span><span>نعرفه بدقة ونراجعه دورياً</span></button>
+      <button type="button" class="opt" onclick="sel('q4','B',this)"><span class="opt-letter">B</span><span>نقدّره تقريباً</span></button>
+      <button type="button" class="opt" onclick="sel('q4','C',this)"><span class="opt-letter">C</span><span>لا نقيسه لكن نريد ذلك</span></button>
+      <button type="button" class="opt" onclick="sel('q4','D',this)"><span class="opt-letter">D</span><span>لم نفكر بقياسه</span></button>
     </div>
-    <button class="btn-next" id="btn-q2" onclick="goTo('screen-q3')">التالي</button>
+    <button type="button" class="btn-next" id="btn-q2" onclick="goTo('screen-q3')">التالي</button>
   </div>
 </section>
 
@@ -374,21 +457,21 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
     <h2 class="q-title">كيف تديرون حالات عدم الالتزام بالمواعيد (No-Show)؟</h2>
     <p class="q-sub">No-Show Management Protocol</p>
     <div class="opts" id="q5-opts">
-      <button class="opt" onclick="sel('q5','A',this)"><span class="opt-letter">A</span><span>نظام تذكير تلقائي مؤتمت + إعادة جدولة وتذكير</span></button>
-      <button class="opt" onclick="sel('q5','B',this)"><span class="opt-letter">B</span><span>إعادة جدولة وتواصل عبر الهاتف أو الرسائل فقط</span></button>
-      <button class="opt" onclick="sel('q5','C',this)"><span class="opt-letter">C</span><span>اتصال فقط للتذكير</span></button>
-      <button class="opt" onclick="sel('q5','D',this)"><span class="opt-letter">D</span><span>لا يوجد آلية متابعة منتظمة</span></button>
+      <button type="button" class="opt" onclick="sel('q5','A',this)"><span class="opt-letter">A</span><span>نظام تذكير تلقائي مؤتمت + إعادة جدولة وتذكير</span></button>
+      <button type="button" class="opt" onclick="sel('q5','B',this)"><span class="opt-letter">B</span><span>إعادة جدولة وتواصل عبر الهاتف أو الرسائل فقط</span></button>
+      <button type="button" class="opt" onclick="sel('q5','C',this)"><span class="opt-letter">C</span><span>اتصال فقط للتذكير</span></button>
+      <button type="button" class="opt" onclick="sel('q5','D',this)"><span class="opt-letter">D</span><span>لا يوجد آلية متابعة منتظمة</span></button>
     </div>
     <div class="divider"></div>
     <h2 class="q-title">كيف تقيسون أداء العيادة، هل لديكم مؤشرات ونظام إلكتروني يقيسها؟</h2>
     <p class="q-sub">Operational KPI Tracking Maturity</p>
     <div class="opts" id="q6-opts">
-      <button class="opt" onclick="sel('q6','A',this)"><span class="opt-letter">A</span><span>KPIs موثقة ومراجعة أسبوعياً</span></button>
-      <button class="opt" onclick="sel('q6','B',this)"><span class="opt-letter">B</span><span>مراجعة دورية من خلال المحاسب أو النظام المحاسبي</span></button>
-      <button class="opt" onclick="sel('q6','C',this)"><span class="opt-letter">C</span><span>تقارير شهرية بالإيرادات والمصاريف (أرقام عامة)</span></button>
-      <button class="opt" onclick="sel('q6','D',this)"><span class="opt-letter">D</span><span>لا يوجد، لكن نهتم بأن يكون ذلك واضحاً لنا</span></button>
+      <button type="button" class="opt" onclick="sel('q6','A',this)"><span class="opt-letter">A</span><span>KPIs موثقة ومراجعة أسبوعياً</span></button>
+      <button type="button" class="opt" onclick="sel('q6','B',this)"><span class="opt-letter">B</span><span>مراجعة دورية من خلال المحاسب أو النظام المحاسبي</span></button>
+      <button type="button" class="opt" onclick="sel('q6','C',this)"><span class="opt-letter">C</span><span>تقارير شهرية بالإيرادات والمصاريف (أرقام عامة)</span></button>
+      <button type="button" class="opt" onclick="sel('q6','D',this)"><span class="opt-letter">D</span><span>لا يوجد، لكن نهتم بأن يكون ذلك واضحاً لنا</span></button>
     </div>
-    <button class="btn-next" id="btn-q3" onclick="runAnalysis()">احصل على التقرير التشخيصي</button>
+    <button type="button" class="btn-next" id="btn-q3" onclick="runAnalysis()">احصل على التقرير التشخيصي</button>
   </div>
 </section>
 
@@ -463,9 +546,10 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
       احجز جلسة تشخيص استراتيجية — 15 دقيقة
     </a>
-    <button class="pdf-btn" onclick="exportPDF();trackEvent('pdf_download')">تحميل التقرير التشخيصي — PDF</button>
+    <button type="button" class="pdf-btn" onclick="exportPDF();trackEvent('pdf_download')">تحميل التقرير التشخيصي — PDF</button>
   </div>
 </section>
+
 
 <div id="pdf-content">
   <div class="pdf-page">
@@ -540,10 +624,9 @@ body{font-family:'IBM Plex Sans Arabic',system-ui,-apple-system,BlinkMacSystemFo
     </div>
   </div>
 </div>
-
 <script>
 const CFG = {
-  supabase_url: 'https://oaqpzaarppcchnepffxx.supabase.co',
+  supabase_url: 'https://oaqpzaarppccbnepffxx.supabase.co',
   supabase_key: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA',
   whatsapp: '+962786595990',
   meta_pixel: '1720575785622975',
@@ -552,18 +635,14 @@ const CFG = {
 };
 
 let supabaseClient = null;
-console.log('[CORE] Supabase global check:', typeof window.supabase, typeof supabase);
 if ((typeof window.supabase !== 'undefined' || typeof supabase !== 'undefined') && CFG.supabase_url && CFG.supabase_key) {
   try {
     var supabaseLib = window.supabase || supabase;
     supabaseClient = supabaseLib.createClient(CFG.supabase_url, CFG.supabase_key);
     window.supabaseClient = supabaseClient;
-    console.log('[CORE] ✅ Supabase client initialized');
   } catch (e) {
-    console.error('[CORE] ❌ Supabase init failed:', e.message);
+    console.error('[CORE] Supabase init failed:', e.message);
   }
-} else {
-  console.warn('[CORE] ⚠️ Supabase not available. Global:', typeof window.supabase, 'URL:', !!CFG.supabase_url, 'Key:', !!CFG.supabase_key);
 }
 
 if (CFG.meta_pixel) {
@@ -588,29 +667,12 @@ if (CFG.ga_id) {
   window.gtag = function(){ window.dataLayer.push(arguments); };
   gtag('js', new Date());
   gtag('config', CFG.ga_id);
-  console.log('[CORE] ✅ GA4 initialized:', CFG.ga_id);
-}
-
-if (CFG.gtm_id) {
-  (function(w,d,s,l,i){
-    w[l]=w[l]||[];w[l].push({'gtm.start': new Date().getTime(),event:'gtm.js'});
-    var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';
-    j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;
-    f.parentNode.insertBefore(j,f);
-  })(window,document,'script','dataLayer',CFG.gtm_id);
 }
 
 function trackEvent(eventName, params) {
   params = params || {};
-  if (typeof fbq !== 'undefined' && CFG.meta_pixel) {
-    fbq('track', eventName, params);
-    console.log('[CORE] 📊 Meta:', eventName);
-  }
-  if (typeof window.gtag !== 'undefined' && CFG.ga_id) {
-    window.gtag('event', eventName, params);
-    console.log('[CORE] 📊 GA4:', eventName);
-  }
-  console.log('[CORE] TRACK:', eventName, params);
+  if (typeof fbq !== 'undefined' && CFG.meta_pixel) fbq('track', eventName, params);
+  if (typeof window.gtag !== 'undefined' && CFG.ga_id) window.gtag('event', eventName, params);
 }
 
 (function() {
@@ -651,11 +713,20 @@ if ('serviceWorker' in navigator) {
     });
     self.addEventListener('fetch', function(e) {
       e.respondWith(
-        fetch(e.request).catch(function() {
-          return new Response('Offline — Core-E requires internet connection', {
-            status: 503,
-            statusText: 'Service Unavailable',
-            headers: new Headers({'Content-Type': 'text/plain'})
+        caches.match(e.request).then(function(response) {
+          if (response) return response;
+          return fetch(e.request).then(function(response) {
+            if (!response || response.status !== 200 || response.type !== 'basic') return response;
+            var responseToCache = response.clone();
+            caches.open('core-e-v1').then(function(cache) {
+              cache.put(e.request, responseToCache);
+            });
+            return response;
+          }).catch(function() {
+            return new Response('Offline — Core-E requires internet connection', {
+              status: 503, statusText: 'Service Unavailable',
+              headers: new Headers({'Content-Type': 'text/plain'})
+            });
           });
         })
       );
@@ -685,11 +756,15 @@ const TICKS = [
   'تم رصد فجوة تشغيلية هيكلية للتو'
 ];
 let ti = 0;
-setInterval(function() {
+let tickerInterval = setInterval(function() {
   ti = (ti + 1) % TICKS.length;
   const el = document.getElementById('ticker-text');
   if (el) el.textContent = TICKS[ti];
 }, 4000);
+
+function clearTicker() {
+  clearInterval(tickerInterval);
+}
 
 function checkProfile() {
   const s = document.getElementById('specialty').value;
@@ -732,7 +807,7 @@ function checkLead() {
   var email = document.getElementById('lead-email').value.trim();
   var btn = document.getElementById('btn-lead');
 
-  var nameValid = /^[\u0600-\u06FFa-zA-Z\s]{3,}$/.test(name);
+  var nameValid = /^[؀-ۿa-zA-Z\s]{3,}$/.test(name);
   var phoneClean = phone.replace(/\s/g, '');
   var phoneValid = /^[\+\d]{10,15}$/.test(phoneClean) || /^00\d{10,14}$/.test(phoneClean);
   var emailValid = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email);
@@ -766,7 +841,7 @@ async function validateAndSubmit() {
 
   var valid = true;
 
-  if (!/^[\u0600-\u06FFa-zA-Z\s]{3,}$/.test(name)) {
+  if (!/^[؀-ۿa-zA-Z\s]{3,}$/.test(name)) {
     showFieldError('lead-name', 'الرجاء إدخال اسم صحيح (3 أحرف على الأقل)');
     valid = false;
   }
@@ -783,7 +858,6 @@ async function validateAndSubmit() {
   }
 
   if (valid) {
-    console.log('[CORE] 🚀 Submitting lead...');
     trackEvent('Lead', {content_name: 'clinic_evaluator_lead'});
     await saveDB('leads', {
       name: name,
@@ -794,26 +868,22 @@ async function validateAndSubmit() {
       staff: ST.profile.staff || null,
       created_at: new Date().toISOString()
     });
-    console.log('[CORE] ✅ Lead submitted, navigating to Q2');
     goTo('screen-q2');
   }
 }
 
 async function saveDB(table, data) {
-  console.log('[CORE] 💾 saveDB called:', table, data);
   if (!supabaseClient) {
-    console.error('[CORE] ❌ Supabase client is null — cannot save. Check console for init errors.');
+    console.error('[CORE] Supabase client is null');
     return;
   }
   try {
-    var result = await supabaseClient.from(table).insert([data]);
+    var result = await supabaseClient.from(table).insert([data], { returning: 'minimal' });
     if (result.error) {
-      console.error('[CORE] ❌ Supabase insert error:', result.error);
-    } else {
-      console.log('[CORE] ✅ Saved to', table, result.data);
+      console.error('[CORE] Supabase insert error:', result.error);
     }
   } catch (e) {
-    console.error('[CORE] ❌ Supabase save exception:', e);
+    console.error('[CORE] Supabase save exception:', e);
   }
 }
 
@@ -989,6 +1059,7 @@ function getContent(r) {
 
 function runAnalysis() {
   goTo('screen-loading');
+  clearTicker();
   trackEvent('CompleteRegistration', {value: 1});
 
   const steps = [
@@ -1036,7 +1107,7 @@ function runAnalysis() {
     sta.textContent = steps[i].t;
     pct.textContent = steps[i].p + '%';
     i++;
-    }, 950);
+  }, 950);
 }
 
 function renderResults(r) {
@@ -1133,17 +1204,9 @@ function exportPDF() {
     margin: [0, 0, 0, 0],
     filename: 'CORE-System-Diagnostic-Report.pdf',
     image: { type: 'jpeg', quality: 0.98 },
-    html2canvas: { 
-      scale: 2, 
-      useCORS: true, 
-      logging: false,
-      backgroundColor: '#ffffff'
-    },
-    jsPDF: { 
-      unit: 'mm', 
-      format: 'a4', 
-      orientation: 'portrait'
-    }
+    html2canvas: { scale: 2, useCORS: true, logging: false, backgroundColor: '#ffffff' },
+    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
+    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
   };
 
   html2pdf().set(opt).from(element).save().then(function() {
@@ -1182,11 +1245,22 @@ function handlePWAInstall() {
   var isAndroid = /Android/.test(navigator.userAgent);
 
   if (isIOS) {
-    alert('📱 iPhone/iPad:\n\n1. اضغط ⬆️ (زر المشاركة)\n2. اضغط "أضف إلى الشاشة الرئيسية"\n3. اضغط "إضافة"');
+    alert('📱 iPhone/iPad:
+
+1. اضغط ⬆️ (زر المشاركة)
+2. اضغط "أضف إلى الشاشة الرئيسية"
+3. اضغط "إضافة"');
   } else if (isAndroid) {
-    alert('📱 Android:\n\n1. اضغط ⋮ (النقاط الثلاث)\n2. اضغط "أضف إلى الشاشة الرئيسية"\n3. اضغط "تثبيت"');
+    alert('📱 Android:
+
+1. اضغط ⋮ (النقاط الثلاث)
+2. اضغط "أضف إلى الشاشة الرئيسية"
+3. اضغط "تثبيت"');
   } else {
-    alert('📱 للتثبيت:\n\n• Chrome: اضغط ⋮ ← "تثبيت Core-E"\n• Edge: اضغط ⋮ ← "تثبيت كتطبيق"');
+    alert('📱 للتثبيت:
+
+• Chrome: اضغط ⋮ ← "تثبيت Core-E"
+• Edge: اضغط ⋮ ← "تثبيت كتطبيق"');
   }
 }
 
@@ -1209,40 +1283,73 @@ if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.
   if (pwaSection) pwaSection.style.display = 'none';
 }
 
-// ═══════════════════════════════════════
-// ADMIN PANEL FUNCTIONS
-// ═══════════════════════════════════════
+// ===== ADMIN PANEL FUNCTIONS =====
 var allAdminLeads = [];
 var allAdminAssessments = [];
 var adminCurrentTab = 'leads';
+var adminAutoRefresh = null;
 
 function checkAdminMode() {
   var path = window.location.pathname;
   if (path === '/admin' || path === '/admin/' || path.startsWith('/admin')) {
-    document.getElementById('admin-panel').style.display = 'block';
-    var main = document.querySelector('main');
-    if (main) main.style.display = 'none';
+    showAdminPanel();
+  }
+}
+
+function showAdminPanel() {
+  var panel = document.getElementById('admin-panel');
+  if (panel) {
+    panel.classList.add('active');
+    document.body.style.overflow = 'hidden';
     loadAdminData();
+    startAdminAutoRefresh();
   }
 }
 
 function closeAdmin() {
-  window.location.href = '/';
+  var panel = document.getElementById('admin-panel');
+  if (panel) {
+    panel.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  stopAdminAutoRefresh();
+  window.history.pushState({}, '', '/');
+}
+
+function startAdminAutoRefresh() {
+  if (adminAutoRefresh) clearInterval(adminAutoRefresh);
+  adminAutoRefresh = setInterval(function() {
+    loadAdminData(true);
+  }, 30000);
+}
+
+function stopAdminAutoRefresh() {
+  if (adminAutoRefresh) {
+    clearInterval(adminAutoRefresh);
+    adminAutoRefresh = null;
+  }
 }
 
 function switchAdminTab(tab) {
   adminCurrentTab = tab;
   document.getElementById('admin-content-leads').style.display = tab === 'leads' ? 'block' : 'none';
   document.getElementById('admin-content-assessments').style.display = tab === 'assessments' ? 'block' : 'none';
-  document.getElementById('admin-tab-leads').style.background = tab === 'leads' ? 'var(--accent)' : 'var(--surface)';
-  document.getElementById('admin-tab-leads').style.color = tab === 'leads' ? 'var(--white)' : 'var(--muted)';
-  document.getElementById('admin-tab-assessments').style.background = tab === 'assessments' ? 'var(--accent)' : 'var(--surface)';
-  document.getElementById('admin-tab-assessments').style.color = tab === 'assessments' ? 'var(--white)' : 'var(--muted)';
+  document.getElementById('admin-tab-leads').classList.toggle('active', tab === 'leads');
+  document.getElementById('admin-tab-assessments').classList.toggle('active', tab === 'assessments');
 }
 
-async function loadAdminData() {
+function handleAdminSearch(query) {
+  query = query.toLowerCase().trim();
+  if (adminCurrentTab === 'leads') {
+    filterAdminLeads(query);
+  } else {
+    filterAdminAssess(query);
+  }
+}
+
+async function loadAdminData(silent) {
   if (!supabaseClient) {
-    alert('خطأ في الاتصال بـ Supabase');
+    if (!silent) alert('خطأ في الاتصال بـ Supabase');
     return;
   }
   try {
@@ -1255,23 +1362,32 @@ async function loadAdminData() {
     renderAdminAssess(allAdminAssessments);
 
     updateAdminStats();
+    updateAdminLastUpdate();
   } catch(e) {
-    console.error('[ADMIN] Error:', e);
+    if (!silent) console.error('[ADMIN] Error:', e);
+  }
+}
+
+function updateAdminLastUpdate() {
+  var el = document.getElementById('admin-last-update');
+  if (el) {
+    var now = new Date();
+    el.textContent = 'آخر تحديث: ' + now.toLocaleTimeString('ar-JO', {hour: '2-digit', minute: '2-digit'});
   }
 }
 
 function renderAdminLeads(list) {
   var container = document.getElementById('admin-cards-leads');
-  if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">لا توجد بيانات</div>'; return; }
+  if (!list.length) { container.innerHTML = '<div class="admin-empty">لا توجد بيانات</div>'; return; }
   var html = '';
   list.forEach(function(row) {
     var date = new Date(row.created_at).toLocaleDateString('ar-JO', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
     var spec = {cosmetic:'تجميل',dental:'أسنان',general:'عام',derma:'جلدية',ortho:'عظام',eye:'عيون',other:'آخر'}[row.specialty] || row.specialty || '-';
-    html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px">';
-    html += '<div style="display:flex;justify-content:space-between;margin-bottom:10px"><strong>' + (row.name || '—') + '</strong><span style="font-size:11px;color:var(--muted);font-family:monospace">' + date + '</span></div>';
-    html += '<div style="font-size:13px;color:var(--muted);margin-bottom:4px">📱 ' + (row.phone || '—') + '</div>';
-    html += '<div style="font-size:13px;color:var(--muted);margin-bottom:4px">✉️ ' + (row.email || '—') + '</div>';
-    html += '<div style="display:flex;gap:8px;margin-top:10px"><span style="background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px">' + spec + '</span></div>';
+    html += '<div class="admin-card">';
+    html += '<div class="admin-card-header"><div class="admin-card-name">' + (row.name || '—') + '</div><div class="admin-card-date">' + date + '</div></div>';
+    html += '<div class="admin-card-row">📱 ' + (row.phone || '—') + '</div>';
+    html += '<div class="admin-card-row">✉️ ' + (row.email || '—') + '</div>';
+    html += '<div class="admin-card-tags"><span class="admin-card-tag">' + spec + '</span></div>';
     html += '</div>';
   });
   container.innerHTML = html;
@@ -1279,22 +1395,19 @@ function renderAdminLeads(list) {
 
 function renderAdminAssess(list) {
   var container = document.getElementById('admin-cards-assess');
-  if (!list.length) { container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--muted)">لا توجد تقييمات</div>'; return; }
+  if (!list.length) { container.innerHTML = '<div class="admin-empty">لا توجد تقييمات</div>'; return; }
   var html = '';
   list.forEach(function(row) {
     var date = new Date(row.created_at).toLocaleDateString('ar-JO', {day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
     var score = row.final || 0;
     var scoreColor = score >= 80 ? '#10b981' : score >= 65 ? '#5a7cf7' : score >= 45 ? '#f0900a' : '#e53e3e';
-    html += '<div style="background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px">';
-    html += '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">';
-    html += '<strong>' + (row.name || '—') + '</strong>';
-    html += '<span style="font-family:monospace;font-weight:700;color:' + scoreColor + '">' + score + '/100</span>';
-    html += '</div>';
-    html += '<div style="font-size:11px;color:var(--muted);margin-bottom:10px;font-family:monospace">' + date + '</div>';
-    html += '<div style="display:flex;gap:8px;font-size:12px">';
-    html += '<span style="background:var(--surface);border-radius:6px;padding:4px 8px">عمليات: ' + (row.operational || 0) + '</span>';
-    html += '<span style="background:var(--surface);border-radius:6px;padding:4px 8px">تواصل: ' + (row.commercial || 0) + '</span>';
-    html += '<span style="background:var(--surface);border-radius:6px;padding:4px 8px">ولاء: ' + (row.retention || 0) + '</span>';
+    html += '<div class="admin-card">';
+    html += '<div class="admin-card-header"><div class="admin-card-name">' + (row.name || '—') + '</div><div class="admin-card-score" style="color:' + scoreColor + '">' + score + '/100</div></div>';
+    html += '<div class="admin-card-date">' + date + '</div>';
+    html += '<div class="admin-card-tags">';
+    html += '<span class="admin-card-tag">عمليات: ' + (row.operational || 0) + '</span>';
+    html += '<span class="admin-card-tag">تواصل: ' + (row.commercial || 0) + '</span>';
+    html += '<span class="admin-card-tag">ولاء: ' + (row.retention || 0) + '</span>';
     html += '</div>';
     html += '</div>';
   });
@@ -1312,14 +1425,14 @@ function updateAdminStats() {
 }
 
 function filterAdminLeads(q) {
-  q = q.toLowerCase();
+  if (!q) { renderAdminLeads(allAdminLeads); return; }
   renderAdminLeads(allAdminLeads.filter(function(r){
     return (r.name||'').toLowerCase().includes(q) || (r.phone||'').includes(q) || (r.email||'').toLowerCase().includes(q);
   }));
 }
 
 function filterAdminAssess(q) {
-  q = q.toLowerCase();
+  if (!q) { renderAdminAssess(allAdminAssessments); return; }
   renderAdminAssess(allAdminAssessments.filter(function(r){
     return (r.name||'').toLowerCase().includes(q) || (r.final||'').toString().includes(q);
   }));
@@ -1337,7 +1450,7 @@ function exportAdminData() {
       return val;
     }).join(',');
   });
-  var csv = '﻿' + headers + '\n' + rows.join('\n');
+  var csv = '\uFEFF' + headers + '\n' + rows.join('\n');
   var blob = new Blob([csv], {type: 'text/csv;charset=utf-8;'});
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
@@ -1345,8 +1458,21 @@ function exportAdminData() {
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
 }
 
+// Keyboard shortcut for admin
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var panel = document.getElementById('admin-panel');
+    if (panel && panel.classList.contains('active')) {
+      closeAdmin();
+    }
+  }
+});
+
 // Check admin mode on load
 checkAdminMode();
+</script>
+</body>
+</html>
 </script>
 </body>
 </html>
