@@ -2,105 +2,10 @@
 <html lang="ar" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Panel | CORE SYSTEM</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-<style>
-body{background:#0a1628;color:#fff;font-family:system-ui;padding:24px;margin:0}
-.container{max-width:1200px;margin:0 auto}
-h1{font-size:24px}
-.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin:32px 0}
-.stat-card{background:#141f35;border:1px solid #1a2d4a;border-radius:12px;padding:20px}
-.stat-num{font-size:36px;color:#5a7cf7;font-family:monospace}
-.stat-label{font-size:12px;color:#a0a0c0;margin-top:4px}
-.card{background:#141f35;border:1px solid #1a2d4a;border-radius:12px;padding:16px;margin-bottom:10px}
-.card-header{display:flex;justify-content:space-between}
-.card-name{font-weight:700}
-.btn{padding:10px 20px;background:#5a7cf7;color:#fff;border:none;border-radius:8px;cursor:pointer}
-.login-screen{position:fixed;inset:0;background:#0a1628;display:flex;justify-content:center;align-items:center;z-index:1000}
-.login-box{background:#141f35;border:1px solid #1a2d4a;border-radius:16px;padding:40px;max-width:400px;width:100%;text-align:center}
-.login-input{width:100%;padding:14px;background:#0f1d32;border:1px solid #1a2d4a;border-radius:10px;color:#fff;margin-bottom:16px;text-align:center}
-.error{color:#e53e3e;font-size:13px;display:none}
-.hidden{display:none !important}
-</style>
+<title>Test Admin</title>
 </head>
 <body>
-
-<div id="login-screen" class="login-screen">
-  <div class="login-box">
-    <h2>🔐 Admin Panel</h2>
-    <p>أدخل كلمة المرور</p>
-    <input type="password" id="admin-pass" class="login-input" placeholder="كلمة المرور" onkeypress="if(event.key==='Enter')doLogin()">
-    <button class="btn" onclick="doLogin()" style="width:100%">دخول</button>
-    <div id="login-error" class="error">كلمة المرور غير صحيحة</div>
-  </div>
-</div>
-
-<div id="main-content" class="hidden">
-  <div class="container">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:32px">
-      <h1>لوحة التحكم</h1>
-      <button class="btn" onclick="location.href='/'">خروج</button>
-    </div>
-    <div class="stats">
-      <div class="stat-card"><div class="stat-num" id="stat-total">0</div><div class="stat-label">إجمالي التقييمات</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-avg">0</div><div class="stat-label">متوسط النتيجة</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-today">0</div><div class="stat-label">اليوم</div></div>
-      <div class="stat-card"><div class="stat-num" id="stat-leads">0</div><div class="stat-label">العملاء المحتملين</div></div>
-    </div>
-    <div id="cards"></div>
-  </div>
-</div>
-
-<script>
-const SUPABASE_URL = 'https://oaqpzaarppcchnepffxx.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2huZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
-const ADMIN_PASSWORD = 'core2024';
-
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-
-function doLogin() {
-  if (document.getElementById('admin-pass').value === ADMIN_PASSWORD) {
-    document.getElementById('login-screen').classList.add('hidden');
-    document.getElementById('main-content').classList.remove('hidden');
-    loadData();
-  } else {
-    document.getElementById('login-error').style.display = 'block';
-  }
-}
-
-async function loadData() {
-  try {
-    const { data: assessments } = await sb.from('assessments').select('*').order('created_at', { ascending: false });
-    const { data: leads } = await sb.from('leads').select('*').order('created_at', { ascending: false });
-    
-    document.getElementById('stat-total').textContent = assessments?.length || 0;
-    document.getElementById('stat-leads').textContent = leads?.length || 0;
-    
-    const avg = assessments?.length ? Math.round(assessments.reduce((a,b) => a + (b.final || 0), 0) / assessments.length) : 0;
-    document.getElementById('stat-avg').textContent = avg;
-    
-    const today = new Date().toDateString();
-    document.getElementById('stat-today').textContent = assessments?.filter(r => new Date(r.created_at).toDateString() === today).length || 0;
-    
-    const container = document.getElementById('cards');
-    if (!assessments?.length) {
-      container.innerHTML = '<div style="text-align:center;padding:40px;color:#a0a0c0">لا توجد تقييمات</div>';
-      return;
-    }
-    
-    container.innerHTML = assessments.map(row => {
-      const score = row.final || 0;
-      const color = score >= 80 ? '#12d18e' : score >= 65 ? '#f0900a' : '#e53e3e';
-      const date = new Date(row.created_at).toLocaleDateString('ar-JO');
-      return '<div class="card"><div class="card-header"><div class="card-name">' + (row.name || '—') + '</div><span style="color:' + color + ';font-family:monospace">' + score + '/100</span></div><div style="font-size:11px;color:#a0a0c0;margin-top:8px">' + date + '</div></div>';
-    }).join('');
-    
-  } catch (err) {
-    alert('خطأ: ' + err.message);
-  }
-}
-</script>
-
+<h1>Admin Panel Works!</h1>
+<p>إذا رأيت هذا النص، المشكلة في JavaScript</p>
 </body>
 </html>
