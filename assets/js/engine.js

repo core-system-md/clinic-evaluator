@@ -1,0 +1,283 @@
+/**
+ * MD CODE Clinic Evaluator — Generic Engine + Supabase Client
+ * Project: رحلة المريض | Patient Journey
+ * Font: Cairo
+ */
+
+// ─── SUPABASE CONFIG ───
+const SUPABASE_URL = 'https://oaqpzaarppccbnepffxx.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
+
+// ─── SUPABASE CLIENT (Lightweight fetch wrapper) ───
+class SupabaseClient {
+  constructor(url, key) {
+    this.url = url;
+    this.key = key;
+    this.headers = {
+      'apikey': key,
+      'Authorization': `Bearer ${key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=representation'
+    };
+  }
+
+  async insert(table, data) {
+    const res = await fetch(`${this.url}/rest/v1/${table}`, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify(data)
+    });
+    if (!res.ok) throw new Error(`Supabase insert failed: ${res.status} ${await res.text()}`);
+    return await res.json();
+  }
+
+  async select(table, columns = '*', filters = {}) {
+    let url = `${this.url}/rest/v1/${table}?select=${columns}`;
+    for (const [key, val] of Object.entries(filters)) {
+      url += `&${key}=eq.${encodeURIComponent(val)}`;
+    }
+    const res = await fetch(url, { headers: this.headers });
+    if (!res.ok) throw new Error(`Supabase select failed: ${res.status}`);
+    return await res.json();
+  }
+
+  async rpc(fn, params = {}) {
+    const res = await fetch(`${this.url}/rest/v1/rpc/${fn}`, {
+      method: 'POST',
+      headers: this.headers,
+      body: JSON.stringify(params)
+    });
+    if (!res.ok) throw new Error(`Supabase RPC failed: ${res.status} ${await res.text()}`);
+    return await res.json();
+  }
+}
+
+// ─── EVALUATOR ENGINE ───
+class ClinicEvaluatorEngine {
+  constructor(config, reportTexts) {
+    this.config = config;
+    this.reportTexts = reportTexts;
+    this.db = new SupabaseClient(SUPABASE_URL, SUPABASE_KEY);
+    this.currentAssessment = null;
+    this.answers = new Map();
+    this.sessionId = null;
+    this.leadId = null;
+    this.startTime = null;
+  }
+
+  loadAssessment(typeSlug) {
+    const assessment = this.config.assessment_types[typeSlug];
+    if (!assessment) throw new Error(`Assessment type '${typeSlug}' not found`);
+    this.currentAssessment = { ...assessment, slug: typeSlug };
+    this.answers.clear();
+    this.startTime = Date.now();
+    return this.currentAssessment;
+  }
+
+  setAnswer(questionId, value) {
+    const q = this.currentAssessment.questions.find(q => q.id === questionId);
+    if (!q) throw new Error(`Question '${questionId}' not found`);
+    const answer = {
+      questionId: q.id,
+      axisId: q.axis_id,
+      questionText: q.text,
+      value: parseInt(value),
+      isTrap: q.trap || false,
+      answeredAt: new Date().toISOString()
+    };
+    this.answers.set(questionId, answer);
+    return answer;
+  }
+
+  getAnswer(questionId) { return this.answers.get(questionId) || null; }
+
+  getProgress() {
+    if (!this.currentAssessment) return { current: 0, total: 0, percentage: 0 };
+    const total = this.currentAssessment.questions.length;
+    const current = this.answers.size;
+    return { current, total, percentage: Math.round((current / total) * 100), remaining: total - current };
+  }
+
+  calculateScores() {
+    if (!this.currentAssessment) throw new Error('No assessment loaded');
+    const axes = this.currentAssessment.axes;
+    const scores = [];
+    let totalWeighted = 0;
+    let totalWeight = 0;
+
+    for (const axis of axes) {
+      const axisQuestions = this.currentAssessment.questions.filter(q => q.axis_id === axis.id);
+      const axisAnswers = axisQuestions.map(q => this.answers.get(q.id)).filter(a => a !== undefined);
+      if (axisAnswers.length === 0) continue;
+      const rawSum = axisAnswers.reduce((sum, a) => sum + a.value, 0);
+      const maxPossible = axisQuestions.length * 5;
+      const rawScore = rawSum;
+      const percentage = Math.round((rawSum / maxPossible) * 100);
+      const weightedScore = percentage * axis.weight;
+      const grade = this._getGrade(percentage);
+      scores.push({
+        axisId: axis.id, axisNameAr: axis.name_ar, axisNameEn: axis.name_en,
+        weight: axis.weight, rawScore, maxPossible, percentage, weightedScore, grade,
+        answersCount: axisAnswers.length
+      });
+      totalWeighted += weightedScore;
+      totalWeight += axis.weight;
+    }
+
+    const overallPercentage = totalWeight > 0 ? Math.round(totalWeighted / totalWeight) : 0;
+    const overallGrade = this._getGrade(overallPercentage);
+    const overallMessage = this._getOverallMessage(overallPercentage);
+    return { axes: scores, overall: { percentage: overallPercentage, grade: overallGrade, ...overallMessage }, duration: Math.round((Date.now() - this.startTime) / 1000) };
+  }
+
+  _getGrade(p) { if (p >= 90) return 'A'; if (p >= 70) return 'B'; if (p >= 50) return 'C'; if (p >= 30) return 'D'; return 'F'; }
+  _getOverallMessage(p) { const r = this.reportTexts.overall_messages; if (p >= 90) return r['90-100']; if (p >= 70) return r['70-89']; if (p >= 50) return r['50-69']; return r['0-49']; }
+
+  detectTraps() {
+    if (!this.currentAssessment || !this.currentAssessment.traps) return [];
+    const triggered = [];
+    for (const trap of this.currentAssessment.traps) {
+      if (this._evaluateCondition(trap.trigger_condition)) triggered.push({ ...trap, triggeredAt: new Date().toISOString() });
+    }
+    return triggered;
+  }
+
+  _evaluateCondition(condition) {
+    const parts = condition.split(/\s+AND\s+/i);
+    return parts.every(part => {
+      const match = part.match(/(Q\d+)\s*([<>=]+)\s*(\d+)/);
+      if (!match) return false;
+      const [, qId, operator, val] = match;
+      const answer = this.answers.get(qId);
+      if (!answer) return false;
+      const v = answer.value, target = parseInt(val);
+      switch (operator.trim()) { case '<=': return v <= target; case '>=': return v >= target; case '<': return v < target; case '>': return v > target; case '==': return v === target; default: return false; }
+    });
+  }
+
+  calculateEV(inputs) {
+    const avg = parseFloat(inputs.avg_visit_value) || 0;
+    const visits = parseFloat(inputs.visits_per_year) || 0;
+    const years = parseFloat(inputs.retention_years) || 0;
+    const referral = parseFloat(inputs.referral_rate) || 0;
+    const ltv = avg * visits * years;
+    const ltvReferral = ltv * (1 + referral / 100);
+    return { current: { ltv, ltvReferral }, optimized20: { ltv: ltvReferral * 1.20, increase: ltvReferral * 0.20 }, optimized50: { ltv: ltvReferral * 1.50, increase: ltvReferral * 0.50 }, inputs: { avg, visits, years, referral } };
+  }
+
+  getRecommendations(scores) {
+    const recs = this.reportTexts.recommendations;
+    const result = [];
+    for (const axis of scores.axes) {
+      if (axis.percentage < 70 && recs[axis.axisId]) {
+        result.push({ axisId: axis.axisId, axisName: axis.axisNameAr, percentage: axis.percentage, grade: axis.grade, actions: recs[axis.axisId] });
+      }
+    }
+    return result;
+  }
+
+  generateHTMLReport(scores, traps, recommendations) {
+    const gradeInfo = this.reportTexts.grades[scores.overall.grade];
+    const date = new Date().toLocaleDateString('ar-SA');
+    let html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير رحلة المريض — MD CODE</title><style>@page { size: A4; margin: 2cm; } body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; color: #1f2937; } .header { text-align: center; border-bottom: 3px solid #0f766e; padding-bottom: 20px; margin-bottom: 30px; } .header h1 { color: #0f766e; margin: 0; } .header .subtitle { color: #6b7280; font-size: 14px; } .score-card { background: #f0fdfa; border-right: 5px solid ${gradeInfo.color}; padding: 20px; margin: 20px 0; border-radius: 8px; } .score-value { font-size: 48px; font-weight: bold; color: ${gradeInfo.color}; } .axis-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; } .trap-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 10px 0; border-radius: 6px; color: #991b1b; } .rec-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; margin: 10px 0; border-radius: 6px; } .rec-box h4 { color: #1e40af; margin-top: 0; } .rec-box ul { margin: 0; padding-right: 20px; } .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; } @media print { .no-print { display: none; } }</style></head><body><div class="header"><h1>🦷 تقرير رحلة المريض</h1><div class="subtitle">تقييم أداء العيادة في تطوير LTV المريض</div><div class="subtitle">تاريخ التقرير: ${date}</div></div><div class="score-card"><div style="text-align:center;"><div class="score-value">${scores.overall.percentage}%</div><div style="font-size:24px; color:${gradeInfo.color};">${gradeInfo.label} (${scores.overall.grade})</div><div style="margin-top:10px; font-size:16px;">${scores.overall.title}</div><div style="color:#6b7280; font-size:14px;">${scores.overall.body}</div></div></div><h3>📊 التفصيل حسب المحاور</h3>`;
+    for (const axis of scores.axes) {
+      const g = this.reportTexts.grades[axis.grade];
+      html += `<div class="axis-row"><div><strong>${axis.axisNameAr}</strong> <span style="color:#6b7280; font-size:12px;">(${Math.round(axis.weight*100)}%)</span></div><div><span style="color:${g.color}; font-weight:bold;">${axis.percentage}% — ${g.label}</span></div></div>`;
+    }
+    if (traps.length > 0) {
+      html += `<h3>🚨 الكمائن المكتشفة (${traps.length})</h3>`;
+      for (const trap of traps) html += `<div class="trap-box"><strong>${trap.name}</strong><br>${trap.message_ar}</div>`;
+    }
+    if (recommendations.length > 0) {
+      html += `<h3>💡 توصيات التحسين</h3>`;
+      for (const rec of recommendations) html += `<div class="rec-box"><h4>${rec.axisName} — ${rec.percentage}%</h4><ul>${rec.actions.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
+    }
+    html += `<div class="footer">تم إنشاء هذا التقرير بواسطة MD CODE Clinic Evaluator<br>للاستفسارات: mdcode2026@gmail.com | +962 78 659 5990</div><div class="no-print" style="text-align:center; margin-top:20px;"><button onclick="window.print()" style="padding:12px 24px; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">🖨️ طباعة / حفظ PDF</button></div></body></html>`;
+    return html;
+  }
+
+  prepareLeadData(formData, assessmentTypeId) {
+    return {
+      assessment_type_id: assessmentTypeId,
+      full_name: formData.fullName,
+      email: formData.email || null,
+      phone: formData.phone,
+      clinic_name: formData.clinicName || null,
+      country: formData.country || 'JO',
+      source: formData.source || 'website'
+    };
+  }
+
+  prepareSessionData(leadId, assessmentTypeId) {
+    return {
+      lead_id: leadId,
+      assessment_type_id: assessmentTypeId,
+      status: 'in_progress',
+      current_question: 1,
+      started_at: new Date().toISOString()
+    };
+  }
+
+  prepareAnswersData(sessionId, leadId) {
+    return Array.from(this.answers.values()).map(a => ({
+      session_id: sessionId,
+      lead_id: leadId,
+      question_id: a.questionId,
+      axis_id: a.axisId,
+      question_text: a.questionText,
+      answer_value: a.value,
+      is_trap: a.isTrap
+    }));
+  }
+
+  prepareScoresData(sessionId, leadId, scores) {
+    return scores.axes.map(axis => ({
+      session_id: sessionId,
+      lead_id: leadId,
+      axis_id: axis.axisId,
+      axis_name_ar: axis.axisNameAr,
+      axis_name_en: axis.axisNameEn,
+      raw_score: axis.rawScore,
+      max_possible: axis.maxPossible,
+      percentage: axis.percentage,
+      weight: axis.weight,
+      weighted_score: Math.round(axis.weightedScore * 100) / 100,
+      grade: axis.grade
+    }));
+  }
+
+  async saveLead(leadData) {
+    const result = await this.db.insert('leads', leadData);
+    return result[0];
+  }
+
+  async saveSession(sessionData) {
+    const result = await this.db.insert('sessions', sessionData);
+    return result[0];
+  }
+
+  async saveAnswers(answersData) {
+    return await this.db.insert('answers', answersData);
+  }
+
+  async saveScores(scoresData) {
+    return await this.db.insert('scores', scoresData);
+  }
+
+  async completeSession(sessionId, totalScore, percentage) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/sessions?id=eq.${sessionId}`, {
+      method: 'PATCH',
+      headers: { ...this.db.headers, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ status: 'completed', completed_at: new Date().toISOString() })
+    });
+    if (!res.ok) throw new Error('Failed to complete session');
+    const leadRes = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${this.leadId}`, {
+      method: 'PATCH',
+      headers: { ...this.db.headers, 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ completed: true, score_total: totalScore, score_percentage: percentage, completed_at: new Date().toISOString() })
+    });
+    if (!leadRes.ok) throw new Error('Failed to update lead');
+  }
+}
+
+if (typeof module !== 'undefined' && module.exports) { module.exports = { ClinicEvaluatorEngine, SupabaseClient }; }
