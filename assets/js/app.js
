@@ -14,13 +14,12 @@ class ClinicEvaluatorApp {
     this.metadata = {};
     this.assessment = null;
     this.questions = [];
-    this.useOpt = false; // true = clinic-performance (.opt), false = patient-journey (.likert-option)
+    this.useOpt = false;
   }
 
   async init() {
     try {
       await Promise.all([this.loadConfig(), this.loadTexts()]);
-      // Detect which HTML file we're on
       this.useOpt = document.getElementById('lead-specialty') !== null;
       this.setupLeadForm();
       this.setupNavigation();
@@ -33,14 +32,14 @@ class ClinicEvaluatorApp {
   }
 
   async loadConfig() {
-    const res = await fetch('config.json');
-    if (!res.ok) throw new Error('config.json not found');
+    const res = await fetch('data/config.json');
+    if (!res.ok) throw new Error('data/config.json not found');
     this.config = await res.json();
   }
 
   async loadTexts() {
-    const res = await fetch('report_texts.json');
-    if (!res.ok) throw new Error('report_texts.json not found');
+    const res = await fetch('data/report_texts.json');
+    if (!res.ok) throw new Error('data/report_texts.json not found');
     this.texts = await res.json();
   }
 
