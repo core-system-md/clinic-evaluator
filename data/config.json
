@@ -345,6 +345,90 @@
         { "id": "Q6", "axis_id": "A4", "text": "هل يوجد برنامج ولاء أو خصومات للمراجعات؟", "type": "likert", "scale": 5, "reverse": false, "trap": false }
       ],
       "traps": []
+    },
+    "clinic-performance": {
+      "title": "تقييم أداء العيادة — 6 أسئلة",
+      "subtitle": "تقييم تشغيلي مؤسسي لكفاءة العيادة",
+      "axes": [
+        {
+          "id": "A1",
+          "name_ar": "نضج العمليات والإدارة",
+          "name_en": "Process Maturity",
+          "weight": 0.50,
+          "description": "مدى وجود أنظمة وبروتوكولات موثقة تدير العمليات اليومية"
+        },
+        {
+          "id": "A2",
+          "name_ar": "كفاءة التواصل مع المرضى",
+          "name_en": "Patient Engagement",
+          "weight": 0.30,
+          "description": "قدرة الفريق على تحويل الاستفسارات إلى مواعيد وإدارة الاعتراضات"
+        },
+        {
+          "id": "A3",
+          "name_ar": "استدامة العلاقة مع المرضى",
+          "name_en": "Patient Loyalty",
+          "weight": 0.20,
+          "description": "قدرة العيادة على الاحتفاظ بالمرضى وتعظيم قيمتهم طويلة الأمد"
+        }
+      ],
+      "questions": [
+        {
+          "id": "Q1",
+          "axis_id": "A1",
+          "text": "عندما يتواصل مريض جديد (اتصال، واتساب، رسائل) — كيف تقيم سرعة الاستجابة والرد في عيادتك؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q2",
+          "axis_id": "A1",
+          "text": "كيف تقيم منظومة المتابعة مع المريض أو المراجع بعد الزيارة في عيادتك؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q3",
+          "axis_id": "A2",
+          "text": "عند اعتراض المريض أو المراجع على السعر، كيف تقيم إدارة الفريق لهذا الاعتراض؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q4",
+          "axis_id": "A2",
+          "text": "كيف تقيم قياسكم لمعدل تحويل الاستفسارات إلى مواعيد مؤكدة (Patient Acceptance Rate)؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q3",
+          "axis_id": "A3",
+          "text": "كيف تقيم آلية إدارة حالات عدم الالتزام بالمواعيد (No-Show) في عيادتك؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q6",
+          "axis_id": "A3",
+          "text": "كيف تقيم نظام قياس ومتابعة أداء العيادة (KPIs) لديكم؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        }
+      ],
+      "traps": []
     }
   }
 }
