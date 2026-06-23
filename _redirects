@@ -1,3 +1,0 @@
-# Cloudflare Pages SPA fallback rules
-/admin    /index.html   200
-/*        /index.html   200
