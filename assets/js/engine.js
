@@ -1,7 +1,8 @@
 /**
  * ============================================================
- * Centralized Assessment Engine v3.0 — RESTORED
+ * Centralized Assessment Engine v3.0 — RESTORED & FIXED
  * Generic Engine — يقرأ config.json وينفذ المنطق بالكامل
+ * Compatible with app.js + Constitution v4.0
  * ============================================================
  */
 
@@ -57,7 +58,7 @@ class SupabaseClient {
 class AssessmentEngine {
   constructor(config, reportTexts) {
     this.config = config;
-    this.reportTexts = reportTexts;
+    this.reportTexts = reportTexts || {};
     this.db = new SupabaseClient(SUPABASE_URL, SUPABASE_KEY);
     this.currentAssessment = null;
     this.answers = new Map();
@@ -67,7 +68,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 1. loadAssessment — استخراج التقييم من config
+  // 1. loadAssessment
   // ============================================================
   loadAssessment(typeSlug) {
     if (this.config.assessment_types && this.config.assessment_types[typeSlug]) {
@@ -82,7 +83,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 2. طبقة التحقق الإلزامية (Validation Layer) — 12 فحص
+  // 2. Validation Layer — 12 فحص
   // ============================================================
   validateConfig() {
     const cfg = this.currentAssessment || this.config;
@@ -97,101 +98,89 @@ class AssessmentEngine {
     const validLayers = new Set(['A', 'B']);
     const validValues = new Set([0, 40, 100]);
 
-    // ─── فحص 1: كل axis_id في الأسئلة موجود في قائمة المحاور ───
     for (const q of questions) {
       if (!validAxisIds.has(q.axis_id)) {
         errors.push(`[VALIDATION-01] INVALID_AXIS_ID: "${q.axis_id}" in question "${q.id}" not found in axes list.`);
       }
     }
 
-    // ─── فحص 2: كل impact هو "high" أو "medium" أو "low" حصراً ───
     for (const q of questions) {
       if (!validImpacts.has(q.impact)) {
-        errors.push(`[VALIDATION-02] INVALID_IMPACT: "${q.impact}" in question "${q.id}". Must be one of: "high" (×1.5), "medium" (×1.0), "low" (×0.5)`);
+        errors.push(`[VALIDATION-02] INVALID_IMPACT: "${q.impact}" in question "${q.id}".`);
       }
     }
 
-    // ─── فحص 3: كل layer هو "A" أو "B" حصراً ───
     for (const q of questions) {
       if (!validLayers.has(q.layer)) {
-        errors.push(`[VALIDATION-03] INVALID_LAYER: "${q.layer}" in question "${q.id}". Must be "A" (scored) or "B" (trap only)`);
+        errors.push(`[VALIDATION-03] INVALID_LAYER: "${q.layer}" in question "${q.id}".`);
       }
     }
 
-    // ─── فحص 4: كل value في الخيارات هو 0 أو 40 أو 100 فقط ───
     for (const q of questions) {
       if (q.options && Array.isArray(q.options)) {
         for (const opt of q.options) {
           if (!validValues.has(opt.value)) {
-            errors.push(`[VALIDATION-04] INVALID_VALUE: ${opt.value} in question "${q.id}" option "${opt.label || 'N/A'}". Must be 0, 40, or 100.`);
+            errors.push(`[VALIDATION-04] INVALID_VALUE: ${opt.value} in question "${q.id}".`);
           }
         }
       }
     }
 
-    // ─── فحص 5: كل trap يشير إلى question_id موجود فعلاً ───
     for (const trap of traps) {
       if (!validQuestionIds.has(trap.question_id)) {
         errors.push(`[VALIDATION-05] INVALID_TRAP: trap references non-existent question "${trap.question_id}".`);
       }
     }
 
-    // ─── فحص 6: كل trap.validates موجود في قائمة الأسئلة ───
     for (const trap of traps) {
       if (!validQuestionIds.has(trap.validates)) {
         errors.push(`[VALIDATION-06] INVALID_TRAP: trap validates non-existent question "${trap.validates}".`);
       }
     }
 
-    // ─── فحص 7: كل trap.target_axis موجود في قائمة المحاور ───
     for (const trap of traps) {
       if (!validAxisIds.has(trap.target_axis)) {
         errors.push(`[VALIDATION-07] INVALID_TRAP_AXIS: "${trap.target_axis}" in trap not found in axes list.`);
       }
     }
 
-    // ─── فحص 8: لا يوجد سؤال layer "B" بدون trap_for ───
     for (const q of questions) {
       if (q.layer === 'B') {
         if (!q.trap_for || !Array.isArray(q.trap_for) || q.trap_for.length === 0) {
-          errors.push(`[VALIDATION-08] ORPHAN_TRAP: question "${q.id}" is Layer B (trap) but has no "trap_for" array.`);
+          errors.push(`[VALIDATION-08] ORPHAN_TRAP: question "${q.id}" is Layer B but has no "trap_for".`);
         }
       }
     }
 
-    // ─── فحص 9: penalty_base و penalty_max بين 0 و 100 ───
     for (const trap of traps) {
       const pb = trap.penalty_base;
       const pm = trap.penalty_max;
       if (typeof pb !== 'number' || pb < 0 || pb > 100 || typeof pm !== 'number' || pm < 0 || pm > 100) {
-        errors.push(`[VALIDATION-09] INVALID_PENALTY_RANGE: penalty_base=${pb}, penalty_max=${pm} in trap for "${trap.question_id}". Both must be between 0 and 100.`);
+        errors.push(`[VALIDATION-09] INVALID_PENALTY_RANGE: penalty_base=${pb}, penalty_max=${pm}.`);
       }
       if (pb > pm) {
-        errors.push(`[VALIDATION-09b] INVALID_PENALTY_RANGE: penalty_base (${pb}) cannot exceed penalty_max (${pm}).`);
+        errors.push(`[VALIDATION-09b] INVALID_PENALTY_RANGE: penalty_base (${pb}) > penalty_max (${pm}).`);
       }
     }
 
-    // ─── فحص 10: simulator.variables تحتوي على min, max, default, step ───
     if (cfg.simulator && cfg.simulator.enabled === true) {
       const vars = cfg.simulator.variables || [];
       for (const v of vars) {
         if (v.min === undefined || v.max === undefined || v.default === undefined || v.step === undefined) {
-          errors.push(`[VALIDATION-10] INVALID_SIMULATOR: variable "${v.id || 'N/A'}" missing required fields.`);
+          errors.push(`[VALIDATION-10] INVALID_SIMULATOR: variable "${v.id || 'N/A'}" missing fields.`);
         }
         if (v.default < v.min || v.default > v.max) {
-          errors.push(`[VALIDATION-10b] INVALID_SIMULATOR: variable "${v.id}" default (${v.default}) must be between min (${v.min}) and max (${v.max}).`);
+          errors.push(`[VALIDATION-10b] INVALID_SIMULATOR: variable "${v.id}" default out of range.`);
         }
       }
     }
 
-    // ─── فحص 11: لا يوجد سؤالان بنفس الـ id ───
     const questionIds = questions.map(q => q.id);
     const duplicates = questionIds.filter((item, index) => questionIds.indexOf(item) !== index);
     if (duplicates.length > 0) {
-      errors.push(`[VALIDATION-11] DUPLICATE_QUESTION_ID: duplicate question IDs found: [${[...new Set(duplicates)].join(', ')}].`);
+      errors.push(`[VALIDATION-11] DUPLICATE_QUESTION_ID: [${[...new Set(duplicates)].join(', ')}].`);
     }
 
-    // ─── فحص 12: كل محور له على الأقل سؤال واحد Layer A ───
     for (const axis of axes) {
       const axisQuestions = questions.filter(q => q.axis_id === axis.id && q.layer === 'A');
       if (axisQuestions.length === 0) {
@@ -201,7 +190,7 @@ class AssessmentEngine {
 
     if (errors.length > 0) {
       console.error('[ENGINE] ╔══════════════════════════════════════════════════════════════╗');
-      console.error('[ENGINE] ║  CONFIG VALIDATION FAILED — المحرك لن يعمل حتى يتم الإصلاح  ║');
+      console.error('[ENGINE] ║  CONFIG VALIDATION FAILED                                  ║');
       console.error('[ENGINE] ╚══════════════════════════════════════════════════════════════╝');
       errors.forEach((e, i) => console.error(`[ENGINE] ${i + 1}. ${e}`));
       throw new Error(`Config validation failed with ${errors.length} error(s).`);
@@ -210,7 +199,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 3. النقاط الخام (Raw Scores) — Layer A فقط
+  // 3. Raw Scores — Layer A only
   // ============================================================
   calculateRawScores(answers) {
     const cfg = this.currentAssessment || this.config;
@@ -234,7 +223,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 4. العقوبات الديناميكية (Dynamic Penalties)
+  // 4. Dynamic Penalties
   // ============================================================
   applyPenalties(answers, rawScores) {
     const cfg = this.currentAssessment || this.config;
@@ -253,13 +242,13 @@ class AssessmentEngine {
       const axisPenalty = axisEarned * (penaltyPercent / 100);
       penalties[trap.target_axis] = (penalties[trap.target_axis] || 0) + axisPenalty;
       totalPenalty += axisPenalty;
-      console.log(`[PENALTY] Trap ${trap.question_id} → Axis ${trap.target_axis}: severity=${severity.toFixed(2)}, penalty=${penaltyPercent.toFixed(1)}%, amount=${axisPenalty.toFixed(1)}`);
+      console.log(`[PENALTY] Trap ${trap.question_id} → Axis ${trap.target_axis}: severity=${severity.toFixed(2)}, penalty=${penaltyPercent.toFixed(1)}%`);
     }
     return { penalties, totalPenalty };
   }
 
   // ============================================================
-  // 5. درجات المحاور النهائية (Final Axis Scores)
+  // 5. Final Axis Scores
   // ============================================================
   calculateFinalScores(rawScores, penalties) {
     const cfg = this.currentAssessment || this.config;
@@ -279,7 +268,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 6. الدرجة الكلية (Global Score)
+  // 6. Global Score
   // ============================================================
   calculateGlobal(finalScores) {
     const cfg = this.currentAssessment || this.config;
@@ -288,8 +277,11 @@ class AssessmentEngine {
     const globalScore = weightedSum / totalWeight;
     const quartiles = {};
     for (const axis of cfg.axes) {
-      quartiles[axis.id] = this.getQuartile(finalScores[axis.id]);
+      quartiles[axis.id] = this.getQuartile(finalScores[axis.id]).q;
     }
+    // Overall quartile
+    const overallQ = this.getQuartile(globalScore).q;
+    quartiles.overall = overallQ;
     return {
       globalScore: Math.round(globalScore),
       leakageIndex: Math.round(100 - globalScore),
@@ -301,33 +293,63 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 7. محاكي القيمة المتوقعة (EV Simulator)
+  // 7. KPIs — Constitution v4.0 Article 4
   // ============================================================
-  calculateEV(axisScores, simulatorVars) {
-    const cfg = this.currentAssessment || this.config;
-    if (!cfg.simulator || cfg.simulator.enabled !== true) return null;
-    const deltaCMax = cfg.simulator.delta_c_max || 0;
-    const flow = simulatorVars.flow || 0;
-    const ltv = simulatorVars.ltv || 0;
-    if (deltaCMax <= 0 || flow <= 0 || ltv <= 0) return null;
-    const weightedScore =
-      (axisScores.axis_3 || 0) * 0.4 +
-      (axisScores.axis_4 || 0) * 0.4 +
-      (axisScores.axis_5 || 0) * 0.2;
-    const deltaC = (weightedScore / 100) * deltaCMax;
-    const EV_base = deltaC * flow * ltv;
+  calculateKPIs(finalScores) {
+    const ids = Object.keys(finalScores);
+    // Map by position if IDs are A1, A2... or axis_1, axis_2...
+    const getScore = (id) => finalScores[id] || 0;
+    
+    // Find axis IDs
+    const a1 = ids.find(id => id.includes('1')) || ids[0];
+    const a2 = ids.find(id => id.includes('2')) || ids[1];
+    const a3 = ids.find(id => id.includes('3')) || ids[2];
+    const a4 = ids.find(id => id.includes('4')) || ids[3];
+    const a5 = ids.find(id => id.includes('5')) || ids[4];
+
     return {
-      deltaC: parseFloat(deltaC.toFixed(1)),
-      EV_low: Math.round(EV_base * 0.70),
-      EV_base: Math.round(EV_base),
-      EV_high: Math.round(EV_base * 1.25),
-      weightedScore: Math.round(weightedScore),
-      formula: 'EV = ΔC × V × LTV'
+      TFI: Math.round((getScore(a1) + getScore(a2)) / 2),
+      TAP: Math.round((getScore(a3) + getScore(a4)) / 2),
+      PRP: Math.round(getScore(a5)),
+      PLI: Math.round(getScore(a5))
     };
   }
 
   // ============================================================
-  // 8. التصنيف الربيعي (Quartile Classification)
+  // 8. EV Simulator — Fixed to use config axis IDs
+  // ============================================================
+  calculateEV(axisScores, simulatorVars) {
+    const cfg = this.currentAssessment || this.config;
+    if (!cfg.simulator || cfg.simulator.enabled !== true) return null;
+    
+    const ids = Object.keys(axisScores);
+    const a3 = ids.find(id => id.includes('3')) || ids[2];
+    const a4 = ids.find(id => id.includes('4')) || ids[3];
+    const a5 = ids.find(id => id.includes('5')) || ids[4];
+    
+    const deltaCMax = cfg.simulator.delta_c_max || 0.35;
+    const flow = simulatorVars?.flow || 50;
+    const ltv = simulatorVars?.ltv || 5000;
+    
+    if (deltaCMax <= 0 || flow <= 0 || ltv <= 0) return null;
+    
+    const weightedScore =
+      (axisScores[a3] || 0) * 0.4 +
+      (axisScores[a4] || 0) * 0.4 +
+      (axisScores[a5] || 0) * 0.2;
+    
+    const deltaC = (weightedScore / 100) * deltaCMax;
+    const EV_base = deltaC * flow * ltv;
+    
+    return {
+      currentEV: Math.round(EV_base * 0.7),
+      potentialEV: Math.round(EV_base * 1.25),
+      gap: Math.round(EV_base * 0.55)
+    };
+  }
+
+  // ============================================================
+  // 9. Quartile Classification — Constitution v4.0 Article 5
   // ============================================================
   getQuartile(score) {
     if (score >= 75) return { q: 'Q4', label: 'أداء متميز', color: '#2A6F5D' };
@@ -337,7 +359,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 9. مضاعف التأثير (Impact Multiplier)
+  // 10. Impact Multiplier
   // ============================================================
   getMultiplier(impact) {
     const multipliers = { high: 1.5, medium: 1.0, low: 0.5 };
@@ -345,89 +367,7 @@ class AssessmentEngine {
   }
 
   // ============================================================
-  // 10. بناء التقرير الكامل (Report Builder)
-  // ============================================================
-  buildReport(answers, leadData = {}, simulatorVars = {}) {
-    const rawScores = this.calculateRawScores(answers);
-    const { penalties, totalPenalty } = this.applyPenalties(answers, rawScores);
-    const finalScores = this.calculateFinalScores(rawScores, penalties);
-    const globalResult = this.calculateGlobal(finalScores);
-    const evResult = this.calculateEV(finalScores, simulatorVars);
-
-    const globalQ = this.getQuartile(globalResult.globalScore).q;
-    const globalLabel = this.reportTexts.global_score_labels[globalQ];
-
-    const li = this.reportTexts.leakage_index;
-    let leakageText;
-    if (globalResult.leakageIndex >= 50) leakageText = li.high.text;
-    else if (globalResult.leakageIndex >= 25) leakageText = li.medium.text;
-    else leakageText = li.low.text;
-
-    const axisReports = Object.entries(finalScores).map(([axisId, score]) => {
-      const axisTexts = this.reportTexts.axes[axisId];
-      const q = this.getQuartile(score).q;
-      const scoreTexts = axisTexts.scores[q];
-      return {
-        id: axisId,
-        name: axisTexts.name,
-        name_en: axisTexts.name_en,
-        score: score,
-        quartile: q,
-        color: this.getQuartile(score).color,
-        what_we_measure: axisTexts.what_we_measure,
-        why_it_matters: axisTexts.why_it_matters,
-        status: scoreTexts.status,
-        impact: scoreTexts.impact,
-        recommendation: scoreTexts.recommendation,
-        md_code_hint: scoreTexts.md_code_hint
-      };
-    }).sort((a, b) => a.score - b.score);
-
-    const weakest = axisReports[0];
-    const secondWeakest = axisReports[1];
-    const sd = this.reportTexts.structural_diagnosis;
-    const diagnosisText = sd.template
-      .replace('[اسم العيادة]', leadData.name || 'عيادتك')
-      .replace('[المحور الأضعف]', sd.per_axis_summary[weakest.id])
-      .replace('[المحور الثاني في الضعف]', sd.per_axis_summary[secondWeakest.id]);
-
-    const growthText = this.reportTexts.growth_opportunity[globalQ];
-    const ctaKey = (globalQ === 'Q1' || globalQ === 'Q2') ? 'Q1_Q2' : 'Q3_Q4';
-    const cta = this.reportTexts.whatsapp_cta[ctaKey];
-
-    return {
-      _debug: { rawScores, penalties, totalPenalty, finalScores, globalResult, evResult },
-      global: {
-        score: globalResult.globalScore,
-        quartile: globalQ,
-        label: globalLabel.label,
-        color: globalLabel.color,
-        headline: globalLabel.headline,
-        subtext: globalLabel.subtext
-      },
-      leakage: {
-        index: globalResult.leakageIndex,
-        label: li.label,
-        description: li.description,
-        text: leakageText
-      },
-      axes: axisReports,
-      diagnosis: {
-        text: diagnosisText,
-        weakestAxis: weakest.name,
-        secondWeakestAxis: secondWeakest.name
-      },
-      growth: { text: growthText },
-      ev: evResult,
-      cta: { text: cta.text, subtext: cta.subtext },
-      print: { header: this.reportTexts.print_report_header },
-      loading: { messages: this.reportTexts.loading_messages },
-      radar: axisReports.map(a => ({ label: a.name, value: a.score }))
-    };
-  }
-
-  // ============================================================
-  // 11. دوال توافق app.js (Wrappers)
+  // 11. setAnswer / getAnswer
   // ============================================================
   setAnswer(questionId, value) {
     const cfg = this.currentAssessment || this.config;
@@ -455,6 +395,79 @@ class AssessmentEngine {
     return { current, total, percentage: Math.round((current / total) * 100), remaining: total - current };
   }
 
+  // ============================================================
+  // 12. detectTraps — COMPLETED
+  // ============================================================
+  detectTraps() {
+    const answers = {};
+    this.answers.forEach((ans, qid) => { answers[qid] = ans.value; });
+    const rawScores = this.calculateRawScores(answers);
+    const { penalties } = this.applyPenalties(answers, rawScores);
+    const cfg = this.currentAssessment || this.config;
+    const triggered = [];
+    
+    for (const trap of cfg.traps || []) {
+      const targetVal = answers[trap.validates];
+      const validatorVal = answers[trap.question_id];
+      if (targetVal === undefined || validatorVal === undefined) continue;
+      if (targetVal !== 100) continue;
+      
+      const severity = Math.abs(targetVal - validatorVal) / 100;
+      const penaltyPercent = trap.penalty_base + (
+        severity * (trap.penalty_max - trap.penalty_base)
+      );
+      
+      triggered.push({
+        name: trap.name,
+        message: trap.message_ar || trap.message,
+        penaltyApplied: Math.round(penaltyPercent)
+      });
+    }
+    return triggered;
+  }
+
+  // ============================================================
+  // 13. evaluate — MAIN METHOD called by app.js
+  // ============================================================
+  evaluate(answers, assessmentKey, metadata) {
+    // Load assessment
+    if (assessmentKey) {
+      this.loadAssessment(assessmentKey);
+    }
+    
+    // Set answers
+    for (const [qid, val] of Object.entries(answers)) {
+      this.setAnswer(qid, val);
+    }
+    
+    // Calculate
+    const rawScores = this.calculateRawScores(answers);
+    const { penalties, totalPenalty } = this.applyPenalties(answers, rawScores);
+    const finalScores = this.calculateFinalScores(rawScores, penalties);
+    const globalResult = this.calculateGlobal(finalScores);
+    
+    // KPIs
+    const kpis = this.calculateKPIs(finalScores);
+    
+    // Traps
+    const traps = this.detectTraps();
+    
+    // EV Simulator
+    const evSimulator = this.calculateEV(finalScores, metadata);
+    
+    return {
+      classification: globalResult.quartiles.overall,
+      overallScore: globalResult.globalScore,
+      axisScores: finalScores,
+      kpis: kpis,
+      traps: traps,
+      evSimulator: evSimulator
+    };
+  }
+
+  // ============================================================
+  // 14. calculateScores — wrapper for compatibility
+  // ============================================================
   calculateScores() {
     const answers = {};
     this.answers.forEach((ans, qid) => { answers[qid] = ans.value; });
@@ -487,172 +500,32 @@ class AssessmentEngine {
     };
   }
 
-  detectTraps() {
-    const answers = {};
-    this.answers.forEach((ans, qid) => { answers[qid] = ans.value; });
+  // ============================================================
+  // 15. buildReport — legacy, kept for compatibility
+  // ============================================================
+  buildReport(answers, leadData = {}, simulatorVars = {}) {
     const rawScores = this.calculateRawScores(answers);
     const { penalties } = this.applyPenalties(answers, rawScores);
-    const cfg = this.currentAssessment || this.config;
-    const triggered = [];
-    for (const trap of cfg.traps || []) {
-      const targetVal = answers[trap.validates];
-      const validatorVal = answers[trap.question_id];
-      if (targetVal === undefined || validatorVal === undefined) continue;
-      if (targetVal === 100 && Math.abs(targetVal - validatorVal) > 0) {
-        triggered.push({
-          name: trap.name,
-          message_ar: trap.message_ar || trap.message
-        });
-      }
-    }
-    return triggered;
-  }
+    const finalScores = this.calculateFinalScores(rawScores, penalties);
+    const globalResult = this.calculateGlobal(finalScores);
+    const evResult = this.calculateEV(finalScores, simulatorVars);
 
-  getRecommendations(scores) {
-    const recs = this.reportTexts.recommendations || {};
-    const result = [];
-    for (const axis of scores.axes) {
-      if (axis.percentage < 70 && recs[axis.axisId]) {
-        result.push({
-          axisId: axis.axisId,
-          axisName: axis.axisNameAr,
-          percentage: axis.percentage,
-          grade: axis.grade,
-          actions: recs[axis.axisId]
-        });
-      }
-    }
-    return result;
-  }
+    const globalQ = this.getQuartile(globalResult.globalScore).q;
+    const qData = this.getQuartile(globalResult.globalScore);
 
-  generateHTMLReport(scores, traps, recommendations) {
-    const gradeInfo = this.getQuartile(scores.overall.percentage);
-    const date = new Date().toLocaleDateString('ar-SA');
-    let html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير MD CODE</title><style>@page { size: A4; margin: 2cm; } body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; color: #1f2937; } .header { text-align: center; border-bottom: 3px solid #0f766e; padding-bottom: 20px; margin-bottom: 30px; } .header h1 { color: #0f766e; margin: 0; } .header .subtitle { color: #6b7280; font-size: 14px; } .score-card { background: #f0fdfa; border-right: 5px solid ${gradeInfo.color}; padding: 20px; margin: 20px 0; border-radius: 8px; } .score-value { font-size: 48px; font-weight: bold; color: ${gradeInfo.color}; } .axis-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; } .trap-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 10px 0; border-radius: 6px; color: #991b1b; } .rec-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; margin: 10px 0; border-radius: 6px; } .rec-box h4 { color: #1e40af; margin-top: 0; } .rec-box ul { margin: 0; padding-right: 20px; } .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; } @media print { .no-print { display: none; } }</style></head><body><div class="header"><h1>تقرير MD CODE</h1><div class="subtitle">تقييم أداء العيادة</div><div class="subtitle">تاريخ التقرير: ${date}</div></div><div class="score-card"><div style="text-align:center;"><div class="score-value">${scores.overall.percentage}%</div><div style="font-size:24px; color:${gradeInfo.color};">${gradeInfo.label} (${scores.overall.grade})</div><div style="margin-top:10px; font-size:16px;">${scores.overall.title}</div><div style="color:#6b7280; font-size:14px;">${scores.overall.body}</div></div></div><h3>📊 التفصيل حسب المحاور</h3>`;
-    for (const axis of scores.axes) {
-      const g = this.getQuartile(axis.percentage);
-      html += `<div class="axis-row"><div><strong>${axis.axisNameAr}</strong> <span style="color:#6b7280; font-size:12px;">(${Math.round(axis.weight*100)}%)</span></div><div><span style="color:${g.color}; font-weight:bold;">${axis.percentage}% — ${g.label}</span></div></div>`;
-    }
-    if (traps.length > 0) {
-      html += `<h3>🚨 الكمائن المكتشفة (${traps.length})</h3>`;
-      for (const trap of traps) html += `<div class="trap-box"><strong>${trap.name}</strong><br>${trap.message_ar}</div>`;
-    }
-    if (recommendations.length > 0) {
-      html += `<h3>💡 توصيات التحسين</h3>`;
-      for (const rec of recommendations) html += `<div class="rec-box"><h4>${rec.axisName} — ${rec.percentage}%</h4><ul>${rec.actions.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
-    }
-    html += `<div class="footer">تم إنشاء هذا التقرير بواسطة MD CODE<br>للاستفسارات: mdcode2026@gmail.com | +962 78 659 5990</div><div class="no-print" style="text-align:center; margin-top:20px;"><button onclick="window.print()" style="padding:12px 24px; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">🖨️ طباعة / حفظ PDF</button></div></body></html>`;
-    return html;
-  }
-
-  // ============================================================
-  // 12. Supabase Integration
-  // ============================================================
-  prepareLeadData(formData, assessmentTypeId) {
     return {
-      assessment_type_id: assessmentTypeId,
-      full_name: formData.fullName,
-      email: formData.email || null,
-      phone: formData.phone,
-      clinic_name: formData.clinicName || null,
-      country: formData.country || 'JO',
-      source: formData.source || 'website'
+      _debug: { rawScores, penalties, finalScores, globalResult, evResult },
+      global: {
+        score: globalResult.globalScore,
+        quartile: globalQ,
+        label: qData.label,
+        color: qData.color
+      },
+      leakage: {
+        index: globalResult.leakageIndex
+      },
+      axes: finalScores,
+      ev: evResult
     };
   }
-
-  prepareSessionData(leadId, assessmentTypeId) {
-    return {
-      lead_id: leadId,
-      assessment_type_id: assessmentTypeId,
-      status: 'in_progress',
-      current_question: 1,
-      started_at: new Date().toISOString()
-    };
-  }
-
-  prepareAnswersData(sessionId, leadId) {
-    return Array.from(this.answers.values()).map(a => ({
-      session_id: sessionId,
-      lead_id: leadId,
-      question_id: a.questionId,
-      axis_id: a.axisId,
-      question_text: a.questionText,
-      answer_value: a.value,
-      is_trap: a.isTrap
-    }));
-  }
-
-  prepareScoresData(sessionId, leadId, scores) {
-    return scores.axes.map(axis => ({
-      session_id: sessionId,
-      lead_id: leadId,
-      axis_id: axis.axisId,
-      axis_name_ar: axis.axisNameAr,
-      axis_name_en: axis.axisNameEn,
-      raw_score: axis.percentage,
-      max_possible: 100,
-      percentage: axis.percentage,
-      weight: axis.weight,
-      weighted_score: Math.round(axis.percentage * axis.weight * 100) / 100,
-      grade: axis.grade
-    }));
-  }
-
-  async saveLead(leadData) {
-    const result = await this.db.insert('leads', leadData);
-    return result[0];
-  }
-
-  async saveSession(sessionData) {
-    const result = await this.db.insert('sessions', sessionData);
-    return result[0];
-  }
-
-  async saveAnswers(answersData) {
-    return await this.db.insert('answers', answersData);
-  }
-
-  async saveScores(scoresData) {
-    return await this.db.insert('scores', scoresData);
-  }
-
-  async completeSession(sessionId, totalScore, percentage) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/sessions?id=eq.${sessionId}`, {
-      method: 'PATCH',
-      headers: { ...this.db.headers, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ status: 'completed', completed_at: new Date().toISOString() })
-    });
-    if (!res.ok) throw new Error('Failed to complete session');
-    const leadRes = await fetch(`${SUPABASE_URL}/rest/v1/leads?id=eq.${this.leadId}`, {
-      method: 'PATCH',
-      headers: { ...this.db.headers, 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ completed: true, score_total: totalScore, score_percentage: percentage, completed_at: new Date().toISOString() })
-    });
-    if (!leadRes.ok) throw new Error('Failed to update lead');
-  }
-
-  // ============================================================
-  // 13. Static Helpers
-  // ============================================================
-  static async loadJSON(url) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
-    return await response.json();
-  }
-
-  static async create(configUrl, reportTextsUrl) {
-    const [config, reportTexts] = await Promise.all([
-      AssessmentEngine.loadJSON(configUrl),
-      AssessmentEngine.loadJSON(reportTextsUrl)
-    ]);
-    return new AssessmentEngine(config, reportTexts);
-  }
-}
-
-// ─── تصدير المحرك ───
-if (typeof module !== 'undefined' && module.exports) {
-  module.exports = { AssessmentEngine, SupabaseClient };
-} else if (typeof window !== 'undefined') {
-  window.AssessmentEngine = AssessmentEngine;
-  window.SupabaseClient = SupabaseClient;
 }
