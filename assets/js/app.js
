@@ -1,0 +1,375 @@
+/**
+ * MD CODE Clinic Evaluator — SPA Application
+ * Project: رحلة المريض | Patient Journey
+ * Font: Cairo
+ */
+
+// ─── STATE ───
+let engine = null;
+let configData = null;
+let reportTextsData = null;
+let currentAssessmentType = null;
+let currentQuestionIndex = 0;
+let sessionId = null;
+let leadId = null;
+let assessmentTypeUUID = null;
+
+// ─── DOM REFERENCES ───
+const views = {
+  home: document.getElementById('view-home'),
+  leadForm: document.getElementById('view-lead-form'),
+  assessment: document.getElementById('view-assessment'),
+  results: document.getElementById('view-results'),
+  evSimulator: document.getElementById('view-ev-simulator')
+};
+
+// ─── INITIALIZATION ───
+document.addEventListener('DOMContentLoaded', async () => {
+  try {
+    const [configRes, textsRes] = await Promise.all([
+      fetch('data/config.json'),
+      fetch('data/report_texts.json')
+    ]);
+    configData = await configRes.json();
+    reportTextsData = await textsRes.json();
+    engine = new ClinicEvaluatorEngine(configData, reportTextsData);
+    
+    await loadAssessmentTypes();
+    renderAssessmentCards();
+    bindEvents();
+    console.log('✅ MD CODE Clinic Evaluator initialized');
+  } catch (err) {
+    console.error('Failed to initialize:', err);
+    alert('فشل تحميل التطبيق. يرجى تحديث الصفحة.');
+  }
+});
+
+async function loadAssessmentTypes() {
+  try {
+    const types = await engine.db.select('assessment_types', '*', { is_active: true });
+    if (types && types.length > 0) {
+      window.assessmentTypeMap = {};
+      for (const t of types) {
+        window.assessmentTypeMap[t.slug] = t.id;
+      }
+      console.log('Assessment types loaded from Supabase:', types.length);
+    }
+  } catch (e) {
+    console.warn('Could not load assessment types from Supabase, using local config:', e);
+    window.assessmentTypeMap = {
+      'full-25': '00000000-0000-0000-0000-000000000001',
+      'quick-6': '00000000-0000-0000-0000-000000000002',
+      'ev-simulator': '00000000-0000-0000-0000-000000000003'
+    };
+  }
+}
+
+// ─── EVENT BINDING ───
+function bindEvents() {
+  document.querySelectorAll('.assessment-card').forEach(card => {
+    card.addEventListener('click', () => selectAssessment(card.dataset.type));
+  });
+  document.getElementById('lead-form').addEventListener('submit', handleLeadSubmit);
+  document.getElementById('btn-start-assessment').addEventListener('click', () => showView('leadForm'));
+  document.getElementById('btn-back-home').addEventListener('click', () => showView('home'));
+  document.getElementById('btn-back-home-2').addEventListener('click', () => showView('home'));
+  document.getElementById('btn-restart').addEventListener('click', () => showView('home'));
+  document.getElementById('btn-print-report').addEventListener('click', printReport);
+  document.getElementById('btn-ev-simulator').addEventListener('click', () => showView('evSimulator'));
+  document.getElementById('btn-back-results').addEventListener('click', () => showView('results'));
+  document.getElementById('btn-calculate-ev').addEventListener('click', calculateEV);
+  document.getElementById('btn-prev').addEventListener('click', prevQuestion);
+  document.getElementById('btn-next').addEventListener('click', nextQuestion);
+  
+  document.addEventListener('keydown', (e) => {
+    if (!views.assessment.classList.contains('hidden')) {
+      if (e.key === 'ArrowRight') nextQuestion();
+      if (e.key === 'ArrowLeft') prevQuestion();
+      if (['1','2','3','4','5'].includes(e.key)) selectLikert(parseInt(e.key));
+    }
+  });
+}
+
+function showView(viewName) {
+  Object.values(views).forEach(v => v.classList.add('hidden'));
+  views[viewName].classList.remove('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+// ─── ASSESSMENT SELECTION ───
+function renderAssessmentCards() {
+  const grid = document.getElementById('assessment-grid');
+  const types = configData.assessment_types;
+  grid.innerHTML = Object.entries(types).map(([slug, type]) => `
+    <div class="assessment-card" data-type="${slug}">
+      <div class="icon">${getAssessmentIcon(slug)}</div>
+      <h3>${type.title}</h3>
+      <p>${type.description}</p>
+      <div style="margin-top:12px;">
+        <span class="badge" style="background:#f0fdfa; color:var(--primary);">${type.question_count} سؤال</span>
+        <span class="badge" style="background:#f0fdfa; color:var(--primary); margin-right:6px;">${type.axis_count} محاور</span>
+        ${type.has_traps ? '<span class="badge badge-trap">كمائن</span>' : ''}
+        ${type.has_ev_simulator ? '<span class="badge badge-ev">EV</span>' : ''}
+      </div>
+    </div>
+  `).join('');
+  document.querySelectorAll('.assessment-card').forEach(card => {
+    card.addEventListener('click', () => selectAssessment(card.dataset.type));
+  });
+}
+
+function getAssessmentIcon(slug) {
+  const icons = { 'full-25': '📋', 'quick-6': '⚡', 'ev-simulator': '📈' };
+  return icons[slug] || '📊';
+}
+
+function selectAssessment(typeSlug) {
+  currentAssessmentType = typeSlug;
+  assessmentTypeUUID = window.assessmentTypeMap?.[typeSlug] || null;
+  document.querySelectorAll('.assessment-card').forEach(c => c.classList.remove('selected'));
+  document.querySelector(`[data-type="${typeSlug}"]`).classList.add('selected');
+  document.getElementById('selected-assessment-title').textContent = configData.assessment_types[typeSlug].title;
+  document.getElementById('btn-start-assessment').disabled = false;
+}
+
+// ─── LEAD FORM ───
+async function handleLeadSubmit(e) {
+  e.preventDefault();
+  const btn = e.target.querySelector('button[type="submit"]');
+  btn.disabled = true;
+  btn.textContent = 'جاري الحفظ... ⏳';
+
+  const formData = {
+    fullName: document.getElementById('lead-name').value.trim(),
+    email: document.getElementById('lead-email').value.trim(),
+    phone: document.getElementById('lead-phone').value.trim(),
+    clinicName: document.getElementById('lead-clinic').value.trim(),
+    country: document.getElementById('lead-country').value
+  };
+
+  if (!formData.fullName || !formData.phone) {
+    alert('الاسم الكامل ورقم الهاتف مطلوبان');
+    btn.disabled = false;
+    btn.textContent = 'بدء التقييم 🚀';
+    return;
+  }
+
+  try {
+    const leadData = engine.prepareLeadData(formData, assessmentTypeUUID);
+    const savedLead = await engine.saveLead(leadData);
+    leadId = savedLead.id;
+    console.log('Lead saved:', leadId);
+
+    const sessionData = engine.prepareSessionData(leadId, assessmentTypeUUID);
+    const savedSession = await engine.saveSession(sessionData);
+    sessionId = savedSession.id;
+    console.log('Session created:', sessionId);
+
+    startAssessment();
+  } catch (err) {
+    console.error('Failed to save lead:', err);
+    alert('فشل حفظ البيانات. تأكد من اتصال الإنترنت وحاول مرة أخرى.');
+    btn.disabled = false;
+    btn.textContent = 'بدء التقييم 🚀';
+  }
+}
+
+function startAssessment() {
+  engine.loadAssessment(currentAssessmentType);
+  currentQuestionIndex = 0;
+  renderQuestion();
+  updateProgress();
+  showView('assessment');
+}
+
+// ─── QUESTION RENDERING ───
+function renderQuestion() {
+  const assessment = engine.currentAssessment;
+  const question = assessment.questions[currentQuestionIndex];
+  const container = document.getElementById('question-container');
+  const axis = assessment.axes.find(a => a.id === question.axis_id);
+
+  container.innerHTML = `
+    <div class="question-card fade-in">
+      <div class="question-number">سؤال ${currentQuestionIndex + 1} من ${assessment.questions.length} — ${axis.name_ar}</div>
+      <div class="question-text">${question.text}</div>
+      <div class="likert-scale" id="likert-scale">
+        ${[1, 2, 3, 4, 5].map(val => `
+          <div class="likert-option ${getSavedAnswer(question.id) === val ? 'selected' : ''}" data-value="${val}" onclick="selectLikert(${val})">
+            <span class="value">${val}</span>
+            <span class="label">${getLikertLabel(val)}</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  document.getElementById('btn-prev').disabled = currentQuestionIndex === 0;
+  document.getElementById('btn-next').textContent = currentQuestionIndex === assessment.questions.length - 1 ? 'إنهاء التقييم ✅' : 'التالي ←';
+}
+
+function getLikertLabel(value) {
+  const labels = { 1: 'أبداً', 2: 'نادراً', 3: 'أحياناً', 4: 'غالباً', 5: 'دائماً' };
+  return labels[value] || '';
+}
+
+function selectLikert(value) {
+  const assessment = engine.currentAssessment;
+  const question = assessment.questions[currentQuestionIndex];
+  engine.setAnswer(question.id, value);
+  document.querySelectorAll('.likert-option').forEach(opt => {
+    opt.classList.toggle('selected', parseInt(opt.dataset.value) === value);
+  });
+  setTimeout(() => {
+    if (currentQuestionIndex < assessment.questions.length - 1) nextQuestion();
+  }, 400);
+}
+
+function getSavedAnswer(questionId) {
+  const ans = engine.getAnswer(questionId);
+  return ans ? ans.value : null;
+}
+
+function nextQuestion() {
+  const assessment = engine.currentAssessment;
+  const currentQ = assessment.questions[currentQuestionIndex];
+  if (!engine.getAnswer(currentQ.id)) {
+    const scale = document.getElementById('likert-scale');
+    scale.style.animation = 'shake 0.4s';
+    setTimeout(() => scale.style.animation = '', 400);
+    return;
+  }
+  if (currentQuestionIndex < assessment.questions.length - 1) {
+    currentQuestionIndex++;
+    renderQuestion();
+    updateProgress();
+  } else {
+    finishAssessment();
+  }
+}
+
+function prevQuestion() {
+  if (currentQuestionIndex > 0) {
+    currentQuestionIndex--;
+    renderQuestion();
+    updateProgress();
+  }
+}
+
+function updateProgress() {
+  const progress = engine.getProgress();
+  document.getElementById('progress-fill').style.width = progress.percentage + '%';
+  document.getElementById('progress-text').textContent = `${progress.current} من ${progress.total} — ${progress.percentage}%`;
+}
+
+// ─── FINISH & SAVE TO SUPABASE ───
+async function finishAssessment() {
+  const scores = engine.calculateScores();
+  const traps = engine.detectTraps();
+  const recommendations = engine.getRecommendations(scores);
+
+  try {
+    const answersData = engine.prepareAnswersData(sessionId, leadId);
+    await engine.saveAnswers(answersData);
+    console.log('Answers saved:', answersData.length);
+
+    const scoresData = engine.prepareScoresData(sessionId, leadId, scores);
+    await engine.saveScores(scoresData);
+    console.log('Scores saved:', scoresData.length);
+
+    await engine.completeSession(sessionId, scores.overall.percentage, scores.overall.percentage);
+    console.log('Session completed');
+
+    renderResults(scores, traps, recommendations);
+    showView('results');
+  } catch (err) {
+    console.error('Failed to save results:', err);
+    alert('تم إكمال التقييم لكن فشل الحفظ في السحابة. سيتم عرض النتائج محلياً.');
+    renderResults(scores, traps, recommendations);
+    showView('results');
+  }
+}
+
+function renderResults(scores, traps, recommendations) {
+  const overall = scores.overall;
+  const gradeInfo = reportTextsData.grades[overall.grade];
+
+  document.getElementById('result-score-value').textContent = overall.percentage + '%';
+  document.getElementById('result-score-label').textContent = gradeInfo.label;
+  document.getElementById('result-score-circle').style.borderColor = gradeInfo.color;
+  document.getElementById('result-score-value').style.color = gradeInfo.color;
+  document.getElementById('result-title').textContent = overall.title;
+  document.getElementById('result-body').textContent = overall.body;
+
+  const axesContainer = document.getElementById('axes-scores');
+  axesContainer.innerHTML = scores.axes.map(axis => {
+    const g = reportTextsData.grades[axis.grade];
+    return `
+      <div class="axis-score-row">
+        <div class="axis-score-info">
+          <div class="axis-score-name">${axis.axisNameAr}</div>
+          <div class="axis-score-bar-bg">
+            <div class="axis-score-bar-fill" style="width:${axis.percentage}%; background:${g.color};"></div>
+          </div>
+        </div>
+        <div class="axis-score-value" style="color:${g.color};">${axis.percentage}%</div>
+      </div>
+    `;
+  }).join('');
+
+  const trapsContainer = document.getElementById('traps-container');
+  if (traps.length > 0) {
+    trapsContainer.innerHTML = traps.map(t => `
+      <div class="trap-alert">
+        <div class="icon">🚨</div>
+        <div class="content">
+          <h4>${t.name}</h4>
+          <p>${t.message_ar}</p>
+        </div>
+      </div>
+    `).join('');
+    trapsContainer.classList.remove('hidden');
+  } else {
+    trapsContainer.classList.add('hidden');
+  }
+
+  const recsContainer = document.getElementById('recommendations-container');
+  if (recommendations.length > 0) {
+    recsContainer.innerHTML = recommendations.map(r => `
+      <div class="rec-box" style="background:#eff6ff; border:1px solid #bfdbfe; padding:16px; border-radius:8px; margin-bottom:12px;">
+        <h4 style="color:#1e40af; margin:0 0 8px 0;">💡 ${r.axisName} — ${r.percentage}%</h4>
+        <ul style="margin:0; padding-right:20px;">${r.actions.map(a => `<li>${a}</li>`).join('')}</ul>
+      </div>
+    `).join('');
+    recsContainer.classList.remove('hidden');
+  } else {
+    recsContainer.classList.add('hidden');
+  }
+
+  window.currentReportHTML = engine.generateHTMLReport(scores, traps, recommendations);
+}
+
+function printReport() {
+  if (!window.currentReportHTML) return;
+  const printWindow = window.open('', '_blank');
+  printWindow.document.write(window.currentReportHTML);
+  printWindow.document.close();
+  printWindow.onload = () => setTimeout(() => printWindow.print(), 500);
+}
+
+// ─── EV SIMULATOR ───
+function calculateEV() {
+  const inputs = {
+    avg_visit_value: document.getElementById('ev-avg').value,
+    visits_per_year: document.getElementById('ev-visits').value,
+    retention_years: document.getElementById('ev-years').value,
+    referral_rate: document.getElementById('ev-referral').value
+  };
+  const result = engine.calculateEV(inputs);
+  document.getElementById('ev-current').textContent = '$' + Math.round(result.current.ltvReferral).toLocaleString();
+  document.getElementById('ev-opt20').textContent = '$' + Math.round(result.optimized20.ltv).toLocaleString();
+  document.getElementById('ev-opt50').textContent = '$' + Math.round(result.optimized50.ltv).toLocaleString();
+  document.getElementById('ev-increase20').textContent = '+$' + Math.round(result.optimized20.increase).toLocaleString();
+  document.getElementById('ev-increase50').textContent = '+$' + Math.round(result.optimized50.increase).toLocaleString();
+  document.getElementById('ev-results').classList.remove('hidden');
+}
