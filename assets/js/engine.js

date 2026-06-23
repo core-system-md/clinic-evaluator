@@ -1,14 +1,15 @@
 /**
- * MD CODE Clinic Evaluator — Generic Engine + Supabase Client
- * Project: رحلة المريض | Patient Journey
- * Font: Cairo
+ * ============================================================
+ * Centralized Assessment Engine v3.0 — RESTORED
+ * Generic Engine — يقرأ config.json وينفذ المنطق بالكامل
+ * ============================================================
  */
 
 // ─── SUPABASE CONFIG ───
 const SUPABASE_URL = 'https://oaqpzaarppccbnepffxx.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
 
-// ─── SUPABASE CLIENT (Lightweight fetch wrapper) ───
+// ─── SUPABASE CLIENT ───
 class SupabaseClient {
   constructor(url, key) {
     this.url = url;
@@ -52,8 +53,8 @@ class SupabaseClient {
   }
 }
 
-// ─── EVALUATOR ENGINE ───
-class ClinicEvaluatorEngine {
+// ─── ASSESSMENT ENGINE ───
+class AssessmentEngine {
   constructor(config, reportTexts) {
     this.config = config;
     this.reportTexts = reportTexts;
@@ -65,24 +66,379 @@ class ClinicEvaluatorEngine {
     this.startTime = null;
   }
 
+  // ============================================================
+  // 1. loadAssessment — استخراج التقييم من config
+  // ============================================================
   loadAssessment(typeSlug) {
-    const assessment = this.config.assessment_types[typeSlug];
-    if (!assessment) throw new Error(`Assessment type '${typeSlug}' not found`);
-    this.currentAssessment = { ...assessment, slug: typeSlug };
+    if (this.config.assessment_types && this.config.assessment_types[typeSlug]) {
+      this.currentAssessment = this.config.assessment_types[typeSlug];
+    } else {
+      this.currentAssessment = this.config;
+    }
+    this.validateConfig();
     this.answers.clear();
     this.startTime = Date.now();
     return this.currentAssessment;
   }
 
+  // ============================================================
+  // 2. طبقة التحقق الإلزامية (Validation Layer) — 12 فحص
+  // ============================================================
+  validateConfig() {
+    const cfg = this.currentAssessment || this.config;
+    const errors = [];
+    const axes = cfg.axes || [];
+    const questions = cfg.questions || [];
+    const traps = cfg.traps || [];
+
+    const validAxisIds = new Set(axes.map(a => a.id));
+    const validQuestionIds = new Set(questions.map(q => q.id));
+    const validImpacts = new Set(['high', 'medium', 'low']);
+    const validLayers = new Set(['A', 'B']);
+    const validValues = new Set([0, 40, 100]);
+
+    // ─── فحص 1: كل axis_id في الأسئلة موجود في قائمة المحاور ───
+    for (const q of questions) {
+      if (!validAxisIds.has(q.axis_id)) {
+        errors.push(`[VALIDATION-01] INVALID_AXIS_ID: "${q.axis_id}" in question "${q.id}" not found in axes list.`);
+      }
+    }
+
+    // ─── فحص 2: كل impact هو "high" أو "medium" أو "low" حصراً ───
+    for (const q of questions) {
+      if (!validImpacts.has(q.impact)) {
+        errors.push(`[VALIDATION-02] INVALID_IMPACT: "${q.impact}" in question "${q.id}". Must be one of: "high" (×1.5), "medium" (×1.0), "low" (×0.5)`);
+      }
+    }
+
+    // ─── فحص 3: كل layer هو "A" أو "B" حصراً ───
+    for (const q of questions) {
+      if (!validLayers.has(q.layer)) {
+        errors.push(`[VALIDATION-03] INVALID_LAYER: "${q.layer}" in question "${q.id}". Must be "A" (scored) or "B" (trap only)`);
+      }
+    }
+
+    // ─── فحص 4: كل value في الخيارات هو 0 أو 40 أو 100 فقط ───
+    for (const q of questions) {
+      if (q.options && Array.isArray(q.options)) {
+        for (const opt of q.options) {
+          if (!validValues.has(opt.value)) {
+            errors.push(`[VALIDATION-04] INVALID_VALUE: ${opt.value} in question "${q.id}" option "${opt.label || 'N/A'}". Must be 0, 40, or 100.`);
+          }
+        }
+      }
+    }
+
+    // ─── فحص 5: كل trap يشير إلى question_id موجود فعلاً ───
+    for (const trap of traps) {
+      if (!validQuestionIds.has(trap.question_id)) {
+        errors.push(`[VALIDATION-05] INVALID_TRAP: trap references non-existent question "${trap.question_id}".`);
+      }
+    }
+
+    // ─── فحص 6: كل trap.validates موجود في قائمة الأسئلة ───
+    for (const trap of traps) {
+      if (!validQuestionIds.has(trap.validates)) {
+        errors.push(`[VALIDATION-06] INVALID_TRAP: trap validates non-existent question "${trap.validates}".`);
+      }
+    }
+
+    // ─── فحص 7: كل trap.target_axis موجود في قائمة المحاور ───
+    for (const trap of traps) {
+      if (!validAxisIds.has(trap.target_axis)) {
+        errors.push(`[VALIDATION-07] INVALID_TRAP_AXIS: "${trap.target_axis}" in trap not found in axes list.`);
+      }
+    }
+
+    // ─── فحص 8: لا يوجد سؤال layer "B" بدون trap_for ───
+    for (const q of questions) {
+      if (q.layer === 'B') {
+        if (!q.trap_for || !Array.isArray(q.trap_for) || q.trap_for.length === 0) {
+          errors.push(`[VALIDATION-08] ORPHAN_TRAP: question "${q.id}" is Layer B (trap) but has no "trap_for" array.`);
+        }
+      }
+    }
+
+    // ─── فحص 9: penalty_base و penalty_max بين 0 و 100 ───
+    for (const trap of traps) {
+      const pb = trap.penalty_base;
+      const pm = trap.penalty_max;
+      if (typeof pb !== 'number' || pb < 0 || pb > 100 || typeof pm !== 'number' || pm < 0 || pm > 100) {
+        errors.push(`[VALIDATION-09] INVALID_PENALTY_RANGE: penalty_base=${pb}, penalty_max=${pm} in trap for "${trap.question_id}". Both must be between 0 and 100.`);
+      }
+      if (pb > pm) {
+        errors.push(`[VALIDATION-09b] INVALID_PENALTY_RANGE: penalty_base (${pb}) cannot exceed penalty_max (${pm}).`);
+      }
+    }
+
+    // ─── فحص 10: simulator.variables تحتوي على min, max, default, step ───
+    if (cfg.simulator && cfg.simulator.enabled === true) {
+      const vars = cfg.simulator.variables || [];
+      for (const v of vars) {
+        if (v.min === undefined || v.max === undefined || v.default === undefined || v.step === undefined) {
+          errors.push(`[VALIDATION-10] INVALID_SIMULATOR: variable "${v.id || 'N/A'}" missing required fields.`);
+        }
+        if (v.default < v.min || v.default > v.max) {
+          errors.push(`[VALIDATION-10b] INVALID_SIMULATOR: variable "${v.id}" default (${v.default}) must be between min (${v.min}) and max (${v.max}).`);
+        }
+      }
+    }
+
+    // ─── فحص 11: لا يوجد سؤالان بنفس الـ id ───
+    const questionIds = questions.map(q => q.id);
+    const duplicates = questionIds.filter((item, index) => questionIds.indexOf(item) !== index);
+    if (duplicates.length > 0) {
+      errors.push(`[VALIDATION-11] DUPLICATE_QUESTION_ID: duplicate question IDs found: [${[...new Set(duplicates)].join(', ')}].`);
+    }
+
+    // ─── فحص 12: كل محور له على الأقل سؤال واحد Layer A ───
+    for (const axis of axes) {
+      const axisQuestions = questions.filter(q => q.axis_id === axis.id && q.layer === 'A');
+      if (axisQuestions.length === 0) {
+        errors.push(`[VALIDATION-12] EMPTY_AXIS: axis "${axis.id}" has no Layer A questions.`);
+      }
+    }
+
+    if (errors.length > 0) {
+      console.error('[ENGINE] ╔══════════════════════════════════════════════════════════════╗');
+      console.error('[ENGINE] ║  CONFIG VALIDATION FAILED — المحرك لن يعمل حتى يتم الإصلاح  ║');
+      console.error('[ENGINE] ╚══════════════════════════════════════════════════════════════╝');
+      errors.forEach((e, i) => console.error(`[ENGINE] ${i + 1}. ${e}`));
+      throw new Error(`Config validation failed with ${errors.length} error(s).`);
+    }
+    console.log('[ENGINE] ✅ Config validation passed — all 12 checks OK');
+  }
+
+  // ============================================================
+  // 3. النقاط الخام (Raw Scores) — Layer A فقط
+  // ============================================================
+  calculateRawScores(answers) {
+    const cfg = this.currentAssessment || this.config;
+    const rawScores = {};
+    for (const axis of cfg.axes) {
+      const axisQuestions = cfg.questions.filter(
+        q => q.axis_id === axis.id && q.layer === 'A'
+      );
+      let earned = 0;
+      let maxPossible = 0;
+      for (const q of axisQuestions) {
+        const answerValue = answers[q.id];
+        if (answerValue === undefined || answerValue === null) continue;
+        const multiplier = this.getMultiplier(q.impact);
+        earned += answerValue * multiplier;
+        maxPossible += 100 * multiplier;
+      }
+      rawScores[axis.id] = { earned, maxPossible };
+    }
+    return rawScores;
+  }
+
+  // ============================================================
+  // 4. العقوبات الديناميكية (Dynamic Penalties)
+  // ============================================================
+  applyPenalties(answers, rawScores) {
+    const cfg = this.currentAssessment || this.config;
+    const penalties = {};
+    let totalPenalty = 0;
+    for (const trap of cfg.traps || []) {
+      const targetVal = answers[trap.validates];
+      const validatorVal = answers[trap.question_id];
+      if (targetVal === undefined || validatorVal === undefined) continue;
+      if (targetVal !== 100) continue;
+      const severity = Math.abs(targetVal - validatorVal) / 100;
+      const penaltyPercent = trap.penalty_base + (
+        severity * (trap.penalty_max - trap.penalty_base)
+      );
+      const axisEarned = rawScores[trap.target_axis].earned;
+      const axisPenalty = axisEarned * (penaltyPercent / 100);
+      penalties[trap.target_axis] = (penalties[trap.target_axis] || 0) + axisPenalty;
+      totalPenalty += axisPenalty;
+      console.log(`[PENALTY] Trap ${trap.question_id} → Axis ${trap.target_axis}: severity=${severity.toFixed(2)}, penalty=${penaltyPercent.toFixed(1)}%, amount=${axisPenalty.toFixed(1)}`);
+    }
+    return { penalties, totalPenalty };
+  }
+
+  // ============================================================
+  // 5. درجات المحاور النهائية (Final Axis Scores)
+  // ============================================================
+  calculateFinalScores(rawScores, penalties) {
+    const cfg = this.currentAssessment || this.config;
+    const finalScores = {};
+    for (const axis of cfg.axes) {
+      const raw = rawScores[axis.id];
+      const penalty = penalties[axis.id] || 0;
+      if (raw.maxPossible === 0) {
+        finalScores[axis.id] = 0;
+        continue;
+      }
+      let score = ((raw.earned - penalty) / raw.maxPossible) * 100;
+      score = Math.max(0, Math.min(100, score));
+      finalScores[axis.id] = Math.round(score);
+    }
+    return finalScores;
+  }
+
+  // ============================================================
+  // 6. الدرجة الكلية (Global Score)
+  // ============================================================
+  calculateGlobal(finalScores) {
+    const cfg = this.currentAssessment || this.config;
+    const totalWeight = cfg.axes.reduce((sum, axis) => sum + (axis.weight || 1.0), 0);
+    const weightedSum = cfg.axes.reduce((sum, axis) => sum + (finalScores[axis.id] * (axis.weight || 1.0)), 0);
+    const globalScore = weightedSum / totalWeight;
+    const quartiles = {};
+    for (const axis of cfg.axes) {
+      quartiles[axis.id] = this.getQuartile(finalScores[axis.id]);
+    }
+    return {
+      globalScore: Math.round(globalScore),
+      leakageIndex: Math.round(100 - globalScore),
+      axisScores: finalScores,
+      quartiles: quartiles,
+      totalEarned: weightedSum,
+      totalWeight: totalWeight
+    };
+  }
+
+  // ============================================================
+  // 7. محاكي القيمة المتوقعة (EV Simulator)
+  // ============================================================
+  calculateEV(axisScores, simulatorVars) {
+    const cfg = this.currentAssessment || this.config;
+    if (!cfg.simulator || cfg.simulator.enabled !== true) return null;
+    const deltaCMax = cfg.simulator.delta_c_max || 0;
+    const flow = simulatorVars.flow || 0;
+    const ltv = simulatorVars.ltv || 0;
+    if (deltaCMax <= 0 || flow <= 0 || ltv <= 0) return null;
+    const weightedScore =
+      (axisScores.axis_3 || 0) * 0.4 +
+      (axisScores.axis_4 || 0) * 0.4 +
+      (axisScores.axis_5 || 0) * 0.2;
+    const deltaC = (weightedScore / 100) * deltaCMax;
+    const EV_base = deltaC * flow * ltv;
+    return {
+      deltaC: parseFloat(deltaC.toFixed(1)),
+      EV_low: Math.round(EV_base * 0.70),
+      EV_base: Math.round(EV_base),
+      EV_high: Math.round(EV_base * 1.25),
+      weightedScore: Math.round(weightedScore),
+      formula: 'EV = ΔC × V × LTV'
+    };
+  }
+
+  // ============================================================
+  // 8. التصنيف الربيعي (Quartile Classification)
+  // ============================================================
+  getQuartile(score) {
+    if (score >= 75) return { q: 'Q4', label: 'أداء متميز', color: '#2A6F5D' };
+    if (score >= 50) return { q: 'Q3', label: 'أداء مستقر', color: '#5C6B73' };
+    if (score >= 25) return { q: 'Q2', label: 'تذبذب ملحوظ', color: '#C67D47' };
+    return { q: 'Q1', label: 'فجوة هيكلية حرجة', color: '#A33B3B' };
+  }
+
+  // ============================================================
+  // 9. مضاعف التأثير (Impact Multiplier)
+  // ============================================================
+  getMultiplier(impact) {
+    const multipliers = { high: 1.5, medium: 1.0, low: 0.5 };
+    return multipliers[impact] || 1.0;
+  }
+
+  // ============================================================
+  // 10. بناء التقرير الكامل (Report Builder)
+  // ============================================================
+  buildReport(answers, leadData = {}, simulatorVars = {}) {
+    const rawScores = this.calculateRawScores(answers);
+    const { penalties, totalPenalty } = this.applyPenalties(answers, rawScores);
+    const finalScores = this.calculateFinalScores(rawScores, penalties);
+    const globalResult = this.calculateGlobal(finalScores);
+    const evResult = this.calculateEV(finalScores, simulatorVars);
+
+    const globalQ = this.getQuartile(globalResult.globalScore).q;
+    const globalLabel = this.reportTexts.global_score_labels[globalQ];
+
+    const li = this.reportTexts.leakage_index;
+    let leakageText;
+    if (globalResult.leakageIndex >= 50) leakageText = li.high.text;
+    else if (globalResult.leakageIndex >= 25) leakageText = li.medium.text;
+    else leakageText = li.low.text;
+
+    const axisReports = Object.entries(finalScores).map(([axisId, score]) => {
+      const axisTexts = this.reportTexts.axes[axisId];
+      const q = this.getQuartile(score).q;
+      const scoreTexts = axisTexts.scores[q];
+      return {
+        id: axisId,
+        name: axisTexts.name,
+        name_en: axisTexts.name_en,
+        score: score,
+        quartile: q,
+        color: this.getQuartile(score).color,
+        what_we_measure: axisTexts.what_we_measure,
+        why_it_matters: axisTexts.why_it_matters,
+        status: scoreTexts.status,
+        impact: scoreTexts.impact,
+        recommendation: scoreTexts.recommendation,
+        md_code_hint: scoreTexts.md_code_hint
+      };
+    }).sort((a, b) => a.score - b.score);
+
+    const weakest = axisReports[0];
+    const secondWeakest = axisReports[1];
+    const sd = this.reportTexts.structural_diagnosis;
+    const diagnosisText = sd.template
+      .replace('[اسم العيادة]', leadData.name || 'عيادتك')
+      .replace('[المحور الأضعف]', sd.per_axis_summary[weakest.id])
+      .replace('[المحور الثاني في الضعف]', sd.per_axis_summary[secondWeakest.id]);
+
+    const growthText = this.reportTexts.growth_opportunity[globalQ];
+    const ctaKey = (globalQ === 'Q1' || globalQ === 'Q2') ? 'Q1_Q2' : 'Q3_Q4';
+    const cta = this.reportTexts.whatsapp_cta[ctaKey];
+
+    return {
+      _debug: { rawScores, penalties, totalPenalty, finalScores, globalResult, evResult },
+      global: {
+        score: globalResult.globalScore,
+        quartile: globalQ,
+        label: globalLabel.label,
+        color: globalLabel.color,
+        headline: globalLabel.headline,
+        subtext: globalLabel.subtext
+      },
+      leakage: {
+        index: globalResult.leakageIndex,
+        label: li.label,
+        description: li.description,
+        text: leakageText
+      },
+      axes: axisReports,
+      diagnosis: {
+        text: diagnosisText,
+        weakestAxis: weakest.name,
+        secondWeakestAxis: secondWeakest.name
+      },
+      growth: { text: growthText },
+      ev: evResult,
+      cta: { text: cta.text, subtext: cta.subtext },
+      print: { header: this.reportTexts.print_report_header },
+      loading: { messages: this.reportTexts.loading_messages },
+      radar: axisReports.map(a => ({ label: a.name, value: a.score }))
+    };
+  }
+
+  // ============================================================
+  // 11. دوال توافق app.js (Wrappers)
+  // ============================================================
   setAnswer(questionId, value) {
-    const q = this.currentAssessment.questions.find(q => q.id === questionId);
+    const cfg = this.currentAssessment || this.config;
+    const q = cfg.questions.find(q => q.id === questionId);
     if (!q) throw new Error(`Question '${questionId}' not found`);
     const answer = {
       questionId: q.id,
       axisId: q.axis_id,
       questionText: q.text,
       value: parseInt(value),
-      isTrap: q.trap || false,
+      isTrap: q.layer === 'B',
       answeredAt: new Date().toISOString()
     };
     this.answers.set(questionId, answer);
@@ -92,96 +448,89 @@ class ClinicEvaluatorEngine {
   getAnswer(questionId) { return this.answers.get(questionId) || null; }
 
   getProgress() {
-    if (!this.currentAssessment) return { current: 0, total: 0, percentage: 0 };
-    const total = this.currentAssessment.questions.length;
+    const cfg = this.currentAssessment || this.config;
+    if (!cfg) return { current: 0, total: 0, percentage: 0 };
+    const total = cfg.questions.length;
     const current = this.answers.size;
     return { current, total, percentage: Math.round((current / total) * 100), remaining: total - current };
   }
 
   calculateScores() {
-    if (!this.currentAssessment) throw new Error('No assessment loaded');
-    const axes = this.currentAssessment.axes;
+    const answers = {};
+    this.answers.forEach((ans, qid) => { answers[qid] = ans.value; });
+    const rawScores = this.calculateRawScores(answers);
+    const { penalties } = this.applyPenalties(answers, rawScores);
+    const finalScores = this.calculateFinalScores(rawScores, penalties);
+    const globalResult = this.calculateGlobal(finalScores);
     const scores = [];
-    let totalWeighted = 0;
-    let totalWeight = 0;
-
-    for (const axis of axes) {
-      const axisQuestions = this.currentAssessment.questions.filter(q => q.axis_id === axis.id);
-      const axisAnswers = axisQuestions.map(q => this.answers.get(q.id)).filter(a => a !== undefined);
-      if (axisAnswers.length === 0) continue;
-      const rawSum = axisAnswers.reduce((sum, a) => sum + a.value, 0);
-      const maxPossible = axisQuestions.length * 5;
-      const rawScore = rawSum;
-      const percentage = Math.round((rawSum / maxPossible) * 100);
-      const weightedScore = percentage * axis.weight;
-      const grade = this._getGrade(percentage);
+    const cfg = this.currentAssessment || this.config;
+    for (const axis of cfg.axes) {
       scores.push({
-        axisId: axis.id, axisNameAr: axis.name_ar, axisNameEn: axis.name_en,
-        weight: axis.weight, rawScore, maxPossible, percentage, weightedScore, grade,
-        answersCount: axisAnswers.length
+        axisId: axis.id,
+        axisNameAr: axis.name_ar,
+        axisNameEn: axis.name_en,
+        weight: axis.weight,
+        percentage: finalScores[axis.id],
+        grade: this.getQuartile(finalScores[axis.id]).q
       });
-      totalWeighted += weightedScore;
-      totalWeight += axis.weight;
     }
-
-    const overallPercentage = totalWeight > 0 ? Math.round(totalWeighted / totalWeight) : 0;
-    const overallGrade = this._getGrade(overallPercentage);
-    const overallMessage = this._getOverallMessage(overallPercentage);
-    return { axes: scores, overall: { percentage: overallPercentage, grade: overallGrade, ...overallMessage }, duration: Math.round((Date.now() - this.startTime) / 1000) };
+    const overallQ = this.getQuartile(globalResult.globalScore).q;
+    const overallLabel = this.getQuartile(globalResult.globalScore).label;
+    return {
+      axes: scores,
+      overall: {
+        percentage: globalResult.globalScore,
+        grade: overallQ,
+        title: overallLabel,
+        body: `الدرجة الكلية: ${globalResult.globalScore}% — ${overallLabel}`
+      }
+    };
   }
 
-  _getGrade(p) { if (p >= 90) return 'A'; if (p >= 70) return 'B'; if (p >= 50) return 'C'; if (p >= 30) return 'D'; return 'F'; }
-  _getOverallMessage(p) { const r = this.reportTexts.overall_messages; if (p >= 90) return r['90-100']; if (p >= 70) return r['70-89']; if (p >= 50) return r['50-69']; return r['0-49']; }
-
   detectTraps() {
-    if (!this.currentAssessment || !this.currentAssessment.traps) return [];
+    const answers = {};
+    this.answers.forEach((ans, qid) => { answers[qid] = ans.value; });
+    const rawScores = this.calculateRawScores(answers);
+    const { penalties } = this.applyPenalties(answers, rawScores);
+    const cfg = this.currentAssessment || this.config;
     const triggered = [];
-    for (const trap of this.currentAssessment.traps) {
-      if (this._evaluateCondition(trap.trigger_condition)) triggered.push({ ...trap, triggeredAt: new Date().toISOString() });
+    for (const trap of cfg.traps || []) {
+      const targetVal = answers[trap.validates];
+      const validatorVal = answers[trap.question_id];
+      if (targetVal === undefined || validatorVal === undefined) continue;
+      if (targetVal === 100 && Math.abs(targetVal - validatorVal) > 0) {
+        triggered.push({
+          name: trap.name,
+          message_ar: trap.message_ar || trap.message
+        });
+      }
     }
     return triggered;
   }
 
-  _evaluateCondition(condition) {
-    const parts = condition.split(/\s+AND\s+/i);
-    return parts.every(part => {
-      const match = part.match(/(Q\d+)\s*([<>=]+)\s*(\d+)/);
-      if (!match) return false;
-      const [, qId, operator, val] = match;
-      const answer = this.answers.get(qId);
-      if (!answer) return false;
-      const v = answer.value, target = parseInt(val);
-      switch (operator.trim()) { case '<=': return v <= target; case '>=': return v >= target; case '<': return v < target; case '>': return v > target; case '==': return v === target; default: return false; }
-    });
-  }
-
-  calculateEV(inputs) {
-    const avg = parseFloat(inputs.avg_visit_value) || 0;
-    const visits = parseFloat(inputs.visits_per_year) || 0;
-    const years = parseFloat(inputs.retention_years) || 0;
-    const referral = parseFloat(inputs.referral_rate) || 0;
-    const ltv = avg * visits * years;
-    const ltvReferral = ltv * (1 + referral / 100);
-    return { current: { ltv, ltvReferral }, optimized20: { ltv: ltvReferral * 1.20, increase: ltvReferral * 0.20 }, optimized50: { ltv: ltvReferral * 1.50, increase: ltvReferral * 0.50 }, inputs: { avg, visits, years, referral } };
-  }
-
   getRecommendations(scores) {
-    const recs = this.reportTexts.recommendations;
+    const recs = this.reportTexts.recommendations || {};
     const result = [];
     for (const axis of scores.axes) {
       if (axis.percentage < 70 && recs[axis.axisId]) {
-        result.push({ axisId: axis.axisId, axisName: axis.axisNameAr, percentage: axis.percentage, grade: axis.grade, actions: recs[axis.axisId] });
+        result.push({
+          axisId: axis.axisId,
+          axisName: axis.axisNameAr,
+          percentage: axis.percentage,
+          grade: axis.grade,
+          actions: recs[axis.axisId]
+        });
       }
     }
     return result;
   }
 
   generateHTMLReport(scores, traps, recommendations) {
-    const gradeInfo = this.reportTexts.grades[scores.overall.grade];
+    const gradeInfo = this.getQuartile(scores.overall.percentage);
     const date = new Date().toLocaleDateString('ar-SA');
-    let html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير رحلة المريض — MD CODE</title><style>@page { size: A4; margin: 2cm; } body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; color: #1f2937; } .header { text-align: center; border-bottom: 3px solid #0f766e; padding-bottom: 20px; margin-bottom: 30px; } .header h1 { color: #0f766e; margin: 0; } .header .subtitle { color: #6b7280; font-size: 14px; } .score-card { background: #f0fdfa; border-right: 5px solid ${gradeInfo.color}; padding: 20px; margin: 20px 0; border-radius: 8px; } .score-value { font-size: 48px; font-weight: bold; color: ${gradeInfo.color}; } .axis-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; } .trap-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 10px 0; border-radius: 6px; color: #991b1b; } .rec-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; margin: 10px 0; border-radius: 6px; } .rec-box h4 { color: #1e40af; margin-top: 0; } .rec-box ul { margin: 0; padding-right: 20px; } .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; } @media print { .no-print { display: none; } }</style></head><body><div class="header"><h1>🦷 تقرير رحلة المريض</h1><div class="subtitle">تقييم أداء العيادة في تطوير LTV المريض</div><div class="subtitle">تاريخ التقرير: ${date}</div></div><div class="score-card"><div style="text-align:center;"><div class="score-value">${scores.overall.percentage}%</div><div style="font-size:24px; color:${gradeInfo.color};">${gradeInfo.label} (${scores.overall.grade})</div><div style="margin-top:10px; font-size:16px;">${scores.overall.title}</div><div style="color:#6b7280; font-size:14px;">${scores.overall.body}</div></div></div><h3>📊 التفصيل حسب المحاور</h3>`;
+    let html = `<!DOCTYPE html><html lang="ar" dir="rtl"><head><meta charset="UTF-8"><title>تقرير MD CODE</title><style>@page { size: A4; margin: 2cm; } body { font-family: 'Cairo', 'Segoe UI', Tahoma, sans-serif; line-height: 1.6; color: #1f2937; } .header { text-align: center; border-bottom: 3px solid #0f766e; padding-bottom: 20px; margin-bottom: 30px; } .header h1 { color: #0f766e; margin: 0; } .header .subtitle { color: #6b7280; font-size: 14px; } .score-card { background: #f0fdfa; border-right: 5px solid ${gradeInfo.color}; padding: 20px; margin: 20px 0; border-radius: 8px; } .score-value { font-size: 48px; font-weight: bold; color: ${gradeInfo.color}; } .axis-row { display: flex; justify-content: space-between; padding: 12px; border-bottom: 1px solid #e5e7eb; } .trap-box { background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 10px 0; border-radius: 6px; color: #991b1b; } .rec-box { background: #eff6ff; border: 1px solid #bfdbfe; padding: 15px; margin: 10px 0; border-radius: 6px; } .rec-box h4 { color: #1e40af; margin-top: 0; } .rec-box ul { margin: 0; padding-right: 20px; } .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #9ca3af; } @media print { .no-print { display: none; } }</style></head><body><div class="header"><h1>تقرير MD CODE</h1><div class="subtitle">تقييم أداء العيادة</div><div class="subtitle">تاريخ التقرير: ${date}</div></div><div class="score-card"><div style="text-align:center;"><div class="score-value">${scores.overall.percentage}%</div><div style="font-size:24px; color:${gradeInfo.color};">${gradeInfo.label} (${scores.overall.grade})</div><div style="margin-top:10px; font-size:16px;">${scores.overall.title}</div><div style="color:#6b7280; font-size:14px;">${scores.overall.body}</div></div></div><h3>📊 التفصيل حسب المحاور</h3>`;
     for (const axis of scores.axes) {
-      const g = this.reportTexts.grades[axis.grade];
+      const g = this.getQuartile(axis.percentage);
       html += `<div class="axis-row"><div><strong>${axis.axisNameAr}</strong> <span style="color:#6b7280; font-size:12px;">(${Math.round(axis.weight*100)}%)</span></div><div><span style="color:${g.color}; font-weight:bold;">${axis.percentage}% — ${g.label}</span></div></div>`;
     }
     if (traps.length > 0) {
@@ -192,10 +541,13 @@ class ClinicEvaluatorEngine {
       html += `<h3>💡 توصيات التحسين</h3>`;
       for (const rec of recommendations) html += `<div class="rec-box"><h4>${rec.axisName} — ${rec.percentage}%</h4><ul>${rec.actions.map(a => `<li>${a}</li>`).join('')}</ul></div>`;
     }
-    html += `<div class="footer">تم إنشاء هذا التقرير بواسطة MD CODE Clinic Evaluator<br>للاستفسارات: mdcode2026@gmail.com | +962 78 659 5990</div><div class="no-print" style="text-align:center; margin-top:20px;"><button onclick="window.print()" style="padding:12px 24px; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">🖨️ طباعة / حفظ PDF</button></div></body></html>`;
+    html += `<div class="footer">تم إنشاء هذا التقرير بواسطة MD CODE<br>للاستفسارات: mdcode2026@gmail.com | +962 78 659 5990</div><div class="no-print" style="text-align:center; margin-top:20px;"><button onclick="window.print()" style="padding:12px 24px; background:#0f766e; color:white; border:none; border-radius:6px; cursor:pointer; font-size:16px;">🖨️ طباعة / حفظ PDF</button></div></body></html>`;
     return html;
   }
 
+  // ============================================================
+  // 12. Supabase Integration
+  // ============================================================
   prepareLeadData(formData, assessmentTypeId) {
     return {
       assessment_type_id: assessmentTypeId,
@@ -237,11 +589,11 @@ class ClinicEvaluatorEngine {
       axis_id: axis.axisId,
       axis_name_ar: axis.axisNameAr,
       axis_name_en: axis.axisNameEn,
-      raw_score: axis.rawScore,
-      max_possible: axis.maxPossible,
+      raw_score: axis.percentage,
+      max_possible: 100,
       percentage: axis.percentage,
       weight: axis.weight,
-      weighted_score: Math.round(axis.weightedScore * 100) / 100,
+      weighted_score: Math.round(axis.percentage * axis.weight * 100) / 100,
       grade: axis.grade
     }));
   }
@@ -278,6 +630,29 @@ class ClinicEvaluatorEngine {
     });
     if (!leadRes.ok) throw new Error('Failed to update lead');
   }
+
+  // ============================================================
+  // 13. Static Helpers
+  // ============================================================
+  static async loadJSON(url) {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Failed to load ${url}: HTTP ${response.status}`);
+    return await response.json();
+  }
+
+  static async create(configUrl, reportTextsUrl) {
+    const [config, reportTexts] = await Promise.all([
+      AssessmentEngine.loadJSON(configUrl),
+      AssessmentEngine.loadJSON(reportTextsUrl)
+    ]);
+    return new AssessmentEngine(config, reportTexts);
+  }
 }
 
-if (typeof module !== 'undefined' && module.exports) { module.exports = { ClinicEvaluatorEngine, SupabaseClient }; }
+// ─── تصدير المحرك ───
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = { AssessmentEngine, SupabaseClient };
+} else if (typeof window !== 'undefined') {
+  window.AssessmentEngine = AssessmentEngine;
+  window.SupabaseClient = SupabaseClient;
+}
