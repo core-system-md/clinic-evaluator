@@ -1,7 +1,7 @@
 /**
  * Clinic Evaluator — app.js
  * Constitution v4.0 Compliant
- * Built for patient-journey.html structure — zero HTML changes required
+ * Works with BOTH clinic-performance.html AND patient-journey.html
  */
 
 class ClinicEvaluatorApp {
@@ -14,11 +14,14 @@ class ClinicEvaluatorApp {
     this.metadata = {};
     this.assessment = null;
     this.questions = [];
+    this.useOpt = false; // true = clinic-performance (.opt), false = patient-journey (.likert-option)
   }
 
   async init() {
     try {
       await Promise.all([this.loadConfig(), this.loadTexts()]);
+      // Detect which HTML file we're on
+      this.useOpt = document.getElementById('lead-specialty') !== null;
       this.setupLeadForm();
       this.setupNavigation();
       this.setupEVSimulator();
@@ -72,7 +75,10 @@ class ClinicEvaluatorApp {
       email: getVal('lead-email'),
       phone: getVal('lead-phone'),
       clinic: getVal('lead-clinic'),
-      country: getVal('lead-country')
+      country: getVal('lead-country'),
+      specialty: getVal('lead-specialty') || getVal('meta-specialty'),
+      years: getVal('lead-years') || getVal('meta-years'),
+      team: getVal('lead-staff') || getVal('meta-team')
     };
   }
 
@@ -103,7 +109,39 @@ class ClinicEvaluatorApp {
     const q = this.questions[this.currentQuestionIndex];
     const num = this.currentQuestionIndex + 1;
 
-    // Generate likert-scale HTML using config.json options {0,40,100}
+    if (this.useOpt) {
+      container.innerHTML = this.renderOptQuestion(q, num);
+    } else {
+      container.innerHTML = this.renderLikertQuestion(q, num);
+    }
+
+    this.attachOptionHandlers(container, q.id);
+  }
+
+  renderOptQuestion(q, num) {
+    const letters = ['A', 'B', 'C', 'D', 'E'];
+    let optsHtml = '';
+    q.options.forEach((opt, i) => {
+      const letter = letters[i] || '';
+      const selected = this.answers[q.id] === opt.value ? 'sel' : '';
+      optsHtml += `
+        <button type="button" class="opt ${selected}" data-value="${opt.value}" data-qid="${q.id}">
+          <span class="opt-letter">${letter}</span>
+          <span style="flex:1;">${opt.label}</span>
+        </button>
+      `;
+    });
+
+    return `
+      <div class="question-card" data-qid="${q.id}">
+        <div class="question-number">السؤال ${num} من ${this.questions.length}</div>
+        <div class="question-text">${q.text}</div>
+        <div class="opts">${optsHtml}</div>
+      </div>
+    `;
+  }
+
+  renderLikertQuestion(q, num) {
     let optsHtml = '';
     q.options.forEach((opt) => {
       const selected = this.answers[q.id] === opt.value ? 'selected' : '';
@@ -115,25 +153,24 @@ class ClinicEvaluatorApp {
       `;
     });
 
-    container.innerHTML = `
+    return `
       <div class="question-card" data-qid="${q.id}">
         <div class="question-number">السؤال ${num} من ${this.questions.length}</div>
         <div class="question-text">${q.text}</div>
         <div class="likert-scale">${optsHtml}</div>
       </div>
     `;
-
-    this.attachOptionHandlers(container, q.id);
   }
 
   attachOptionHandlers(container, qid) {
-    const opts = container.querySelectorAll('.likert-option');
+    const selector = this.useOpt ? '.opt' : '.likert-option';
+    const opts = container.querySelectorAll(selector);
     opts.forEach(opt => {
       opt.addEventListener('click', () => {
         const val = parseInt(opt.dataset.value);
         this.answers[qid] = val;
-        opts.forEach(o => o.classList.remove('selected'));
-        opt.classList.add('selected');
+        opts.forEach(o => o.classList.remove('sel', 'selected'));
+        opt.classList.add(this.useOpt ? 'sel' : 'selected');
         this.updateProgress();
       });
     });
@@ -173,7 +210,6 @@ class ClinicEvaluatorApp {
       });
     }
 
-    // Keyboard shortcuts
     document.addEventListener('keydown', (e) => {
       const assessmentView = document.getElementById('view-assessment');
       if (!assessmentView || assessmentView.classList.contains('hidden')) return;
@@ -191,9 +227,10 @@ class ClinicEvaluatorApp {
           const val = currentQ.options[idx].value;
           this.answers[currentQ.id] = val;
           const container = document.getElementById('question-container');
-          const opts = container.querySelectorAll('.likert-option');
-          opts.forEach(o => o.classList.remove('selected'));
-          if (opts[idx]) opts[idx].classList.add('selected');
+          const selector = this.useOpt ? '.opt' : '.likert-option';
+          const opts = container.querySelectorAll(selector);
+          opts.forEach(o => o.classList.remove('sel', 'selected'));
+          if (opts[idx]) opts[idx].classList.add(this.useOpt ? 'sel' : 'selected');
           this.updateProgress();
         }
       }
@@ -273,7 +310,6 @@ class ClinicEvaluatorApp {
     const resultsView = document.getElementById('view-results');
     if (resultsView) resultsView.classList.remove('hidden');
 
-    // Quartile & Score — Constitution v4.0 colors
     const q = res.classification || 'Q2';
     const qData = this.texts.quartiles[q] || this.texts.quartiles.Q2;
     const score = (res.overallScore ?? 0).toFixed(1);
@@ -293,7 +329,6 @@ class ClinicEvaluatorApp {
     if (title) title.textContent = qData.label;
     if (body) body.textContent = `درجتك الكلية: ${score} من 100`;
 
-    // Axes
     const axesContainer = document.getElementById('axes-scores');
     if (axesContainer && res.axisScores) {
       axesContainer.innerHTML = '';
@@ -316,7 +351,6 @@ class ClinicEvaluatorApp {
       });
     }
 
-    // KPIs — insert before axes
     if (res.kpis) {
       const kpiCard = document.createElement('div');
       kpiCard.className = 'form-card';
@@ -345,14 +379,12 @@ class ClinicEvaluatorApp {
       }
     }
 
-    // Gaps (traps) — Constitution v4.0: "فجوات محتملة", no penalties shown
     const trapsContainer = document.getElementById('traps-container');
     if (trapsContainer && res.traps && res.traps.length) {
       trapsContainer.classList.remove('hidden');
       const titleEl = trapsContainer.querySelector('.card-title');
       if (titleEl) titleEl.textContent = this.t('sections.gaps');
 
-      // Clear existing
       const existing = trapsContainer.querySelectorAll('.trap-alert, .insight-box');
       existing.forEach(el => el.remove());
 
@@ -372,7 +404,6 @@ class ClinicEvaluatorApp {
       trapsContainer.classList.add('hidden');
     }
 
-    // Recommendations
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
@@ -396,7 +427,6 @@ class ClinicEvaluatorApp {
       }
     }
 
-    // EV Simulator results (if engine provides)
     if (res.evSimulator) {
       const evCard = document.createElement('div');
       evCard.className = 'form-card';
@@ -500,7 +530,6 @@ class ClinicEvaluatorApp {
   }
 }
 
-// Bootstrap
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new ClinicEvaluatorApp();
   window.app.init();
