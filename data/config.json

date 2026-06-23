@@ -5,6 +5,10 @@
     "full-25": {
       "title": "التقييم الشامل — 25 سؤال",
       "subtitle": "تقييم أداء العيادة في تطوير LTV المريض",
+      "question_count": 25,
+      "axis_count": 5,
+      "has_traps": true,
+      "has_ev_simulator": true,
       "axes": [
         {
           "id": "A1",
@@ -43,312 +47,71 @@
         }
       ],
       "questions": [
-        {
-          "id": "Q1",
-          "axis_id": "A1",
-          "text": "هل يتم الرد على استفسارات المرضى عبر الهاتف/الواتساب خلال 15 دقيقة في ساعات العمل؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q2",
-          "axis_id": "A1",
-          "text": "هل يتم تأكيد المواعيد تلقائياً قبل 24 ساعة على الأقل؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q3",
-          "axis_id": "A1",
-          "text": "هل يمكن للمريض حجز موعد بسهولة عبر قنوات متعددة (هاتف، واتساب، موقع، تطبيق)؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q4",
-          "axis_id": "A1",
-          "text": "هل يتم تسجيل بيانات المريض إلكترونياً من أول مكالمة؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q5",
-          "axis_id": "A1",
-          "text": "هل يتم تقديم تقديرات واضحة للتكلفة والمدة قبل الزيارة الأولى؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q6",
-          "axis_id": "A2",
-          "text": "هل يتم استقبال المريض باسمه خلال 60 ثانية من دخول العيادة؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q7",
-          "axis_id": "A2",
-          "text": "هل منطقة الانتظار مريحة (إضاءة، تهوية، مقاعد، مقروئات/شاشة)؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q8",
-          "axis_id": "A2",
-          "text": "هل يتم إبلاغ المريض بأي تأخير متوقع فور حدوثه؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q9",
-          "axis_id": "A2",
-          "text": "هل يتم تقديم مشروب ترحيبي أو وسائل راحة أساسية؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q10",
-          "axis_id": "A2",
-          "text": "هل يتم الحفاظ على خصوصية المريض في مناطق الاستقبال والانتظار؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q11",
-          "axis_id": "A3",
-          "text": "هل يتم شرح الخطة العلاجية للمريض بلغة مفهومة مع رسم توضيحي؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q12",
-          "axis_id": "A3",
-          "text": "هل يتم استخدام أحدث التقنيات والمواد في الإجراءات السريرية؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q13",
-          "axis_id": "A3",
-          "text": "هل يتم تسجيل ملاحظات الجلسة بشكل مفصل في ملف المريض الإلكتروني؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q14",
-          "axis_id": "A3",
-          "text": "هل يتم تقديم خيارات علاجية بديلة مع مميزات وعيوب كل خيار؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q15",
-          "axis_id": "A3",
-          "text": "هل يتم توثيق صور قبل/بعد للحالات بشكل احترافي؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q16",
-          "axis_id": "A4",
-          "text": "هل يتم إرسال تعليمات ما بعد العلاج مكتوبة/مرئية خلال 2 ساعة؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q17",
-          "axis_id": "A4",
-          "text": "هل يتم المتابعة الهاتفية/الواتسابية بعد 24-48 ساعة من الجلسة؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q18",
-          "axis_id": "A4",
-          "text": "هل يوجد برنامج ولاء أو خصومات للمراجعات المتكررة؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q19",
-          "axis_id": "A4",
-          "text": "هل يتم طلب تقييم/rating من المريض بعد كل زيارة؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q20",
-          "axis_id": "A4",
-          "text": "هل يتم دعوة المرضى الراضين لترك مراجعة على Google/منصات التقييم؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q21",
-          "axis_id": "A5",
-          "text": "هل العيادة نظيفة ومعقمة بشكل واضح ومهني؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q22",
-          "axis_id": "A5",
-          "text": "هل يوجد نظام إدارة عيادة إلكتروني متكامل (PMS/EMR)؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q23",
-          "axis_id": "A5",
-          "text": "هل يمكن للمريض الوصول لسجله الطبي ومواعيده عبر بوابة إلكترونية؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q24",
-          "axis_id": "A5",
-          "text": "هل يوجد نظام تذكير آلي (SMS/واتساب/بريد) للمواعيد والمتابعات؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        },
-        {
-          "id": "Q25",
-          "axis_id": "A5",
-          "text": "هل يتم استخدام تقنيات تخفيف الألم الحديثة لتقليل القلق؟",
-          "type": "likert",
-          "scale": 5,
-          "reverse": false,
-          "trap": false
-        }
+        {"id": "Q1", "axis_id": "A1", "text": "هل يتم الرد على استفسارات المرضى عبر الهاتف/الواتساب خلال 15 دقيقة في ساعات العمل؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q2", "axis_id": "A1", "text": "هل يتم تأكيد المواعيد تلقائياً قبل 24 ساعة على الأقل؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q3", "axis_id": "A1", "text": "هل يمكن للمريض حجز موعد بسهولة عبر قنوات متعددة (هاتف، واتساب، موقع، تطبيق)؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q4", "axis_id": "A1", "text": "هل يتم تسجيل بيانات المريض إلكترونياً من أول مكالمة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q5", "axis_id": "A1", "text": "هل يتم تقديم تقديرات واضحة للتكلفة والمدة قبل الزيارة الأولى؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q6", "axis_id": "A2", "text": "هل يتم استقبال المريض باسمه خلال 60 ثانية من دخول العيادة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q7", "axis_id": "A2", "text": "هل منطقة الانتظار مريحة (إضاءة، تهوية، مقاعد، مقروئات/شاشة)؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q8", "axis_id": "A2", "text": "هل يتم إبلاغ المريض بأي تأخير متوقع فور حدوثه؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q9", "axis_id": "A2", "text": "هل يتم تقديم مشروب ترحيبي أو وسائل راحة أساسية؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q10", "axis_id": "A2", "text": "هل يتم الحفاظ على خصوصية المريض في مناطق الاستقبال والانتظار؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q11", "axis_id": "A3", "text": "هل يتم شرح الخطة العلاجية للمريض بلغة مفهومة مع رسم توضيحي؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q12", "axis_id": "A3", "text": "هل يتم استخدام أحدث التقنيات والمواد في الإجراءات السريرية؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q13", "axis_id": "A3", "text": "هل يتم تسجيل ملاحظات الجلسة بشكل مفصل في ملف المريض الإلكتروني؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q14", "axis_id": "A3", "text": "هل يتم تقديم خيارات علاجية بديلة مع مميزات وعيوب كل خيار؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q15", "axis_id": "A3", "text": "هل يتم توثيق صور قبل/بعد للحالات بشكل احترافي؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q16", "axis_id": "A4", "text": "هل يتم إرسال تعليمات ما بعد العلاج مكتوبة/مرئية خلال 2 ساعة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q17", "axis_id": "A4", "text": "هل يتم المتابعة الهاتفية/الواتسابية بعد 24-48 ساعة من الجلسة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q18", "axis_id": "A4", "text": "هل يوجد برنامج ولاء أو خصومات للمراجعات المتكررة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q19", "axis_id": "A4", "text": "هل يتم طلب تقييم/rating من المريض بعد كل زيارة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q20", "axis_id": "A4", "text": "هل يتم دعوة المرضى الراضين لترك مراجعة على Google/منصات التقييم؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q21", "axis_id": "A5", "text": "هل العيادة نظيفة ومعقمة بشكل واضح ومهني؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q22", "axis_id": "A5", "text": "هل يوجد نظام إدارة عيادة إلكتروني متكامل (PMS/EMR)؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q23", "axis_id": "A5", "text": "هل يمكن للمريض الوصول لسجله الطبي ومواعيده عبر بوابة إلكترونية؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q24", "axis_id": "A5", "text": "هل يوجد نظام تذكير آلي (SMS/واتساب/بريد) للمواعيد والمتابعات؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q25", "axis_id": "A5", "text": "هل يتم استخدام تقنيات تخفيف الألم الحديثة لتقليل القلق؟", "type": "likert", "scale": 5, "reverse": false, "trap": false}
       ],
       "traps": [
-        {
-          "id": "T1",
-          "name": "فخ الرد الآلي",
-          "description": "الاعتماد الكامل على الرد الآلي بدون تدخل بشري",
-          "trigger_condition": "Q1 <= 2 AND Q3 <= 2",
-          "severity": "high",
-          "message_ar": "⚠️ فخ الرد الآلي: عدم الرد السريع + صعوبة الحجز يفقدك 40% من المكالمات الواردة."
-        },
-        {
-          "id": "T2",
-          "name": "فخ الانتظار المجهول",
-          "description": "عدم إبلاغ المريض بالتأخير",
-          "trigger_condition": "Q8 <= 2",
-          "severity": "medium",
-          "message_ar": "⚠️ فخ الانتظار: كل دقيقة انتظار بدون توضيح تقلل رضا المريض بنسبة 5%."
-        },
-        {
-          "id": "T3",
-          "name": "فخ التوضيح المفقود",
-          "description": "عدم شرح الخطة العلاجية",
-          "trigger_condition": "Q11 <= 2",
-          "severity": "high",
-          "message_ar": "⚠️ فخ التوضيح: 70% من المرضى يشكون من عدم فهم خطة العلاج."
-        },
-        {
-          "id": "T4",
-          "name": "فخ المتابعة المنسية",
-          "description": "عدم المتابعة بعد الجلسة",
-          "trigger_condition": "Q16 <= 2 AND Q17 <= 2",
-          "severity": "high",
-          "message_ar": "⚠️ فخ المتابعة: المريض الذي لا يُتابع يقل احتمال عودته بنسبة 60%."
-        },
-        {
-          "id": "T5",
-          "name": "فخ الولاء المفقود",
-          "description": "عدم وجود برنامج ولاء أو طلب تقييم",
-          "trigger_condition": "Q18 <= 2 AND Q19 <= 2",
-          "severity": "medium",
-          "message_ar": "⚠️ فخ الولاء: بدون برنامج ولاء، تكلفة اكتساب مريض جديد = 5x تكلفة الاحتفاظ."
-        },
-        {
-          "id": "T6",
-          "name": "فخ التقنية الناقصة",
-          "description": "عدم وجود نظام إدارة إلكتروني",
-          "trigger_condition": "Q22 <= 2",
-          "severity": "medium",
-          "message_ar": "⚠️ فخ التقنية: العيادات بدون EMR تفقد 30% من الإنتاجية اليومية."
-        },
-        {
-          "id": "T7",
-          "name": "فخ التقييم المخفي",
-          "description": "عدم طلب تقييمات مرئية على المنصات",
-          "trigger_condition": "Q20 <= 2",
-          "severity": "low",
-          "message_ar": "⚠️ فخ التقييم: 92% من المرضى يقرأون التقييمات قبل اختيار العيادة."
-        }
+        {"id": "T1", "name": "فخ الرد الآلي", "description": "الاعتماد الكامل على الرد الآلي بدون تدخل بشري", "trigger_condition": "Q1 <= 2 AND Q3 <= 2", "severity": "high", "message_ar": "⚠️ فخ الرد الآلي: عدم الرد السريع + صعوبة الحجز يفقدك 40% من المكالمات الواردة."},
+        {"id": "T2", "name": "فخ الانتظار المجهول", "description": "عدم إبلاغ المريض بالتأخير", "trigger_condition": "Q8 <= 2", "severity": "medium", "message_ar": "⚠️ فخ الانتظار: كل دقيقة انتظار بدون توضيح تقلل رضا المريض بنسبة 5%."},
+        {"id": "T3", "name": "فخ التوضيح المفقود", "description": "عدم شرح الخطة العلاجية", "trigger_condition": "Q11 <= 2", "severity": "high", "message_ar": "⚠️ فخ التوضيح: 70% من المرضى يشكون من عدم فهم خطة العلاج."},
+        {"id": "T4", "name": "فخ المتابعة المنسية", "description": "عدم المتابعة بعد الجلسة", "trigger_condition": "Q16 <= 2 AND Q17 <= 2", "severity": "high", "message_ar": "⚠️ فخ المتابعة: المريض الذي لا يُتابع يقل احتمال عودته بنسبة 60%."},
+        {"id": "T5", "name": "فخ الولاء المفقود", "description": "عدم وجود برنامج ولاء أو طلب تقييم", "trigger_condition": "Q18 <= 2 AND Q19 <= 2", "severity": "medium", "message_ar": "⚠️ فخ الولاء: بدون برنامج ولاء، تكلفة اكتساب مريض جديد = 5x تكلفة الاحتفاظ."},
+        {"id": "T6", "name": "فخ التقنية الناقصة", "description": "عدم وجود نظام إدارة إلكتروني", "trigger_condition": "Q22 <= 2", "severity": "medium", "message_ar": "⚠️ فخ التقنية: العيادات بدون EMR تفقد 30% من الإنتاجية اليومية."},
+        {"id": "T7", "name": "فخ التقييم المخفي", "description": "عدم طلب تقييمات مرئية على المنصات", "trigger_condition": "Q20 <= 2", "severity": "low", "message_ar": "⚠️ فخ التقييم: 92% من المرضى يقرأون التقييمات قبل اختيار العيادة."}
       ]
     },
-    "quick-6": {
-      "title": "التقييم السريع — 6 أسئلة",
+    "quick-9": {
+      "title": "التقييم السريع — 9 أسئلة",
       "subtitle": "تقييم مختصر لأهم 3 محاور",
+      "question_count": 9,
+      "axis_count": 3,
+      "has_traps": false,
+      "has_ev_simulator": false,
       "axes": [
-        { "id": "A1", "name_ar": "التواصل والحجز", "name_en": "Communication & Booking", "weight": 0.33 },
-        { "id": "A3", "name_ar": "جودة الخدمة السريرية", "name_en": "Clinical Service Quality", "weight": 0.34 },
-        { "id": "A4", "name_ar": "المتابعة والولاء", "name_en": "Follow-up & Loyalty", "weight": 0.33 }
+        {"id": "A1", "name_ar": "التواصل والحجز", "name_en": "Communication & Booking", "weight": 0.33, "description": "جودة أولى نقاط التواصل بين المريض والعيادة"},
+        {"id": "A3", "name_ar": "جودة الخدمة السريرية", "name_en": "Clinical Service Quality", "weight": 0.34, "description": "المعايير المهنية والسريرية أثناء تقديم الخدمة"},
+        {"id": "A4", "name_ar": "المتابعة والولاء", "name_en": "Follow-up & Loyalty", "weight": 0.33, "description": "آليات المتابعة وبناء علاقة طويلة الأمد"}
       ],
       "questions": [
-        { "id": "Q1", "axis_id": "A1", "text": "هل يتم الرد على الاستفسارات خلال 15 دقيقة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false },
-        { "id": "Q2", "axis_id": "A1", "text": "هل يمكن حجز موعد بسهولة عبر قنوات متعددة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false },
-        { "id": "Q3", "axis_id": "A3", "text": "هل يتم شرح الخطة العلاجية بلغة مفهومة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false },
-        { "id": "Q4", "axis_id": "A3", "text": "هل يتم تقديم خيارات علاجية بديلة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false },
-        { "id": "Q5", "axis_id": "A4", "text": "هل يتم المتابعة بعد 24-48 ساعة من الجلسة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false },
-        { "id": "Q6", "axis_id": "A4", "text": "هل يوجد برنامج ولاء أو خصومات للمراجعات؟", "type": "likert", "scale": 5, "reverse": false, "trap": false }
+        {"id": "Q1", "axis_id": "A1", "text": "هل يتم الرد على الاستفسارات خلال 15 دقيقة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q2", "axis_id": "A1", "text": "هل يمكن حجز موعد بسهولة عبر قنوات متعددة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q3", "axis_id": "A3", "text": "هل يتم شرح الخطة العلاجية بلغة مفهومة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q4", "axis_id": "A3", "text": "هل يتم تقديم خيارات علاجية بديلة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q5", "axis_id": "A4", "text": "هل يتم المتابعة بعد 24-48 ساعة من الجلسة؟", "type": "likert", "scale": 5, "reverse": false, "trap": false},
+        {"id": "Q6", "axis_id": "A4", "text": "هل يوجد برنامج ولاء أو خصومات للمراجعات؟", "type": "likert", "scale": 5, "reverse": false, "trap": false}
       ],
       "traps": []
     },
     "clinic-performance": {
-      "title": "تقييم أداء العيادة — 6 أسئلة",
-      "subtitle": "تقييم تشغيلي مؤسسي لكفاءة العيادة",
+      "title": "تقييم أداء العيادة",
+      "subtitle": "تقييم تشغيلي مؤسسي لكفاءة العيادة وإدارة الموارد",
+      "question_count": 9,
+      "axis_count": 3,
+      "has_traps": false,
+      "has_ev_simulator": false,
       "axes": [
         {
           "id": "A1",
@@ -376,7 +139,7 @@
         {
           "id": "Q1",
           "axis_id": "A1",
-          "text": "عندما يتواصل مريض جديد (اتصال، واتساب، رسائل) — كيف تقيم سرعة الاستجابة والرد في عيادتك؟",
+          "text": "ما آلية تسجيل وإدارة بيانات المرضى في عيادتك حالياً؟",
           "type": "likert",
           "scale": 5,
           "reverse": false,
@@ -385,7 +148,7 @@
         {
           "id": "Q2",
           "axis_id": "A1",
-          "text": "كيف تقيم منظومة المتابعة مع المريض أو المراجع بعد الزيارة في عيادتك؟",
+          "text": "ما منهجية المتابعة مع المرضى بعد انتهاء الزيارة؟",
           "type": "likert",
           "scale": 5,
           "reverse": false,
@@ -393,8 +156,8 @@
         },
         {
           "id": "Q3",
-          "axis_id": "A2",
-          "text": "عند اعتراض المريض أو المراجع على السعر، كيف تقيم إدارة الفريق لهذا الاعتراض؟",
+          "axis_id": "A1",
+          "text": "بأي طريقة يتم حجز المواعيد وإدارة الجدولة في عيادتك؟",
           "type": "likert",
           "scale": 5,
           "reverse": false,
@@ -403,16 +166,16 @@
         {
           "id": "Q4",
           "axis_id": "A2",
-          "text": "كيف تقيم قياسكم لمعدل تحويل الاستفسارات إلى مواعيد مؤكدة (Patient Acceptance Rate)؟",
+          "text": "ما الإطار المتبع لدى فريق الاستقبال عند التعامل مع استفسارات التسعير؟",
           "type": "likert",
           "scale": 5,
           "reverse": false,
           "trap": false
         },
         {
-          "id": "Q3",
-          "axis_id": "A3",
-          "text": "كيف تقيم آلية إدارة حالات عدم الالتزام بالمواعيد (No-Show) في عيادتك؟",
+          "id": "Q5",
+          "axis_id": "A2",
+          "text": "ما آلية قياس تحويل الاستفسارات إلى مواعيد مؤكدة في عيادتك؟",
           "type": "likert",
           "scale": 5,
           "reverse": false,
@@ -420,8 +183,35 @@
         },
         {
           "id": "Q6",
+          "axis_id": "A2",
+          "text": "ما برنامج تدريب فريق الاستقبال على التواصل وإدارة المكالمات؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q7",
           "axis_id": "A3",
-          "text": "كيف تقيم نظام قياس ومتابعة أداء العيادة (KPIs) لديكم؟",
+          "text": "ما الإجراء المتبع لحالات عدم حضور المواعيد (No-Show)؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q8",
+          "axis_id": "A3",
+          "text": "ما أدوات قياس ومتابعة أداء العيادة المتاحة لديكم؟",
+          "type": "likert",
+          "scale": 5,
+          "reverse": false,
+          "trap": false
+        },
+        {
+          "id": "Q9",
+          "axis_id": "A3",
+          "text": "ما الآلية المتبعة لتشجيع المرضى الحاليين على العودة والإحالة؟",
           "type": "likert",
           "scale": 5,
           "reverse": false,
