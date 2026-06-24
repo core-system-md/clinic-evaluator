@@ -1,7 +1,6 @@
 /**
  * Clinic Evaluator — app.js
  * Constitution v4.0 Compliant
- * Works with BOTH clinic-performance.html AND patient-journey.html
  */
 
 class ClinicEvaluatorApp {
@@ -18,15 +17,33 @@ class ClinicEvaluatorApp {
   }
 
   async init() {
+    console.log('[app.js] init started');
     try {
       await Promise.all([this.loadConfig(), this.loadTexts()]);
+      console.log('[app.js] config & texts loaded');
+      
       this.useOpt = document.getElementById('lead-specialty') !== null;
+      console.log('[app.js] useOpt:', this.useOpt);
+      
       this.setupLeadForm();
       this.setupNavigation();
       this.setupEVSimulator();
       this.setupPrint();
+      
+      // Pre-load assessment config if specified
+      if (window.preSelectedAssessment) {
+        console.log('[app.js] preSelectedAssessment:', window.preSelectedAssessment);
+        this.assessment = this.config.assessment_types?.[window.preSelectedAssessment];
+        if (this.assessment) {
+          this.questions = this.assessment.questions;
+          console.log('[app.js] assessment pre-loaded, questions:', this.questions.length);
+        } else {
+          console.error('[app.js] assessment not found in config:', window.preSelectedAssessment);
+          this.showError(this.t('errors.assessment_not_found'));
+        }
+      }
     } catch (err) {
-      console.error('Init failed:', err);
+      console.error('[app.js] Init failed:', err);
       this.showError(this.t('errors.init_failed'));
     }
   }
@@ -56,8 +73,13 @@ class ClinicEvaluatorApp {
 
   setupLeadForm() {
     const form = document.getElementById('lead-form');
-    if (!form) return;
+    if (!form) {
+      console.log('[app.js] lead-form not found');
+      return;
+    }
+    console.log('[app.js] lead-form found, attaching listener');
     form.addEventListener('submit', (e) => {
+      console.log('[app.js] form submitted');
       e.preventDefault();
       this.collectMetadata();
       this.startAssessment();
@@ -79,23 +101,34 @@ class ClinicEvaluatorApp {
       years: getVal('lead-years') || getVal('meta-years'),
       team: getVal('lead-staff') || getVal('meta-team')
     };
+    console.log('[app.js] metadata:', this.metadata);
   }
 
   startAssessment() {
-    this.currentAssessmentKey = window.preSelectedAssessment;
-    this.assessment = this.config.assessment_types?.[this.currentAssessmentKey];
+    console.log('[app.js] startAssessment called');
     if (!this.assessment) {
       this.showError(this.t('errors.assessment_not_found'));
       return;
     }
-    this.questions = this.assessment.questions;
+    this.currentAssessmentKey = window.preSelectedAssessment;
     this.answers = {};
     this.currentQuestionIndex = 0;
 
     const leadForm = document.getElementById('view-lead-form');
     const assessmentView = document.getElementById('view-assessment');
-    if (leadForm) leadForm.classList.add('hidden');
-    if (assessmentView) assessmentView.classList.remove('hidden');
+    
+    if (leadForm) {
+      leadForm.classList.add('hidden');
+      console.log('[app.js] lead-form hidden');
+    }
+    if (assessmentView) {
+      assessmentView.classList.remove('hidden');
+      console.log('[app.js] view-assessment shown');
+    } else {
+      console.error('[app.js] view-assessment not found!');
+      this.showError('خطأ: لم يتم العثور على حاوية الأسئلة');
+      return;
+    }
 
     this.renderQuestion();
     this.updateProgress();
@@ -104,7 +137,10 @@ class ClinicEvaluatorApp {
 
   renderQuestion() {
     const container = document.getElementById('question-container');
-    if (!container) return;
+    if (!container) {
+      console.error('[app.js] question-container not found');
+      return;
+    }
     const q = this.questions[this.currentQuestionIndex];
     const num = this.currentQuestionIndex + 1;
 
@@ -285,6 +321,9 @@ class ClinicEvaluatorApp {
     }, 200);
 
     try {
+      if (typeof AssessmentEngine === 'undefined') {
+        throw new Error('engine.js not loaded');
+      }
       this.engine = new AssessmentEngine(this.config);
       const results = this.engine.evaluate(this.answers, this.currentAssessmentKey, this.metadata);
 
@@ -520,16 +559,21 @@ class ClinicEvaluatorApp {
   }
 
   showError(msg) {
-    const el = document.getElementById('error-container');
-    if (!el) { alert(msg); return; }
+    let el = document.getElementById('error-container');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'error-container';
+      el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:14px 28px;border-radius:12px;box-shadow:0 8px 24px rgba(239,68,68,0.3);z-index:10000;font-weight:600;font-family:Cairo,sans-serif;';
+      document.body.appendChild(el);
+    }
     el.textContent = msg;
     el.style.display = 'block';
-    el.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#ef4444;color:#fff;padding:14px 28px;border-radius:12px;box-shadow:0 8px 24px rgba(239,68,68,0.3);z-index:1000;font-weight:600;';
     setTimeout(() => el.style.display = 'none', 5000);
   }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('[app.js] DOMContentLoaded');
   window.app = new ClinicEvaluatorApp();
   window.app.init();
 });
