@@ -1,0 +1,96 @@
+{
+  "version": "1.0.0",
+  "project": "Clinic Evaluator CORE",
+  "ui": {
+    "buttons": {
+      "submit": "إرسال التقييم وعرض النتائج",
+      "print": "🖨️ طباعة التقرير",
+      "new_assessment": "↺ تقييم جديد",
+      "processing": "جاري المعالجة..."
+    },
+    "errors": {
+      "init_failed": "فشل تحميل التطبيق. تأكد من وجود config.json وengine.js وreport_texts.json.",
+      "missing_answers": "يرجى الإجابة على {count} سؤال متبقي",
+      "processing_error": "حدث خطأ أثناء معالجة التقييم. تأكد من تحميل engine.js.",
+      "assessment_not_found": "نوع التقييم غير موجود"
+    },
+    "metadata": {
+      "specialty_label": "التخصص الطبي",
+      "specialty_placeholder": "مثال: جلدية، تجميل، أسنان...",
+      "years_label": "سنوات الخبرة",
+      "years_placeholder": "مثال: 5",
+      "team_label": "حجم الفريق",
+      "team_placeholder": "مثال: 8"
+    },
+    "progress": {
+      "of": "من"
+    },
+    "simulator": {
+      "title": "🔮 محاكي القيمة المتوقعة",
+      "description": "اضبط المتغيرات أدناه لحساب تأثير التحسينات على القيمة المالية للعيادة.",
+      "flow_label": "عدد المرضى الجدد / الشهر",
+      "ltv_label": "متوسط قيمة المريض الدائمة ($)"
+    }
+  },
+  "quartiles": {
+    "Q1": {
+      "label": "فجوة هيكلية حرجة",
+      "color": "#A33B3B"
+    },
+    "Q2": {
+      "label": "تذبذب ملحوظ",
+      "color": "#C67D47"
+    },
+    "Q3": {
+      "label": "أداء مستقر",
+      "color": "#5C6B73"
+    },
+    "Q4": {
+      "label": "أداء متميز",
+      "color": "#2A6F5D"
+    }
+  },
+  "kpis": {
+    "TFI": {
+      "name": "مؤشر تكوين الثقة",
+      "short_name": "TFI",
+      "description": "Trust Formation Index"
+    },
+    "TAP": {
+      "name": "مؤشر قبول العلاج",
+      "short_name": "TAP",
+      "description": "Treatment Acceptance Potential"
+    },
+    "PRP": {
+      "name": "مؤشر احتفاظ المرضى",
+      "short_name": "PRP",
+      "description": "Patient Retention Potential"
+    },
+    "PLI": {
+      "name": "مؤشر ولاء المرضى",
+      "short_name": "PLI",
+      "description": "Patient Loyalty Index"
+    }
+  },
+  "sections": {
+    "kpis": "المؤشرات الرئيسية (KPIs)",
+    "axes": "أداء المحاور",
+    "gaps": "فجوات محتملة",
+    "ev_simulator": "محاكي القيمة المتوقعة",
+    "ev_current": "القيمة الحالية",
+    "ev_potential": "القيمة المحتملة",
+    "ev_gap": "فرصة النمو المقدرة"
+  },
+  "badges": {
+    "impact_high": "تأثير عالي",
+    "impact_medium": "تأثير متوسط",
+    "impact_low": "تأثير منخفض",
+    "layer_trap": "كمين"
+  },
+  "report": {
+    "overall_score": "الدرجة الكلية",
+    "leakage_label": "فجوة الأداء",
+    "structural_diagnosis": "التشخيص الهيكلي",
+    "axis_summary": "ملخص المحاور"
+  }
+}
