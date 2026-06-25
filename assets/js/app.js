@@ -1,6 +1,7 @@
 /**
- * Clinic Evaluator — app.js
+ * Clinic Evaluator — app.js (FIXED v4.1)
  * Constitution v4.0 Compliant
+ * Fixes: Corrected fetch paths for JSON files (was loading 404 HTML instead of JSON)
  */
 
 class ClinicEvaluatorApp {
@@ -40,15 +41,20 @@ class ClinicEvaluatorApp {
     }
   }
 
+  /* ============================================================
+     FIX #1: Corrected JSON fetch paths
+     app.js lives in assets/js/  →  JSON files are in data/
+     Relative path must go up two levels: ../../data/
+     ============================================================ */
   async loadConfig() {
-    const res = await fetch('data/config.json');
-    if (!res.ok) throw new Error('data/config.json not found');
+    const res = await fetch('../../data/config.json');
+    if (!res.ok) throw new Error('data/config.json not found (HTTP ' + res.status + ')');
     this.config = await res.json();
   }
 
   async loadTexts() {
-    const res = await fetch('data/report_texts.json');
-    if (!res.ok) throw new Error('data/report_texts.json not found');
+    const res = await fetch('../../data/report_texts.json');
+    if (!res.ok) throw new Error('data/report_texts.json not found (HTTP ' + res.status + ')');
     this.texts = await res.json();
   }
 
@@ -132,19 +138,17 @@ class ClinicEvaluatorApp {
       const letter = letters[i] || '';
       const selected = this.answers[q.id] === opt.value ? 'sel' : '';
       optsHtml += `
-        <button type="button" class="opt ${selected}" data-value="${opt.value}" data-qid="${q.id}">
+        <div class="opt ${selected}" data-value="${opt.value}">
           <span class="opt-letter">${letter}</span>
-          <span style="flex:1;">${opt.label}</span>
-        </button>
-      `;
+          <span class="opt-label">${opt.label}</span>
+        </div>`;
     });
     return `
-      <div class="question-card" data-qid="${q.id}">
-        <div class="question-number">السؤال ${num} من ${this.questions.length}</div>
-        <div class="question-text">${q.text}</div>
-        <div class="opts">${optsHtml}</div>
-      </div>
-    `;
+      <div class="question-card">
+        <div class="question-meta">السؤال ${num} من ${this.questions.length}</div>
+        <h3 class="question-text">${q.text}</h3>
+        <div class="options-grid">${optsHtml}</div>
+      </div>`;
   }
 
   renderLikertQuestion(q, num) {
@@ -152,19 +156,17 @@ class ClinicEvaluatorApp {
     q.options.forEach((opt) => {
       const selected = this.answers[q.id] === opt.value ? 'selected' : '';
       optsHtml += `
-        <div class="likert-option ${selected}" data-value="${opt.value}" data-qid="${q.id}">
-          <span class="value">${opt.value}</span>
-          <span class="label">${opt.label}</span>
-        </div>
-      `;
+        <div class="likert-option ${selected}" data-value="${opt.value}">
+          <div class="likert-value">${opt.value}</div>
+          <div class="likert-label">${opt.label}</div>
+        </div>`;
     });
     return `
-      <div class="question-card" data-qid="${q.id}">
-        <div class="question-number">السؤال ${num} من ${this.questions.length}</div>
-        <div class="question-text">${q.text}</div>
-        <div class="likert-scale">${optsHtml}</div>
-      </div>
-    `;
+      <div class="question-card">
+        <div class="question-meta">السؤال ${num} من ${this.questions.length}</div>
+        <h3 class="question-text">${q.text}</h3>
+        <div class="likert-row">${optsHtml}</div>
+      </div>`;
   }
 
   attachOptionHandlers(container, qid) {
@@ -337,14 +339,11 @@ class ClinicEvaluatorApp {
         const row = document.createElement('div');
         row.className = 'axis-score-row';
         row.innerHTML = `
-          <div class="axis-score-info">
-            <div class="axis-score-name">${axis ? axis.name_ar : aid}</div>
-            <div class="axis-score-bar-bg">
-              <div class="axis-score-bar-fill" style="width:${score}%; background:${barColor};"></div>
-            </div>
+          <div class="axis-info">
+            <span class="axis-name">${axis ? axis.name_ar : aid}</span>
+            <span class="axis-score" style="color:${barColor}">${score.toFixed(1)}%</span>
           </div>
-          <div class="axis-score-value">${score.toFixed(1)}%</div>
-        `;
+          <div class="axis-bar-bg"><div class="axis-bar-fill" style="width:${score}%;background:${barColor}"></div></div>`;
         axesContainer.appendChild(row);
       });
     }
@@ -353,7 +352,7 @@ class ClinicEvaluatorApp {
       const kpiCard = document.createElement('div');
       kpiCard.className = 'form-card';
       kpiCard.style.marginBottom = '20px';
-      kpiCard.innerHTML = `<div class="card-title">${this.t('sections.kpis')}</div>`;
+      kpiCard.innerHTML = `<h3 class="card-title">${this.t('sections.kpis')}</h3>`;
       const grid = document.createElement('div');
       grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:16px;';
       Object.entries(res.kpis).forEach(([k, v]) => {
@@ -361,10 +360,9 @@ class ClinicEvaluatorApp {
         const card = document.createElement('div');
         card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:18px;text-align:center;border:1px solid #e5e7eb;';
         card.innerHTML = `
-          <div style="font-size:0.85rem;color:#6b7280;margin-bottom:4px;">${kpiInfo.name}</div>
-          <div style="font-size:0.75rem;color:#9ca3af;margin-bottom:8px;">${kpiInfo.short_name}</div>
-          <div style="font-size:1.8rem;font-weight:800;color:#134e4a;">${v.toFixed(1)}</div>
-        `;
+          <div style="font-size:12px;color:#5C6B73;margin-bottom:4px">${kpiInfo.name}</div>
+          <div style="font-size:11px;color:#94a3b8;margin-bottom:8px">${kpiInfo.short_name}</div>
+          <div style="font-size:24px;font-weight:700;color:#0f766e">${v.toFixed(1)}</div>`;
         grid.appendChild(card);
       });
       kpiCard.appendChild(grid);
@@ -386,7 +384,9 @@ class ClinicEvaluatorApp {
       res.traps.forEach(t => {
         const alert = document.createElement('div');
         alert.className = 'trap-alert';
-        alert.innerHTML = `<span class="icon">⚠️</span><div class="content"><h4>${t.name}</h4><p>${t.message}</p></div>`;
+        alert.innerHTML = `⚠️
+          <h4>${t.name}</h4>
+          <p>${t.message}</p>`;
         trapsContainer.appendChild(alert);
       });
     } else if (trapsContainer) {
@@ -406,7 +406,9 @@ class ClinicEvaluatorApp {
         const axis = this.assessment.axes.find(x => x.id === weakest[0]);
         const box = document.createElement('div');
         box.className = 'insight-box';
-        box.innerHTML = `<h4>أولوية التحسين: ${axis ? axis.name_ar : weakest[0]}</h4><p>هذا المحور يحتاج إلى اهتمام فوري لأنه الأقل أداءً (${weakest[1].toFixed(1)}%).</p>`;
+        box.innerHTML = `
+          <h4>أولوية التحسين: ${axis ? axis.name_ar : weakest[0]}</h4>
+          <p>هذا المحور يحتاج إلى اهتمام فوري لأنه الأقل أداءً (${weakest[1].toFixed(1)}%).</p>`;
         recContainer.appendChild(box);
       }
     }
@@ -415,14 +417,22 @@ class ClinicEvaluatorApp {
       const evCard = document.createElement('div');
       evCard.className = 'form-card';
       evCard.style.marginBottom = '20px';
-      evCard.innerHTML = `<div class="card-title">${this.t('sections.ev_simulator')}</div>`;
+      evCard.innerHTML = `<h3 class="card-title">${this.t('sections.ev_simulator')}</h3>`;
       const grid = document.createElement('div');
       grid.style.cssText = 'display:grid;grid-template-columns:repeat(3,1fr);gap:16px;';
       grid.innerHTML = `
-        <div style="text-align:center;"><div style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">${this.t('sections.ev_current')}</div><div style="font-size:1.3rem;font-weight:700;">$${(res.evSimulator.currentEV || 0).toLocaleString()}</div></div>
-        <div style="text-align:center;"><div style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">${this.t('sections.ev_potential')}</div><div style="font-size:1.3rem;font-weight:700;">$${(res.evSimulator.potentialEV || 0).toLocaleString()}</div></div>
-        <div style="text-align:center;"><div style="font-size:0.8rem;color:#6b7280;margin-bottom:4px;">${this.t('sections.ev_gap')}</div><div style="font-size:1.3rem;font-weight:700;color:#10b981;">+$${(res.evSimulator.gap || 0).toLocaleString()}</div></div>
-      `;
+        <div style="background:#f8fafc;border-radius:12px;padding:18px;text-align:center;border:1px solid #e5e7eb;">
+          <div style="font-size:12px;color:#5C6B73;margin-bottom:8px">${this.t('sections.ev_current')}</div>
+          <div style="font-size:20px;font-weight:700;color:#0f766e">$${(res.evSimulator.currentEV || 0).toLocaleString()}</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:12px;padding:18px;text-align:center;border:1px solid #e5e7eb;">
+          <div style="font-size:12px;color:#5C6B73;margin-bottom:8px">${this.t('sections.ev_potential')}</div>
+          <div style="font-size:20px;font-weight:700;color:#0f766e">$${(res.evSimulator.potentialEV || 0).toLocaleString()}</div>
+        </div>
+        <div style="background:#f8fafc;border-radius:12px;padding:18px;text-align:center;border:1px solid #e5e7eb;">
+          <div style="font-size:12px;color:#5C6B73;margin-bottom:8px">${this.t('sections.ev_gap')}</div>
+          <div style="font-size:20px;font-weight:700;color:#0f766e">+$${(res.evSimulator.gap || 0).toLocaleString()}</div>
+        </div>`;
       evCard.appendChild(grid);
       const recContainer = document.getElementById('recommendations-container');
       if (recContainer && recContainer.nextSibling) {
