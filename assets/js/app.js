@@ -1,7 +1,11 @@
 /**
- * Clinic Evaluator — app.js (FIXED v4.1)
+ * Clinic Evaluator — app.js (FIXED v4.2)
  * Constitution v4.0 Compliant
- * Fixes: Corrected fetch paths for JSON files (was loading 404 HTML instead of JSON)
+ * Fixes: 
+ *   - Corrected fetch paths for JSON files
+ *   - Hide keyboard hint when assessment not active
+ *   - EV simulator respects config enabled flag
+ *   - Better view state management
  */
 
 class ClinicEvaluatorApp {
@@ -28,6 +32,7 @@ class ClinicEvaluatorApp {
       this.setupNavigation();
       this.setupEVSimulator();
       this.setupPrint();
+      this.hideKeyboardHint();
       if (window.preSelectedAssessment) {
         this.assessment = this.config.assessment_types?.[window.preSelectedAssessment];
         if (this.assessment) {
@@ -41,11 +46,6 @@ class ClinicEvaluatorApp {
     }
   }
 
-  /* ============================================================
-     FIX #1: Corrected JSON fetch paths
-     app.js lives in assets/js/  →  JSON files are in data/
-     Relative path must go up two levels: ../../data/
-     ============================================================ */
   async loadConfig() {
     const res = await fetch('../../data/config.json');
     if (!res.ok) throw new Error('data/config.json not found (HTTP ' + res.status + ')');
@@ -115,6 +115,21 @@ class ClinicEvaluatorApp {
     this.renderQuestion();
     this.updateProgress();
     this.updateNavButtons();
+    this.showKeyboardHint();
+  }
+
+  hideKeyboardHint() {
+    const hint = document.querySelector('.text-muted.text-center');
+    if (hint && hint.textContent.includes('1-5')) {
+      hint.style.display = 'none';
+    }
+  }
+
+  showKeyboardHint() {
+    const hint = document.querySelector('.text-muted.text-center');
+    if (hint && hint.textContent.includes('1-5')) {
+      hint.style.display = 'block';
+    }
   }
 
   renderQuestion() {
@@ -384,9 +399,12 @@ class ClinicEvaluatorApp {
       res.traps.forEach(t => {
         const alert = document.createElement('div');
         alert.className = 'trap-alert';
-        alert.innerHTML = `⚠️
-          <h4>${t.name}</h4>
-          <p>${t.message}</p>`;
+        alert.innerHTML = `
+          <span class="icon">⚠️</span>
+          <div class="content">
+            <h4>${t.name}</h4>
+            <p>${t.message}</p>
+          </div>`;
         trapsContainer.appendChild(alert);
       });
     } else if (trapsContainer) {
@@ -413,7 +431,14 @@ class ClinicEvaluatorApp {
       }
     }
 
-    if (res.evSimulator) {
+    // Only show EV simulator if enabled in config
+    const evEnabled = this.assessment?.simulator?.enabled === true;
+    const evCard = document.getElementById('btn-ev-simulator')?.closest('.form-card');
+    if (evCard && !evEnabled) {
+      evCard.classList.add('hidden');
+    }
+
+    if (res.evSimulator && evEnabled) {
       const evCard = document.createElement('div');
       evCard.className = 'form-card';
       evCard.style.marginBottom = '20px';
@@ -429,9 +454,9 @@ class ClinicEvaluatorApp {
           <div style="font-size:12px;color:#5C6B73;margin-bottom:8px">${this.t('sections.ev_potential')}</div>
           <div style="font-size:20px;font-weight:700;color:#0f766e">$${(res.evSimulator.potentialEV || 0).toLocaleString()}</div>
         </div>
-        <div style="background:#f8fafc;border-radius:12px;padding:18px;text-align:center;border:1px solid #e5e7eb;">
+        <div style="background:#f0fdfa;border-radius:12px;padding:18px;text-align:center;border:1px solid #e5e7eb;">
           <div style="font-size:12px;color:#5C6B73;margin-bottom:8px">${this.t('sections.ev_gap')}</div>
-          <div style="font-size:20px;font-weight:700;color:#0f766e">+$${(res.evSimulator.gap || 0).toLocaleString()}</div>
+          <div style="font-size:20px;font-weight:700;color:#10b981">+$${(res.evSimulator.gap || 0).toLocaleString()}</div>
         </div>`;
       evCard.appendChild(grid);
       const recContainer = document.getElementById('recommendations-container');
@@ -446,12 +471,22 @@ class ClinicEvaluatorApp {
   setupEVSimulator() {
     const btn = document.getElementById('btn-ev-simulator');
     if (!btn) return;
+
+    // Check if simulator is enabled for this assessment
+    const isEnabled = this.assessment?.simulator?.enabled === true;
+    if (!isEnabled) {
+      const evCard = btn.closest('.form-card');
+      if (evCard) evCard.classList.add('hidden');
+      return;
+    }
+
     btn.addEventListener('click', () => {
       const resultsView = document.getElementById('view-results');
       const evView = document.getElementById('view-ev-simulator');
       if (resultsView) resultsView.classList.add('hidden');
       if (evView) evView.classList.remove('hidden');
     });
+
     const calcBtn = document.getElementById('btn-calculate-ev');
     if (calcBtn) {
       calcBtn.addEventListener('click', () => {
@@ -459,22 +494,51 @@ class ClinicEvaluatorApp {
         const visits = parseFloat(document.getElementById('ev-visits')?.value) || 0;
         const years = parseFloat(document.getElementById('ev-years')?.value) || 0;
         const referral = parseFloat(document.getElementById('ev-referral')?.value) || 0;
-        const ltv = avg * visits * years;
-        const referralMultiplier = 1 + (referral / 100) * 2;
-        const current = ltv;
-        const opt20 = ltv * 1.2 * referralMultiplier;
-        const opt50 = ltv * 1.5 * referralMultiplier;
+
+        // Use engine calculation if available, otherwise fallback
+        let current, opt20, opt50;
+        if (this.engine && this.assessment) {
+          const axisScores = this.engine.calculateScores().axes;
+          const evResult = this.engine.calculateEV(
+            Object.fromEntries(axisScores.map(a => [a.axisId, a.percentage])),
+            { flow: visits * 12, ltv: avg * visits * years }
+          );
+          if (evResult) {
+            current = evResult.currentEV;
+            opt20 = evResult.potentialEV * 0.8;
+            opt50 = evResult.potentialEV;
+          }
+        }
+
+        // Fallback calculation
+        if (!current) {
+          const ltv = avg * visits * years;
+          const referralMultiplier = 1 + (referral / 100) * 2;
+          current = ltv;
+          opt20 = ltv * 1.2 * referralMultiplier;
+          opt50 = ltv * 1.5 * referralMultiplier;
+        }
+
         const resultsDiv = document.getElementById('ev-results');
         if (resultsDiv) resultsDiv.classList.remove('hidden');
-        const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '$' + Math.round(val).toLocaleString(); };
+
+        const setText = (id, val) => { 
+          const el = document.getElementById(id); 
+          if (el) el.textContent = '$' + Math.round(val).toLocaleString(); 
+        };
         setText('ev-current', current);
         setText('ev-opt20', opt20);
         setText('ev-opt50', opt50);
-        const setInc = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = '+$' + Math.round(val).toLocaleString(); };
+
+        const setInc = (id, val) => { 
+          const el = document.getElementById(id); 
+          if (el) el.textContent = '+$' + Math.round(val).toLocaleString(); 
+        };
         setInc('ev-increase20', opt20 - current);
         setInc('ev-increase50', opt50 - current);
       });
     }
+
     const backBtn = document.getElementById('btn-back-results');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
