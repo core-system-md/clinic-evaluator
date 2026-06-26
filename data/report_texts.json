@@ -8,12 +8,6 @@
       "new_assessment": "↺ تقييم جديد",
       "processing": "جاري المعالجة..."
     },
-    "errors": {
-      "init_failed": "فشل تحميل التطبيق. تأكد من وجود config.json وengine.js وreport_texts.json.",
-      "missing_answers": "يرجى الإجابة على {count} سؤال متبقي",
-      "processing_error": "حدث خطأ أثناء معالجة التقييم. تأكد من تحميل engine.js.",
-      "assessment_not_found": "نوع التقييم غير موجود"
-    },
     "metadata": {
       "specialty_label": "التخصص الطبي",
       "specialty_placeholder": "مثال: جلدية، تجميل، أسنان...",
@@ -92,5 +86,11 @@
     "leakage_label": "فجوة الأداء",
     "structural_diagnosis": "التشخيص الهيكلي",
     "axis_summary": "ملخص المحاور"
+  },
+  "errors": {
+    "init_failed": "فشل تحميل التطبيق. تأكد من وجود config.json وengine.js وreport_texts.json.",
+    "missing_answers": "يرجى الإجابة على {count} سؤال متبقي",
+    "processing_error": "حدث خطأ أثناء معالجة التقييم. تأكد من تحميل engine.js.",
+    "assessment_not_found": "نوع التقييم غير موجود"
   }
 }
