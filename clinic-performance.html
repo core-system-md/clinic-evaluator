@@ -126,7 +126,6 @@
     .opt { padding: 14px 16px; font-size: 0.9rem; }
     .btn-group { flex-direction: column; }
   }
-  .hidden { display: none !important; }
 </style>
 </head>
 <body>
@@ -152,12 +151,12 @@
   <div class="privacy-box">
     <p><strong>🔒 تعهد الخصوصية:</strong> البيانات التي تقدمها لا يتم مشاركتها حفاظاً على أخلاق المهنة.</p>
   </div>
-  <div id="view-home" class="hidden"></div>
+  <div id="view-home" style="display: none;"></div>
   <div class="assessment-grid hidden" id="assessment-grid"></div>
-  <div class="hidden" id="selected-assessment-title">تقييم أداء العيادة</div>
-  <button class="hidden" id="btn-start-assessment" disabled></button>
-  <button class="hidden" id="btn-back-home"></button>
-  <button class="hidden" id="btn-back-home-2"></button>
+  <div style="display: none;" id="selected-assessment-title">تقييم أداء العيادة</div>
+  <button style="display: none;" id="btn-start-assessment" disabled></button>
+  <button style="display: none;" id="btn-back-home"></button>
+  <button style="display: none;" id="btn-back-home-2"></button>
   <div id="view-lead-form">
     <div class="form-card">
       <div class="card-title">📝 بياناتك</div>
@@ -232,7 +231,7 @@
       </form>
     </div>
   </div>
-  <div id="view-assessment" class="hidden">
+  <div id="view-assessment" style="display: none;">
     <div class="progress-wrapper">
       <div class="progress-bar-bg"><div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div></div>
       <div class="progress-text" id="progress-text">0 من 0 — 0%</div>
@@ -246,7 +245,7 @@
       اضغط على رقم 1-5 للإجابة السريعة | الأسهم للتنقل
     </div>
   </div>
-  <div id="view-loading" class="hidden">
+  <div id="view-loading" style="display: none;">
     <div class="form-card text-center" style="padding: 60px 20px;">
       <div style="font-size: 1.2rem; color: #134e4a; font-weight: 700; margin-bottom: 20px;">جاري تحليل البيانات...</div>
       <div class="progress-bar-bg" style="max-width: 300px; margin: 0 auto;">
@@ -255,7 +254,7 @@
       <div style="margin-top: 12px; font-size: 0.9rem; color: #6b7280;" id="load-status">0%</div>
     </div>
   </div>
-  <div id="view-results" class="hidden">
+  <div id="view-results" style="display: none;">
     <div class="form-card text-center">
       <div id="result-score-circle" class="result-score-circle">
         <div id="result-score-value" class="result-score-value">0%</div>
@@ -284,7 +283,7 @@
       <button id="btn-print-report" class="btn btn-primary" style="flex:1;">🖨️ طباعة / حفظ PDF</button>
     </div>
   </div>
-  <div id="view-ev-simulator" class="hidden">
+  <div id="view-ev-simulator" style="display: none;">
     <div class="form-card">
       <div class="card-title">🔢 بيانات العيادة</div>
       <div class="ev-inputs">
