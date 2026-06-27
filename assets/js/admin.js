@@ -20,7 +20,7 @@ class AdminDashboard {
     this.texts = null;
 
     // Admin password (change this in production)
-    this.ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918'; // SHA-256 of "admin"
+    this.ADMIN_PASSWORD_HASH = '6051fc84a7a0d74c225fb18a496b09952da5642e60723ecae543298edd7d82d6'; // SHA-256 of "admin"
   }
 
   async init() {
@@ -587,4 +587,132 @@ class AdminDashboard {
             <div class="detail-value">${lead.clinic_name || '--'}</div>
           </div>
           <div class="detail-item">
-            <div class="detail-label">التخصص الطبي<
+            <div class="detail-label">التخصص الطبي</div>
+            <div class="detail-value">${lead.specialty || '--'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">سنوات التشغيل</div>
+            <div class="detail-value">${lead.years || '--'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">حجم الفريق</div>
+            <div class="detail-value">${lead.team || '--'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">الدولة</div>
+            <div class="detail-value">${lead.country || '--'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">التاريخ</div>
+            <div class="detail-value">${lead.created_at ? new Date(lead.created_at).toLocaleString('ar-SA') : '--'}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">الحالة</div>
+            <div class="detail-value">${lead.completed ? '✅ مكتمل' : '⏳ غير مكتمل'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Scores -->
+      ${scores.length > 0 ? `
+        <div class="detail-section">
+          <h4>📊 درجات المحاور</h4>
+          <div class="scores-grid">
+            ${scores.map(s => `
+              <div class="score-card">
+                <div class="score-name">${s.axis_name_ar || s.axis_id}</div>
+                <div class="score-value">${s.percentage != null ? s.percentage.toFixed(1) : '--'}%</div>
+              </div>
+            `).join('')}
+          </div>
+          <div style="margin-top: 16px; text-align: center; padding: 16px; background: var(--bg); border-radius: 8px;">
+            <div style="color: var(--text-muted); font-size: 0.9rem;">الدرجة الكلية</div>
+            <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">
+              ${lead.score_percentage != null ? lead.score_percentage.toFixed(1) : '--'}%
+            </div>
+          </div>
+        </div>
+      ` : ''}
+
+      <!-- Answers -->
+      ${answers.length > 0 ? `
+        <div class="detail-section">
+          <h4>📝 الإجابات</h4>
+          <div class="answers-list">
+            ${answers.map((a, i) => {
+              // Get question text from config if available
+              let questionText = a.question_text || `سؤال ${i + 1}`;
+              let answerText = this.getAnswerLabel(a.question_id, a.answer_value);
+
+              return `
+                <div class="answer-item">
+                  <div class="answer-question">${questionText}</div>
+                  <div class="answer-selected">${answerText}</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      ` : '<div style="text-align: center; color: var(--text-muted); padding: 20px;">لا توجد إجابات مسجلة</div>'}
+    `;
+
+    document.getElementById('detail-modal').classList.remove('hidden');
+  }
+
+  getAnswerLabel(questionId, value) {
+    if (!this.config || !questionId) return `قيمة: ${value}`;
+
+    // Find question in config
+    for (const [key, assessment] of Object.entries(this.config.assessment_types || {})) {
+      const question = assessment.questions?.find(q => q.id === questionId);
+      if (question) {
+        const option = question.options?.find(o => o.value === value);
+        if (option) return option.label;
+      }
+    }
+    return `قيمة: ${value}`;
+  }
+
+  // ========== UTILITIES ==========
+
+  showLoading(show) {
+    let overlay = document.getElementById('loading-overlay');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'loading-overlay';
+      overlay.className = 'loading-overlay hidden';
+      overlay.innerHTML = '<div class="spinner"></div>';
+      document.body.appendChild(overlay);
+    }
+    if (show) overlay.classList.remove('hidden');
+    else overlay.classList.add('hidden');
+  }
+
+  showToast(message, type = 'success') {
+    const toast = document.getElementById('toast');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.className = `toast ${type}`;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3000);
+  }
+
+  showError(message) {
+    this.showToast(message, 'error');
+    console.error('[Admin]', message);
+  }
+
+  updateLastUpdated() {
+    const el = document.getElementById('last-updated');
+    if (el) {
+      el.textContent = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+    }
+  }
+}
+
+// Initialize
+let adminDashboard;
+document.addEventListener('DOMContentLoaded', () => {
+  adminDashboard = new AdminDashboard();
+  adminDashboard.init();
+});
