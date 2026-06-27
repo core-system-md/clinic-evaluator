@@ -1,17 +1,17 @@
 {
   "name": "clinic-evaluator",
   "version": "1.0.0",
-  "description": "**الإصدار:** 1.0.0   **التاريخ:** 24 يونيو 2026   **المطور:** Yazeed Walid   **الترخيص:** جميع الحقوق محفوظة © 2026 The MD CODE",
+  "description": "Clinic Evaluator static web app for patient journey and clinic performance assessments",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/app-view-toggle.test.js"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/core-system-md/clinic-evaluator.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "The MD CODE",
   "license": "ISC",
   "type": "commonjs",
   "bugs": {
