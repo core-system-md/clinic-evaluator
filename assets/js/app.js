@@ -1,10 +1,11 @@
 /**
- * Clinic Evaluator — app.js v5.2 (PRODUCTION + Supabase FIX)
+ * Clinic Evaluator — app.js v5.0 (PRODUCTION)
  * Fixes:
- * - Supabase select() method corrected for proper syntax
- * - Auth check improved with error handling
- * - Lead/Session/Answer save methods now robust
- * - Better error handling and logging
+ *   - Fetch paths corrected (relative to HTML)
+ *   - Arabic error messages with page display
+ *   - ABCDE system enforced (no Likert/12345)
+ *   - SupabaseClient removed (moved to supabase-client.js)
+ *   - Better error handling and user feedback
  */
 
 class ClinicEvaluatorApp {
@@ -19,171 +20,13 @@ class ClinicEvaluatorApp {
     this.questions = [];
     this.engine = null;
     this.errorShown = false;
-    this.supabase = null;
-    this.currentLeadId = null;
-    this.currentSessionId = null;
-  }
-
-  // ========== AUTH CHECK ==========
-  async checkAssessmentAuth() {
-    try {
-      if (this.supabase && window.preSelectedAssessment) {
-        try {
-          const { data: settings, error } = await this.supabase
-            .from('assessment_settings')
-            .select('*')
-            .eq('assessment_key', window.preSelectedAssessment)
-            .single();
-
-          if (error) {
-            console.warn('[app.js] Assessment settings fetch error (non-fatal):', error.message);
-            return;
-          }
-
-          if (settings && settings.auth_enabled) {
-            await this.showAuthModal();
-          }
-        } catch (err) {
-          console.warn('[app.js] Auth check exception:', err.message);
-        }
-      }
-    } catch (err) {
-      console.warn('[app.js] Auth check failed:', err);
-    }
-  }
-
-  async showAuthModal() {
-    return new Promise((resolve) => {
-      const existing = document.getElementById('assessment-auth-modal');
-      if (existing) existing.remove();
-
-      const modal = document.createElement('div');
-      modal.id = 'assessment-auth-modal';
-      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;';
-      modal.innerHTML = `
-        <div style="background:#1e293b;border-radius:16px;padding:40px;width:90%;max-width:400px;border:1px solid #334155;direction:rtl;">
-          <h2 style="color:#e8b923;text-align:center;margin-bottom:8px;">🔐 تقييم محمي</h2>
-          <p style="color:#94a3b8;text-align:center;margin-bottom:24px;font-size:0.9rem;">هذا التقييم يتطلب تسجيل دخول</p>
-          <form id="assessment-auth-form">
-            <div style="margin-bottom:16px;">
-              <label style="display:block;color:#94a3b8;margin-bottom:6px;font-size:0.9rem;">اسم المستخدم</label>
-              <input type="text" id="auth-user" required style="width:100%;padding:12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:1rem;font-family:inherit;">
-            </div>
-            <div style="margin-bottom:16px;">
-              <label style="display:block;color:#94a3b8;margin-bottom:6px;font-size:0.9rem;">كلمة المرور</label>
-              <input type="password" id="auth-pass" required style="width:100%;padding:12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:1rem;font-family:inherit;">
-            </div>
-            <div id="auth-error-msg" style="color:#ef4444;text-align:center;margin-bottom:16px;display:none;font-size:0.9rem;"></div>
-            <button type="submit" style="width:100%;padding:14px;background:#1a5f7a;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">دخول</button>
-          </form>
-        </div>
-      `;
-      document.body.appendChild(modal);
-
-      document.getElementById('assessment-auth-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const username = document.getElementById('auth-user').value.trim();
-        const password = document.getElementById('auth-pass').value;
-        const errorDiv = document.getElementById('auth-error-msg');
-
-        try {
-          const { data: users, error } = await this.supabase
-            .from('assessment_users')
-            .select('*')
-            .eq('assessment_key', window.preSelectedAssessment)
-            .eq('username', username);
-
-          if (error) {
-            errorDiv.textContent = 'خطأ في الاتصال';
-            errorDiv.style.display = 'block';
-            return;
-          }
-
-          if (!users || users.length === 0) {
-            errorDiv.textContent = 'اسم المستخدم غير موجود';
-            errorDiv.style.display = 'block';
-            return;
-          }
-
-          const user = users[0];
-          const hash = await this.simpleHash(password);
-
-          if (user.password_hash !== hash) {
-            errorDiv.textContent = 'كلمة المرور غير صحيحة';
-            errorDiv.style.display = 'block';
-            return;
-          }
-
-          if (!user.active) {
-            errorDiv.textContent = 'الحساب معطل';
-            errorDiv.style.display = 'block';
-            return;
-          }
-
-          if (user.used_count >= user.max_uses) {
-            errorDiv.textContent = 'تم استنفاد عدد الاستخدامات';
-            errorDiv.style.display = 'block';
-            return;
-          }
-
-          if (user.expires_at && new Date(user.expires_at) < new Date()) {
-            errorDiv.textContent = 'انتهت صلاحية الحساب';
-            errorDiv.style.display = 'block';
-            return;
-          }
-
-          await this.supabase
-            .from('assessment_users')
-            .update({ used_count: user.used_count + 1 })
-            .eq('id', user.id);
-
-          modal.remove();
-          resolve(true);
-        } catch (err) {
-          console.error('[app.js] Auth error:', err);
-          errorDiv.textContent = 'خطأ في المصادقة';
-          errorDiv.style.display = 'block';
-        }
-      });
-    });
-  }
-
-  async simpleHash(str) {
-    try {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(str);
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    } catch (err) {
-      console.error('[app.js] Hash error:', err);
-      return '';
-    }
-  }
-
-  getActiveAssessment() {
-    if (this.assessment) return this.assessment;
-    if (!this.config?.assessment_types) return null;
-    const key = this.currentAssessmentKey || window.preSelectedAssessment;
-    return key ? this.config.assessment_types[key] : null;
   }
 
   async init() {
     console.log('[app.js] init started');
     try {
-      // Initialize Supabase client
-      this.supabase = window.supabaseClient || null;
-      if (this.supabase) {
-        console.log('[app.js] Supabase client initialized');
-      } else {
-        console.warn('[app.js] Supabase client not available');
-      }
-
       await Promise.all([this.loadConfig(), this.loadTexts()]);
       console.log('[app.js] config & texts loaded');
-
-      // Check if assessment is protected
-      await this.checkAssessmentAuth();
 
       this.setupLeadForm();
       this.setupNavigation();
@@ -191,13 +34,13 @@ class ClinicEvaluatorApp {
       this.setupPrint();
       this.setupKeyboardShortcuts();
 
-      this.currentAssessmentKey = window.preSelectedAssessment;
-      this.assessment = this.getActiveAssessment();
-      if (this.assessment) {
-        this.questions = this.assessment.questions || [];
-        console.log('[app.js] assessment pre-loaded:', window.preSelectedAssessment, 'questions:', this.questions.length);
-      } else {
-        console.warn('[app.js] no assessment loaded for:', window.preSelectedAssessment);
+      if (window.preSelectedAssessment) {
+        this.assessment = this.config.assessment_types?.[window.preSelectedAssessment];
+        if (this.assessment) {
+          this.questions = this.assessment.questions;
+          console.log('[app.js] assessment pre-loaded:', window.preSelectedAssessment, 
+                      'questions:', this.questions.length);
+        }
       }
     } catch (err) {
       console.error('[app.js] Init failed:', err);
@@ -243,26 +86,15 @@ class ClinicEvaluatorApp {
 
   // ========== ERROR HANDLING ==========
 
-  showView(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('hidden');
-    el.style.display = '';
-  }
-
-  hideView(id) {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.add('hidden');
-    el.style.display = 'none';
-  }
-
   showFatalError(msg) {
     if (this.errorShown) return;
     this.errorShown = true;
 
     // Hide all views
-    ['view-lead-form', 'view-assessment', 'view-loading', 'view-results'].forEach(id => this.hideView(id));
+    ['view-lead-form', 'view-assessment', 'view-loading', 'view-results'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.classList.add('hidden');
+    });
 
     // Show error in page
     let errorDiv = document.getElementById('fatal-error');
@@ -274,9 +106,12 @@ class ClinicEvaluatorApp {
     }
 
     errorDiv.innerHTML = `
-      <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
-      <h2 style="color:#991b1b;margin-bottom:12px;">خطأ في التطبيق</h2>
-      <p style="color:#7f1d1d;font-size:1rem;">${msg}</p>
+      <div style="font-size:48px;margin-bottom:16px">⚠️</div>
+      <h2 style="color:#991b1b;margin-bottom:16px">خطأ في التطبيق</h2>
+      <p style="color:#7f1d1d;line-height:1.8;margin-bottom:24px">${msg}</p>
+      <button onclick="location.reload()" style="background:#ef4444;color:white;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:1rem;">
+        إعادة المحاولة 🔄
+      </button>
     `;
     errorDiv.classList.remove('hidden');
   }
@@ -288,7 +123,7 @@ class ClinicEvaluatorApp {
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'error-toast';
-      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#991b1b;color:white;padding:16px 24px;border-radius:12px;z-index:9999;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.2);';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#991b1b;color:white;padding:16px 24px;border-radius:12px;z-index:9999;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.2);transition:all 0.3s;opacity:0;';
       document.body.appendChild(toast);
     }
     toast.textContent = msg;
@@ -329,7 +164,7 @@ class ClinicEvaluatorApp {
 
   startAssessment() {
     this.currentAssessmentKey = window.preSelectedAssessment;
-    this.assessment = this.getActiveAssessment();
+    this.assessment = this.config.assessment_types?.[this.currentAssessmentKey];
 
     if (!this.assessment) {
       this.showFatalError('نوع التقييم غير موجود: ' + this.currentAssessmentKey);
@@ -340,10 +175,12 @@ class ClinicEvaluatorApp {
     this.answers = {};
     this.currentQuestionIndex = 0;
 
-    this.hideView('view-lead-form');
-    this.showView('view-assessment');
+    const leadForm = document.getElementById('view-lead-form');
     const assessmentView = document.getElementById('view-assessment');
+
+    if (leadForm) leadForm.classList.add('hidden');
     if (assessmentView) {
+      assessmentView.classList.remove('hidden');
       assessmentView.classList.add('fade-in');
     }
 
@@ -358,12 +195,7 @@ class ClinicEvaluatorApp {
     const container = document.getElementById('question-container');
     if (!container) return;
 
-    const q = this.questions?.[this.currentQuestionIndex];
-    if (!q) {
-      this.showFatalError('لا توجد أسئلة متاحة لهذا التقييم حالياً.');
-      return;
-    }
-
+    const q = this.questions[this.currentQuestionIndex];
     const num = this.currentQuestionIndex + 1;
     const total = this.questions.length;
 
@@ -381,22 +213,32 @@ class ClinicEvaluatorApp {
     q.options.forEach((opt, i) => {
       const letter = letters[i] || '';
       const selected = this.answers[q.id] === opt.value ? 'sel' : '';
+      const valueBadge = opt.value === 100 ? '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">ممتاز</span>' : 
+                        opt.value === 40 ? '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">متوسط</span>' :
+                        '<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">ضعيف</span>';
 
       optsHtml += `
-        <div class="opt ${selected}" data-value="${opt.value}">
-          <div class="opt-letter">${letter}</div>
-          <div>${opt.label}</div>
-        </div>
-      `;
+        <div class="opt ${selected}" data-value="${opt.value}" data-index="${i}">
+          <span class="opt-letter">${letter}</span>
+          <span class="opt-label">${opt.label}</span>
+          ${valueBadge}
+        </div>`;
     });
 
+    const impactBadge = q.impact === 'high' ? '🔴 تأثير عالي' : 
+                       q.impact === 'medium' ? '🟡 تأثير متوسط' : '🟢 تأثير منخفض';
+    const layerBadge = q.layer === 'B' ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">⚠️ كمين</span>' : '';
+
     return `
-      <div class="question-card">
-        <div class="question-meta">السؤال ${num} من ${total}</div>
-        <div class="question-text">${q.text}</div>
+      <div class="question-card fade-in">
+        <div class="question-meta">
+          <span>السؤال ${num} من ${total}</span>
+          <span style="margin-right:12px">${impactBadge}</span>
+          ${layerBadge}
+        </div>
+        <h3 class="question-text">${q.text}</h3>
         <div class="options-grid">${optsHtml}</div>
-      </div>
-    `;
+      </div>`;
   }
 
   attachOptionHandlers(container, qid) {
@@ -447,11 +289,7 @@ class ClinicEvaluatorApp {
   }
 
   goNext() {
-    const currentQ = this.questions?.[this.currentQuestionIndex];
-    if (!currentQ) {
-      this.showFatalError('لم يتم العثور على السؤال الحالي.');
-      return;
-    }
+    const currentQ = this.questions[this.currentQuestionIndex];
     if (this.answers[currentQ.id] === undefined) {
       this.shakeQuestion();
       this.showError('يرجى اختيار إجابة قبل المتابعة');
@@ -479,8 +317,8 @@ class ClinicEvaluatorApp {
       } else if (['a','b','c','d','e','A','B','C','D','E','1','2','3','4','5'].includes(e.key)) {
         const keyMap = {'a':0,'b':1,'c':2,'d':3,'e':4,'A':0,'B':1,'C':2,'D':3,'E':4,'1':0,'2':1,'3':2,'4':3,'5':4};
         const idx = keyMap[e.key];
-        const currentQ = this.questions?.[this.currentQuestionIndex];
-        if (currentQ && currentQ.options?.[idx]) {
+        const currentQ = this.questions[this.currentQuestionIndex];
+        if (currentQ && currentQ.options[idx]) {
           const val = currentQ.options[idx].value;
           this.answers[currentQ.id] = val;
           const container = document.getElementById('question-container');
@@ -524,204 +362,15 @@ class ClinicEvaluatorApp {
     }
   }
 
-  // ========== SUPABASE SAVE METHODS ==========
-
-  async saveLead() {
-    if (!this.supabase) {
-      console.warn('[app.js] Supabase not available, skipping lead save');
-      return null;
-    }
-    try {
-      const leadData = {
-        full_name: this.metadata.name || 'Unknown',
-        email: this.metadata.email || null,
-        phone: this.metadata.phone || null,
-        clinic_name: this.metadata.clinic || null,
-        country: this.metadata.country || null,
-        specialty: this.metadata.specialty || null,
-        years: this.metadata.years || null,
-        team: this.metadata.team || null,
-        source: window.location.pathname,
-        utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || null,
-        completed: false,
-        score_total: 0,
-        score_percentage: 0
-      };
-
-      const { data, error } = await this.supabase
-        .from('leads')
-        .insert([leadData])
-        .select();
-
-      if (error) {
-        console.error('[app.js] saveLead error:', error.message);
-        return null;
-      }
-
-      if (data && data.length > 0) {
-        this.currentLeadId = data[0].id;
-        console.log('[app.js] Lead saved:', this.currentLeadId);
-        return this.currentLeadId;
-      }
-      return null;
-    } catch (err) {
-      console.error('[app.js] saveLead exception:', err);
-      return null;
-    }
-  }
-
-  async saveSession() {
-    if (!this.supabase || !this.currentLeadId) {
-      console.warn('[app.js] Supabase or leadId not available, skipping session save');
-      return null;
-    }
-    try {
-      const sessionData = {
-        lead_id: this.currentLeadId,
-        assessment_type: this.currentAssessmentKey || 'unknown',
-        status: 'in_progress',
-        current_question: this.currentQuestionIndex,
-        started_at: new Date().toISOString()
-      };
-
-      const { data, error } = await this.supabase
-        .from('sessions')
-        .insert([sessionData])
-        .select();
-
-      if (error) {
-        console.error('[app.js] saveSession error:', error.message);
-        return null;
-      }
-
-      if (data && data.length > 0) {
-        this.currentSessionId = data[0].id;
-        console.log('[app.js] Session saved:', this.currentSessionId);
-        return this.currentSessionId;
-      }
-      return null;
-    } catch (err) {
-      console.error('[app.js] saveSession exception:', err);
-      return null;
-    }
-  }
-
-  async saveAnswers() {
-    if (!this.supabase || !this.currentSessionId) {
-      console.warn('[app.js] Supabase or sessionId not available, skipping answers save');
-      return;
-    }
-    try {
-      const answers = [];
-      for (const [questionId, value] of Object.entries(this.answers)) {
-        const question = this.questions.find(q => q.id === questionId);
-        if (question) {
-          answers.push({
-            session_id: this.currentSessionId,
-            lead_id: this.currentLeadId,
-            question_id: questionId,
-            axis_id: question.axis_id || '',
-            question_text: question.text || '',
-            answer_value: value,
-            is_trap: question.layer === 'B',
-            trap_triggered: false,
-            answered_at: new Date().toISOString()
-          });
-        }
-      }
-
-      if (answers.length > 0) {
-        const { error } = await this.supabase
-          .from('answers')
-          .insert(answers);
-
-        if (error) {
-          console.error('[app.js] saveAnswers error:', error.message);
-        } else {
-          console.log('[app.js] Answers saved:', answers.length);
-        }
-      }
-    } catch (err) {
-      console.error('[app.js] saveAnswers exception:', err);
-    }
-  }
-
-  async saveScores(results) {
-    if (!this.supabase || !this.currentSessionId) {
-      console.warn('[app.js] Supabase or sessionId not available, skipping scores save');
-      return;
-    }
-    try {
-      const assessment = this.getActiveAssessment();
-      if (results.axisScores) {
-        const scores = [];
-        for (const [axisId, score] of Object.entries(results.axisScores)) {
-          const axis = assessment?.axes?.find(a => a.id === axisId);
-          scores.push({
-            session_id: this.currentSessionId,
-            lead_id: this.currentLeadId,
-            axis_id: axisId,
-            axis_name_ar: axis?.name_ar || axisId,
-            axis_name_en: axis?.name_en || axisId,
-            raw_score: Math.round(score),
-            max_possible: 100,
-            percentage: score,
-            weight: axis?.weight || 1,
-            weighted_score: score * (axis?.weight || 1),
-            grade: score >= 75 ? 'Q4' : score >= 50 ? 'Q3' : score >= 25 ? 'Q2' : 'Q1'
-          });
-        }
-
-        if (scores.length > 0) {
-          const { error } = await this.supabase
-            .from('scores')
-            .insert(scores);
-
-          if (error) {
-            console.error('[app.js] saveScores error:', error.message);
-          } else {
-            console.log('[app.js] Scores saved:', scores.length);
-          }
-        }
-      }
-    } catch (err) {
-      console.error('[app.js] saveScores exception:', err);
-    }
-  }
-
-  async updateLeadWithResults(results) {
-    if (!this.supabase || !this.currentLeadId) {
-      console.warn('[app.js] Supabase or leadId not available, skipping lead update');
-      return;
-    }
-    try {
-      const { error } = await this.supabase
-        .from('leads')
-        .update({
-          completed: true,
-          score_total: Math.round(results.overallScore || 0),
-          score_percentage: results.overallScore || 0,
-          completed_at: new Date().toISOString()
-        })
-        .eq('id', this.currentLeadId);
-
-      if (error) {
-        console.error('[app.js] updateLeadWithResults error:', error.message);
-      } else {
-        console.log('[app.js] Lead updated with results');
-      }
-    } catch (err) {
-      console.error('[app.js] updateLeadWithResults exception:', err);
-    }
-  }
-
   // ========== SUBMIT & RESULTS ==========
 
   async submitAssessment() {
-    this.hideView('view-assessment');
-    this.showView('view-loading');
+    const assessmentView = document.getElementById('view-assessment');
     const loadingView = document.getElementById('view-loading');
+
+    if (assessmentView) assessmentView.classList.add('hidden');
     if (loadingView) {
+      loadingView.classList.remove('hidden');
       loadingView.classList.add('fade-in');
     }
 
@@ -744,43 +393,12 @@ class ClinicEvaluatorApp {
       this.engine = new AssessmentEngine(this.config);
       const results = this.engine.evaluate(this.answers, this.currentAssessmentKey, this.metadata);
 
-      // Save to Supabase (non-blocking, don't fail if Supabase is down)
-      if (this.supabase) {
-        try {
-          // Step 1: Save lead
-          await this.saveLead();
-          
-          // Step 2: Save session
-          await this.saveSession();
-          
-          // Step 3: Save answers
-          if (this.currentSessionId) {
-            await this.saveAnswers();
-          }
-          
-          // Step 4: Save scores
-          if (this.currentSessionId) {
-            await this.saveScores(results);
-          }
-          
-          // Step 5: Update lead with final results
-          if (this.currentLeadId) {
-            await this.updateLeadWithResults(results);
-          }
-          
-          console.log('[app.js] All data saved to Supabase successfully');
-        } catch (saveErr) {
-          console.error('[app.js] Supabase save error (non-fatal):', saveErr);
-          // Don't throw - allow results to display even if save fails
-        }
-      }
-
       clearInterval(interval);
       if (loadBar) loadBar.style.width = '100%';
       if (loadStatus) loadStatus.textContent = '100%';
 
       setTimeout(() => {
-        this.hideView('view-loading');
+        if (loadingView) loadingView.classList.add('hidden');
         this.renderResults(results);
       }, 500);
 
@@ -792,15 +410,15 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
-    this.showView('view-results');
     const resultsView = document.getElementById('view-results');
     if (resultsView) {
+      resultsView.classList.remove('hidden');
       resultsView.classList.add('fade-in');
     }
 
     const q = res.classification || 'Q2';
-    const qData = this.texts?.quartiles?.[q] || { label: 'أداء مستقر', color: '#5C6B73' };
-    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
+    const qData = this.texts.quartiles?.[q] || { label: 'أداء مستقر', color: '#5C6B73' };
+    const score = (res.overallScore ?? 0).toFixed(1);
 
     // Score circle
     const circle = document.getElementById('result-score-circle');
@@ -810,9 +428,9 @@ class ClinicEvaluatorApp {
     const body = document.getElementById('result-body');
 
     if (circle) circle.style.borderColor = qData.color;
-    if (scoreVal) {
-      scoreVal.textContent = score + '%';
-      scoreVal.style.color = qData.color;
+    if (scoreVal) { 
+      scoreVal.textContent = score + '%'; 
+      scoreVal.style.color = qData.color; 
     }
     if (scoreLabel) scoreLabel.textContent = qData.label;
     if (title) title.textContent = qData.label;
@@ -822,20 +440,19 @@ class ClinicEvaluatorApp {
     const axesContainer = document.getElementById('axes-scores');
     if (axesContainer && res.axisScores) {
       axesContainer.innerHTML = '';
-      const assessment = this.getActiveAssessment() || this.assessment;
-      const axes = assessment?.axes || [];
       Object.entries(res.axisScores).forEach(([aid, score]) => {
-        const axis = axes.find(x => x.id === aid);
+        const axis = this.assessment.axes.find(x => x.id === aid);
         const barColor = score >= 75 ? '#2A6F5D' : score >= 50 ? '#5C6B73' : score >= 25 ? '#C67D47' : '#A33B3B';
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
         row.innerHTML = `
-          <div class="axis-info">
-            <div class="axis-name">${axis ? axis.name_ar : aid}</div>
-            <div class="axis-bar-bg"><div class="axis-bar-fill" style="width:${score}%;background:${barColor}"></div></div>
+          <div class="axis-score-info">
+            <div class="axis-score-name">${axis ? axis.name_ar : aid}</div>
+            <div class="axis-score-bar-bg">
+              <div class="axis-score-bar-fill" style="width:${score}%;background:${barColor}"></div>
+            </div>
           </div>
-          <div class="axis-score" style="color:${barColor}">${score.toFixed(1)}%</div>
-        `;
+          <div class="axis-score-value" style="color:${barColor}">${score.toFixed(1)}%</div>`;
         axesContainer.appendChild(row);
       });
     }
@@ -843,7 +460,7 @@ class ClinicEvaluatorApp {
     // KPIs
     if (res.kpis) {
       const kpiContainer = document.getElementById('kpis-container') || this.createKPIContainer(resultsView);
-      kpiContainer.innerHTML = '<h3 class="card-title">📊 المؤشرات الرئيسية</h3>';
+      kpiContainer.innerHTML = '<div class="card-title">📊 المؤشرات الرئيسية</div>';
       const grid = document.createElement('div');
       grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;';
 
@@ -852,10 +469,9 @@ class ClinicEvaluatorApp {
         const card = document.createElement('div');
         card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
         card.innerHTML = `
-          <div style="font-size:0.85rem;color:#6B7280;margin-bottom:4px;">${kpiInfo.name}</div>
-          <div style="font-size:0.75rem;color:#9CA3AF;margin-bottom:8px;">${kpiInfo.short_name}</div>
-          <div style="font-size:1.5rem;font-weight:700;color:#0F766E;">${v.toFixed(1)}</div>
-        `;
+          <div style="font-size:11px;color:#5C6B73;margin-bottom:4px">${kpiInfo.name}</div>
+          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px">${kpiInfo.short_name}</div>
+          <div style="font-size:22px;font-weight:700;color:#0f766e">${v.toFixed(1)}</div>`;
         grid.appendChild(card);
       });
       kpiContainer.appendChild(grid);
@@ -867,17 +483,16 @@ class ClinicEvaluatorApp {
     if (trapsContainer) {
       if (res.traps && res.traps.length) {
         trapsContainer.classList.remove('hidden');
-        trapsContainer.innerHTML = '<h3 class="card-title">🚨 نقاط الضعف المكتشفة</h3>';
+        trapsContainer.innerHTML = '<div class="card-title">🚨 نقاط الضعف المكتشفة</div>';
         res.traps.forEach(t => {
           const alert = document.createElement('div');
           alert.className = 'trap-alert fade-in';
           alert.innerHTML = `
-            <div class="icon">⚠️</div>
+            <span class="icon">⚠️</span>
             <div class="content">
               <h4>${t.name}</h4>
               <p>${t.message}</p>
-            </div>
-          `;
+            </div>`;
           trapsContainer.appendChild(alert);
         });
       } else {
@@ -889,32 +504,28 @@ class ClinicEvaluatorApp {
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
-      recContainer.innerHTML = '<h3 class="card-title">💡 التشخيص الهيكلي وفرص النمو</h3>';
+      recContainer.innerHTML = '<div class="card-title">💡 التشخيص الهيكلي وفرص النمو</div>';
 
       if (res.axisScores) {
         const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
         const weakest = sorted[0];
         const strongest = sorted[sorted.length - 1];
-        const assessment = this.getActiveAssessment() || this.assessment;
-        const axes = assessment?.axes || [];
-        const weakAxis = axes.find(x => x.id === weakest[0]);
-        const strongAxis = axes.find(x => x.id === strongest[0]);
+        const weakAxis = this.assessment.axes.find(x => x.id === weakest[0]);
+        const strongAxis = this.assessment.axes.find(x => x.id === strongest[0]);
 
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
         box.innerHTML = `
           <h4>🎯 أولوية التحسين الفورية: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4>
           <p>هذا المحور يحتاج إلى اهتمام فوري (${weakest[1].toFixed(1)}%). التركيز على تحسينه سيرفع درجتك الكلية بشكل ملحوظ.</p>
-          <h4>💪 نقطة القوة: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4>
-          <p>أداء متميز (${strongest[1].toFixed(1)}%). حافظ على هذا المستوى واستخدمه كنموذج للمحاور الأخرى.</p>
-        `;
+          <h4 style="margin-top:12px">💪 نقطة القوة: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4>
+          <p>أداء متميز (${strongest[1].toFixed(1)}%). حافظ على هذا المستوى واستخدمه كنموذج للمحاور الأخرى.</p>`;
         recContainer.appendChild(box);
       }
     }
 
     // EV Simulator (only if enabled)
-    const assessment = this.getActiveAssessment() || this.assessment;
-    const evEnabled = assessment?.simulator?.enabled === true;
+    const evEnabled = this.assessment?.simulator?.enabled === true;
     const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
     if (evSection) {
       if (evEnabled) {
@@ -948,10 +559,11 @@ class ClinicEvaluatorApp {
     if (!btn) return;
 
     btn.addEventListener('click', () => {
-      this.hideView('view-results');
-      this.showView('view-ev-simulator');
+      const resultsView = document.getElementById('view-results');
       const evView = document.getElementById('view-ev-simulator');
+      if (resultsView) resultsView.classList.add('hidden');
       if (evView) {
+        evView.classList.remove('hidden');
         evView.classList.add('fade-in');
       }
     });
@@ -964,8 +576,10 @@ class ClinicEvaluatorApp {
     const backBtn = document.getElementById('btn-back-results');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        this.showView('view-results');
-        this.hideView('view-ev-simulator');
+        const resultsView = document.getElementById('view-results');
+        const evView = document.getElementById('view-ev-simulator');
+        if (resultsView) resultsView.classList.remove('hidden');
+        if (evView) evView.classList.add('hidden');
       });
     }
   }
