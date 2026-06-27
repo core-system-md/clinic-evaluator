@@ -1,11 +1,10 @@
 /**
- * Clinic Evaluator — app.js v5.1 (PRODUCTION + Supabase)
+ * Clinic Evaluator — app.js v5.2 (PRODUCTION + Supabase FIX)
  * Fixes:
- * - Fetch paths corrected (relative to HTML)
- * - Arabic error messages with page display
- * - ABCDE system enforced (no Likert/12345)
- * - SupabaseClient integrated (save/load assessments)
- * - Better error handling and user feedback
+ * - Supabase select() method corrected for proper syntax
+ * - Auth check improved with error handling
+ * - Lead/Session/Answer save methods now robust
+ * - Better error handling and logging
  */
 
 class ClinicEvaluatorApp {
@@ -29,12 +28,23 @@ class ClinicEvaluatorApp {
   async checkAssessmentAuth() {
     try {
       if (this.supabase && window.preSelectedAssessment) {
-        const settings = await this.supabase.select('assessment_settings', {
-          filter: { assessment_key: window.preSelectedAssessment }
-        });
+        try {
+          const { data: settings, error } = await this.supabase
+            .from('assessment_settings')
+            .select('*')
+            .eq('assessment_key', window.preSelectedAssessment)
+            .single();
 
-        if (settings && settings.length > 0 && settings[0].auth_enabled) {
-          await this.showAuthModal();
+          if (error) {
+            console.warn('[app.js] Assessment settings fetch error (non-fatal):', error.message);
+            return;
+          }
+
+          if (settings && settings.auth_enabled) {
+            await this.showAuthModal();
+          }
+        } catch (err) {
+          console.warn('[app.js] Auth check exception:', err.message);
         }
       }
     } catch (err) {
@@ -77,9 +87,17 @@ class ClinicEvaluatorApp {
         const errorDiv = document.getElementById('auth-error-msg');
 
         try {
-          const users = await this.supabase.select('assessment_users', {
-            filter: { assessment_key: window.preSelectedAssessment, username: username }
-          });
+          const { data: users, error } = await this.supabase
+            .from('assessment_users')
+            .select('*')
+            .eq('assessment_key', window.preSelectedAssessment)
+            .eq('username', username);
+
+          if (error) {
+            errorDiv.textContent = 'خطأ في الاتصال';
+            errorDiv.style.display = 'block';
+            return;
+          }
 
           if (!users || users.length === 0) {
             errorDiv.textContent = 'اسم المستخدم غير موجود';
@@ -114,10 +132,15 @@ class ClinicEvaluatorApp {
             return;
           }
 
-          await this.supabase.update('assessment_users', { used_count: user.used_count + 1 }, { id: user.id });
+          await this.supabase
+            .from('assessment_users')
+            .update({ used_count: user.used_count + 1 })
+            .eq('id', user.id);
+
           modal.remove();
           resolve(true);
         } catch (err) {
+          console.error('[app.js] Auth error:', err);
           errorDiv.textContent = 'خطأ في المصادقة';
           errorDiv.style.display = 'block';
         }
@@ -126,11 +149,16 @@ class ClinicEvaluatorApp {
   }
 
   async simpleHash(str) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    try {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(str);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } catch (err) {
+      console.error('[app.js] Hash error:', err);
+      return '';
+    }
   }
 
   getActiveAssessment() {
@@ -260,7 +288,7 @@ class ClinicEvaluatorApp {
     if (!toast) {
       toast = document.createElement('div');
       toast.id = 'error-toast';
-      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#991b1b;color:white;padding:16px 24px;border-radius:12px;z-index:9999;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.2);transition:all 0.3s;opacity:0;';
+      toast.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#991b1b;color:white;padding:16px 24px;border-radius:12px;z-index:9999;font-weight:600;box-shadow:0 10px 25px rgba(0,0,0,0.2);';
       document.body.appendChild(toast);
     }
     toast.textContent = msg;
@@ -519,15 +547,25 @@ class ClinicEvaluatorApp {
         score_total: 0,
         score_percentage: 0
       };
-      const result = await this.supabase.insert('leads', leadData);
-      if (result && result[0]) {
-        this.currentLeadId = result[0].id;
+
+      const { data, error } = await this.supabase
+        .from('leads')
+        .insert([leadData])
+        .select();
+
+      if (error) {
+        console.error('[app.js] saveLead error:', error.message);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        this.currentLeadId = data[0].id;
         console.log('[app.js] Lead saved:', this.currentLeadId);
         return this.currentLeadId;
       }
       return null;
     } catch (err) {
-      console.error('[app.js] saveLead failed:', err);
+      console.error('[app.js] saveLead exception:', err);
       return null;
     }
   }
@@ -540,20 +578,30 @@ class ClinicEvaluatorApp {
     try {
       const sessionData = {
         lead_id: this.currentLeadId,
-        assessment_type_id: null,
+        assessment_type: this.currentAssessmentKey || 'unknown',
         status: 'in_progress',
         current_question: this.currentQuestionIndex,
         started_at: new Date().toISOString()
       };
-      const result = await this.supabase.insert('sessions', sessionData);
-      if (result && result[0]) {
-        this.currentSessionId = result[0].id;
+
+      const { data, error } = await this.supabase
+        .from('sessions')
+        .insert([sessionData])
+        .select();
+
+      if (error) {
+        console.error('[app.js] saveSession error:', error.message);
+        return null;
+      }
+
+      if (data && data.length > 0) {
+        this.currentSessionId = data[0].id;
         console.log('[app.js] Session saved:', this.currentSessionId);
         return this.currentSessionId;
       }
       return null;
     } catch (err) {
-      console.error('[app.js] saveSession failed:', err);
+      console.error('[app.js] saveSession exception:', err);
       return null;
     }
   }
@@ -564,10 +612,11 @@ class ClinicEvaluatorApp {
       return;
     }
     try {
+      const answers = [];
       for (const [questionId, value] of Object.entries(this.answers)) {
         const question = this.questions.find(q => q.id === questionId);
         if (question) {
-          await this.supabase.insert('answers', {
+          answers.push({
             session_id: this.currentSessionId,
             lead_id: this.currentLeadId,
             question_id: questionId,
@@ -580,9 +629,20 @@ class ClinicEvaluatorApp {
           });
         }
       }
-      console.log('[app.js] Answers saved');
+
+      if (answers.length > 0) {
+        const { error } = await this.supabase
+          .from('answers')
+          .insert(answers);
+
+        if (error) {
+          console.error('[app.js] saveAnswers error:', error.message);
+        } else {
+          console.log('[app.js] Answers saved:', answers.length);
+        }
+      }
     } catch (err) {
-      console.error('[app.js] saveAnswers failed:', err);
+      console.error('[app.js] saveAnswers exception:', err);
     }
   }
 
@@ -594,9 +654,10 @@ class ClinicEvaluatorApp {
     try {
       const assessment = this.getActiveAssessment();
       if (results.axisScores) {
+        const scores = [];
         for (const [axisId, score] of Object.entries(results.axisScores)) {
           const axis = assessment?.axes?.find(a => a.id === axisId);
-          await this.supabase.insert('scores', {
+          scores.push({
             session_id: this.currentSessionId,
             lead_id: this.currentLeadId,
             axis_id: axisId,
@@ -610,10 +671,21 @@ class ClinicEvaluatorApp {
             grade: score >= 75 ? 'Q4' : score >= 50 ? 'Q3' : score >= 25 ? 'Q2' : 'Q1'
           });
         }
+
+        if (scores.length > 0) {
+          const { error } = await this.supabase
+            .from('scores')
+            .insert(scores);
+
+          if (error) {
+            console.error('[app.js] saveScores error:', error.message);
+          } else {
+            console.log('[app.js] Scores saved:', scores.length);
+          }
+        }
       }
-      console.log('[app.js] Scores saved');
     } catch (err) {
-      console.error('[app.js] saveScores failed:', err);
+      console.error('[app.js] saveScores exception:', err);
     }
   }
 
@@ -623,15 +695,23 @@ class ClinicEvaluatorApp {
       return;
     }
     try {
-      await this.supabase.update('leads', {
-        completed: true,
-        score_total: Math.round(results.overallScore || 0),
-        score_percentage: results.overallScore || 0,
-        completed_at: new Date().toISOString()
-      }, { id: this.currentLeadId });
-      console.log('[app.js] Lead updated with results');
+      const { error } = await this.supabase
+        .from('leads')
+        .update({
+          completed: true,
+          score_total: Math.round(results.overallScore || 0),
+          score_percentage: results.overallScore || 0,
+          completed_at: new Date().toISOString()
+        })
+        .eq('id', this.currentLeadId);
+
+      if (error) {
+        console.error('[app.js] updateLeadWithResults error:', error.message);
+      } else {
+        console.log('[app.js] Lead updated with results');
+      }
     } catch (err) {
-      console.error('[app.js] updateLeadWithResults failed:', err);
+      console.error('[app.js] updateLeadWithResults exception:', err);
     }
   }
 
@@ -674,13 +754,19 @@ class ClinicEvaluatorApp {
           await this.saveSession();
           
           // Step 3: Save answers
-          await this.saveAnswers();
+          if (this.currentSessionId) {
+            await this.saveAnswers();
+          }
           
           // Step 4: Save scores
-          await this.saveScores(results);
+          if (this.currentSessionId) {
+            await this.saveScores(results);
+          }
           
           // Step 5: Update lead with final results
-          await this.updateLeadWithResults(results);
+          if (this.currentLeadId) {
+            await this.updateLeadWithResults(results);
+          }
           
           console.log('[app.js] All data saved to Supabase successfully');
         } catch (saveErr) {
