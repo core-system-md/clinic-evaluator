@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الإدارة | Clinic Evaluator</title>
+  <link rel="stylesheet" href="assets/css/admin.css">
+</head>
+<body>
+  <!-- Login Screen -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-box">
+      <div class="login-logo">
+        <img src="assets/images/logo.png" alt="The MD CODE" onerror="this.style.display='none'">
+        <h2>لوحة الإدارة</h2>
+        <p>Clinic Evaluator Dashboard</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label>كلمة المرور</label>
+          <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required autofocus>
+        </div>
+        <div id="login-error" class="login-error hidden">كلمة المرور غير صحيحة</div>
+        <button type="submit" class="btn-login">دخول</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Dashboard (hidden until login) -->
+  <div id="dashboard-content" class="hidden">
+    <div class="admin-container">
+      <!-- Header -->
+      <header class="admin-header">
+        <div class="logo">
+          <img src="assets/images/logo.png" alt="The MD CODE" onerror="this.style.display='none'">
+          <span>لوحة الإدارة</span>
+        </div>
+        <div class="header-actions">
+          <button id="btn-refresh" class="btn-icon" title="تحديث">🔄</button>
+          <button id="btn-logout" class="btn-icon" title="خروج">🚪</button>
+          <span id="last-updated">--:--</span>
+        </div>
+      </header>
+
+      <!-- Stats Cards -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-leads">0</div>
+            <div class="stat-label">إجمالي التقييمات</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-completed">0</div>
+            <div class="stat-label">مكتملة</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-avg">0%</div>
+            <div class="stat-label">متوسط الدرجة</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏥</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-clinics">0</div>
+            <div class="stat-label">عدد العيادات</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Assessment Settings -->
+      <section class="settings-section">
+        <h2>🔐 إدارة التقييمات</h2>
+        <div class="settings-grid" id="assessment-settings">
+          <!-- Filled by JS -->
+        </div>
+      </section>
+
+      <!-- Filters & Search -->
+      <section class="filters-section">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="بحث: اسم، بريد، هاتف، عيادة...">
+          <button id="btn-search">🔍</button>
+        </div>
+        <div class="filter-group">
+          <select id="filter-type">
+            <option value="">كل التقييمات</option>
+            <option value="patient-journey">رحلة المريض</option>
+            <option value="clinic-performance">أداء العيادة</option>
+          </select>
+          <select id="filter-status">
+            <option value="">كل الحالات</option>
+            <option value="completed">مكتمل</option>
+            <option value="incomplete">غير مكتمل</option>
+          </select>
+          <select id="filter-sort">
+            <option value="newest">الأحدث أولاً</option>
+            <option value="oldest">الأقدم أولاً</option>
+            <option value="score-high">الدرجة: الأعلى</option>
+            <option value="score-low">الدرجة: الأقل</option>
+            <option value="name">الاسم أبجدياً</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Data Table -->
+      <section class="table-section">
+        <div class="table-header">
+          <h3>📋 التقييمات</h3>
+          <span id="results-count">0 نتيجة</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="leads-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>الاسم</th>
+                <th>العيادة</th>
+                <th>التخصص</th>
+                <th>الفريق</th>
+                <th>السنوات</th>
+                <th>الدولة</th>
+                <th>الدرجة</th>
+                <th>الحالة</th>
+                <th>التفاصيل</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody">
+              <!-- Filled by JS -->
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination">
+          <!-- Filled by JS -->
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- Detail Modal -->
+  <div class="modal-overlay hidden" id="detail-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>تفاصيل التقييم</h3>
+        <button class="btn-close" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body">
+        <!-- Filled by JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Add User Modal -->
+  <div class="modal-overlay hidden" id="user-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>إضافة مستخدم</h3>
+        <button class="btn-close" id="btn-close-user-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="user-form">
+          <input type="hidden" id="user-assessment-key">
+          <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="user-username" required>
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="user-password" required>
+          </div>
+          <div class="form-group">
+            <label>عدد الاستخدامات</label>
+            <input type="number" id="user-max-uses" value="1" min="1" required>
+          </div>
+          <div class="form-group">
+            <label>مدة الصلاحية (أيام)</label>
+            <input type="number" id="user-expiry-days" value="30" min="1" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">إنشاء</button>
+            <button type="button" class="btn-secondary" id="btn-cancel-user">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast hidden" id="toast"></div>
+
+  <script src="assets/js/supabase-client.js"></script>
+  <script>
+    // Initialize Supabase with Service Role Key for admin dashboard
+    window.supabaseClient = new SupabaseClient(true);
+  </script>
+  <script src="assets/js/admin.js"></script>
+</body>
+</html>
