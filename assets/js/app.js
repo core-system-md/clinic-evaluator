@@ -204,7 +204,10 @@ class ClinicEvaluatorApp {
     container.innerHTML = this.renderABCDEQuestion(q, num, total);
     this.attachOptionHandlers(container, q.id);
 
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    // window.scrollTo({ top: 0, behavior: 'smooth' });
+const qCard = document.querySelector('.question-card');
+if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
   }
 
   renderABCDEQuestion(q, num, total) {
