@@ -1,11 +1,11 @@
 /**
- * Clinic Evaluator — app.js v5.0 (PRODUCTION)
+ * Clinic Evaluator — app.js v5.1 (PRODUCTION + Supabase)
  * Fixes:
- *   - Fetch paths corrected (relative to HTML)
- *   - Arabic error messages with page display
- *   - ABCDE system enforced (no Likert/12345)
- *   - SupabaseClient removed (moved to supabase-client.js)
- *   - Better error handling and user feedback
+ * - Fetch paths corrected (relative to HTML)
+ * - Arabic error messages with page display
+ * - ABCDE system enforced (no Likert/12345)
+ * - SupabaseClient integrated (save/load assessments)
+ * - Better error handling and user feedback
  */
 
 class ClinicEvaluatorApp {
@@ -20,6 +20,9 @@ class ClinicEvaluatorApp {
     this.questions = [];
     this.engine = null;
     this.errorShown = false;
+    this.supabase = null;
+    this.currentLeadId = null;
+    this.currentSessionId = null;
   }
 
   getActiveAssessment() {
@@ -32,6 +35,14 @@ class ClinicEvaluatorApp {
   async init() {
     console.log('[app.js] init started');
     try {
+      // Initialize Supabase client
+      this.supabase = window.supabaseClient || null;
+      if (this.supabase) {
+        console.log('[app.js] Supabase client initialized');
+      } else {
+        console.warn('[app.js] Supabase client not available');
+      }
+
       await Promise.all([this.loadConfig(), this.loadTexts()]);
       console.log('[app.js] config & texts loaded');
 
@@ -124,12 +135,9 @@ class ClinicEvaluatorApp {
     }
 
     errorDiv.innerHTML = `
-      <div style="font-size:48px;margin-bottom:16px">⚠️</div>
-      <h2 style="color:#991b1b;margin-bottom:16px">خطأ في التطبيق</h2>
-      <p style="color:#7f1d1d;line-height:1.8;margin-bottom:24px">${msg}</p>
-      <button onclick="location.reload()" style="background:#ef4444;color:white;border:none;padding:12px 24px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:1rem;">
-        إعادة المحاولة 🔄
-      </button>
+      <div style="font-size:3rem;margin-bottom:16px;">⚠️</div>
+      <h2 style="color:#991b1b;margin-bottom:12px;">خطأ في التطبيق</h2>
+      <p style="color:#7f1d1d;font-size:1rem;">${msg}</p>
     `;
     errorDiv.classList.remove('hidden');
   }
@@ -236,20 +244,20 @@ class ClinicEvaluatorApp {
       const selected = this.answers[q.id] === opt.value ? 'sel' : '';
 
       optsHtml += `
-        <div class="opt ${selected}" data-value="${opt.value}" data-index="${i}">
-          <span class="opt-letter">${letter}</span>
-          <span class="opt-label">${opt.label}</span>
-        </div>`;
+        <div class="opt ${selected}" data-value="${opt.value}">
+          <div class="opt-letter">${letter}</div>
+          <div>${opt.label}</div>
+        </div>
+      `;
     });
 
     return `
-      <div class="question-card fade-in">
-        <div class="question-meta">
-          <span>السؤال ${num} من ${total}</span>
-        </div>
-        <h3 class="question-text">${q.text}</h3>
+      <div class="question-card">
+        <div class="question-meta">السؤال ${num} من ${total}</div>
+        <div class="question-text">${q.text}</div>
         <div class="options-grid">${optsHtml}</div>
-      </div>`;
+      </div>
+    `;
   }
 
   attachOptionHandlers(container, qid) {
@@ -377,6 +385,142 @@ class ClinicEvaluatorApp {
     }
   }
 
+  // ========== SUPABASE SAVE METHODS ==========
+
+  async saveLead() {
+    if (!this.supabase) {
+      console.warn('[app.js] Supabase not available, skipping lead save');
+      return null;
+    }
+    try {
+      const leadData = {
+        full_name: this.metadata.name || 'Unknown',
+        email: this.metadata.email || null,
+        phone: this.metadata.phone || null,
+        clinic_name: this.metadata.clinic || null,
+        country: this.metadata.country || null,
+        source: window.location.pathname,
+        utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || null,
+        completed: false,
+        score_total: 0,
+        score_percentage: 0
+      };
+      const result = await this.supabase.insert('leads', leadData);
+      if (result && result[0]) {
+        this.currentLeadId = result[0].id;
+        console.log('[app.js] Lead saved:', this.currentLeadId);
+        return this.currentLeadId;
+      }
+      return null;
+    } catch (err) {
+      console.error('[app.js] saveLead failed:', err);
+      return null;
+    }
+  }
+
+  async saveSession() {
+    if (!this.supabase || !this.currentLeadId) {
+      console.warn('[app.js] Supabase or leadId not available, skipping session save');
+      return null;
+    }
+    try {
+      const sessionData = {
+        lead_id: this.currentLeadId,
+        assessment_type_id: null,
+        status: 'in_progress',
+        current_question: this.currentQuestionIndex,
+        started_at: new Date().toISOString()
+      };
+      const result = await this.supabase.insert('sessions', sessionData);
+      if (result && result[0]) {
+        this.currentSessionId = result[0].id;
+        console.log('[app.js] Session saved:', this.currentSessionId);
+        return this.currentSessionId;
+      }
+      return null;
+    } catch (err) {
+      console.error('[app.js] saveSession failed:', err);
+      return null;
+    }
+  }
+
+  async saveAnswers() {
+    if (!this.supabase || !this.currentSessionId) {
+      console.warn('[app.js] Supabase or sessionId not available, skipping answers save');
+      return;
+    }
+    try {
+      for (const [questionId, value] of Object.entries(this.answers)) {
+        const question = this.questions.find(q => q.id === questionId);
+        if (question) {
+          await this.supabase.insert('answers', {
+            session_id: this.currentSessionId,
+            lead_id: this.currentLeadId,
+            question_id: questionId,
+            axis_id: question.axis_id || '',
+            question_text: question.text || '',
+            answer_value: value,
+            is_trap: question.layer === 'B',
+            trap_triggered: false,
+            answered_at: new Date().toISOString()
+          });
+        }
+      }
+      console.log('[app.js] Answers saved');
+    } catch (err) {
+      console.error('[app.js] saveAnswers failed:', err);
+    }
+  }
+
+  async saveScores(results) {
+    if (!this.supabase || !this.currentSessionId) {
+      console.warn('[app.js] Supabase or sessionId not available, skipping scores save');
+      return;
+    }
+    try {
+      const assessment = this.getActiveAssessment();
+      if (results.axisScores) {
+        for (const [axisId, score] of Object.entries(results.axisScores)) {
+          const axis = assessment?.axes?.find(a => a.id === axisId);
+          await this.supabase.insert('scores', {
+            session_id: this.currentSessionId,
+            lead_id: this.currentLeadId,
+            axis_id: axisId,
+            axis_name_ar: axis?.name_ar || axisId,
+            axis_name_en: axis?.name_en || axisId,
+            raw_score: Math.round(score),
+            max_possible: 100,
+            percentage: score,
+            weight: axis?.weight || 1,
+            weighted_score: score * (axis?.weight || 1),
+            grade: score >= 75 ? 'Q4' : score >= 50 ? 'Q3' : score >= 25 ? 'Q2' : 'Q1'
+          });
+        }
+      }
+      console.log('[app.js] Scores saved');
+    } catch (err) {
+      console.error('[app.js] saveScores failed:', err);
+    }
+  }
+
+  async updateLeadWithResults(results) {
+    if (!this.supabase || !this.currentLeadId) {
+      console.warn('[app.js] Supabase or leadId not available, skipping lead update');
+      return;
+    }
+    try {
+      await this.supabase.update('leads', {
+        completed: true,
+        score_total: Math.round(results.overallScore || 0),
+        score_percentage: results.overallScore || 0,
+        completed_at: new Date().toISOString()
+      }, { id: this.currentLeadId });
+      console.log('[app.js] Lead updated with results');
+    } catch (err) {
+      console.error('[app.js] updateLeadWithResults failed:', err);
+    }
+  }
+
   // ========== SUBMIT & RESULTS ==========
 
   async submitAssessment() {
@@ -405,6 +549,31 @@ class ClinicEvaluatorApp {
 
       this.engine = new AssessmentEngine(this.config);
       const results = this.engine.evaluate(this.answers, this.currentAssessmentKey, this.metadata);
+
+      // Save to Supabase (non-blocking, don't fail if Supabase is down)
+      if (this.supabase) {
+        try {
+          // Step 1: Save lead
+          await this.saveLead();
+          
+          // Step 2: Save session
+          await this.saveSession();
+          
+          // Step 3: Save answers
+          await this.saveAnswers();
+          
+          // Step 4: Save scores
+          await this.saveScores(results);
+          
+          // Step 5: Update lead with final results
+          await this.updateLeadWithResults(results);
+          
+          console.log('[app.js] All data saved to Supabase successfully');
+        } catch (saveErr) {
+          console.error('[app.js] Supabase save error (non-fatal):', saveErr);
+          // Don't throw - allow results to display even if save fails
+        }
+      }
 
       clearInterval(interval);
       if (loadBar) loadBar.style.width = '100%';
@@ -441,9 +610,9 @@ class ClinicEvaluatorApp {
     const body = document.getElementById('result-body');
 
     if (circle) circle.style.borderColor = qData.color;
-    if (scoreVal) { 
-      scoreVal.textContent = score + '%'; 
-      scoreVal.style.color = qData.color; 
+    if (scoreVal) {
+      scoreVal.textContent = score + '%';
+      scoreVal.style.color = qData.color;
     }
     if (scoreLabel) scoreLabel.textContent = qData.label;
     if (title) title.textContent = qData.label;
@@ -461,13 +630,12 @@ class ClinicEvaluatorApp {
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
         row.innerHTML = `
-          <div class="axis-score-info">
-            <div class="axis-score-name">${axis ? axis.name_ar : aid}</div>
-            <div class="axis-score-bar-bg">
-              <div class="axis-score-bar-fill" style="width:${score}%;background:${barColor}"></div>
-            </div>
+          <div class="axis-info">
+            <div class="axis-name">${axis ? axis.name_ar : aid}</div>
+            <div class="axis-bar-bg"><div class="axis-bar-fill" style="width:${score}%;background:${barColor}"></div></div>
           </div>
-          <div class="axis-score-value" style="color:${barColor}">${score.toFixed(1)}%</div>`;
+          <div class="axis-score" style="color:${barColor}">${score.toFixed(1)}%</div>
+        `;
         axesContainer.appendChild(row);
       });
     }
@@ -475,7 +643,7 @@ class ClinicEvaluatorApp {
     // KPIs
     if (res.kpis) {
       const kpiContainer = document.getElementById('kpis-container') || this.createKPIContainer(resultsView);
-      kpiContainer.innerHTML = '<div class="card-title">📊 المؤشرات الرئيسية</div>';
+      kpiContainer.innerHTML = '<h3 class="card-title">📊 المؤشرات الرئيسية</h3>';
       const grid = document.createElement('div');
       grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;';
 
@@ -484,9 +652,10 @@ class ClinicEvaluatorApp {
         const card = document.createElement('div');
         card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
         card.innerHTML = `
-          <div style="font-size:11px;color:#5C6B73;margin-bottom:4px">${kpiInfo.name}</div>
-          <div style="font-size:10px;color:#94a3b8;margin-bottom:8px">${kpiInfo.short_name}</div>
-          <div style="font-size:22px;font-weight:700;color:#0f766e">${v.toFixed(1)}</div>`;
+          <div style="font-size:0.85rem;color:#6B7280;margin-bottom:4px;">${kpiInfo.name}</div>
+          <div style="font-size:0.75rem;color:#9CA3AF;margin-bottom:8px;">${kpiInfo.short_name}</div>
+          <div style="font-size:1.5rem;font-weight:700;color:#0F766E;">${v.toFixed(1)}</div>
+        `;
         grid.appendChild(card);
       });
       kpiContainer.appendChild(grid);
@@ -498,16 +667,17 @@ class ClinicEvaluatorApp {
     if (trapsContainer) {
       if (res.traps && res.traps.length) {
         trapsContainer.classList.remove('hidden');
-        trapsContainer.innerHTML = '<div class="card-title">🚨 نقاط الضعف المكتشفة</div>';
+        trapsContainer.innerHTML = '<h3 class="card-title">🚨 نقاط الضعف المكتشفة</h3>';
         res.traps.forEach(t => {
           const alert = document.createElement('div');
           alert.className = 'trap-alert fade-in';
           alert.innerHTML = `
-            <span class="icon">⚠️</span>
+            <div class="icon">⚠️</div>
             <div class="content">
               <h4>${t.name}</h4>
               <p>${t.message}</p>
-            </div>`;
+            </div>
+          `;
           trapsContainer.appendChild(alert);
         });
       } else {
@@ -519,7 +689,7 @@ class ClinicEvaluatorApp {
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
-      recContainer.innerHTML = '<div class="card-title">💡 التشخيص الهيكلي وفرص النمو</div>';
+      recContainer.innerHTML = '<h3 class="card-title">💡 التشخيص الهيكلي وفرص النمو</h3>';
 
       if (res.axisScores) {
         const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
@@ -535,8 +705,9 @@ class ClinicEvaluatorApp {
         box.innerHTML = `
           <h4>🎯 أولوية التحسين الفورية: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4>
           <p>هذا المحور يحتاج إلى اهتمام فوري (${weakest[1].toFixed(1)}%). التركيز على تحسينه سيرفع درجتك الكلية بشكل ملحوظ.</p>
-          <h4 style="margin-top:12px">💪 نقطة القوة: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4>
-          <p>أداء متميز (${strongest[1].toFixed(1)}%). حافظ على هذا المستوى واستخدمه كنموذج للمحاور الأخرى.</p>`;
+          <h4>💪 نقطة القوة: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4>
+          <p>أداء متميز (${strongest[1].toFixed(1)}%). حافظ على هذا المستوى واستخدمه كنموذج للمحاور الأخرى.</p>
+        `;
         recContainer.appendChild(box);
       }
     }
@@ -663,4 +834,3 @@ document.addEventListener('DOMContentLoaded', () => {
   window.app = new ClinicEvaluatorApp();
   window.app.init();
 });
-
