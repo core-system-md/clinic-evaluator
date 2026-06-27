@@ -25,6 +25,114 @@ class ClinicEvaluatorApp {
     this.currentSessionId = null;
   }
 
+  // ========== AUTH CHECK ==========
+  async checkAssessmentAuth() {
+    try {
+      if (this.supabase && window.preSelectedAssessment) {
+        const settings = await this.supabase.select('assessment_settings', {
+          filter: { assessment_key: window.preSelectedAssessment }
+        });
+
+        if (settings && settings.length > 0 && settings[0].auth_enabled) {
+          await this.showAuthModal();
+        }
+      }
+    } catch (err) {
+      console.warn('[app.js] Auth check failed:', err);
+    }
+  }
+
+  async showAuthModal() {
+    return new Promise((resolve) => {
+      const existing = document.getElementById('assessment-auth-modal');
+      if (existing) existing.remove();
+
+      const modal = document.createElement('div');
+      modal.id = 'assessment-auth-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.95);display:flex;align-items:center;justify-content:center;z-index:9999;';
+      modal.innerHTML = `
+        <div style="background:#1e293b;border-radius:16px;padding:40px;width:90%;max-width:400px;border:1px solid #334155;direction:rtl;">
+          <h2 style="color:#e8b923;text-align:center;margin-bottom:8px;">🔐 تقييم محمي</h2>
+          <p style="color:#94a3b8;text-align:center;margin-bottom:24px;font-size:0.9rem;">هذا التقييم يتطلب تسجيل دخول</p>
+          <form id="assessment-auth-form">
+            <div style="margin-bottom:16px;">
+              <label style="display:block;color:#94a3b8;margin-bottom:6px;font-size:0.9rem;">اسم المستخدم</label>
+              <input type="text" id="auth-user" required style="width:100%;padding:12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:1rem;font-family:inherit;">
+            </div>
+            <div style="margin-bottom:16px;">
+              <label style="display:block;color:#94a3b8;margin-bottom:6px;font-size:0.9rem;">كلمة المرور</label>
+              <input type="password" id="auth-pass" required style="width:100%;padding:12px;border:1px solid #334155;border-radius:8px;background:#0f172a;color:#f1f5f9;font-size:1rem;font-family:inherit;">
+            </div>
+            <div id="auth-error-msg" style="color:#ef4444;text-align:center;margin-bottom:16px;display:none;font-size:0.9rem;"></div>
+            <button type="submit" style="width:100%;padding:14px;background:#1a5f7a;color:white;border:none;border-radius:8px;font-size:1rem;font-weight:600;cursor:pointer;font-family:inherit;">دخول</button>
+          </form>
+        </div>
+      `;
+      document.body.appendChild(modal);
+
+      document.getElementById('assessment-auth-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const username = document.getElementById('auth-user').value.trim();
+        const password = document.getElementById('auth-pass').value;
+        const errorDiv = document.getElementById('auth-error-msg');
+
+        try {
+          const users = await this.supabase.select('assessment_users', {
+            filter: { assessment_key: window.preSelectedAssessment, username: username }
+          });
+
+          if (!users || users.length === 0) {
+            errorDiv.textContent = 'اسم المستخدم غير موجود';
+            errorDiv.style.display = 'block';
+            return;
+          }
+
+          const user = users[0];
+          const hash = await this.simpleHash(password);
+
+          if (user.password_hash !== hash) {
+            errorDiv.textContent = 'كلمة المرور غير صحيحة';
+            errorDiv.style.display = 'block';
+            return;
+          }
+
+          if (!user.active) {
+            errorDiv.textContent = 'الحساب معطل';
+            errorDiv.style.display = 'block';
+            return;
+          }
+
+          if (user.used_count >= user.max_uses) {
+            errorDiv.textContent = 'تم استنفاد عدد الاستخدامات';
+            errorDiv.style.display = 'block';
+            return;
+          }
+
+          if (user.expires_at && new Date(user.expires_at) < new Date()) {
+            errorDiv.textContent = 'انتهت صلاحية الحساب';
+            errorDiv.style.display = 'block';
+            return;
+          }
+
+          await this.supabase.update('assessment_users', { used_count: user.used_count + 1 }, { id: user.id });
+          modal.remove();
+          resolve(true);
+        } catch (err) {
+          errorDiv.textContent = 'خطأ في المصادقة';
+          errorDiv.style.display = 'block';
+        }
+      });
+    });
+  }
+
+  async simpleHash(str) {
+    const encoder = new TextEncoder();
+    const data = encoder.encode(str);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
   getActiveAssessment() {
     if (this.assessment) return this.assessment;
     if (!this.config?.assessment_types) return null;
@@ -45,6 +153,9 @@ class ClinicEvaluatorApp {
 
       await Promise.all([this.loadConfig(), this.loadTexts()]);
       console.log('[app.js] config & texts loaded');
+
+      // Check if assessment is protected
+      await this.checkAssessmentAuth();
 
       this.setupLeadForm();
       this.setupNavigation();
@@ -399,6 +510,9 @@ class ClinicEvaluatorApp {
         phone: this.metadata.phone || null,
         clinic_name: this.metadata.clinic || null,
         country: this.metadata.country || null,
+        specialty: this.metadata.specialty || null,
+        years: this.metadata.years || null,
+        team: this.metadata.team || null,
         source: window.location.pathname,
         utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || null,
         completed: false,
