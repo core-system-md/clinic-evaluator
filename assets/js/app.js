@@ -234,28 +234,18 @@ class ClinicEvaluatorApp {
     q.options.forEach((opt, i) => {
       const letter = letters[i] || '';
       const selected = this.answers[q.id] === opt.value ? 'sel' : '';
-      const valueBadge = opt.value === 100 ? '<span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">ممتاز</span>' : 
-                        opt.value === 40 ? '<span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">متوسط</span>' :
-                        '<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">ضعيف</span>';
 
       optsHtml += `
         <div class="opt ${selected}" data-value="${opt.value}" data-index="${i}">
           <span class="opt-letter">${letter}</span>
           <span class="opt-label">${opt.label}</span>
-          ${valueBadge}
         </div>`;
     });
-
-    const impactBadge = q.impact === 'high' ? '🔴 تأثير عالي' : 
-                       q.impact === 'medium' ? '🟡 تأثير متوسط' : '🟢 تأثير منخفض';
-    const layerBadge = q.layer === 'B' ? '<span style="background:#fee2e2;color:#991b1b;padding:2px 8px;border-radius:4px;font-size:0.75rem;margin-right:8px">⚠️ كمين</span>' : '';
 
     return `
       <div class="question-card fade-in">
         <div class="question-meta">
           <span>السؤال ${num} من ${total}</span>
-          <span style="margin-right:12px">${impactBadge}</span>
-          ${layerBadge}
         </div>
         <h3 class="question-text">${q.text}</h3>
         <div class="options-grid">${optsHtml}</div>
@@ -673,3 +663,4 @@ document.addEventListener('DOMContentLoaded', () => {
   window.app = new ClinicEvaluatorApp();
   window.app.init();
 });
+
