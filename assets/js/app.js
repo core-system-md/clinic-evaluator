@@ -22,6 +22,13 @@ class ClinicEvaluatorApp {
     this.errorShown = false;
   }
 
+  getActiveAssessment() {
+    if (this.assessment) return this.assessment;
+    if (!this.config?.assessment_types) return null;
+    const key = this.currentAssessmentKey || window.preSelectedAssessment;
+    return key ? this.config.assessment_types[key] : null;
+  }
+
   async init() {
     console.log('[app.js] init started');
     try {
@@ -34,13 +41,13 @@ class ClinicEvaluatorApp {
       this.setupPrint();
       this.setupKeyboardShortcuts();
 
-      if (window.preSelectedAssessment) {
-        this.assessment = this.config.assessment_types?.[window.preSelectedAssessment];
-        if (this.assessment) {
-          this.questions = this.assessment.questions;
-          console.log('[app.js] assessment pre-loaded:', window.preSelectedAssessment, 
-                      'questions:', this.questions.length);
-        }
+      this.currentAssessmentKey = window.preSelectedAssessment;
+      this.assessment = this.getActiveAssessment();
+      if (this.assessment) {
+        this.questions = this.assessment.questions || [];
+        console.log('[app.js] assessment pre-loaded:', window.preSelectedAssessment, 'questions:', this.questions.length);
+      } else {
+        console.warn('[app.js] no assessment loaded for:', window.preSelectedAssessment);
       }
     } catch (err) {
       console.error('[app.js] Init failed:', err);
@@ -86,15 +93,26 @@ class ClinicEvaluatorApp {
 
   // ========== ERROR HANDLING ==========
 
+  showView(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.remove('hidden');
+    el.style.display = '';
+  }
+
+  hideView(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.classList.add('hidden');
+    el.style.display = 'none';
+  }
+
   showFatalError(msg) {
     if (this.errorShown) return;
     this.errorShown = true;
 
     // Hide all views
-    ['view-lead-form', 'view-assessment', 'view-loading', 'view-results'].forEach(id => {
-      const el = document.getElementById(id);
-      if (el) el.classList.add('hidden');
-    });
+    ['view-lead-form', 'view-assessment', 'view-loading', 'view-results'].forEach(id => this.hideView(id));
 
     // Show error in page
     let errorDiv = document.getElementById('fatal-error');
@@ -164,7 +182,7 @@ class ClinicEvaluatorApp {
 
   startAssessment() {
     this.currentAssessmentKey = window.preSelectedAssessment;
-    this.assessment = this.config.assessment_types?.[this.currentAssessmentKey];
+    this.assessment = this.getActiveAssessment();
 
     if (!this.assessment) {
       this.showFatalError('نوع التقييم غير موجود: ' + this.currentAssessmentKey);
@@ -175,12 +193,10 @@ class ClinicEvaluatorApp {
     this.answers = {};
     this.currentQuestionIndex = 0;
 
-    const leadForm = document.getElementById('view-lead-form');
+    this.hideView('view-lead-form');
+    this.showView('view-assessment');
     const assessmentView = document.getElementById('view-assessment');
-
-    if (leadForm) leadForm.classList.add('hidden');
     if (assessmentView) {
-      assessmentView.classList.remove('hidden');
       assessmentView.classList.add('fade-in');
     }
 
@@ -195,7 +211,12 @@ class ClinicEvaluatorApp {
     const container = document.getElementById('question-container');
     if (!container) return;
 
-    const q = this.questions[this.currentQuestionIndex];
+    const q = this.questions?.[this.currentQuestionIndex];
+    if (!q) {
+      this.showFatalError('لا توجد أسئلة متاحة لهذا التقييم حالياً.');
+      return;
+    }
+
     const num = this.currentQuestionIndex + 1;
     const total = this.questions.length;
 
@@ -289,7 +310,11 @@ class ClinicEvaluatorApp {
   }
 
   goNext() {
-    const currentQ = this.questions[this.currentQuestionIndex];
+    const currentQ = this.questions?.[this.currentQuestionIndex];
+    if (!currentQ) {
+      this.showFatalError('لم يتم العثور على السؤال الحالي.');
+      return;
+    }
     if (this.answers[currentQ.id] === undefined) {
       this.shakeQuestion();
       this.showError('يرجى اختيار إجابة قبل المتابعة');
@@ -317,8 +342,8 @@ class ClinicEvaluatorApp {
       } else if (['a','b','c','d','e','A','B','C','D','E','1','2','3','4','5'].includes(e.key)) {
         const keyMap = {'a':0,'b':1,'c':2,'d':3,'e':4,'A':0,'B':1,'C':2,'D':3,'E':4,'1':0,'2':1,'3':2,'4':3,'5':4};
         const idx = keyMap[e.key];
-        const currentQ = this.questions[this.currentQuestionIndex];
-        if (currentQ && currentQ.options[idx]) {
+        const currentQ = this.questions?.[this.currentQuestionIndex];
+        if (currentQ && currentQ.options?.[idx]) {
           const val = currentQ.options[idx].value;
           this.answers[currentQ.id] = val;
           const container = document.getElementById('question-container');
@@ -365,12 +390,10 @@ class ClinicEvaluatorApp {
   // ========== SUBMIT & RESULTS ==========
 
   async submitAssessment() {
-    const assessmentView = document.getElementById('view-assessment');
+    this.hideView('view-assessment');
+    this.showView('view-loading');
     const loadingView = document.getElementById('view-loading');
-
-    if (assessmentView) assessmentView.classList.add('hidden');
     if (loadingView) {
-      loadingView.classList.remove('hidden');
       loadingView.classList.add('fade-in');
     }
 
@@ -398,7 +421,7 @@ class ClinicEvaluatorApp {
       if (loadStatus) loadStatus.textContent = '100%';
 
       setTimeout(() => {
-        if (loadingView) loadingView.classList.add('hidden');
+        this.hideView('view-loading');
         this.renderResults(results);
       }, 500);
 
@@ -410,15 +433,15 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
+    this.showView('view-results');
     const resultsView = document.getElementById('view-results');
     if (resultsView) {
-      resultsView.classList.remove('hidden');
       resultsView.classList.add('fade-in');
     }
 
     const q = res.classification || 'Q2';
-    const qData = this.texts.quartiles?.[q] || { label: 'أداء مستقر', color: '#5C6B73' };
-    const score = (res.overallScore ?? 0).toFixed(1);
+    const qData = this.texts?.quartiles?.[q] || { label: 'أداء مستقر', color: '#5C6B73' };
+    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
 
     // Score circle
     const circle = document.getElementById('result-score-circle');
@@ -440,8 +463,10 @@ class ClinicEvaluatorApp {
     const axesContainer = document.getElementById('axes-scores');
     if (axesContainer && res.axisScores) {
       axesContainer.innerHTML = '';
+      const assessment = this.getActiveAssessment() || this.assessment;
+      const axes = assessment?.axes || [];
       Object.entries(res.axisScores).forEach(([aid, score]) => {
-        const axis = this.assessment.axes.find(x => x.id === aid);
+        const axis = axes.find(x => x.id === aid);
         const barColor = score >= 75 ? '#2A6F5D' : score >= 50 ? '#5C6B73' : score >= 25 ? '#C67D47' : '#A33B3B';
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
@@ -510,8 +535,10 @@ class ClinicEvaluatorApp {
         const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
         const weakest = sorted[0];
         const strongest = sorted[sorted.length - 1];
-        const weakAxis = this.assessment.axes.find(x => x.id === weakest[0]);
-        const strongAxis = this.assessment.axes.find(x => x.id === strongest[0]);
+        const assessment = this.getActiveAssessment() || this.assessment;
+        const axes = assessment?.axes || [];
+        const weakAxis = axes.find(x => x.id === weakest[0]);
+        const strongAxis = axes.find(x => x.id === strongest[0]);
 
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
@@ -525,7 +552,8 @@ class ClinicEvaluatorApp {
     }
 
     // EV Simulator (only if enabled)
-    const evEnabled = this.assessment?.simulator?.enabled === true;
+    const assessment = this.getActiveAssessment() || this.assessment;
+    const evEnabled = assessment?.simulator?.enabled === true;
     const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
     if (evSection) {
       if (evEnabled) {
@@ -559,11 +587,10 @@ class ClinicEvaluatorApp {
     if (!btn) return;
 
     btn.addEventListener('click', () => {
-      const resultsView = document.getElementById('view-results');
+      this.hideView('view-results');
+      this.showView('view-ev-simulator');
       const evView = document.getElementById('view-ev-simulator');
-      if (resultsView) resultsView.classList.add('hidden');
       if (evView) {
-        evView.classList.remove('hidden');
         evView.classList.add('fade-in');
       }
     });
@@ -576,10 +603,8 @@ class ClinicEvaluatorApp {
     const backBtn = document.getElementById('btn-back-results');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
-        const resultsView = document.getElementById('view-results');
-        const evView = document.getElementById('view-ev-simulator');
-        if (resultsView) resultsView.classList.remove('hidden');
-        if (evView) evView.classList.add('hidden');
+        this.showView('view-results');
+        this.hideView('view-ev-simulator');
       });
     }
   }
