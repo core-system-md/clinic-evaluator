@@ -1,13 +1,25 @@
 /**
  * Supabase Client — Clinic Evaluator
  * Project: oaqpzaarppccbnepffxx
- * Version: 1.0.0
+ * Version: 1.1.0 (Added Service Role Key support for Admin Dashboard)
+ * 
+ * NOTE: Service Role Key is ONLY used in admin.html for dashboard functionality.
+ * Assessment pages (patient-journey.html, clinic-performance.html) continue using Anon Key.
  */
 
 class SupabaseClient {
-  constructor() {
+  constructor(useServiceRole = false) {
     this.url = 'https://oaqpzaarppccbnepffxx.supabase.co';
-    this.key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
+
+    // Anon Key — used for assessment submissions (public)
+    this.anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
+
+    // Service Role Key — used ONLY for admin dashboard (private)
+    this.serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDUxNDk1MywiZXhwIjoyMDk2MDkwOTUzfQ.m2hy7TtZgSjJ4NfI4gDSQqrexi4Y9RJ1Otp05ZL5TS4';
+
+    // Use Service Role Key only when explicitly requested (admin dashboard)
+    this.key = useServiceRole ? this.serviceKey : this.anonKey;
+
     this.headers = {
       'apikey': this.key,
       'Authorization': 'Bearer ' + this.key,
@@ -43,17 +55,17 @@ class SupabaseClient {
     const params = new URLSearchParams();
     if (options.columns) params.append('select', options.columns);
     else params.append('select', '*');
-    
+
     if (options.filter) {
       Object.entries(options.filter).forEach(([key, value]) => {
         params.append(key, `eq.${value}`);
       });
     }
-    
+
     if (options.order) {
       params.append('order', `${options.order.column}.${options.order.direction || 'desc'}`);
     }
-    
+
     if (options.limit) params.append('limit', options.limit);
     if (options.offset) params.append('offset', options.offset);
 
@@ -97,4 +109,8 @@ class SupabaseClient {
   }
 }
 
-window.supabaseClient = new SupabaseClient();
+// Default instance uses Anon Key (for assessment pages)
+window.supabaseClient = new SupabaseClient(false);
+
+// Export class for admin dashboard to create Service Role instance
+window.SupabaseClient = SupabaseClient;
