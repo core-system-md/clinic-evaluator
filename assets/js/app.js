@@ -1,5 +1,5 @@
 /**
- * Clinic Evaluator — app.js v5.2 (PRODUCTION + Supabase + P4.5 + P4 + P5 + P6)
+ * Clinic Evaluator — app.js v5.1 (PRODUCTION + Supabase)
  */
 
 class ClinicEvaluatorApp {
@@ -118,7 +118,10 @@ class ClinicEvaluatorApp {
       errorDiv.style.cssText = 'background:#fef2f2;border:2px solid #ef4444;border-radius:16px;padding:40px;margin:40px auto;max-width:600px;text-align:center;';
       document.querySelector('.container')?.appendChild(errorDiv);
     }
-    errorDiv.innerHTML = `⚠️<h2>خطأ في التطبيق</h2><p>${msg}</p>`;
+    errorDiv.innerHTML = `⚠️
+## خطأ في التطبيق
+ ${msg}
+`;
     errorDiv.classList.remove('hidden');
   }
 
@@ -142,7 +145,7 @@ class ClinicEvaluatorApp {
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       this.collectMetadata();
-
+      
       // P4.5: Check duplicate submission
       const dupCheck = await this.checkDuplicateSubmission();
       if (!dupCheck.allowed) {
@@ -415,9 +418,9 @@ class ClinicEvaluatorApp {
         });
         if (res && res.length > 0) result = res[0];
       }
-
+      
       if (!result) return { allowed: true };
-
+      
       const now = new Date();
       const created = new Date(result.created_at);
       const diffMs = now - created;
@@ -438,7 +441,6 @@ class ClinicEvaluatorApp {
       console.warn('[app.js] checkDuplicateSubmission error:', err);
       return { allowed: true };
     }
-  }
 
   // ========== P4: ADMIN CONTROL ==========
   async checkAssessmentStatus() {
@@ -451,21 +453,20 @@ class ClinicEvaluatorApp {
         return { allowed: true };
       }
       const settings = res[0];
-
+      
       if (!settings.is_active) {
         return { allowed: false, requiresLogin: false, message: 'هذا التقييم مغلق حالياً.' };
       }
-
+      
       if (settings.is_paid) {
         return { allowed: false, requiresLogin: true, message: '' };
       }
-
+      
       return { allowed: true };
     } catch (err) {
       console.warn('[app.js] checkAssessmentStatus error:', err);
       return { allowed: true };
     }
-  }
 
   async verifyUser(username, password) {
     if (!this.supabase) return false;
@@ -474,15 +475,15 @@ class ClinicEvaluatorApp {
         filter: { assessment_type_id: this.currentAssessmentKey, username: username } 
       });
       if (!res || res.length === 0) return false;
-
+      
       const user = res[0];
-
+      
       if (user.password !== password) return false;
-
+      
       const now = new Date();
       const expires = new Date(user.expires_at);
       if (now > expires) return false;
-
+      
       if (user.used_count >= user.max_uses) return false;
 
       await this.supabase.update('assessment_users', { used_count: user.used_count + 1 }, { id: user.id });
@@ -520,12 +521,12 @@ class ClinicEvaluatorApp {
     const verifyBtn = document.getElementById('btn-login');
     const newBtn = verifyBtn.cloneNode(true);
     verifyBtn.parentNode.replaceChild(newBtn, verifyBtn);
-
+    
     newBtn.addEventListener('click', async () => {
       const username = document.getElementById('login-username').value.trim();
       const password = document.getElementById('login-password').value;
       const errorDiv = document.getElementById('login-error');
-
+      
       if (!username || !password) {
         errorDiv.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور.';
         return;
@@ -598,7 +599,7 @@ class ClinicEvaluatorApp {
     try {
       const sessionData = {
         lead_id: this.currentLeadId,
-        assessment_type_id: this.currentAssessmentKey,
+        assessment_type_id: null,
         status: 'in_progress',
         current_question: this.currentQuestionIndex,
         started_at: new Date().toISOString()
@@ -768,7 +769,7 @@ class ClinicEvaluatorApp {
       resultsView.classList.add('fade-in');
     }
 
-    // P5: Inject Print Styles (only once)
+    // P5: Inject Print Styles
     if (!document.getElementById('dynamic-print-styles')) {
       const style = document.createElement('style');
       style.id = 'dynamic-print-styles';
@@ -838,7 +839,7 @@ class ClinicEvaluatorApp {
         document.getElementById('view-results')?.appendChild(chartsContainer);
       }
     }
-
+    
     // P6: Render Bar Chart
     if (res.axisScores) {
       const assessment = this.getActiveAssessment() || this.assessment;
@@ -919,7 +920,7 @@ class ClinicEvaluatorApp {
       }
     }
 
-    // EV Simulator
+    // EV Simulator (only if enabled)
     const assessment = this.getActiveAssessment() || this.assessment;
     const evEnabled = assessment?.simulator?.enabled === true;
     const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
@@ -960,17 +961,13 @@ class ClinicEvaluatorApp {
   exportToCSV() {
     const assessment = this.getActiveAssessment() || this.assessment;
     const axes = assessment?.axes || [];
-
-    let csv = '﻿';
-    csv += 'الاسم,العيادة,الدولة,التخصص,التاريخ
-';
-    csv += `"${this.metadata.name}","${this.metadata.clinic}","${this.metadata.country}","${this.metadata.specialty}","${new Date().toLocaleDateString('ar-EG')}"
-
-`;
-
-    csv += 'المحور,السؤال,الدرجة
-';
-
+    
+    let csv = '\uFEFF'; // UTF-8 BOM for Arabic
+    csv += 'الاسم,العيادة,الدولة,التخصص,التاريخ\n';
+    csv += `"${this.metadata.name}","${this.metadata.clinic}","${this.metadata.country}","${this.metadata.specialty}","${new Date().toLocaleDateString('ar-EG')}"\n\n`;
+    
+    csv += 'المحور,السؤال,الدرجة\n';
+    
     const getScoreLabel = (val) => {
       if (val === 100) return 'ممتاز';
       if (val === 40) return 'متوسط';
@@ -984,8 +981,7 @@ class ClinicEvaluatorApp {
       const answerVal = this.answers[q.id];
       const answerLabel = getScoreLabel(answerVal);
       const questionText = q.text.replace(/"/g, '""');
-      csv += `"${axisName}","${questionText}","${answerLabel}"
-`;
+      csv += `"${axisName}","${questionText}","${answerLabel}"\n`;
     }
 
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
@@ -1013,7 +1009,7 @@ class ClinicEvaluatorApp {
     container.appendChild(titleEl);
 
     const maxVal = Math.max(...data.map(d => d.value), 1);
-
+    
     data.forEach(item => {
       const pct = (item.value / maxVal) * 100;
       let color = '#A33B3B';
@@ -1072,7 +1068,7 @@ class ClinicEvaluatorApp {
       try {
         const axisScores = this.engine.calculateScores().axes;
         const evResult = this.engine.calculateEV(
-          Object.fromEntries(axisScores.map(a => [a.axisId, a.percentage])),
+          Object.fromEntries(axisScores.map(a => [a.axisId, a.percentage]),
           { flow: visits * 12, ltv: avg * visits * years }
         );
         if (evResult) {
@@ -1115,7 +1111,7 @@ class ClinicEvaluatorApp {
 }
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded, () => {
   window.app = new ClinicEvaluatorApp();
   window.app.init();
 });
