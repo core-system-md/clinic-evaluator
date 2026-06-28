@@ -1,5 +1,5 @@
 /**
- * Clinic Evaluator — app.js v5.1 (PRODUCTION + Supabase)
+ * Clinic Evaluator — app.js v5.2 (PRODUCTION + Supabase + P4.5 + P4 + P5 + P6)
  */
 
 class ClinicEvaluatorApp {
@@ -118,10 +118,7 @@ class ClinicEvaluatorApp {
       errorDiv.style.cssText = 'background:#fef2f2;border:2px solid #ef4444;border-radius:16px;padding:40px;margin:40px auto;max-width:600px;text-align:center;';
       document.querySelector('.container')?.appendChild(errorDiv);
     }
-    errorDiv.innerHTML = `⚠️
-## خطأ في التطبيق
- ${msg}
-`;
+    errorDiv.innerHTML = `⚠️<h2>خطأ في التطبيق</h2><p>${msg}</p>`;
     errorDiv.classList.remove('hidden');
   }
 
@@ -142,9 +139,17 @@ class ClinicEvaluatorApp {
   setupLeadForm() {
     const form = document.getElementById('lead-form');
     if (!form) return;
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
       this.collectMetadata();
+
+      // P4.5: Check duplicate submission
+      const dupCheck = await this.checkDuplicateSubmission();
+      if (!dupCheck.allowed) {
+        this.showError(dupCheck.message);
+        return;
+      }
+
       this.startAssessment();
     });
   }
@@ -166,7 +171,7 @@ class ClinicEvaluatorApp {
     };
   }
 
-  startAssessment() {
+  async startAssessment() {
     this.currentAssessmentKey = window.preSelectedAssessment;
     this.assessment = this.getActiveAssessment();
 
@@ -175,6 +180,23 @@ class ClinicEvaluatorApp {
       return;
     }
 
+    // P4: Check assessment status
+    const statusCheck = await this.checkAssessmentStatus();
+    if (!statusCheck.allowed) {
+      this.showError(statusCheck.message);
+      return;
+    }
+
+    // P4: Handle login if required
+    if (statusCheck.requiresLogin) {
+      this.showLoginForm();
+      return;
+    }
+
+    this.proceedWithAssessmentStart();
+  }
+
+  proceedWithAssessmentStart() {
     this.questions = this.assessment.questions;
     this.answers = {};
     this.currentQuestionIndex = 0;
@@ -216,10 +238,8 @@ class ClinicEvaluatorApp {
     container.innerHTML = this.renderABCDEQuestion(q, num, total);
     this.attachOptionHandlers(container, q.id);
 
-    // window.scrollTo({ top: 0, behavior: 'smooth' });
-const qCard = document.querySelector('.question-card');
-if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
+    const qCard = document.querySelector('.question-card');
+    if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   renderABCDEQuestion(q, num, total) {
@@ -372,6 +392,162 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
   }
 
+  // ========== P4.5: ANTI-SPAM TIMER ==========
+  async checkDuplicateSubmission() {
+    if (!this.supabase || (!this.metadata.email && !this.metadata.phone)) {
+      return { allowed: true };
+    }
+    try {
+      let result = null;
+      if (this.metadata.email) {
+        const res = await this.supabase.select('leads', { 
+          filter: { email: this.metadata.email }, 
+          order: { column: 'created_at', direction: 'desc' }, 
+          limit: 1 
+        });
+        if (res && res.length > 0) result = res[0];
+      }
+      if (!result && this.metadata.phone) {
+        const res = await this.supabase.select('leads', { 
+          filter: { phone: this.metadata.phone }, 
+          order: { column: 'created_at', direction: 'desc' }, 
+          limit: 1 
+        });
+        if (res && res.length > 0) result = res[0];
+      }
+
+      if (!result) return { allowed: true };
+
+      const now = new Date();
+      const created = new Date(result.created_at);
+      const diffMs = now - created;
+      const diffHours = diffMs / (1000 * 60 * 60);
+      const diffMins = diffMs / (1000 * 60);
+
+      if (result.completed) {
+        if (diffHours < 48) {
+          return { allowed: false, message: 'لقد أكملت هذا التقييم مؤخراً. يرجى المحاولة بعد 48 ساعة.' };
+        }
+      } else {
+        if (diffMins < 10) {
+          return { allowed: false, message: 'لديك تقييم قيد التقدم. يرجى الانتظار 10 دقائق أو أكمل التقييم الحالي.' };
+        }
+      }
+      return { allowed: true };
+    } catch (err) {
+      console.warn('[app.js] checkDuplicateSubmission error:', err);
+      return { allowed: true };
+    }
+  }
+
+  // ========== P4: ADMIN CONTROL ==========
+  async checkAssessmentStatus() {
+    if (!this.supabase) return { allowed: true };
+    try {
+      const res = await this.supabase.select('assessment_settings', { 
+          filter: { assessment_type_id: this.currentAssessmentKey } 
+      });
+      if (!res || res.length === 0) {
+        return { allowed: true };
+      }
+      const settings = res[0];
+
+      if (!settings.is_active) {
+        return { allowed: false, requiresLogin: false, message: 'هذا التقييم مغلق حالياً.' };
+      }
+
+      if (settings.is_paid) {
+        return { allowed: false, requiresLogin: true, message: '' };
+      }
+
+      return { allowed: true };
+    } catch (err) {
+      console.warn('[app.js] checkAssessmentStatus error:', err);
+      return { allowed: true };
+    }
+  }
+
+  async verifyUser(username, password) {
+    if (!this.supabase) return false;
+    try {
+      const res = await this.supabase.select('assessment_users', { 
+        filter: { assessment_type_id: this.currentAssessmentKey, username: username } 
+      });
+      if (!res || res.length === 0) return false;
+
+      const user = res[0];
+
+      if (user.password !== password) return false;
+
+      const now = new Date();
+      const expires = new Date(user.expires_at);
+      if (now > expires) return false;
+
+      if (user.used_count >= user.max_uses) return false;
+
+      await this.supabase.update('assessment_users', { used_count: user.used_count + 1 }, { id: user.id });
+      return true;
+    } catch (err) {
+      console.error('[app.js] verifyUser error:', err);
+      return false;
+    }
+  }
+
+  showLoginForm() {
+    let modal = document.getElementById('login-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'login-modal';
+      modal.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:10000;display:flex;align-items:center;justify-content:center;';
+      modal.innerHTML = `
+        <div style="background:white;border-radius:16px;padding:30px;max-width:400px;width:90%;text-align:center;">
+          <h3 style="color:#134e4a;margin-bottom:20px;">🔐 تسجيل الدخول</h3>
+          <p style="color:#6b7280;margin-bottom:20px;">هذا التقييم محمي. أدخل بيانات الدخول التي حصلت عليها من الإدارة.</p>
+          <input type="text" id="login-username" class="form-input" placeholder="اسم المستخدم" style="margin-bottom:12px;text-align:center;">
+          <input type="password" id="login-password" class="form-input" placeholder="كلمة المرور" style="margin-bottom:8px;text-align:center;">
+          <div id="login-error" style="color:#ef4444;font-size:0.9rem;margin-bottom:12px;min-height:20px;"></div>
+          <button id="btn-login" class="btn btn-primary" style="width:100%;">دخول</button>
+        </div>
+      `;
+      document.body.appendChild(modal);
+    } else {
+      modal.style.display = 'flex';
+      document.getElementById('login-error').textContent = '';
+      document.getElementById('login-username').value = '';
+      document.getElementById('login-password').value = '';
+    }
+
+    const verifyBtn = document.getElementById('btn-login');
+    const newBtn = verifyBtn.cloneNode(true);
+    verifyBtn.parentNode.replaceChild(newBtn, verifyBtn);
+
+    newBtn.addEventListener('click', async () => {
+      const username = document.getElementById('login-username').value.trim();
+      const password = document.getElementById('login-password').value;
+      const errorDiv = document.getElementById('login-error');
+
+      if (!username || !password) {
+        errorDiv.textContent = 'يرجى إدخال اسم المستخدم وكلمة المرور.';
+        return;
+      }
+
+      const isValid = await this.verifyUser(username, password);
+      if (isValid) {
+        this.hideLoginForm();
+        this.proceedWithAssessmentStart();
+      } else {
+        errorDiv.textContent = 'اسم المستخدم أو كلمة المرور غير صحيح، أو انتهت صلاحية الاستخدام.';
+      }
+    });
+  }
+
+  hideLoginForm() {
+    const modal = document.getElementById('login-modal');
+    if (modal) {
+      modal.style.display = 'none';
+    }
+  }
+
   // ========== P3.2: SESSION TRACKING ==========
   updateSessionProgress() {
     if (!this.supabase || !this.currentSessionId) return;
@@ -422,7 +598,7 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     try {
       const sessionData = {
         lead_id: this.currentLeadId,
-        assessment_type_id: null,
+        assessment_type_id: this.currentAssessmentKey,
         status: 'in_progress',
         current_question: this.currentQuestionIndex,
         started_at: new Date().toISOString()
@@ -566,7 +742,6 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
           console.log('[app.js] All data saved to Supabase successfully');
         } catch (saveErr) {
           console.error('[app.js] Supabase save error (non-fatal):', saveErr);
-          // Don't throw - allow results to display even if save fails
         }
       }
 
@@ -591,6 +766,21 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const resultsView = document.getElementById('view-results');
     if (resultsView) {
       resultsView.classList.add('fade-in');
+    }
+
+    // P5: Inject Print Styles (only once)
+    if (!document.getElementById('dynamic-print-styles')) {
+      const style = document.createElement('style');
+      style.id = 'dynamic-print-styles';
+      style.textContent = `
+        @media print {
+          .btn-group, .top-bar, #view-ev-simulator, .ev-simulator-section, #btn-ev-simulator, #charts-container { display: none !important; }
+          .form-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #eee !important; }
+          body { background: white !important; }
+          .hidden { display: none !important; }
+        }
+      `;
+      document.head.appendChild(style);
     }
 
     const q = res.classification || 'Q2';
@@ -633,6 +823,31 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         `;
         axesContainer.appendChild(row);
       });
+    }
+
+    // P6: Add Charts Container if not exists
+    let chartsContainer = document.getElementById('charts-container');
+    if (!chartsContainer) {
+      chartsContainer = document.createElement('div');
+      chartsContainer.id = 'charts-container';
+      chartsContainer.className = 'form-card hidden fade-in';
+      chartsContainer.style.marginTop = '20px';
+      if (axesContainer && axesContainer.parentNode) {
+        axesContainer.parentNode.insertBefore(chartsContainer, axesContainer.nextSibling);
+      } else {
+        document.getElementById('view-results')?.appendChild(chartsContainer);
+      }
+    }
+
+    // P6: Render Bar Chart
+    if (res.axisScores) {
+      const assessment = this.getActiveAssessment() || this.assessment;
+      const axes = assessment?.axes || [];
+      const chartData = Object.entries(res.axisScores).map(([aid, score]) => {
+        const axis = axes.find(a => a.id === aid);
+        return { label: axis ? axis.name_ar : aid, value: score };
+      });
+      this.renderBarChart('charts-container', chartData, 'مقارنة أداء المحاور');
     }
 
     // KPIs
@@ -704,7 +919,7 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       }
     }
 
-    // EV Simulator (only if enabled)
+    // EV Simulator
     const assessment = this.getActiveAssessment() || this.assessment;
     const evEnabled = assessment?.simulator?.enabled === true;
     const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
@@ -719,6 +934,17 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       leakageEl.textContent = res.leakageIndex + '%';
       leakageEl.classList.remove('hidden');
     }
+
+    // P5: Add Export CSV Button
+    const btnGroup = document.querySelector('#view-results .btn-group:last-child');
+    if (btnGroup && !document.getElementById('btn-export-csv')) {
+      const csvBtn = document.createElement('button');
+      csvBtn.id = 'btn-export-csv';
+      csvBtn.className = 'btn btn-secondary';
+      csvBtn.textContent = '📥 تصدير CSV';
+      csvBtn.onclick = () => this.exportToCSV();
+      btnGroup.insertBefore(csvBtn, btnGroup.firstChild);
+    }
   }
 
   createKPIContainer(parent) {
@@ -728,6 +954,86 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     div.style.marginBottom = '20px';
     parent.insertBefore(div, parent.children[2]);
     return div;
+  }
+
+  // ========== P5: EXPORT CSV ==========
+  exportToCSV() {
+    const assessment = this.getActiveAssessment() || this.assessment;
+    const axes = assessment?.axes || [];
+
+    let csv = '﻿';
+    csv += 'الاسم,العيادة,الدولة,التخصص,التاريخ
+';
+    csv += `"${this.metadata.name}","${this.metadata.clinic}","${this.metadata.country}","${this.metadata.specialty}","${new Date().toLocaleDateString('ar-EG')}"
+
+`;
+
+    csv += 'المحور,السؤال,الدرجة
+';
+
+    const getScoreLabel = (val) => {
+      if (val === 100) return 'ممتاز';
+      if (val === 40) return 'متوسط';
+      if (val === 0) return 'ضعيف';
+      return val !== undefined ? val : 'لم يتم الإجابة';
+    };
+
+    for (const q of this.questions) {
+      const axis = axes.find(a => a.id === q.axis_id);
+      const axisName = axis ? axis.name_ar : q.axis_id;
+      const answerVal = this.answers[q.id];
+      const answerLabel = getScoreLabel(answerVal);
+      const questionText = q.text.replace(/"/g, '""');
+      csv += `"${axisName}","${questionText}","${answerLabel}"
+`;
+    }
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `تقييم_${this.currentAssessmentKey}_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  // ========== P6: CSS CHARTS ==========
+  renderBarChart(containerId, data, title) {
+    const container = document.getElementById(containerId);
+    if (!container || !data || data.length === 0) return;
+
+    container.innerHTML = '';
+    container.classList.remove('hidden');
+
+    const titleEl = document.createElement('h3');
+    titleEl.className = 'card-title';
+    titleEl.textContent = `📊 ${title}`;
+    container.appendChild(titleEl);
+
+    const maxVal = Math.max(...data.map(d => d.value), 1);
+
+    data.forEach(item => {
+      const pct = (item.value / maxVal) * 100;
+      let color = '#A33B3B';
+      if (item.value >= 75) color = '#2A6F5D';
+      else if (item.value >= 50) color = '#5C6B73';
+      else if (item.value >= 25) color = '#C67D47';
+
+      const row = document.createElement('div');
+      row.style.cssText = 'margin-bottom: 12px;';
+      row.innerHTML = `
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;">
+          <span>${item.label}</span>
+          <span style="color:${color}">${item.value.toFixed(1)}%</span>
+        </div>
+        <div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:${color};border-radius:6px;transition:width 0.5s ease;"></div>
+        </div>
+      `;
+      container.appendChild(row);
+    });
   }
 
   // ========== EV SIMULATOR ==========
