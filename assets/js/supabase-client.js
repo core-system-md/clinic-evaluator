@@ -84,6 +84,21 @@ class SupabaseClient {
     });
   }
 
+  async upsert(table, data, conflictColumn) {
+    const params = new URLSearchParams();
+    if (conflictColumn) {
+      params.append('on_conflict', conflictColumn);
+    }
+    const url = params.toString() ? `${table}?${params.toString()}` : table;
+    return this.request(url, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        'Prefer': 'resolution=merge-duplicates,return=representation'
+      }
+    });
+  }
+
   async delete(table, filter) {
     const params = new URLSearchParams();
     Object.entries(filter).forEach(([key, value]) => {
