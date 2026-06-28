@@ -53,6 +53,16 @@ class ClinicEvaluatorApp {
       } else {
         console.warn('[app.js] no assessment loaded for:', window.preSelectedAssessment);
       }
+
+      // P3.2: Create session on open
+      if (this.supabase) {
+        this.supabase.insert('sessions', { status: 'started' }).then(res => {
+          if (res && res[0]) {
+            this.currentSessionId = res[0].id;
+            console.log('[app.js] Initial session created:', this.currentSessionId);
+          }
+        }).catch(err => console.warn('[app.js] Initial session creation failed:', err));
+      }
     } catch (err) {
       console.error('[app.js] Init failed:', err);
       this.showFatalError('فشل تحميل التطبيق. تأكد من وجود ملفات الإعدادات (config.json + report_texts.json) في مجلد data/');
@@ -118,7 +128,10 @@ class ClinicEvaluatorApp {
       errorDiv.style.cssText = 'background:#fef2f2;border:2px solid #ef4444;border-radius:16px;padding:40px;margin:40px auto;max-width:600px;text-align:center;';
       document.querySelector('.container')?.appendChild(errorDiv);
     }
-    errorDiv.innerHTML = `<div style="font-size:3rem;margin-bottom:16px;">⚠️</div><h2 style="color:#991b1b;margin-bottom:12px;">خطأ في التطبيق</h2><p style="color:#7f1d1d;font-size:1rem;">${msg}</p>`;
+    errorDiv.innerHTML = `⚠️
+## خطأ في التطبيق
+ ${msg}
+`;
     errorDiv.classList.remove('hidden');
   }
 
@@ -176,6 +189,15 @@ class ClinicEvaluatorApp {
     this.answers = {};
     this.currentQuestionIndex = 0;
 
+    // P3.2: Save lead and update session
+    if (this.supabase) {
+      this.saveLead().then(() => {
+        if (this.currentSessionId) {
+          this.supabase.update('sessions', { lead_id: this.currentLeadId, status: 'in_progress' }, { id: this.currentSessionId }).catch(() => {});
+        }
+      });
+    }
+
     this.hideView('view-lead-form');
     this.showView('view-assessment');
     const assessmentView = document.getElementById('view-assessment');
@@ -219,20 +241,16 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       const selected = this.answers[q.id] === opt.value ? 'sel' : '';
 
       optsHtml += `
-        <div class="opt ${selected}" data-value="${opt.value}">
-          <div class="opt-letter">${letter}</div>
-          <div>${opt.label}</div>
-        </div>
-      `;
+ ${letter}
+ ${opt.label}
+`;
     });
 
     return `
-      <div class="question-card">
-        <div class="question-meta">السؤال ${num} من ${total}</div>
-        <div class="question-text">${q.text}</div>
-        <div class="options-grid">${optsHtml}</div>
-      </div>
-    `;
+السؤال ${num} من ${total}
+ ${q.text}
+ ${optsHtml}
+`;
   }
 
   attachOptionHandlers(container, qid) {
@@ -244,6 +262,9 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         opts.forEach(o => o.classList.remove('sel'));
         opt.classList.add('sel');
         this.updateProgress();
+
+        // P3.2: Update session question progress
+        this.updateSessionProgress();
 
         if (this.currentQuestionIndex < this.questions.length - 1) {
           setTimeout(() => {
@@ -355,6 +376,12 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       card.style.animation = 'shake 0.5s ease';
       setTimeout(() => card.style.animation = '', 600);
     }
+  }
+
+  // ========== P3.2: SESSION TRACKING ==========
+  updateSessionProgress() {
+    if (!this.supabase || !this.currentSessionId) return;
+    this.supabase.update('sessions', { current_question: this.currentQuestionIndex }, { id: this.currentSessionId }).catch(err => console.warn('[app.js] updateSessionProgress failed:', err));
   }
 
   // ========== SUPABASE SAVE METHODS ==========
@@ -528,11 +555,10 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       // Save to Supabase (non-blocking, don't fail if Supabase is down)
       if (this.supabase) {
         try {
-          // Step 1: Save lead
-          await this.saveLead();
-
-          // Step 2: Save session
-          await this.saveSession();
+          // Update session status to completed
+          if (this.currentSessionId) {
+            await this.supabase.update('sessions', { status: 'completed' }, { id: this.currentSessionId });
+          }
 
           // Step 3: Save answers
           await this.saveAnswers();
@@ -605,10 +631,9 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
         row.innerHTML = `
-          <div class="axis-name">${axis ? axis.name_ar : aid}</div>
-          <div class="axis-bar-bg"><div class="axis-bar-fill" style="width:${score}%;background:${barColor}"></div></div>
-          <div class="axis-score">${score.toFixed(1)}%</div>
-        `;
+ ${axis ? axis.name_ar : aid}
+ ${score.toFixed(1)}%
+`;
         axesContainer.appendChild(row);
       });
     }
@@ -616,7 +641,9 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     // KPIs
     if (res.kpis) {
       const kpiContainer = document.getElementById('kpis-container') || this.createKPIContainer(resultsView);
-      kpiContainer.innerHTML = '<h3>📊 المؤشرات الرئيسية</h3>';
+      kpiContainer.innerHTML = '
+### 📊 المؤشرات الرئيسية
+';
       const grid = document.createElement('div');
       grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;';
       Object.entries(res.kpis).forEach(([k, v]) => {
@@ -624,10 +651,10 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const card = document.createElement('div');
         card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
         card.innerHTML = `
-          <div style="font-size:0.85rem;color:#5C6B73;margin-bottom:4px;">${kpiInfo.name}</div>
-          <div style="font-size:0.75rem;color:#94a3b8;margin-bottom:8px;">${kpiInfo.short_name}</div>
-          <div style="font-size:1.5rem;font-weight:700;color:#1a5f7a;">${v.toFixed(1)}</div>
-        `;
+ ${kpiInfo.name}
+ ${kpiInfo.short_name}
+ ${v.toFixed(1)}
+`;
         grid.appendChild(card);
       });
       kpiContainer.appendChild(grid);
@@ -639,17 +666,17 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     if (trapsContainer) {
       if (res.traps && res.traps.length) {
         trapsContainer.classList.remove('hidden');
-        trapsContainer.innerHTML = '<h3>🚨 نقاط الضعف المكتشفة</h3>';
+        trapsContainer.innerHTML = '
+### 🚨 نقاط الضعف المكتشفة
+';
         res.traps.forEach(t => {
           const alert = document.createElement('div');
           alert.className = 'trap-alert fade-in';
           alert.innerHTML = `
-            <div class="trap-icon">⚠️</div>
-            <div class="trap-content">
-              <h4>${t.name}</h4>
-              <p>${t.message}</p>
-            </div>
-          `;
+⚠️
+#### ${t.name}
+ ${t.message}
+`;
           trapsContainer.appendChild(alert);
         });
       } else {
@@ -661,7 +688,9 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
-      recContainer.innerHTML = '<h3>💡 التشخيص الهيكلي وفرص النمو</h3>';
+      recContainer.innerHTML = '
+### 💡 التشخيص الهيكلي وفرص النمو
+';
       if (res.axisScores) {
         const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
         const weakest = sorted[0];
@@ -673,11 +702,11 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
         box.innerHTML = `
-          <h4>🎯 أولوية التحسين الفورية: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4>
-          <p>هذا المحور يحتاج إلى اهتمام فوري (${weakest[1].toFixed(1)}%). التركيز على تحسينه سيرفع درجتك الكلية بشكل ملحوظ.</p>
-          <h4 style="margin-top:16px;">💪 نقطة القوة: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4>
-          <p>أداء متميز (${strongest[1].toFixed(1)}%). حافظ على هذا المستوى واستخدمه كنموذج للمحاور الأخرى.</p>
-        `;
+#### 🎯 أولوية التحسين الفورية: ${weakAxis ? weakAxis.name_ar : weakest[0]}
+هذا المحور يحتاج إلى اهتمام فوري (${weakest[1].toFixed(1)}%). التركيز على تحسينه سيرفع درجتك الكلية بشكل ملحوظ.
+#### 💪 نقطة القوة: ${strongAxis ? strongAxis.name_ar : strongest[0]}
+أداء متميز (${strongest[1].toFixed(1)}%). حافظ على هذا المستوى واستخدمه كنموذج للمحاور الأخرى.
+`;
         recContainer.appendChild(box);
       }
     }
@@ -709,7 +738,6 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   // ========== EV SIMULATOR ==========
-
   setupEVSimulator() {
     const btn = document.getElementById('btn-ev-simulator');
     if (!btn) return;
@@ -721,8 +749,10 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         evView.classList.add('fade-in');
       }
     });
+
     const calcBtn = document.getElementById('btn-calculate-ev');
     if (calcBtn) calcBtn.addEventListener('click', () => this.calculateEV());
+
     const backBtn = document.getElementById('btn-back-results');
     if (backBtn) {
       backBtn.addEventListener('click', () => {
@@ -738,6 +768,7 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const years = parseFloat(document.getElementById('ev-years')?.value) || 0;
     const referral = parseFloat(document.getElementById('ev-referral')?.value) || 0;
     let current, opt20, opt50;
+
     if (this.engine && this.assessment) {
       try {
         const axisScores = this.engine.calculateScores().axes;
@@ -752,6 +783,7 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
       } catch (e) { console.error('EV engine calc failed:', e); }
     }
+
     if (!current) {
       const annualPatients = visits * 12;
       const patientLTV = avg * visits * years;
@@ -760,12 +792,14 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
       opt20 = Math.round(current * 1.2);
       opt50 = Math.round(current * 1.5);
     }
+
     const evCurrent = document.getElementById('ev-current');
     const evOpt20 = document.getElementById('ev-opt20');
     const evOpt50 = document.getElementById('ev-opt50');
     const evInc20 = document.getElementById('ev-increase20');
     const evInc50 = document.getElementById('ev-increase50');
     const evResults = document.getElementById('ev-results');
+
     if (evCurrent) evCurrent.textContent = '$' + current.toLocaleString();
     if (evOpt20) evOpt20.textContent = '$' + opt20.toLocaleString();
     if (evOpt50) evOpt50.textContent = '$' + opt50.toLocaleString();
@@ -775,7 +809,6 @@ if (qCard) qCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
   // ========== PRINT ==========
-
   setupPrint() {
     const btn = document.getElementById('btn-print-report');
     if (btn) btn.addEventListener('click', () => window.print());
