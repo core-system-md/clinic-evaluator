@@ -9,6 +9,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+<!-- تضمين مكتبة الأيقونات العالمية Font Awesome لظهور الأيقونات الاحترافية -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -90,7 +94,7 @@
     transition: all 0.3s;
     height: 280px;
   }
-  .assessment-box:hover {
+  .assessment-box :hover {
     border-color: #14b8a6;
     box-shadow: 0 10px 25px -5px rgba(20,184,166,0.2);
     transform: translateY(-4px);
@@ -162,11 +166,59 @@
     transform: scale(1.05);
   }
 
-  .footer {
+  /* ===== SOCIAL CONTACT FOOTER STYLES ===== */
+  .custom-footer {
+    margin-top: 40px;
+    padding: 32px 24px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
     text-align: center;
-    padding: 24px;
-    color: #9ca3af;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .footer-brand {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #134e4a;
+    margin-bottom: 6px;
+  }
+  .footer-desc {
+    color: #6b7280;
     font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  .social-grid {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .social-btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn-wa { background: #25D366; box-shadow: 0 4px 12px rgba(37,211,102,0.2); }
+  .btn-li { background: #0077B5; box-shadow: 0 4px 12px rgba(0,119,181,0.2); }
+  .btn-ig { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); box-shadow: 0 4px 12px rgba(193,53,132,0.2); }
+  .btn-fb { background: #1877F2; box-shadow: 0 4px 12px rgba(24,119,242,0.2); }
+  .btn-mail { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.2); }
+  
+  .copyright-text {
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: #9ca3af;
   }
 
   @media (max-width: 640px) {
@@ -174,6 +226,8 @@
     .logo-container img { max-width: 260px; }
     .assessment-box { height: 240px; }
     .assessment-box h3 { font-size: 1.1rem; }
+    .social-grid { flex-direction: column; gap: 8px; }
+    .social-btn { width: 100%; }
   }
 </style>
 </head>
@@ -203,7 +257,7 @@
       <div class="overlay"></div>
       <div class="content">
         <h3>تقييم رحلة المريض</h3>
-        <p>25 سؤالاً — 5 محاور  <br>مدة التقييم: 6-9 دقائق</p>
+        <p>25 سؤالاً — 5 محاور <br>مدة التقييم: 6-9 دقائق</p>
         <span class="btn">ابدأ التقييم ←</span>
       </div>
     </a>
@@ -221,9 +275,40 @@
 
   </div>
 
-  <div class="footer">
-    جميع الحقوق محفوظة © 2026 The MD CODE
-  </div>
+  <!-- ===== SOCIAL MEDIA AND WHATSAPP CONTACT FOOTER ===== -->
+  <footer class="custom-footer">
+    <div class="footer-brand">The MD CODE & CORE SYSTEM</div>
+    <p class="footer-desc">برامج تطوير الأداء الاستشاري وأتمتة العمليات التشغيلية للقطاع الطبي الأردني والعربي</p>
+    
+    <div class="social-grid">
+      <!-- وحقن رقم الواتساب الرسمي والمباشر -->
+      <a href="https://wa.me/962786595990?text=مرحباً،%20أود%20الاستفسار%20عن%20خدمات%20تطوير%20الأداء%20العيادي" target="_blank" class="social-btn btn-wa">
+        <i class="fab fa-whatsapp"></i> واتساب الاستشارات
+      </a>
+      
+      <!-- وحقن حساب لينكد إن الفعلي الخاص بك -->
+      <a href="https://www.linkedin.com/in/yazeed-abed-alrazek" target="_blank" class="social-btn btn-li">
+        <i class="fab fa-linkedin-in"></i> لينكد إن المهني
+      </a>
+      
+      <!-- وحقن حساب إنستغرام الفعلي الخاص بك -->
+      <a href="https://www.instagram.com/yazeed.walid.a.r?igsh=MXRodGJmbmV0dnp4ag==" target="_blank" class="social-btn btn-ig">
+        <i class="fab fa-instagram"></i> إنستغرام العيادة
+      </a>
+      
+      <!-- وحقن رابط الفيس بوك الفعلي الصريح الخاص بك -->
+      <a href="https://www.facebook.com/share/17hNL9Fs8Q/" target="_blank" class="social-btn btn-fb">
+        <i class="fab fa-facebook-f"></i> فيسبوك المنصة
+      </a>
+
+      <!-- وحقن البريد الإلكتروني الرسمي المباشر للمنصة -->
+      <a href="mailto:mdcode2026@gmail.com" class="social-btn btn-mail">
+        <i class="fas fa-envelope"></i> البريد الإلكتروني
+      </a>
+    </div>
+    
+    <div class="copyright-text">جميع الحقوق محفوظة © 2026 The MD CODE. تم التطوير والربط الهندسي لـ CORE SYSTEM بكفاءة كاملة.</div>
+  </footer>
 
 </div>
 
