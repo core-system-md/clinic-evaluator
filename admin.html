@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>لوحة الإدارة | Clinic Evaluator</title>
+  <title>لوحة الإدارة | Clinic Evaluator CORE</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -15,7 +15,7 @@
     }
     .hidden { display: none !important; }
 
-    /* Login Screen */
+    /* Login Screen Layout */
     .login-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -31,1023 +31,288 @@
       padding: 40px;
       width: 100%;
       max-width: 400px;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+      text-align: center;
       border: 1px solid #334155;
     }
-    .login-box h2 {
-      color: #e8b923;
-      text-align: center;
-      margin-bottom: 8px;
-      font-size: 1.6rem;
-    }
-    .login-box p {
-      color: #94a3b8;
-      text-align: center;
-      margin-bottom: 32px;
-      font-size: 0.95rem;
-    }
-    .login-box input {
+    .login-box h2 { margin-bottom: 8px; color: #e8b923; }
+    .login-box p { color: #94a3b8; font-size: 0.9rem; margin-bottom: 24px; }
+    .form-control {
       width: 100%;
-      padding: 14px 16px;
-      border: 1px solid #334155;
-      border-radius: 10px;
+      padding: 12px 16px;
       background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
       color: #f1f5f9;
       font-size: 1rem;
       margin-bottom: 16px;
-      font-family: inherit;
-    }
-    .login-box input:focus {
-      outline: none;
-      border-color: #2a8faf;
-    }
-    .login-error {
-      color: #ef4444;
       text-align: center;
-      margin-bottom: 16px;
-      padding: 10px;
-      background: rgba(239,68,68,0.1);
-      border-radius: 8px;
-      font-size: 0.9rem;
     }
+    .form-control:focus { outline: none; border-color: #e8b923; }
     .btn-login {
       width: 100%;
-      padding: 14px;
-      background: #1a5f7a;
-      color: white;
+      padding: 12px;
+      background: #e8b923;
+      color: #0f172a;
       border: none;
-      border-radius: 10px;
+      border-radius: 8px;
+      font-weight: 700;
       font-size: 1rem;
-      font-weight: 600;
       cursor: pointer;
-      font-family: inherit;
       transition: background 0.2s;
     }
-    .btn-login:hover { background: #2a8faf; }
+    .btn-login:hover { background: #d4a71c; }
+    .login-error { color: #ef4444; font-size: 0.85rem; margin-top: 12px; font-weight: 600; }
 
-    /* Dashboard */
-    .admin-container {
-      max-width: 1400px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-    .admin-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 24px;
-      background: #1e293b;
-      border-radius: 12px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .logo { font-size: 1.3rem; font-weight: 700; color: #e8b923; }
-    .header-actions { display: flex; align-items: center; gap: 12px; }
-    .btn-icon {
-      background: #334155;
-      border: none;
-      color: #f1f5f9;
-      padding: 8px 12px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 1.1rem;
-    }
-    .btn-icon:hover { background: #1a5f7a; }
-    #last-updated { color: #94a3b8; font-size: 0.85rem; }
+    /* Dashboard Shell Layout */
+    .dashboard-layout { display: flex; min-height: 100vh; }
+    .sidebar { width: 300px; background: #1e293b; border-left: 1px solid #334155; padding: 24px; }
+    .main-content { flex: 1; padding: 40px; background: #0f172a; overflow-y: auto; }
+    
+    .logo-area { font-size: 1.3rem; font-weight: 800; color: #e8b923; margin-bottom: 32px; text-align: center; border-bottom: 1px solid #334155; padding-bottom: 16px; }
+    .nav-title { font-size: 0.75rem; uppercase; color: #64748b; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 12px; margin-top: 24px; }
+    
+    /* Stats Layout */
+    .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-bottom: 40px; }
+    .stat-card { background: #1e293b; border-radius: 12px; padding: 24px; border: 1px solid #334155; position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: #e8b923; }
+    .stat-label { color: #94a3b8; font-size: 0.85rem; font-weight: 600; }
+    .stat-value { font-size: 2rem; font-weight: 800; color: #f1f5f9; margin-top: 8px; }
 
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 16px;
-      margin-bottom: 24px;
-    }
-    .stat-card {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .stat-icon { font-size: 2rem; }
-    .stat-value { font-size: 1.8rem; font-weight: 700; color: #e8b923; }
-    .stat-label { color: #94a3b8; font-size: 0.9rem; }
+    /* Controls & Table Area */
+    .data-card { background: #1e293b; border-radius: 12px; border: 1px solid #334155; padding: 24px; margin-bottom: 32px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #334155; }
+    .card-title { font-size: 1.1rem; font-weight: 700; color: #e8b923; }
+    
+    .filters-row { display: flex; gap: 16px; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-box { flex: 1; min-width: 250px; display: flex; gap: 8px; }
+    .select-control { background: #0f172a; color: #f1f5f9; border: 1px solid #334155; padding: 10px 16px; border-radius: 8px; font-size: 0.9rem; min-width: 150px; }
+    .select-control:focus { outline: none; border-color: #e8b923; }
+    
+    .btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; cursor: pointer; border: none; transition: background 0.2s; }
+    .btn-primary { background: #e8b923; color: #0f172a; }
+    .btn-primary:hover { background: #d4a71c; }
+    .btn-secondary { background: #334155; color: #f1f5f9; }
+    .btn-secondary:hover { background: #475569; }
+    .btn-logout { width: 100%; background: #991b1b; color: #f1f5f9; margin-top: 40px; }
+    .btn-logout:hover { background: #b91c1c; }
 
-    .settings-section, .table-section {
-      background: #1e293b;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-    }
-    .settings-section h2 { margin-bottom: 16px; font-size: 1.1rem; }
-    .settings-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-      gap: 16px;
-    }
-    .setting-card {
-      background: #0f172a;
-      border-radius: 8px;
-      padding: 16px;
-      border: 1px solid #334155;
-    }
-    .setting-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-    }
-    .setting-title { font-weight: 600; }
-    .toggle-switch {
-      position: relative;
-      width: 48px;
-      height: 24px;
-      background: #334155;
-      border-radius: 12px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-    .toggle-switch.active { background: #22c55e; }
-    .toggle-switch::after {
-      content: '';
-      position: absolute;
-      width: 20px;
-      height: 20px;
-      background: white;
-      border-radius: 50%;
-      top: 2px;
-      right: 2px;
-      transition: transform 0.3s;
-    }
-    .toggle-switch.active::after { transform: translateX(-24px); }
-    .setting-status { font-size: 0.9rem; margin-bottom: 12px; }
-    .users-list { margin-top: 12px; max-height: 200px; overflow-y: auto; }
-    .user-item {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px;
-      background: #1e293b;
-      border-radius: 6px;
-      margin-bottom: 6px;
-      font-size: 0.85rem;
-    }
-    .user-info { color: #94a3b8; font-size: 0.8rem; }
-    .btn-small {
-      padding: 4px 10px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-    .btn-add {
-      background: #1a5f7a;
-      color: white;
-      margin-top: 8px;
-      width: 100%;
-      padding: 8px;
-    }
-    .btn-delete { background: #ef4444; color: white; }
+    /* Table Grid CSS */
+    .table-responsive { width: 100%; overflow-x: auto; margin-top: 16px; }
+    table { width: 100%; border-collapse: collapse; text-align: right; font-size: 0.9rem; }
+    th { background: #0f172a; color: #94a3b8; font-weight: 600; padding: 14px 16px; border-bottom: 2px solid #334155; }
+    td { padding: 14px 16px; border-bottom: 1px solid #334155; color: #cbd5e1; }
+    tr:hover td { background: #24334d; }
+    
+    .badge { padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+    .badge-success { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid rgba(34,197,94,0.3); }
+    .badge-warning { background: rgba(234,179,8,0.15); color: #eab308; border: 1px solid rgba(234,179,8,0.3); }
+    .btn-details { background: #1a5f7a; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 0.8rem; font-weight: 600; }
+    .btn-details:hover { background: #227b9b; }
 
-    .filters-section {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin-bottom: 20px;
-      align-items: center;
-    }
-    .search-box {
-      display: flex;
-      flex: 1;
-      min-width: 280px;
-      gap: 8px;
-    }
-    .search-box input {
-      flex: 1;
-      padding: 10px 16px;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      background: #1e293b;
-      color: #f1f5f9;
-      font-size: 0.95rem;
-      font-family: inherit;
-    }
-    .search-box input:focus { outline: none; border-color: #2a8faf; }
-    .search-box button {
-      padding: 10px 16px;
-      background: #1a5f7a;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-    }
-    .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
-    .filter-group select {
-      padding: 10px 14px;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      background: #1e293b;
-      color: #f1f5f9;
-      cursor: pointer;
-      font-family: inherit;
-    }
+    /* Settings Matrix Cards */
+    .settings-grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+    .setting-card { background: #0f172a; border-radius: 10px; border: 1px solid #334155; padding: 16px; margin-bottom: 16px; }
+    .setting-header { display: flex; justify-content: space-between; align-items: center; }
+    .setting-title { font-weight: 700; color: #f1f5f9; font-size: 0.95rem; }
+    .setting-status { font-size: 0.8rem; margin-top: 4px; font-weight: 600; }
+    
+    /* Toggle Widget */
+    .toggle-switch { width: 44px; height: 24px; background: #334155; border-radius: 12px; position: relative; cursor: pointer; transition: background 0.2s; }
+    .toggle-switch::after { content: ''; position: absolute; top: 2px; right: 2px; width: 20px; height: 20px; background: white; border-radius: 50%; transition: transform 0.2s; }
+    .toggle-switch.active { background: #e8b923; }
+    .toggle-switch.active::after { transform: translateX(-20px); }
 
-    .table-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-    }
-    .table-header h3 { font-size: 1.1rem; }
-    #results-count { color: #94a3b8; font-size: 0.9rem; }
-    .table-wrapper { overflow-x: auto; }
-    .data-table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9rem;
-    }
-    .data-table th {
-      text-align: right;
-      padding: 12px 16px;
-      background: #0f172a;
-      color: #94a3b8;
-      font-weight: 600;
-      font-size: 0.85rem;
-      white-space: nowrap;
-    }
-    .data-table td {
-      padding: 12px 16px;
-      border-bottom: 1px solid #334155;
-      white-space: nowrap;
-    }
-    .data-table tbody tr:hover { background: #334155; }
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.8rem;
-      font-weight: 600;
-    }
-    .badge-success { background: rgba(34,197,94,0.15); color: #22c55e; }
-    .badge-warning { background: rgba(245,158,11,0.15); color: #f59e0b; }
-    .btn-details {
-      padding: 6px 14px;
-      background: #1a5f7a;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-    .btn-details:hover { background: #2a8faf; }
+    .users-list { background: #1e293b; border-radius: 8px; margin-top: 12px; padding: 8px; border: 1px solid #334155; max-height: 200px; overflow-y: auto; }
+    .user-item { display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #334155; font-size: 0.85rem; }
+    .user-item:last-child { border-bottom: none; }
+    .user-info { font-size: 0.75rem; color: #94a3b8; margin-top: 2px; }
+    .btn-small { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; border: none; cursor: pointer; font-weight: 600; }
+    .btn-delete { background: rgba(239,68,68,0.15); color: #ef4444; }
+    .btn-delete:hover { background: rgba(239,68,68,0.3); }
+    .btn-add { background: #0f766e; color: white; width: 100%; margin-top: 12px; padding: 8px; }
+    .btn-add:hover { background: #115e59; }
 
-    .pagination {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-top: 20px;
-    }
-    .pagination button {
-      padding: 8px 14px;
-      background: #0f172a;
-      color: #f1f5f9;
-      border: 1px solid #334155;
-      border-radius: 6px;
-      cursor: pointer;
-    }
-    .pagination button.active { background: #1a5f7a; border-color: #1a5f7a; }
+    /* Modal Popups Overlay CSS */
+    .modal-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 2000; padding: 20px; }
+    .modal-box { background: #1e293b; border-radius: 16px; border: 1px solid #334155; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+    .modal-header { padding: 20px 24px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
+    .modal-title { font-size: 1.2rem; font-weight: 700; color: #e8b923; }
+    .modal-body { padding: 24px; }
+    .close-button { background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer; }
+    .close-button:hover { color: #f1f5f9; }
+
+    /* Diagnosis Layout */
+    .detail-section { margin-bottom: 24px; background: #0f172a; padding: 16px; border-radius: 8px; border: 1px solid #334155; }
+    .detail-section h4 { color: #e8b923; font-size: 1rem; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 6px; }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .detail-label { font-size: 0.8rem; color: #64748b; font-weight: 600; }
+    .detail-value { font-size: 0.95rem; color: #f1f5f9; margin-top: 2px; font-weight: 500; }
+    .scores-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; }
+    .score-card { background: #1e293b; padding: 12px; border-radius: 8px; border: 1px solid #334155; text-align: center; }
+    .score-name { font-size: 0.8rem; color: #94a3b8; }
+    .score-value { font-size: 1.4rem; font-weight: 800; color: #e8b923; margin-top: 4px; }
+    
+    .pagination { display: flex; justify-content: center; gap: 8px; margin-top: 24px; }
+    .pagination button { background: #1e293b; border: 1px solid #334155; color: #cbd5e1; padding: 8px 14px; border-radius: 6px; cursor: pointer; font-weight: 600; }
+    .pagination button.active { background: #e8b923; color: #0f172a; border-color: #e8b923; }
     .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 1000;
-      padding: 20px;
-    }
-    .modal-overlay.hidden { display: none !important; }
-    .modal-content {
-      background: #1e293b;
-      border-radius: 12px;
-      width: 100%;
-      max-width: 700px;
-      max-height: 90vh;
-      overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-    }
-    .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 20px 24px;
-      border-bottom: 1px solid #334155;
-    }
-    .modal-header h3 { font-size: 1.1rem; }
-    .btn-close {
-      background: none;
-      border: none;
-      color: #94a3b8;
-      font-size: 1.3rem;
-      cursor: pointer;
-    }
-    .btn-close:hover { color: #f1f5f9; }
-    .modal-body { padding: 24px; }
-
-    .detail-section { margin-bottom: 20px; }
-    .detail-section h4 {
-      color: #e8b923;
-      margin-bottom: 12px;
-      font-size: 1rem;
-    }
-    .detail-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 12px;
-    }
-    .detail-item {
-      background: #0f172a;
-      padding: 12px;
-      border-radius: 8px;
-    }
-    .detail-label { color: #94a3b8; font-size: 0.8rem; margin-bottom: 4px; }
-    .detail-value { font-weight: 600; }
-    .answers-list { display: flex; flex-direction: column; gap: 10px; }
-    .answer-item {
-      background: #0f172a;
-      padding: 14px;
-      border-radius: 8px;
-      border-right: 3px solid #1a5f7a;
-    }
-    .answer-question { font-size: 0.9rem; margin-bottom: 6px; }
-    .answer-selected { color: #e8b923; font-weight: 600; }
-    .scores-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-      gap: 12px;
-    }
-    .score-card {
-      background: #0f172a;
-      padding: 16px;
-      border-radius: 8px;
-      text-align: center;
-    }
-    .score-name { font-size: 0.85rem; color: #94a3b8; margin-bottom: 8px; }
-    .score-value { font-size: 1.5rem; font-weight: 700; color: #e8b923; }
-
-    .form-group { margin-bottom: 16px; }
-    .form-group label {
-      display: block;
-      margin-bottom: 6px;
-      color: #94a3b8;
-      font-size: 0.9rem;
-    }
-    .form-group input {
-      width: 100%;
-      padding: 10px 14px;
-      border: 1px solid #334155;
-      border-radius: 8px;
-      background: #0f172a;
-      color: #f1f5f9;
-      font-size: 0.95rem;
-      font-family: inherit;
-    }
-    .form-group input:focus { outline: none; border-color: #2a8faf; }
-    .form-actions { display: flex; gap: 12px; margin-top: 20px; }
-    .btn-primary {
-      padding: 10px 24px;
-      background: #1a5f7a;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-family: inherit;
-    }
-    .btn-primary:hover { background: #2a8faf; }
-    .btn-secondary {
-      padding: 10px 24px;
-      background: #334155;
-      color: #f1f5f9;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-size: 0.95rem;
-      font-family: inherit;
-    }
-    .btn-secondary:hover { background: #475569; }
-
-    .toast {
-      position: fixed;
-      bottom: 24px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #1e293b;
-      color: #f1f5f9;
-      padding: 14px 28px;
-      border-radius: 8px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-      z-index: 2000;
-      transition: opacity 0.3s;
-    }
-    .toast.hidden { opacity: 0; pointer-events: none; }
-    .toast.success { border-bottom: 3px solid #22c55e; }
-    .toast.error { border-bottom: 3px solid #ef4444; }
-
-    .loading-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(15,23,42,0.8);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 3000;
-    }
-    .loading-overlay.hidden { display: none !important; }
-    .spinner {
-      width: 48px;
-      height: 48px;
-      border: 4px solid #334155;
-      border-top-color: #e8b923;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
+    .toast { position: fixed; bottom: 20px; left: 20px; padding: 12px 24px; border-radius: 8px; color: white; font-weight: 600; z-index: 3000; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
+    .toast.success { background: #16a34a; }
+    .toast.error { background: #dc2626; }
+    .spinner { width: 40px; height: 40px; border: 4px solid #334155; border-top-color: #e8b923; border-radius: 50%; animation: spin 1s linear infinite; margin: 40px auto; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    @media (max-width: 768px) {
-      .stats-grid { grid-template-columns: repeat(2, 1fr); }
-      .filters-section { flex-direction: column; }
-      .search-box { width: 100%; }
-      .data-table { font-size: 0.8rem; }
-      .data-table th, .data-table td { padding: 8px 10px; }
-      .login-box { padding: 24px; margin: 16px; }
-    }
   </style>
 </head>
 <body>
-  <!-- Login Screen -->
-  <div id="login-screen" class="login-screen">
-    <div class="login-box">
-      <h2>لوحة الإدارة</h2>
-      <p>Clinic Evaluator Dashboard</p>
-      <form id="login-form">
-        <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required autofocus>
-        <div id="login-error" class="login-error hidden">كلمة المرور غير صحيحة</div>
-        <button type="submit" class="btn-login">دخول</button>
+
+  <div id=\"login-screen\" class=\"login-screen hidden\">
+    <div class=\"login-box\">
+      <h2>🔐 لوحة التحكم المركزية</h2>
+      <p>نظام CORE SYSTEM لإدارة البيانات وتحليل أداء السوق الطبي</p>
+      <form id=\"login-form\">
+        <input type="password" id="login-password" class="form-control" placeholder="أدخل كلمة مرور المسؤول" required>
+        <button type="submit" class="btn-login">تسجيل الدخول للمنصة</button>
       </form>
+      <div id=\"login-error\" class=\"login-error hidden\">⚠️ كلمة المرور المدخلة غير صحيحة</div>
     </div>
   </div>
 
-  <!-- Dashboard -->
-  <div id="dashboard-content" class="hidden">
-    <div class="admin-container">
-      <header class="admin-header">
-        <div class="logo">لوحة الإدارة</div>
-        <div class="header-actions">
-          <button id="btn-refresh" class="btn-icon" title="تحديث">🔄</button>
-          <button id="btn-logout" class="btn-icon" title="خروج">🚪</button>
-          <span id="last-updated">--:--</span>
-        </div>
-      </header>
+  <div id=\"dashboard-content\" class=\"dashboard-layout hidden\">
+    
+    <div class="sidebar">
+      <div class="logo-area">The MD CODE Center</div>
+      <div class="nav-title">إدارة وأمن المنصة</div>
+      <div id="assessment-settings" class="settings-grid">
+        <div class="spinner"></div>
+      </div>
+      <button id="btn-logout" class="btn btn-logout">🚪 تسجيل الخروج</button>
+    </div>
 
-      <section class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div class="stat-info">
-            <div class="stat-value" id="stat-leads">0</div>
-            <div class="stat-label">إجمالي التقييمات</div>
-          </div>
+    <div class="main-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:32px;">
+        <div>
+          <h1 style="font-size:1.8rem; font-weight:800; color:#f1f5f9;">📊 لوحة قياس الأداء التشغيلي للعيادات</h1>
+          <p style="color:#94a3b8; font-size:0.95rem; margin-top:4px;">متابعة حية لخطوط الإنتاج (Leads) وفحص مؤشرات تسريب المرضى</p>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">✅</div>
-          <div class="stat-info">
-            <div class="stat-value" id="stat-completed">0</div>
-            <div class="stat-label">مكتملة</div>
-          </div>
+        <div style="text-align:left;">
+          <button id="btn-refresh" class="btn btn-secondary">🔄 تحديث البيانات الحية</button>
+          <div style="font-size:0.75rem; color:#64748b; margin-top:6px;">آخر مزامنة سحابية: <span id="last-updated">--:--</span></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-icon">📊</div>
-          <div class="stat-info">
-            <div class="stat-value" id="stat-avg">0%</div>
-            <div class="stat-label">متوسط الدرجة</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">🏥</div>
-          <div class="stat-info">
-            <div class="stat-value" id="stat-clinics">0</div>
-            <div class="stat-label">عدد العيادات</div>
-          </div>
-        </div>
-      </section>
+      </div>
 
-      <section class="settings-section">
-        <h2>🔐 إدارة التقييمات</h2>
-        <div class="settings-grid" id="assessment-settings"></div>
-      </section>
+      <div class="stats-grid">
+        <div class="stat-card"><div class="stat-label">إجمالي العيادات المسجلة</div><div id="stat-leads" class="stat-value">0</div></div>
+        <div class="stat-card"><div class="stat-label">التقارير المكتملة والمحللة</div><div id="stat-completed" class="stat-value">0</div></div>
+        <div class="stat-card"><div class="stat-label">متوسط كفاءة العيادات</div><div id="stat-avg" class="stat-value">0%</div></div>
+        <div class="stat-card"><div class="stat-label">العلامات التجارية والعيادات الفريدة</div><div id="stat-clinics" class="stat-value">0</div></div>
+      </div>
 
-      <section class="filters-section">
-        <div class="search-box">
-          <input type="text" id="search-input" placeholder="بحث: اسم، بريد، هاتف، عيادة...">
-          <button id="btn-search">🔍</button>
+      <div class="data-card">
+        <div class="card-header">
+          <div class="card-title">🗂️ خطوط الإنتاج والتقارير الاستشارية للقطاع</div>
+          <div id="results-count" style="font-size:0.85rem; color:#94a3b8; font-weight:600;">0 سجل</div>
         </div>
-        <div class="filter-group">
-          <select id="filter-type">
+        
+        <div class="filters-row">
+          <div class="search-box">
+            <input type="text" id="search-input" class="form-control" style="margin-bottom:0;" placeholder="البحث باسم الطبيب، العيادة، الهاتف، أو الدولة...">
+            <button id="btn-search" class="btn btn-primary" style="padding:0 24px;">بحث</button>
+          </div>
+          <select id="filter-type" class="select-control">
             <option value="">كل التقييمات</option>
             <option value="patient-journey">رحلة المريض</option>
             <option value="clinic-performance">أداء العيادة</option>
           </select>
-          <select id="filter-status">
+          <select id="filter-status" class="select-control">
             <option value="">كل الحالات</option>
             <option value="completed">مكتمل</option>
             <option value="incomplete">غير مكتمل</option>
           </select>
-          <select id="filter-sort">
-            <option value="newest">الأحدث أولاً</option>
-            <option value="oldest">الأقدم أولاً</option>
-            <option value="score-high">الدرجة: الأعلى</option>
-            <option value="score-low">الدرجة: الأقل</option>
-            <option value="name">الاسم أبجدياً</option>
+          <select id="filter-sort" class="select-control">
+            <option value="newest">الأحدث تسجيلاً</option>
+            <option value="oldest">الأقدم تسجيلاً</option>
+            <option value="score-high">الأعلى كفاءة</option>
+            <option value="score-low">الأقل كفاءة</option>
+            <option value="name">أبجدياً حسب الاسم</option>
           </select>
         </div>
-      </section>
 
-      <section class="table-section">
-        <div class="table-header">
-          <h3>📋 التقييمات</h3>
-          <span id="results-count">0 نتيجة</span>
-        </div>
-        <div class="table-wrapper">
-          <table class="data-table" id="leads-table">
+        <div class="table-responsive">
+          <table>
             <thead>
               <tr>
-                <th>التاريخ</th>
-                <th>الاسم</th>
-                <th>العيادة</th>
+                <th>التاريخ والوقت</th>
+                <th>اسم الطبيب</th>
+                <th>اسم العيادة</th>
                 <th>التخصص</th>
-                <th>الفريق</th>
-                <th>السنوات</th>
+                <th>حجم الفريق</th>
+                <th>سنوات الخبرة</th>
                 <th>الدولة</th>
-                <th>الدرجة</th>
-                <th>الحالة</th>
-                <th>التفاصيل</th>
+                <th>النتيجة الكلية</th>
+                <th>الحالة التشغيلية</th>
+                <th>التقرير</th>
               </tr>
             </thead>
-            <tbody id="leads-tbody"></tbody>
+            <tbody id="leads-tbody">
+              <tr><td colspan="10" style="text-align:center;padding:40px;"><div class="spinner"></div></td></tr>
+            </tbody>
           </table>
         </div>
-        <div class="pagination" id="pagination"></div>
-      </section>
+
+        <div id="pagination" class="pagination"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Detail Modal -->
-  <div class="modal-overlay hidden" id="detail-modal">
-    <div class="modal-content">
+  <div id="detail-modal" class="modal-overlay hidden">
+    <div class="modal-box">
       <div class="modal-header">
-        <h3>تفاصيل التقييم</h3>
-        <button class="btn-close" id="btn-close-modal">✕</button>
+        <h3 id="modal-title" class="modal-title">📑 التقرير التشخيصي الاستشاري المعتمد</h3>
+        <button id="btn-close-modal" class="close-button">&times;</button>
       </div>
-      <div class="modal-body" id="modal-body"></div>
+      <div id="modal-body" class="modal-body">
+        <div class="spinner"></div>
+      </div>
     </div>
   </div>
 
-  <!-- Add User Modal -->
-  <div class="modal-overlay hidden" id="user-modal">
-    <div class="modal-content">
+  <div id="user-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width: 450px;">
       <div class="modal-header">
-        <h3>إضافة مستخدم</h3>
-        <button class="btn-close" id="btn-close-user-modal">✕</button>
+        <h3 class="modal-title">🔑 إصدار كود دخول وتفعيل للعيادة</h3>
+        <button id="btn-close-user-modal" class="close-button">&times;</button>
       </div>
-      <div class="modal-body">
-        <form id="user-form">
+      <form id="user-form">
+        <div class="modal-body" style="padding:20px; text-align:right;">
           <input type="hidden" id="user-assessment-key">
-          <div class="form-group">
-            <label>اسم المستخدم</label>
-            <input type="text" id="user-username" required>
+          
+          <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:#94a3b8;">اسم المستخدم المقيد للعيادة:</label>
+          <input type="text" id="user-username" class="form-control" placeholder="مثال: dr.waleed" required>
+          
+          <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:#94a3b8;">كلمة المرور لتفعيل النظام للأطباء:</label>
+          <input type="text" id="user-password" class="form-control" placeholder="أدخل كلمة مرور الدخول" required>
+          
+          <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:#94a3b8;">الحد الأقصى لمرات إعادة التقييم المسموحة:</label>
+          <input type="number" id="user-max-uses" class="form-control" min="1" value="1" required>
+          
+          <label style="display:block; margin-bottom:6px; font-size:0.85rem; color:#94a3b8;">مدة صلاحية الكود بالكامل (بالأيام):</label>
+          <input type="number" id="user-expiry-days" class="form-control" min="1" value="30" required>
+          
+          <div style="display:flex; gap:12px; margin-top:20px;">
+            <button type="submit" class="btn btn-primary" style="flex:1;">تفعيل وإصدار الكود</button>
+            <button type="button" id="btn-cancel-user" class="btn btn-secondary">إلغاء</button>
           </div>
-          <div class="form-group">
-            <label>كلمة المرور</label>
-            <input type="password" id="user-password" required>
-          </div>
-          <div class="form-group">
-            <label>عدد الاستخدامات</label>
-            <input type="number" id="user-max-uses" value="1" min="1" required>
-          </div>
-          <div class="form-group">
-            <label>مدة الصلاحية (أيام)</label>
-            <input type="number" id="user-expiry-days" value="30" min="1" required>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">إنشاء</button>
-            <button type="button" class="btn-secondary" id="btn-cancel-user">إلغاء</button>
-          </div>
-        </form>
-      </div>
+        </div>
+      </form>
     </div>
   </div>
 
-  <div class="toast hidden" id="toast"></div>
+  <div id="loading-overlay" class="modal-overlay hidden" style="z-index:9999;"><div class="spinner"></div></div>
+  <div id="toast" class="toast hidden"></div>
 
-  <script>
-    // ============================================
-    // Supabase Client (Service Role)
-    // ============================================
-    class SupabaseClient {
-      constructor() {
-        this.url = 'https://oaqpzaarppccbnepffxx.supabase.co';
-        this.key = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDUxNDk1MywiZXhwIjoyMDk2MDkwOTUzfQ.m2hy7TtZgSjJ4NfI4gDSQqrexi4Y9RJ1Otp05ZL5TS4';
-        this.headers = {
-          'apikey': this.key,
-          'Authorization': 'Bearer ' + this.key,
-          'Content-Type': 'application/json',
-          'Prefer': 'return=representation'
-        };
-      }
-      async request(endpoint, options = {}) {
-        const url = `${this.url}/rest/v1/${endpoint}`;
-        const response = await fetch(url, { ...options, headers: { ...this.headers, ...options.headers } });
-        if (!response.ok) {
-          const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-          console.error('Supabase Error:', error);
-          throw new Error(error.message || `HTTP ${response.status}`);
-        }
-        return response.json();
-      }
-      async insert(table, data) { return this.request(table, { method: 'POST', body: JSON.stringify(data) }); }
-      async select(table, options = {}) {
-        const params = new URLSearchParams();
-        params.append('select', options.columns || '*');
-        if (options.filter) Object.entries(options.filter).forEach(([k, v]) => params.append(k, `eq.${v}`));
-        if (options.order) params.append('order', `${options.order.column}.${options.order.direction || 'desc'}`);
-        if (options.limit) params.append('limit', options.limit);
-        if (options.offset) params.append('offset', options.offset);
-        return this.request(`${table}?${params.toString()}`, { method: 'GET' });
-      }
-      async update(table, data, filter) {
-        const params = new URLSearchParams();
-        Object.entries(filter).forEach(([k, v]) => params.append(k, `eq.${v}`));
-        return this.request(`${table}?${params.toString()}`, { method: 'PATCH', body: JSON.stringify(data) });
-      }
-      async delete(table, filter) {
-        const params = new URLSearchParams();
-        Object.entries(filter).forEach(([k, v]) => params.append(k, `eq.${v}`));
-        return this.request(`${table}?${params.toString()}`, { method: 'DELETE' });
-      }
-    }
-
-    // ============================================
-    // Admin Dashboard
-    // ============================================
-    class AdminDashboard {
-      constructor() {
-        this.supabase = new SupabaseClient();
-        this.leads = [];
-        this.sessions = [];
-        this.answers = [];
-        this.scores = [];
-        this.settings = [];
-        this.users = [];
-        this.filteredLeads = [];
-        this.currentPage = 1;
-        this.pageSize = 20;
-        this.config = null;
-        this.ADMIN_PASSWORD_HASH = '6051fc84a7a0d74c225fb18a496b09952da5642e60723ecae543298edd7d82d6';
-      }
-
-      async init() {
-        if (!this.checkLogin()) {
-          this.showLoginScreen();
-          this.setupLoginEvents();
-          return;
-        }
-        this.showDashboard();
-        await this.loadConfig();
-        await this.loadAllData();
-        this.setupDashboardEvents();
-        this.renderStats();
-        this.renderSettings();
-        this.applyFilters();
-        this.updateLastUpdated();
-      }
-
-      checkLogin() {
-        const auth = localStorage.getItem('admin_auth');
-        if (!auth) return false;
-        try { return JSON.parse(auth).authenticated === true; } catch { return false; }
-      }
-
-      showLoginScreen() {
-        document.getElementById('login-screen').classList.remove('hidden');
-        document.getElementById('dashboard-content').classList.add('hidden');
-      }
-
-      showDashboard() {
-        document.getElementById('login-screen').classList.add('hidden');
-        document.getElementById('dashboard-content').classList.remove('hidden');
-      }
-
-      setupLoginEvents() {
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
-          e.preventDefault();
-          const password = document.getElementById('login-password').value;
-          const errorDiv = document.getElementById('login-error');
-          const hash = await this.simpleHash(password);
-          if (hash === this.ADMIN_PASSWORD_HASH) {
-            localStorage.setItem('admin_auth', JSON.stringify({ authenticated: true, timestamp: Date.now() }));
-            errorDiv.classList.add('hidden');
-            this.showDashboard();
-            await this.loadConfig();
-            await this.loadAllData();
-            this.setupDashboardEvents();
-            this.renderStats();
-            this.renderSettings();
-            this.applyFilters();
-            this.updateLastUpdated();
-          } else {
-            errorDiv.classList.remove('hidden');
-            document.getElementById('login-password').value = '';
-          }
-        });
-      }
-
-      logout() {
-        localStorage.removeItem('admin_auth');
-        location.reload();
-      }
-
-      async simpleHash(str) {
-        const encoder = new TextEncoder();
-        const data = encoder.encode(str);
-        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-        const hashArray = Array.from(new Uint8Array(hashBuffer));
-        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-      }
-
-      async loadConfig() {
-        try {
-          const res = await fetch('data/config.json');
-          if (res.ok) this.config = await res.json();
-        } catch (e) { console.warn('[Admin] Config load failed:', e); }
-      }
-
-      async loadAllData() {
-        this.showLoading(true);
-        try {
-          const [leadsRes, sessionsRes, answersRes, scoresRes, settingsRes, usersRes] = await Promise.all([
-            this.supabase.select('leads', { order: { column: 'created_at', direction: 'desc' }, limit: 1000 }),
-            this.supabase.select('sessions', { limit: 1000 }),
-            this.supabase.select('answers', { limit: 10000 }),
-            this.supabase.select('scores', { limit: 10000 }),
-            this.supabase.select('assessment_settings'),
-            this.supabase.select('assessment_users')
-          ]);
-          this.leads = leadsRes || [];
-          this.sessions = sessionsRes || [];
-          this.answers = answersRes || [];
-          this.scores = scoresRes || [];
-          this.settings = settingsRes || [];
-          this.users = usersRes || [];
-        } catch (err) {
-          console.error('[Admin] Load error:', err);
-          this.showToast('فشل تحميل البيانات', 'error');
-        } finally {
-          this.showLoading(false);
-        }
-      }
-
-      renderStats() {
-        const total = this.leads.length;
-        const completed = this.leads.filter(l => l.completed).length;
-        const avgScore = total > 0 ? (this.leads.reduce((s, l) => s + (l.score_percentage || 0), 0) / total).toFixed(1) : 0;
-        const clinics = new Set(this.leads.map(l => l.clinic_name).filter(Boolean)).size;
-        document.getElementById('stat-leads').textContent = total;
-        document.getElementById('stat-completed').textContent = completed;
-        document.getElementById('stat-avg').textContent = avgScore + '%';
-        document.getElementById('stat-clinics').textContent = clinics;
-      }
-
-      renderSettings() {
-        const container = document.getElementById('assessment-settings');
-        if (!container) return;
-        const assessments = [
-          { key: 'patient-journey', name: 'رحلة المريض' },
-          { key: 'clinic-performance', name: 'أداء العيادة' }
-        ];
-        container.innerHTML = assessments.map(a => {
-          const setting = this.settings.find(s => s.assessment_key === a.key);
-          const isEnabled = setting?.auth_enabled || false;
-          const aUsers = this.users.filter(u => u.assessment_key === a.key);
-          return `
-            <div class="setting-card">
-              <div class="setting-header">
-                <span class="setting-title">${a.name}</span>
-                <div class="toggle-switch ${isEnabled ? 'active' : ''}" onclick="adminDashboard.toggleAuth('${a.key}')"></div>
-              </div>
-              <div class="setting-status">
-                ${isEnabled ? '<span style="color:#22c55e">🔒 محمي</span>' : '<span style="color:#94a3b8">🔓 مفتوح</span>'}
-              </div>
-              ${isEnabled ? `
-                <div class="users-list">
-                  ${aUsers.length === 0 ? '<div style="color:#94a3b8;font-size:0.85rem;text-align:center;padding:12px;">لا يوجد مستخدمين</div>' : aUsers.map(u => `
-                    <div class="user-item">
-                      <div>
-                        <div>${u.username}</div>
-                        <div class="user-info">${u.used_count}/${u.max_uses} استخدام | صلاحية: ${u.expires_at ? new Date(u.expires_at).toLocaleDateString('ar-SA') : 'غير محدد'}</div>
-                      </div>
-                      <button class="btn-small btn-delete" onclick="adminDashboard.deleteUser('${u.id}')">حذف</button>
-                    </div>
-                  `).join('')}
-                </div>
-                <button class="btn-small btn-add" onclick="adminDashboard.showAddUserModal('${a.key}')">+ إضافة مستخدم</button>
-              ` : ''}
-            </div>
-          `;
-        }).join('');
-      }
-
-      async toggleAuth(assessmentKey) {
-        const setting = this.settings.find(s => s.assessment_key === assessmentKey);
-        const newState = !(setting?.auth_enabled || false);
-        try {
-          if (setting) await this.supabase.update('assessment_settings', { auth_enabled: newState }, { assessment_key: assessmentKey });
-          else await this.supabase.insert('assessment_settings', { assessment_key: assessmentKey, auth_enabled: newState });
-          const res = await this.supabase.select('assessment_settings');
-          this.settings = res || [];
-          this.renderSettings();
-          this.showToast(newState ? 'تم تفعيل الحماية' : 'تم إلغاء الحماية', 'success');
-        } catch (err) { this.showToast('فشل تغيير الحماية', 'error'); }
-      }
-
-      showAddUserModal(assessmentKey) {
-        document.getElementById('user-assessment-key').value = assessmentKey;
-        document.getElementById('user-username').value = '';
-        document.getElementById('user-password').value = '';
-        document.getElementById('user-max-uses').value = '1';
-        document.getElementById('user-expiry-days').value = '30';
-        document.getElementById('user-modal').classList.remove('hidden');
-      }
-
-      hideAddUserModal() { document.getElementById('user-modal').classList.add('hidden'); }
-
-      async addUser(e) {
-        e.preventDefault();
-        const aKey = document.getElementById('user-assessment-key').value;
-        const username = document.getElementById('user-username').value.trim();
-        const password = document.getElementById('user-password').value;
-        const maxUses = parseInt(document.getElementById('user-max-uses').value);
-        const expiryDays = parseInt(document.getElementById('user-expiry-days').value);
-        if (!username || !password) { this.showToast('أدخل اسم المستخدم وكلمة المرور', 'error'); return; }
-        const hash = await this.simpleHash(password);
-        const expiresAt = new Date(); expiresAt.setDate(expiresAt.getDate() + expiryDays);
-        try {
-          await this.supabase.insert('assessment_users', { assessment_key: aKey, username, password_hash: hash, max_uses: maxUses, used_count: 0, expires_at: expiresAt.toISOString(), active: true });
-          this.users = (await this.supabase.select('assessment_users')) || [];
-          this.renderSettings(); this.hideAddUserModal(); this.showToast('تم إنشاء المستخدم', 'success');
-        } catch (err) { this.showToast('فشل إنشاء المستخدم', 'error'); }
-      }
-
-      async deleteUser(userId) {
-        if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
-        try {
-          await this.supabase.delete('assessment_users', { id: userId });
-          this.users = (await this.supabase.select('assessment_users')) || [];
-          this.renderSettings(); this.showToast('تم حذف المستخدم', 'success');
-        } catch (err) { this.showToast('فشل حذف المستخدم', 'error'); }
-      }
-
-      setupDashboardEvents() {
-        document.getElementById('btn-logout').addEventListener('click', () => this.logout());
-        document.getElementById('search-input').addEventListener('input', () => { clearTimeout(this.debounceTimer); this.debounceTimer = setTimeout(() => this.applyFilters(), 300); });
-        document.getElementById('btn-search').addEventListener('click', () => this.applyFilters());
-        document.getElementById('filter-type').addEventListener('change', () => this.applyFilters());
-        document.getElementById('filter-status').addEventListener('change', () => this.applyFilters());
-        document.getElementById('filter-sort').addEventListener('change', () => this.applyFilters());
-        document.getElementById('btn-refresh').addEventListener('click', () => { this.loadAllData().then(() => { this.renderStats(); this.renderSettings(); this.applyFilters(); this.updateLastUpdated(); this.showToast('تم التحديث', 'success'); }); });
-        document.getElementById('btn-close-modal').addEventListener('click', () => document.getElementById('detail-modal').classList.add('hidden'));
-        document.getElementById('btn-close-user-modal').addEventListener('click', () => this.hideAddUserModal());
-        document.getElementById('btn-cancel-user').addEventListener('click', () => this.hideAddUserModal());
-        document.getElementById('user-form').addEventListener('submit', (e) => this.addUser(e));
-        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', (e) => { if (e.target === o) o.classList.add('hidden'); }));
-      }
-
-      applyFilters() {
-        const search = (document.getElementById('search-input').value || '').toLowerCase().trim();
-        const status = document.getElementById('filter-status').value;
-        const sort = document.getElementById('filter-sort').value;
-        let filtered = [...this.leads];
-        if (search) filtered = filtered.filter(l => (l.full_name + l.email + l.phone + l.clinic_name + l.country).toLowerCase().includes(search));
-        if (status === 'completed') filtered = filtered.filter(l => l.completed);
-        else if (status === 'incomplete') filtered = filtered.filter(l => !l.completed);
-        switch (sort) {
-          case 'newest': filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); break;
-          case 'oldest': filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); break;
-          case 'score-high': filtered.sort((a, b) => (b.score_percentage || 0) - (a.score_percentage || 0)); break;
-          case 'score-low': filtered.sort((a, b) => (a.score_percentage || 0) - (b.score_percentage || 0)); break;
-          case 'name': filtered.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'ar')); break;
-        }
-        this.filteredLeads = filtered; this.currentPage = 1; this.renderTable();
-      }
-
-      renderTable() {
-        const tbody = document.getElementById('leads-tbody');
-        const countEl = document.getElementById('results-count');
-        if (!tbody) return;
-        const start = (this.currentPage - 1) * this.pageSize;
-        const pageData = this.filteredLeads.slice(start, start + this.pageSize);
-        const totalPages = Math.ceil(this.filteredLeads.length / this.pageSize);
-        countEl.textContent = `${this.filteredLeads.length} نتيجة`;
-        if (pageData.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#94a3b8;">لا توجد بيانات</td></tr>';
-        } else {
-          tbody.innerHTML = pageData.map(lead => {
-            const date = lead.created_at ? new Date(lead.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
-            const score = lead.score_percentage != null ? lead.score_percentage.toFixed(1) + '%' : '--';
-            const status = lead.completed ? '<span class="badge badge-success">مكتمل</span>' : '<span class="badge badge-warning">غير مكتمل</span>';
-            return `<tr><td>${date}</td><td>${lead.full_name || '--'}</td><td>${lead.clinic_name || '--'}</td><td>${lead.specialty || '--'}</td><td>${lead.team || '--'}</td><td>${lead.years || '--'}</td><td>${lead.country || '--'}</td><td><strong>${score}</strong></td><td>${status}</td><td><button class="btn-details" onclick="adminDashboard.showDetails('${lead.id}')">عرض</button></td></tr>`;
-          }).join('');
-        }
-        this.renderPagination(totalPages);
-      }
-
-      renderPagination(totalPages) {
-        const container = document.getElementById('pagination');
-        if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
-        let html = '';
-        html += `<button ${this.currentPage === 1 ? 'disabled' : ''} onclick="adminDashboard.goToPage(${this.currentPage - 1})">←</button>`;
-        for (let i = 1; i <= totalPages; i++) {
-          if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) html += `<button class="${i === this.currentPage ? 'active' : ''}" onclick="adminDashboard.goToPage(${i})">${i}</button>`;
-          else if (i === this.currentPage - 2 || i === this.currentPage + 2) html += '<span style="color:#94a3b8;padding:8px;">...</span>';
-        }
-        html += `<button ${this.currentPage === totalPages ? 'disabled' : ''} onclick="adminDashboard.goToPage(${this.currentPage + 1})">→</button>`;
-        container.innerHTML = html;
-      }
-
-      goToPage(page) { this.currentPage = page; this.renderTable(); }
-
-      async showDetails(leadId) {
-        const lead = this.leads.find(l => l.id === leadId);
-        if (!lead) return;
-        const answers = this.answers.filter(a => a.lead_id === leadId);
-        const scores = this.scores.filter(s => s.lead_id === leadId);
-        const modalBody = document.getElementById('modal-body');
-        modalBody.innerHTML = `
-          <div class="detail-section"><h4>👤 معلومات المريض</h4><div class="detail-grid">
-            <div class="detail-item"><div class="detail-label">الاسم</div><div class="detail-value">${lead.full_name || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">البريد</div><div class="detail-value">${lead.email || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">الهاتف</div><div class="detail-value">${lead.phone || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">العيادة</div><div class="detail-value">${lead.clinic_name || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">التخصص</div><div class="detail-value">${lead.specialty || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">سنوات التشغيل</div><div class="detail-value">${lead.years || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">حجم الفريق</div><div class="detail-value">${lead.team || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">الدولة</div><div class="detail-value">${lead.country || '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">التاريخ</div><div class="detail-value">${lead.created_at ? new Date(lead.created_at).toLocaleString('ar-SA') : '--'}</div></div>
-            <div class="detail-item"><div class="detail-label">الحالة</div><div class="detail-value">${lead.completed ? '✅ مكتمل' : '⏳ غير مكتمل'}</div></div>
-          </div></div>
-          ${scores.length > 0 ? `<div class="detail-section"><h4>📊 درجات المحاور</h4><div class="scores-grid">${scores.map(s => `<div class="score-card"><div class="score-name">${s.axis_name_ar || s.axis_id}</div><div class="score-value">${s.percentage != null ? s.percentage.toFixed(1) : '--'}%</div></div>`).join('')}<div style="margin-top:16px;text-align:center;padding:16px;background:#0f172a;border-radius:8px;grid-column:1/-1;"><div style="color:#94a3b8;font-size:0.9rem;">الدرجة الكلية</div><div style="font-size:2rem;font-weight:700;color:#e8b923;">${lead.score_percentage != null ? lead.score_percentage.toFixed(1) : '--'}%</div></div></div></div>` : ''}
-          ${answers.length > 0 ? `<div class="detail-section"><h4>📝 الإجابات</h4><div class="answers-list">${answers.map((a, i) => `<div class="answer-item"><div class="answer-question">${a.question_text || `سؤال ${i + 1}`}</div><div class="answer-selected">${this.getAnswerLabel(a.question_id, a.answer_value)}</div></div>`).join('')}</div></div>` : '<div style="text-align:center;color:#94a3b8;padding:20px;">لا توجد إجابات مسجلة</div>'}
-        `;
-        document.getElementById('detail-modal').classList.remove('hidden');
-      }
-
-      getAnswerLabel(questionId, value) {
-        if (!this.config || !questionId) return `قيمة: ${value}`;
-        for (const [key, assessment] of Object.entries(this.config.assessment_types || {})) {
-          const question = assessment.questions?.find(q => q.id === questionId);
-          if (question) { const option = question.options?.find(o => o.value === value); if (option) return option.label; }
-        }
-        return `قيمة: ${value}`;
-      }
-
-      showLoading(show) {
-        let overlay = document.getElementById('loading-overlay');
-        if (!overlay) { overlay = document.createElement('div'); overlay.id = 'loading-overlay'; overlay.className = 'loading-overlay hidden'; overlay.innerHTML = '<div class="spinner"></div>'; document.body.appendChild(overlay); }
-        if (show) overlay.classList.remove('hidden'); else overlay.classList.add('hidden');
-      }
-
-      showToast(message, type = 'success') {
-        const toast = document.getElementById('toast');
-        if (!toast) return;
-        toast.textContent = message; toast.className = `toast ${type}`; toast.classList.remove('hidden');
-        setTimeout(() => toast.classList.add('hidden'), 3000);
-      }
-
-      updateLastUpdated() {
-        const el = document.getElementById('last-updated');
-        if (el) el.textContent = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
-      }
-    }
-
-    // Initialize
-    let adminDashboard;
-    document.addEventListener('DOMContentLoaded', () => {
-      adminDashboard = new AdminDashboard();
-      adminDashboard.init();
-    });
-  </script>
+  <script src="assets/js/supabase-client.js"></script>
+  <script src="assets/js/admin.js"></script>
 </body>
 </html>
