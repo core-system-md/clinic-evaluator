@@ -1,28 +1,23 @@
 /**
- * Supabase Client — Clinic Evaluator
- * Project: oaqpzaarppccbnepffxx
- * Version: 1.1.0 (Added Service Role Key support for Admin Dashboard)
- * 
- * NOTE: Service Role Key is ONLY used in admin.html for dashboard functionality.
- * Assessment pages (patient-journey.html, clinic-performance.html) continue using Anon Key.
+ * ============================================================
+ * Centralized Supabase Client — supabase-client.js v2.0
+ * CORE SYSTEM — التحديث الأمني وعزل صلاحيات النفاذ
+ * ============================================================
  */
 
 class SupabaseClient {
   constructor(useServiceRole = false) {
     this.url = 'https://oaqpzaarppccbnepffxx.supabase.co';
 
-    // Anon Key — used for assessment submissions (public)
+    // المفتاح العام (Anon Key) - آمن للنشر في متصفحات المرضى ويسمح بالإدخال فقط
     this.anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
 
-    // Service Role Key — used ONLY for admin dashboard (private)
-    this.serviceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDUxNDk1MywiZXhwIjoyMDk2MDkwOTUzfQ.m2hy7TtZgSjJ4NfI4gDSQqrexi4Y9RJ1Otp05ZL5TS4';
-
-    // Use Service Role Key only when explicitly requested (admin dashboard)
-    this.key = useServiceRole ? this.serviceKey : this.anonKey;
+    // في حال استدعاء العميل من لوحة الإدارة، يتم تمرير مفتاح التحكم المطلق المعزول ديناميكياً
+    this.key = useServiceRole && window.adminServiceKey ? window.adminServiceKey : this.anonKey;
 
     this.headers = {
       'apikey': this.key,
-      'Authorization': 'Bearer ' + this.key,
+      'Authorization': `Bearer ${this.key}`,
       'Content-Type': 'application/json',
       'Prefer': 'return=representation'
     };
@@ -36,12 +31,12 @@ class SupabaseClient {
     });
 
     if (!response.ok) {
-      const error = await response.json().catch(() => ({ message: 'Unknown error' }));
-      console.error('Supabase Error:', error);
-      throw new Error(error.message || `HTTP ${response.status}`);
+      const errText = await response.text();
+      throw new Error(`Supabase Error: ${response.status} - ${errText}`);
     }
 
-    return response.json();
+    if (options.method === 'HEAD') return response;
+    return await response.json();
   }
 
   async insert(table, data) {
@@ -52,9 +47,14 @@ class SupabaseClient {
   }
 
   async select(table, options = {}) {
+    let endpoint = table;
     const params = new URLSearchParams();
-    if (options.columns) params.append('select', options.columns);
-    else params.append('select', '*');
+
+    if (options.columns) {
+      params.append('select', options.columns);
+    } else {
+      params.append('select', '*');
+    }
 
     if (options.filter) {
       Object.entries(options.filter).forEach(([key, value]) => {
@@ -63,13 +63,19 @@ class SupabaseClient {
     }
 
     if (options.order) {
-      params.append('order', `${options.order.column}.${options.order.direction || 'desc'}`);
+      params.append('order', `${options.order.column}.${options.order.direction}`);
     }
 
-    if (options.limit) params.append('limit', options.limit);
-    if (options.offset) params.append('offset', options.offset);
+    if (options.limit) {
+      params.append('limit', options.limit);
+    }
 
-    return this.request(`${table}?${params.toString()}`, { method: 'GET' });
+    const queryString = params.toString();
+    if (queryString) {
+      endpoint += `?${queryString}`;
+    }
+
+    return this.request(endpoint, { method: 'GET' });
   }
 
   async update(table, data, filter) {
@@ -115,17 +121,15 @@ class SupabaseClient {
       params.append(key, `eq.${value}`);
     });
 
-    const response = await fetch(`${this.url}/rest/v1/${table}?${params.toString()}`, {
+    const response = await this.request(`${table}?${params.toString()}`, {
       method: 'HEAD',
-      headers: this.headers
+      headers: { 'Prefer': 'count=exact' }
     });
 
-    return parseInt(response.headers.get('content-range')?.split('/')[1] || '0');
+    const range = response.headers.get('content-range');
+    return parseInt(range?.split('/')[1] || '0');
   }
 }
 
-// Default instance uses Anon Key (for assessment pages)
+// إنشاء النسخة التلقائية لصفحات التقييم العامة للعيادات
 window.supabaseClient = new SupabaseClient(false);
-
-// Export class for admin dashboard to create Service Role instance
-window.SupabaseClient = SupabaseClient;
