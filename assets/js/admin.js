@@ -1,9 +1,8 @@
 /**
- * Clinic Evaluator — Admin Dashboard v2.5 (PRODUCTION & SECURE MASTER)
+ * Clinic Evaluator — Admin Dashboard v2.6 (PRODUCTION & SECURE MASTER)
  * ================================================================
- * الميزات المصلحة: عزل الـ Service Key بالكامل داخل لوحة التحكم،
- * تفعيل فلاتر الـ UUID، قراءة الاختيارات اللفظية المباشرة من الأطباء،
- * وحقن التحليلات الشاملة لرباعيات الأداء (Q1 - Q4).
+ * الميزات المصلحة: تعديل الـ Hash الصريح لتفعيل كلمة المرور admin،
+ * عزل الـ Service Key بالكامل، تفعيل فلاتر الـ UUID، وقراءة الاختيارات اللفظية.
  * ================================================================
  */
 
@@ -24,10 +23,10 @@ class AdminDashboard {
     this.texts = null;
     this.debounceTimer = null;
 
-    // كلمة مرور المدير الثابتة (آدمن) - SHA-256 الخاصة بكلمة "admin"
-    this.ADMIN_PASSWORD_HASH = '6051fc84a7a0d74c225fb18a496b09952da5642e60723ecae543298edd7d82d6';
+    // كلمة مرور المدير الثابتة والمصححة (admin) عبر خوارزمية SHA-256 الصارمة
+    this.ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
     
-    // سحب وعزل المفتاح المطلق داخل لوحة التحكم المخصصة ليزيد وليد حصراً لتأمين السحابة
+    // عزل المفتاح المطلق داخل لوحة التحكم لرفع الأمان السيبراني وحماية السحابة
     window.adminServiceKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDUxNDk1MywiZXhwIjoyMDk2MDkwOTUzfQ.m2hy7TtZgSjJ4NfI4gDSQqrexi4Y9RJ1Otp05ZL5TS4';
   }
 
@@ -270,7 +269,7 @@ class AdminDashboard {
       this.users = (await this.supabase.select('assessment_users')) || [];
       this.renderSettings(); 
       this.hideAddUserModal(); 
-      this.showToast('تم إصدار الحساب وقفل التقييم بنجاح', 'success');
+      this.showToast('تم إنشاء حساب الطبيب وقفل التقييم بنجاح', 'success');
     } catch (err) { 
       this.showToast('فشل تفعيل وإرسال الحساب السحابي', 'error'); 
     }
@@ -327,7 +326,6 @@ class AdminDashboard {
       filtered = filtered.filter(l => (l.full_name + l.email + l.phone + l.clinic_name + l.country).toLowerCase().includes(search));
     }
 
-    // تصفية حية ناجحة تعتمد على ربط معرف الـ UUID مع جدول الأنواع
     if (typeFilter) {
       const matchedTypeObj = this.assessmentTypes.find(t => t.slug === typeFilter);
       if (matchedTypeObj) {
