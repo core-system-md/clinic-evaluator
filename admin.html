@@ -5,8 +5,523 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>لوحة الإدارة | Clinic Evaluator</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="admin-style.css">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: #f8fafc;
+      color: #1f2937;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    .hidden { display: none !important; }
+
+    /* Login Screen */
+    .login-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #134e4a 50%, #0f766e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .login-box {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      border: 1px solid #e5e7eb;
+    }
+    .login-box h2 {
+      color: #134e4a;
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+    .login-box p {
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .login-box input:focus {
+      outline: none;
+      border-color: #14b8a6;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+    }
+    .login-error {
+      color: #dc2626;
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 10px;
+      background: #fef2f2;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: #134e4a; }
+
+    /* Dashboard */
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .logo { font-size: 1.3rem; font-weight: 800; color: #134e4a; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-icon {
+      background: #f3f4f6;
+      border: none;
+      color: #374151;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.2s;
+    }
+    .btn-icon:hover { background: #e5e7eb; }
+    #last-updated { color: #6b7280; font-size: 0.85rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .stat-icon { font-size: 2rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #0f766e; }
+    .stat-label { color: #6b7280; font-size: 0.9rem; }
+
+    .settings-section, .table-section {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .settings-section h2 { margin-bottom: 16px; font-size: 1.1rem; color: #134e4a; font-weight: 700; }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .setting-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+    }
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .setting-title { font-weight: 700; color: #1f2937; }
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch.active { background: #0f766e; }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      right: 2px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .toggle-switch.active::after { transform: translateX(-24px); }
+    .setting-status { font-size: 0.9rem; margin-bottom: 12px; }
+    .users-list { margin-top: 12px; max-height: 200px; overflow-y: auto; }
+    .user-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #ffffff;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      border: 1px solid #e5e7eb;
+    }
+    .user-info { color: #6b7280; font-size: 0.8rem; }
+    .btn-small {
+      padding: 4px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .btn-add {
+      background: #0f766e;
+      color: white;
+      margin-top: 8px;
+      width: 100%;
+      padding: 8px;
+    }
+    .btn-add:hover { background: #134e4a; }
+    .btn-delete { background: #ef4444; color: white; }
+
+    .filters-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .search-box {
+      display: flex;
+      flex: 1;
+      min-width: 280px;
+      gap: 8px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus { outline: none; border-color: #14b8a6; }
+    .search-box button {
+      padding: 10px 16px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-group select {
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2937;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .table-header h3 { font-size: 1.1rem; color: #134e4a; font-weight: 700; }
+    #results-count { color: #6b7280; font-size: 0.9rem; }
+    .table-wrapper { overflow-x: auto; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .data-table th {
+      text-align: right;
+      padding: 12px 16px;
+      background: #f8fafc;
+      color: #6b7280;
+      font-weight: 700;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .data-table tbody tr:hover { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fefce8; color: #92400e; }
+    .btn-details {
+      padding: 6px 14px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .btn-details:hover { background: #134e4a; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .pagination button {
+      padding: 8px 14px;
+      background: #f8fafc;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .pagination button.active { background: #0f766e; color: white; border-color: #0f766e; }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-overlay.hidden { display: none !important; }
+    .modal-content {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      border: 1px solid #e5e7eb;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .modal-header h3 { font-size: 1.1rem; color: #134e4a; font-weight: 700; }
+    .btn-close {
+      background: none;
+      border: none;
+      color: #6b7280;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+    .btn-close:hover { color: #1f2937; }
+    .modal-body { padding: 24px; }
+
+    .detail-section { margin-bottom: 20px; }
+    .detail-section h4 {
+      color: #134e4a;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .detail-item {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .detail-label { color: #6b7280; font-size: 0.8rem; margin-bottom: 4px; }
+    .detail-value { font-weight: 700; color: #1f2937; }
+    .answers-list { display: flex; flex-direction: column; gap: 10px; }
+    .answer-item {
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 8px;
+      border-right: 3px solid #0f766e;
+    }
+    .answer-question { font-size: 0.9rem; margin-bottom: 6px; color: #1f2937; }
+    .answer-selected { color: #0f766e; font-weight: 700; }
+    .scores-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .score-card {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+    }
+    .score-name { font-size: 0.85rem; color: #6b7280; margin-bottom: 8px; }
+    .score-value { font-size: 1.5rem; font-weight: 800; color: #0f766e; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #374151;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { outline: none; border-color: #14b8a6; }
+    .form-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .btn-primary {
+      padding: 10px 24px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #134e4a; }
+    .btn-secondary {
+      padding: 10px 24px;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #e5e7eb; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #1f2937;
+      padding: 14px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 2000;
+      transition: opacity 0.3s;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+    }
+    .toast.hidden { opacity: 0; pointer-events: none; }
+    .toast.success { border-bottom-color: #10b981; }
+    .toast.error { border-bottom-color: #ef4444; }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(248,250,252,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+    .loading-overlay.hidden { display: none !important; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #0f766e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .filters-section { flex-direction: column; }
+      .search-box { width: 100%; }
+      .data-table { font-size: 0.8rem; }
+      .data-table th, .data-table td { padding: 8px 10px; }
+      .login-box { padding: 24px; margin: 16px; }
+    }
+  </style>
 </head>
 <body>
   <!-- Login Screen -->
@@ -34,7 +549,6 @@
         </div>
       </header>
 
-      <!-- Stats -->
       <section class="stats-grid">
         <div class="stat-card">
           <div class="stat-icon">👥</div>
@@ -66,34 +580,11 @@
         </div>
       </section>
 
-      <!-- Assessment Manager -->
       <section class="settings-section">
-        <h2>📋 إدارة التقييمات</h2>
-        <div id="assessment-manager" class="assessments-grid"></div>
-        <button class="btn-primary" onclick="adminDashboard.showCreateAssessmentModal()" style="margin-top:16px;width:100%;">
-          + إنشاء تقييم جديد
-        </button>
-      </section>
-
-      <!-- Assets Manager -->
-      <section class="settings-section">
-        <h2>🖼️ إدارة الأصول</h2>
-        <div id="assets-manager" class="assets-grid"></div>
-        <div class="upload-area">
-          <input type="file" id="asset-upload" accept="image/*" style="display:none;" onchange="adminDashboard.handleAssetUpload(this)">
-          <button class="btn-primary" onclick="document.getElementById('asset-upload').click()">
-            + رفع صورة جديدة
-          </button>
-        </div>
-      </section>
-
-      <!-- Auth Settings -->
-      <section class="settings-section">
-        <h2>🔐 إدارة الوصول</h2>
+        <h2>🔐 إدارة التقييمات</h2>
         <div class="settings-grid" id="assessment-settings"></div>
       </section>
 
-      <!-- Filters -->
       <section class="filters-section">
         <div class="search-box">
           <input type="text" id="search-input" placeholder="بحث: اسم، بريد، هاتف، عيادة...">
@@ -120,7 +611,6 @@
         </div>
       </section>
 
-      <!-- Leads Table -->
       <section class="table-section">
         <div class="table-header">
           <h3>📋 التقييمات</h3>
@@ -161,7 +651,7 @@
     </div>
   </div>
 
-  <!-- User Modal -->
+  <!-- Add User Modal -->
   <div class="modal-overlay hidden" id="user-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -196,50 +686,371 @@
     </div>
   </div>
 
-  <!-- Assessment Modal -->
-  <div class="modal-overlay hidden" id="assessment-modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 id="assessment-modal-title">تقييم</h3>
-        <button class="btn-close" onclick="document.getElementById('assessment-modal').classList.add('hidden')">✕</button>
-      </div>
-      <div class="modal-body">
-        <form id="assessment-form">
-          <input type="hidden" id="assessment-id">
-          <div class="form-group">
-            <label>الاسم</label>
-            <input type="text" id="assessment-name" required>
-          </div>
-          <div class="form-group">
-            <label>المعرف (Slug)</label>
-            <input type="text" id="assessment-slug" required>
-          </div>
-          <div class="form-group">
-            <label>الوصف</label>
-            <input type="text" id="assessment-description">
-          </div>
-          <div class="form-group">
-            <label>الحالة</label>
-            <select id="assessment-status">
-              <option value="draft">مسودة</option>
-              <option value="published">منشور</option>
-              <option value="archived">مؤرشف</option>
-            </select>
-          </div>
-          <div class="form-actions">
-            <button type="submit" class="btn-primary">حفظ</button>
-            <button type="button" class="btn-secondary" onclick="document.getElementById('assessment-modal').classList.add('hidden')">إلغاء</button>
-          </div>
-        </form>
-      </div>
-    </div>
-  </div>
-
   <div class="toast hidden" id="toast"></div>
-  <div class="loading-overlay hidden" id="loading-overlay">
-    <div class="spinner"></div>
-  </div>
 
-  <script src="admin.js"></script>
+  <script>
+    // ============================================
+    // Edge Function Client (No Service Role Key)
+    // ============================================
+    const EDGE_URL = 'https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/admin-auth';
+
+    async function edgeRequest(action, data = {}, filter = {}, table = '') {
+      const password = sessionStorage.getItem('admin_password') || '';
+      const res = await fetch(EDGE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, data, filter, table, password })
+      });
+      const json = await res.json();
+      if (!res.ok || json.error) throw new Error(json.error || 'Request failed');
+      return json.data;
+    }
+
+    // ============================================
+    // Admin Dashboard
+    // ============================================
+    class AdminDashboard {
+      constructor() {
+        this.leads = [];
+        this.sessions = [];
+        this.answers = [];
+        this.scores = [];
+        this.settings = [];
+        this.users = [];
+        this.filteredLeads = [];
+        this.currentPage = 1;
+        this.pageSize = 20;
+        this.config = null;
+      }
+
+      async init() {
+        if (!this.checkLogin()) {
+          this.showLoginScreen();
+          this.setupLoginEvents();
+          return;
+        }
+        this.showDashboard();
+        await this.loadConfig();
+        await this.loadAllData();
+        this.setupDashboardEvents();
+        this.renderStats();
+        this.renderSettings();
+        this.applyFilters();
+        this.updateLastUpdated();
+      }
+
+      checkLogin() {
+        const auth = localStorage.getItem('admin_auth');
+        if (!auth) return false;
+        try { return JSON.parse(auth).authenticated === true; } catch { return false; }
+      }
+
+      showLoginScreen() {
+        document.getElementById('login-screen').classList.remove('hidden');
+        document.getElementById('dashboard-content').classList.add('hidden');
+      }
+
+      showDashboard() {
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('dashboard-content').classList.remove('hidden');
+      }
+
+      setupLoginEvents() {
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const password = document.getElementById('login-password').value;
+          const errorDiv = document.getElementById('login-error');
+
+          try {
+            // Verify via Edge Function
+            await edgeRequest('select', { columns: '*', limit: 1 }, {}, 'leads');
+            // If succeeds, password is valid
+            sessionStorage.setItem('admin_password', password);
+            localStorage.setItem('admin_auth', JSON.stringify({ authenticated: true, timestamp: Date.now() }));
+            errorDiv.classList.add('hidden');
+            this.showDashboard();
+            await this.loadConfig();
+            await this.loadAllData();
+            this.setupDashboardEvents();
+            this.renderStats();
+            this.renderSettings();
+            this.applyFilters();
+            this.updateLastUpdated();
+          } catch (err) {
+            errorDiv.classList.remove('hidden');
+            document.getElementById('login-password').value = '';
+          }
+        });
+      }
+
+      logout() {
+        localStorage.removeItem('admin_auth');
+        sessionStorage.removeItem('admin_password');
+        location.reload();
+      }
+
+      async loadConfig() {
+        try {
+          const res = await fetch('data/config.json');
+          if (res.ok) this.config = await res.json();
+        } catch (e) { console.warn('[Admin] Config load failed:', e); }
+      }
+
+      async loadAllData() {
+        this.showLoading(true);
+        try {
+          const [leadsRes, sessionsRes, answersRes, scoresRes, settingsRes, usersRes] = await Promise.all([
+            edgeRequest('select', { columns: '*', order: { column: 'created_at', direction: 'desc' }, limit: 1000 }, {}, 'leads'),
+            edgeRequest('select', { columns: '*', limit: 1000 }, {}, 'sessions'),
+            edgeRequest('select', { columns: '*', limit: 10000 }, {}, 'answers'),
+            edgeRequest('select', { columns: '*', limit: 10000 }, {}, 'scores'),
+            edgeRequest('select', { columns: '*' }, {}, 'assessment_settings'),
+            edgeRequest('select', { columns: '*' }, {}, 'assessment_users')
+          ]);
+          this.leads = leadsRes || [];
+          this.sessions = sessionsRes || [];
+          this.answers = answersRes || [];
+          this.scores = scoresRes || [];
+          this.settings = settingsRes || [];
+          this.users = usersRes || [];
+        } catch (err) {
+          console.error('[Admin] Load error:', err);
+          this.showToast('فشل تحميل البيانات', 'error');
+        } finally {
+          this.showLoading(false);
+        }
+      }
+
+      renderStats() {
+        const total = this.leads.length;
+        const completed = this.leads.filter(l => l.completed).length;
+        const avgScore = total > 0 ? (this.leads.reduce((s, l) => s + (l.score_percentage || 0), 0) / total).toFixed(1) : 0;
+        const clinics = new Set(this.leads.map(l => l.clinic_name).filter(Boolean)).size;
+        document.getElementById('stat-leads').textContent = total;
+        document.getElementById('stat-completed').textContent = completed;
+        document.getElementById('stat-avg').textContent = avgScore + '%';
+        document.getElementById('stat-clinics').textContent = clinics;
+      }
+
+      renderSettings() {
+        const container = document.getElementById('assessment-settings');
+        if (!container) return;
+        const assessments = [
+          { key: 'patient-journey', name: 'رحلة المريض' },
+          { key: 'clinic-performance', name: 'أداء العيادة' }
+        ];
+        container.innerHTML = assessments.map(a => {
+          const setting = this.settings.find(s => s.assessment_key === a.key);
+          const isEnabled = setting?.auth_enabled || false;
+          const aUsers = this.users.filter(u => u.assessment_key === a.key);
+          return `
+            <div class="setting-card">
+              <div class="setting-header">
+                <span class="setting-title">${a.name}</span>
+                <div class="toggle-switch ${isEnabled ? 'active' : ''}" onclick="adminDashboard.toggleAuth('${a.key}')"></div>
+              </div>
+              <div class="setting-status">
+                ${isEnabled ? '<span style="color:#0f766e;font-weight:700">🔒 محمي</span>' : '<span style="color:#6b7280">🔓 مفتوح</span>'}
+              </div>
+              ${isEnabled ? `
+                <div class="users-list">
+                  ${aUsers.length === 0 ? '<div style="color:#6b7280;font-size:0.85rem;text-align:center;padding:12px;">لا يوجد مستخدمين</div>' : aUsers.map(u => `
+                    <div class="user-item">
+                      <div>
+                        <div>${u.username}</div>
+                        <div class="user-info">${u.used_count}/${u.max_uses} استخدام | صلاحية: ${u.expires_at ? new Date(u.expires_at).toLocaleDateString('ar-SA') : 'غير محدد'}</div>
+                      </div>
+                      <button class="btn-small btn-delete" onclick="adminDashboard.deleteUser('${u.id}')">حذف</button>
+                    </div>
+                  `).join('')}
+                </div>
+                <button class="btn-small btn-add" onclick="adminDashboard.showAddUserModal('${a.key}')">+ إضافة مستخدم</button>
+              ` : ''}
+            </div>
+          `;
+        }).join('');
+      }
+
+      async toggleAuth(assessmentKey) {
+        const setting = this.settings.find(s => s.assessment_key === assessmentKey);
+        const newState = !(setting?.auth_enabled || false);
+        try {
+          if (setting) await edgeRequest('update', { auth_enabled: newState }, { assessment_key: assessmentKey }, 'assessment_settings');
+          else await edgeRequest('insert', { assessment_key: assessmentKey, auth_enabled: newState }, {}, 'assessment_settings');
+          const res = await edgeRequest('select', { columns: '*' }, {}, 'assessment_settings');
+          this.settings = res || [];
+          this.renderSettings();
+          this.showToast(newState ? 'تم تفعيل الحماية' : 'تم إلغاء الحماية', 'success');
+        } catch (err) { this.showToast('فشل تغيير الحماية', 'error'); }
+      }
+
+      showAddUserModal(assessmentKey) {
+        document.getElementById('user-assessment-key').value = assessmentKey;
+        document.getElementById('user-username').value = '';
+        document.getElementById('user-password').value = '';
+        document.getElementById('user-max-uses').value = '1';
+        document.getElementById('user-expiry-days').value = '30';
+        document.getElementById('user-modal').classList.remove('hidden');
+      }
+
+      hideAddUserModal() { document.getElementById('user-modal').classList.add('hidden'); }
+
+      async addUser(e) {
+        e.preventDefault();
+        const aKey = document.getElementById('user-assessment-key').value;
+        const username = document.getElementById('user-username').value.trim();
+        const password = document.getElementById('user-password').value;
+        const maxUses = parseInt(document.getElementById('user-max-uses').value);
+        const expiryDays = parseInt(document.getElementById('user-expiry-days').value);
+        if (!username || !password) { this.showToast('أدخل اسم المستخدم وكلمة المرور', 'error'); return; }
+        const encoder = new TextEncoder();
+        const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password));
+        const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const expiresAt = new Date(); expiresAt.setDate(expiresAt.getDate() + expiryDays);
+        try {
+          await edgeRequest('insert', { assessment_key: aKey, username, password_hash: hash, max_uses: maxUses, used_count: 0, expires_at: expiresAt.toISOString(), active: true }, {}, 'assessment_users');
+          this.users = (await edgeRequest('select', { columns: '*' }, {}, 'assessment_users')) || [];
+          this.renderSettings(); this.hideAddUserModal(); this.showToast('تم إنشاء المستخدم', 'success');
+        } catch (err) { this.showToast('فشل إنشاء المستخدم', 'error'); }
+      }
+
+      async deleteUser(userId) {
+        if (!confirm('هل أنت متأكد من حذف هذا المستخدم؟')) return;
+        try {
+          await edgeRequest('delete', {}, { id: userId }, 'assessment_users');
+          this.users = (await edgeRequest('select', { columns: '*' }, {}, 'assessment_users')) || [];
+          this.renderSettings(); this.showToast('تم حذف المستخدم', 'success');
+        } catch (err) { this.showToast('فشل حذف المستخدم', 'error'); }
+      }
+
+      setupDashboardEvents() {
+        document.getElementById('btn-logout').addEventListener('click', () => this.logout());
+        document.getElementById('search-input').addEventListener('input', () => { clearTimeout(this.debounceTimer); this.debounceTimer = setTimeout(() => this.applyFilters(), 300); });
+        document.getElementById('btn-search').addEventListener('click', () => this.applyFilters());
+        document.getElementById('filter-type').addEventListener('change', () => this.applyFilters());
+        document.getElementById('filter-status').addEventListener('change', () => this.applyFilters());
+        document.getElementById('filter-sort').addEventListener('change', () => this.applyFilters());
+        document.getElementById('btn-refresh').addEventListener('click', () => { this.loadAllData().then(() => { this.renderStats(); this.renderSettings(); this.applyFilters(); this.updateLastUpdated(); this.showToast('تم التحديث', 'success'); }); });
+        document.getElementById('btn-close-modal').addEventListener('click', () => document.getElementById('detail-modal').classList.add('hidden'));
+        document.getElementById('btn-close-user-modal').addEventListener('click', () => this.hideAddUserModal());
+        document.getElementById('btn-cancel-user').addEventListener('click', () => this.hideAddUserModal());
+        document.getElementById('user-form').addEventListener('submit', (e) => this.addUser(e));
+        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', (e) => { if (e.target === o) o.classList.add('hidden'); }));
+      }
+
+      applyFilters() {
+        const search = (document.getElementById('search-input').value || '').toLowerCase().trim();
+        const status = document.getElementById('filter-status').value;
+        const sort = document.getElementById('filter-sort').value;
+        let filtered = [...this.leads];
+        if (search) filtered = filtered.filter(l => (l.full_name + l.email + l.phone + l.clinic_name + l.country).toLowerCase().includes(search));
+        if (status === 'completed') filtered = filtered.filter(l => l.completed);
+        else if (status === 'incomplete') filtered = filtered.filter(l => !l.completed);
+        switch (sort) {
+          case 'newest': filtered.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)); break;
+          case 'oldest': filtered.sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); break;
+          case 'score-high': filtered.sort((a, b) => (b.score_percentage || 0) - (a.score_percentage || 0)); break;
+          case 'score-low': filtered.sort((a, b) => (a.score_percentage || 0) - (b.score_percentage || 0)); break;
+          case 'name': filtered.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || '', 'ar')); break;
+        }
+        this.filteredLeads = filtered; this.currentPage = 1; this.renderTable();
+      }
+
+      renderTable() {
+        const tbody = document.getElementById('leads-tbody');
+        const countEl = document.getElementById('results-count');
+        if (!tbody) return;
+        const start = (this.currentPage - 1) * this.pageSize;
+        const pageData = this.filteredLeads.slice(start, start + this.pageSize);
+        const totalPages = Math.ceil(this.filteredLeads.length / this.pageSize);
+        countEl.textContent = `${this.filteredLeads.length} نتيجة`;
+        if (pageData.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="10" style="text-align:center;padding:40px;color:#6b7280;">لا توجد بيانات</td></tr>';
+        } else {
+          tbody.innerHTML = pageData.map(lead => {
+            const date = lead.created_at ? new Date(lead.created_at).toLocaleDateString('ar-SA', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : '--';
+            const score = lead.score_percentage != null ? lead.score_percentage.toFixed(1) + '%' : '--';
+            const status = lead.completed ? '<span class="badge badge-success">مكتمل</span>' : '<span class="badge badge-warning">غير مكتمل</span>';
+            return `<tr><td>${date}</td><td>${lead.full_name || '--'}</td><td>${lead.clinic_name || '--'}</td><td>${lead.specialty || '--'}</td><td>${lead.team || '--'}</td><td>${lead.years || '--'}</td><td>${lead.country || '--'}</td><td><strong>${score}</strong></td><td>${status}</td><td><button class="btn-details" onclick="adminDashboard.showDetails('${lead.id}')">عرض</button></td></tr>`;
+          }).join('');
+        }
+        this.renderPagination(totalPages);
+      }
+
+      renderPagination(totalPages) {
+        const container = document.getElementById('pagination');
+        if (!container || totalPages <= 1) { if (container) container.innerHTML = ''; return; }
+        let html = '';
+        html += `<button ${this.currentPage === 1 ? 'disabled' : ''} onclick="adminDashboard.goToPage(${this.currentPage - 1})">←</button>`;
+        for (let i = 1; i <= totalPages; i++) {
+          if (i === 1 || i === totalPages || (i >= this.currentPage - 1 && i <= this.currentPage + 1)) html += `<button class="${i === this.currentPage ? 'active' : ''}" onclick="adminDashboard.goToPage(${i})">${i}</button>`;
+          else if (i === this.currentPage - 2 || i === this.currentPage + 2) html += '<span style="color:#6b7280;padding:8px;">...</span>';
+        }
+        html += `<button ${this.currentPage === totalPages ? 'disabled' : ''} onclick="adminDashboard.goToPage(${this.currentPage + 1})">→</button>`;
+        container.innerHTML = html;
+      }
+
+      goToPage(page) { this.currentPage = page; this.renderTable(); }
+
+      async showDetails(leadId) {
+        const lead = this.leads.find(l => l.id === leadId);
+        if (!lead) return;
+        const answers = this.answers.filter(a => a.lead_id === leadId);
+        const scores = this.scores.filter(s => s.lead_id === leadId);
+        const modalBody = document.getElementById('modal-body');
+        modalBody.innerHTML = `
+          <div class="detail-section"><h4>👤 معلومات المريض</h4><div class="detail-grid">
+            <div class="detail-item"><div class="detail-label">الاسم</div><div class="detail-value">${lead.full_name || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">البريد</div><div class="detail-value">${lead.email || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">الهاتف</div><div class="detail-value">${lead.phone || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">العيادة</div><div class="detail-value">${lead.clinic_name || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">التخصص</div><div class="detail-value">${lead.specialty || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">سنوات التشغيل</div><div class="detail-value">${lead.years || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">حجم الفريق</div><div class="detail-value">${lead.team || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">الدولة</div><div class="detail-value">${lead.country || '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">التاريخ</div><div class="detail-value">${lead.created_at ? new Date(lead.created_at).toLocaleString('ar-SA') : '--'}</div></div>
+            <div class="detail-item"><div class="detail-label">الحالة</div><div class="detail-value">${lead.completed ? '✅ مكتمل' : '⏳ غير مكتمل'}</div></div>
+          </div></div>
+          ${scores.length > 0 ? `<div class="detail-section"><h4>📊 درجات المحاور</h4><div class="scores-grid">${scores.map(s => `<div class="score-card"><div class="score-name">${s.axis_name_ar || s.axis_id}</div><div class="score-value">${s.percentage != null ? s.percentage.toFixed(1) : '--'}%</div></div>`).join('')}<div style="margin-top:16px;text-align:center;padding:16px;background:#f8fafc;border-radius:8px;border:1px solid #e5e7eb;grid-column:1/-1;"><div style="color:#6b7280;font-size:0.9rem;">الدرجة الكلية</div><div style="font-size:2rem;font-weight:800;color:#0f766e;">${lead.score_percentage != null ? lead.score_percentage.toFixed(1) : '--'}%</div></div></div></div>` : ''}
+          ${answers.length > 0 ? `<div class="detail-section"><h4>📝 الإجابات</h4><div class="answers-list">${answers.map((a, i) => `<div class="answer-item"><div class="answer-question">${a.question_text || `سؤال ${i + 1}`}</div><div class="answer-selected">${this.getAnswerLabel(a.question_id, a.answer_value)}</div></div>`).join('')}</div></div>` : '<div style="text-align:center;color:#6b7280;padding:20px;">لا توجد إجابات مسجلة</div>'}
+        `;
+        document.getElementById('detail-modal').classList.remove('hidden');
+      }
+
+      getAnswerLabel(questionId, value) {
+        if (!this.config || !questionId) return `قيمة: ${value}`;
+        for (const [key, assessment] of Object.entries(this.config.assessment_types || {})) {
+          const question = assessment.questions?.find(q => q.id === questionId);
+          if (question) { const option = question.options?.find(o => o.value === value); if (option) return option.label; }
+        }
+        return `قيمة: ${value}`;
+      }
+
+      showLoading(show) {
+        let overlay = document.getElementById('loading-overlay');
+        if (!overlay) { overlay = document.createElement('div'); overlay.id = 'loading-overlay'; overlay.className = 'loading-overlay hidden'; overlay.innerHTML = '<div class="spinner"></div>'; document.body.appendChild(overlay); }
+        if (show) overlay.classList.remove('hidden'); else overlay.classList.add('hidden');
+      }
+
+      showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message; toast.className = `toast ${type}`; toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 3000);
+      }
+
+      updateLastUpdated() {
+        const el = document.getElementById('last-updated');
+        if (el) el.textContent = new Date().toLocaleTimeString('ar-SA', { hour: '2-digit', minute: '2-digit' });
+      }
+    }
+
+    // Initialize
+    let adminDashboard;
+    document.addEventListener('DOMContentLoaded', () => {
+      adminDashboard = new AdminDashboard();
+      adminDashboard.init();
+    });
+  </script>
 </body>
 </html>
