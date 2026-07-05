@@ -269,7 +269,6 @@
     color: #1f2937;
   }
 
-  /* ===== OPT STYLE (A/B/C/D/E) — matching clinic-performance ===== */
   .options-grid {
     display: grid;
     gap: 10px;
@@ -563,6 +562,7 @@
       </form>
     </div>
   </div>
+
   <div id="view-assessment" style="display: none;">
     <div class="progress-wrapper">
       <div class="progress-bar-bg">
@@ -622,13 +622,14 @@
       <button id="btn-print-report" class="btn btn-primary" style="flex:1;">🖨️ طباعة / حفظ PDF</button>
     </div>
   </div>
+
   <div id="view-ev-simulator" style="display: none;">
     <div class="form-card">
       <div class="card-title">🔢 بيانات العيادة</div>
       <div class="ev-inputs">
         <div class="form-group">
           <label class="form-label">متوسط قيمة الزيارة ($)</label>
-          <input type="number" id="ev-avg" class="form-input" value="150" min="10">
+          <input type="number" id="ev-avg" class="form-input" value="50" min="10">
         </div>
         <div class="form-group">
           <label class="form-label">عدد الزيارات/سنة</label>
@@ -636,11 +637,11 @@
         </div>
         <div class="form-group">
           <label class="form-label">سنوات الاحتفاظ</label>
-          <input type="number" id="ev-years" class="form-input" value="5" min="1">
+          <input type="number" id="ev-years" class="form-input" value="3" min="1">
         </div>
         <div class="form-group">
           <label class="form-label">نسبة الإحالات (%)</label>
-          <input type="number" id="ev-referral" class="form-input" value="15" min="0" max="100">
+          <input type="number" id="ev-referral" class="form-input" value="0" min="0" max="100">
         </div>
       </div>
       <button id="btn-calculate-ev" class="btn btn-primary" style="width:100%;">احسب القيمة الدائمة 🧮</button>
@@ -674,6 +675,8 @@
   </div>
 
 </div>
+
+<!-- [REFACTOR] Correct script order: engine.js → preSelectedAssessment → app.js -->
 <script src="assets/js/supabase-client.js"></script>
 <script src="assets/js/engine.js"></script>
 <script>
