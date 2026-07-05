@@ -1,9 +1,9 @@
 /**
- * Clinic Evaluator — app.js v6.5 (PRODUCTION & SECURE MASTER)
+ * Clinic Evaluator — app.js v7.0 (v2.0 FULL REFACTOR)
  * ================================================================
- * الميزات المدمجة: فحص القفل الفوري، الحفظ الفوري كـ Incomplete،
- * فحص الـ 7 أيام الـ Anti-Spam، ميكانيكية الـ Bulk Insert،
- * دمج الاختيارات الصريحة للإدارة، ورابط تفعيل الحساب عبر الواتساب.
+ * Complete refactoring: index-based selection, CSV removal, 
+ * cloud-driven EV defaults, A4 print ready, full answer storage,
+ * unified visual benchmarking, automatic session history & comparison.
  * ================================================================
  */
 
@@ -18,17 +18,19 @@ class ClinicEvaluatorApp {
     this.assessmentUuid = null; 
     this.assessment = null;
     this.questions = [];
-    this.answers = {};
+    this.answers = {}; // { qid: { index, value } }
     this.currentQuestionIndex = 0;
     this.metadata = {};
 
     this.currentLeadId = null;
     this.currentSessionId = null;
     this.errorShown = false;
-    this.previousScore = null; // الاحتفاظ بالنتيجة السابقة لبناء خط التراكم
+    this.previousScore = null;
+    this.previousSessionData = null;
+    this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 }; // Cloud-driven defaults
   }
 
-  /* ─────────────── INITIALIZATION & LOCK GATE ─────────────── */
+  /* ─────────────── INITIALIZATION ─────────────── */
 
   async init() {
     try {
@@ -47,8 +49,10 @@ class ClinicEvaluatorApp {
       if (this.assessment) {
         this.questions = this.assessment.questions || [];
         
+        // Load cloud-driven EV defaults from assessment config
+        this.loadEVDefaultsFromConfig();
+        
         if (this.supabase) {
-          // حل معضلة الـ UUID Mismatch وجلب المعرف الحقيقي المتوافق مع الجداول
           const types = await this.supabase.select('assessment_types', { 
             columns: 'id', 
             filter: { slug: this.currentAssessmentKey } 
@@ -57,7 +61,6 @@ class ClinicEvaluatorApp {
             this.assessmentUuid = types[0].id;
           }
 
-          // فحص حالة قفل التقييم فوراً عند الإقلاع وقبل إدخال أي بيانات تعريفية
           const status = await this.checkAssessmentStatus();
           if (!status.allowed) { 
             this.showError(status.message); 
@@ -74,7 +77,6 @@ class ClinicEvaluatorApp {
         }
       }
       
-      // إذا كان التقييم مفتوحاً مجاناً أو الجلسة نشطة، نعرض نموذج البيانات التعريفية مباشرة
       this.showView('view-lead-form');
 
     } catch (err) {
@@ -93,6 +95,21 @@ class ClinicEvaluatorApp {
     const res = await fetch('data/report_texts.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     this.texts = await res.json();
+  }
+
+  // Load EV simulator defaults from config.json cloud variables
+  loadEVDefaultsFromConfig() {
+    const simVars = this.assessment?.simulator?.variables || [];
+    simVars.forEach(v => {
+      if (v.id === 'flow') this.evDefaults.flow = v.default || 50;
+      if (v.id === 'ltv') this.evDefaults.ltv = v.default || 5000;
+    });
+    // Calculate derived defaults: visits=3, avg=50, years=3, referral=0
+    // These come from config or fallback to standard
+    this.evDefaults.visits = 3;
+    this.evDefaults.avg = 50;
+    this.evDefaults.years = 3;
+    this.evDefaults.referral = 0;
   }
 
   t(path, vars = {}) {
@@ -184,14 +201,14 @@ class ClinicEvaluatorApp {
     };
   }
 
-  /* ─────────────── METADATA INCOMPLETE CAPTURE ─────────────── */
+  /* ─────────────── ASSESSMENT FLOW WITH AUTO SESSION ─────────────── */
 
   async startAssessmentFlow() {
     this.questions = this.assessment.questions;
     this.answers = {};
     this.currentQuestionIndex = 0;
 
-    // الالتقاط والتقييد الفوري كـ Incomplete في قاعدة البيانات بمجرد ضغط زر البدء وقبل رؤية أول سؤال
+    // Always create a new independent session
     if (this.supabase && this.assessmentUuid) {
       this.showLoadingGlobal(true);
       const leadId = await this.saveLead();
@@ -210,7 +227,7 @@ class ClinicEvaluatorApp {
     this.updateNavButtons();
   }
 
-  /* ─────────────── RENDER & INTERACT QUESTIONS ─────────────── */
+  /* ─────────────── RENDER QUESTIONS — INDEX-BASED ─────────────── */
 
   renderQuestion() {
     const container = document.getElementById('question-container');
@@ -225,8 +242,8 @@ class ClinicEvaluatorApp {
 
     let optsHtml = '';
     q.options.forEach((opt, i) => {
-      const sel = this.answers[q.id] === opt.value ? 'sel' : '';
-      optsHtml += `<div class="opt ${sel}" data-value="${opt.value}"><div class="opt-letter">${letters[i] || ''}</div><div>${opt.label}</div></div>`;
+      const sel = (this.answers[q.id]?.index === i) ? 'sel' : '';
+      optsHtml += `<div class="opt ${sel}" data-index="${i}" data-value="${opt.value}"><div class="opt-letter">${letters[i] || ''}</div><div>${opt.label}</div></div>`;
     });
 
     container.innerHTML = `
@@ -243,10 +260,14 @@ class ClinicEvaluatorApp {
   attachOptionHandlers(container, qid) {
     container.querySelectorAll('.opt').forEach(opt => {
       opt.addEventListener('click', () => {
+        const idx = parseInt(opt.dataset.index);
         const val = parseInt(opt.dataset.value);
-        this.answers[qid] = val;
-        container.querySelectorAll('.opt').forEach(o => o.classList.remove('sel'));
-        opt.classList.add('sel');
+        
+        this.answers[qid] = { index: idx, value: val };
+        
+        const opts = container.querySelectorAll('.opt');
+        opts.forEach((o, i) => o.classList.toggle('sel', i === idx));
+        
         this.updateProgress();
         this.updateSessionProgress();
 
@@ -260,6 +281,16 @@ class ClinicEvaluatorApp {
         }
       });
     });
+  }
+
+  /* ─────────────── ENGINE BRIDGE ─────────────── */
+
+  getAnswersForEngine() {
+    const engineAnswers = {};
+    for (const [qid, ans] of Object.entries(this.answers)) {
+      engineAnswers[qid] = ans.value;
+    }
+    return engineAnswers;
   }
 
   /* ─────────────── NAVIGATION CONTROLS ─────────────── */
@@ -279,7 +310,7 @@ class ClinicEvaluatorApp {
   goNext() {
     const q = this.questions[this.currentQuestionIndex];
     if (!q) return;
-    if (this.answers[q.id] === undefined) { this.shakeQuestion(); this.showError('يرجى اختيار إجابة للانتقال ميكانيكياً'); return; }
+    if (this.answers[q.id] === undefined) { this.shakeQuestion(); this.showError('يرجى اختيار إجابة للانتقال'); return; }
 
     if (this.currentQuestionIndex < this.questions.length - 1) {
       this.currentQuestionIndex++;
@@ -300,10 +331,9 @@ class ClinicEvaluatorApp {
         const idx = map[e.key];
         const q = this.questions[this.currentQuestionIndex];
         if (q?.options?.[idx]) {
-          this.answers[q.id] = q.options[idx].value;
+          this.answers[q.id] = { index: idx, value: q.options[idx].value };
           const opts = document.querySelectorAll('#question-container .opt');
-          opts.forEach(o => o.classList.remove('sel'));
-          if (opts[idx]) opts[idx].classList.add('sel');
+          opts.forEach((o, i) => o.classList.toggle('sel', i === idx));
           this.updateProgress();
           setTimeout(() => this.goNext(), 300);
         }
@@ -318,7 +348,7 @@ class ClinicEvaluatorApp {
     const bar = document.getElementById('progress-fill');
     const txt = document.getElementById('progress-text');
     if (bar) bar.style.width = `${pct}%`;
-    if (txt) txt.textContent = `${done} من ${total}`;
+    if (txt) txt.textContent = `${done} من ${total} — ${pct}%`;
   }
 
   updateNavButtons() {
@@ -333,7 +363,7 @@ class ClinicEvaluatorApp {
     if (card) { card.style.animation = 'shake 0.5s ease'; setTimeout(() => card.style.animation = '', 600); }
   }
 
-  /* ─────────────── ANTI-SPAM & TREND DETECTOR ─────────────── */
+  /* ─────────────── ANTI-SPAM & BASELINE DETECTOR ─────────────── */
 
   async checkDuplicateSubmission() {
     if (!this.supabase || (!this.metadata.email && !this.metadata.phone && !this.metadata.name)) return { allowed: true };
@@ -350,14 +380,13 @@ class ClinicEvaluatorApp {
 
       if (!lastLeads || lastLeads.length === 0) return { allowed: true };
 
-      // فلترة وتجميع التقييمات المكتملة لمعرفة قاعده المحاولتين المتتاليتين والـ 7 أيام
       const completedLeads = lastLeads.filter(l => l.completed).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
       
       if (completedLeads.length >= 2) {
         const lastLead = completedLeads[completedLeads.length - 1];
         const now = Date.now();
         const lastCreated = new Date(lastLead.created_at).getTime();
-        const cooldownPeriod = 7 * 24 * 60 * 60 * 1000; // حظر 7 أيام كاملة للمحاولة الثالثة المتتالية
+        const cooldownPeriod = 7 * 24 * 60 * 60 * 1000;
         const elapsed = now - lastCreated;
 
         if (elapsed < cooldownPeriod) {
@@ -371,8 +400,27 @@ class ClinicEvaluatorApp {
           };
         }
         
-        // التقاط نتيجة التقييم السابق لبناء خط التراكم والمقارنة لاحقاً
         this.previousScore = parseFloat(lastLead.score_percentage);
+        
+        const sessions = await this.supabase.select('sessions', { 
+          filter: { lead_id: lastLead.id },
+          order: { column: 'created_at', ascending: false }
+        });
+        if (sessions && sessions[0]) {
+          const prevScores = await this.supabase.select('scores', { 
+            filter: { session_id: sessions[0].id } 
+          });
+          this.previousSessionData = {
+            overallScore: this.previousScore,
+            axisScores: {},
+            completedAt: lastLead.completed_at
+          };
+          if (prevScores) {
+            prevScores.forEach(s => {
+              this.previousSessionData.axisScores[s.axis_id] = s.percentage;
+            });
+          }
+        }
       }
       return { allowed: true };
     } catch (err) {
@@ -380,7 +428,7 @@ class ClinicEvaluatorApp {
     }
   }
 
-  /* ─────────────── DOCTOR LOCK SYSTEM & WHATSAPP CTA ─────────────── */
+  /* ─────────────── LOGIN SYSTEM ─────────────── */
 
   async checkAssessmentStatus() {
     if (!this.supabase) return { allowed: true };
@@ -509,7 +557,7 @@ class ClinicEvaluatorApp {
     if (m) m.style.display = 'none';
   }
 
-  /* ─────────────── SUPABASE: BULK INSERT & COMPOSITE TEXT ─────────────── */
+  /* ─────────────── SUPABASE DATA LAYER ─────────────── */
 
   updateSessionProgress() {
     if (this.supabase && this.currentSessionId) {
@@ -562,14 +610,13 @@ class ClinicEvaluatorApp {
     if (!this.supabase || !this.currentSessionId) return;
     try {
       const answersBulkData = [];
-      for (const [qid, val] of Object.entries(this.answers)) {
+      for (const [qid, ans] of Object.entries(this.answers)) {
         const q = this.questions.find(q => q.id === qid);
         if (q) {
-          const matchedOption = q.options?.find(o => o.value === val);
-          const optionLabel = matchedOption ? matchedOption.label : `قيمة: ${val}`;
+          const matchedOption = q.options?.[ans.index];
+          const optionLabel = matchedOption ? matchedOption.label : `قيمة: ${ans.value}`;
           
-          // دمج الاختيار الصريح اللفظي مع نص السؤال لتفادي مشكلة تكرار الأوزان في الإدارة
-          const diagnosticCompositeText = `${q.text} [الاختيار الصريح الفعلي: ${optionLabel}]`;
+          const diagnosticCompositeText = `${q.text} [الاختيار: ${optionLabel}]`;
 
           answersBulkData.push({
             session_id: this.currentSessionId,
@@ -577,7 +624,9 @@ class ClinicEvaluatorApp {
             question_id: qid,
             axis_id: q.axis_id || '',
             question_text: diagnosticCompositeText, 
-            answer_value: val,
+            option_index: ans.index,
+            option_value: ans.value,
+            answer_value: ans.value,
             is_trap: q.layer === 'B',
             trap_triggered: false,
             answered_at: new Date().toISOString()
@@ -585,7 +634,6 @@ class ClinicEvaluatorApp {
         }
       }
       
-      // نظام الـ Bulk Insert الموحد لمنع تجميد الشاشة
       if (answersBulkData.length > 0) {
         await this.supabase.insert('answers', answersBulkData);
       }
@@ -627,7 +675,7 @@ class ClinicEvaluatorApp {
     } catch (err) { console.error('[app] updateLeadWithResults failed:', err); }
   }
 
-  /* ─────────────── COMPUTATION & RENDER RESULTS ─────────────── */
+  /* ─────────────── COMPUTATION & RESULTS ─────────────── */
 
   async submitAssessment() {
     this.hideView('view-assessment');
@@ -643,7 +691,7 @@ class ClinicEvaluatorApp {
       if (typeof AssessmentEngine === 'undefined') throw new Error('engine.js not loaded');
       
       this.engine = new AssessmentEngine(this.config, this.texts);
-      const results = this.engine.evaluate(this.answers, this.currentAssessmentKey, this.metadata);
+      const results = this.engine.evaluate(this.getAnswersForEngine(), this.currentAssessmentKey, this.metadata);
 
       if (this.supabase) {
         try {
@@ -670,28 +718,25 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
-    if (!document.getElementById('dynamic-print-styles')) {
-      const style = document.createElement('style');
-      style.id = 'dynamic-print-styles';
-      style.textContent = `@media print { .btn-group, .top-bar, #view-ev-simulator, .ev-simulator-section, #btn-ev-simulator, #charts-container { display: none !important; } .form-card { break-inside: avoid; box-shadow: none !important; border: 1px solid #eee !important; } body { background: white !important; } .hidden { display: none !important; } }`;
-      document.head.appendChild(style);
-    }
-
     const q = res.classification || 'Q2';
     const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
 
-    // احتساب وحقن تحليل التراكم والاتجاه التشغيلي (Trend Analysis) للمقارنة التلقائية لبناء الوعي
+    // Enhanced trend analysis with baseline comparison
     let trendHtml = "";
-    if (this.previousScore !== undefined && this.previousScore !== null) {
-      const diff = res.overallScore - this.previousScore;
+    if (this.previousSessionData) {
+      const diff = res.overallScore - this.previousSessionData.overallScore;
+      const daysSince = Math.floor((Date.now() - new Date(this.previousSessionData.completedAt).getTime()) / (24 * 60 * 60 * 1000));
+      
       if (diff > 0) {
-        trendHtml = `<div style="margin-top:10px; color:#10b981; font-weight:700; font-size:0.95rem;">📈 تم رصد تحسن تشغيلي في كفاءة العيادة بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق.</div>`;
+        trendHtml = `<div style="margin-top:10px; color:#10b981; font-weight:700; font-size:0.95rem;">📈 تحسن تشغيلي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
       } else if (diff < 0) {
-        trendHtml = `<div style="margin-top:10px; color:#ef4444; font-weight:700; font-size:0.95rem;">📉 تم رصد تراجع في الكفاءة التشغيلية بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق.</div>`;
+        trendHtml = `<div style="margin-top:10px; color:#ef4444; font-weight:700; font-size:0.95rem;">📉 تراجع في الكفاءة بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
       } else {
-        trendHtml = `<div style="margin-top:10px; color:#6b7280; font-weight:700; font-size:0.95rem;">🔄 أداء العيادة مستقر تماماً ومطابق للمحاولة السابقة بنسبة 100%.</div>`;
+        trendHtml = `<div style="margin-top:10px; color:#6b7280; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر ومطابق للتقييم السابق</div>`;
       }
+      
+      trendHtml += this.renderAxisComparison(res.axisScores);
     }
 
     const circle = document.getElementById('result-score-circle');
@@ -722,42 +767,8 @@ class ClinicEvaluatorApp {
       });
     }
 
-    let chartsContainer = document.getElementById('charts-container');
-    if (!chartsContainer) {
-      chartsContainer = document.createElement('div');
-      chartsContainer.id = 'charts-container';
-      chartsContainer.className = 'form-card hidden fade-in';
-      chartsContainer.style.marginTop = '20px';
-      axesContainer?.parentNode?.insertBefore(chartsContainer, axesContainer.nextSibling);
-    }
-    if (res.axisScores) {
-      const axes = this.assessment?.axes || [];
-      const data = Object.entries(res.axisScores).map(([aid, score]) => ({ label: axes.find(a => a.id === aid)?.name_ar || aid, value: score }));
-      this.renderBarChart('charts-container', data, 'مقارنة أداء المحاور لرحلة المريض');
-    }
-
-    if (res.kpis) {
-      let kpiContainer = document.getElementById('kpis-container');
-      if (!kpiContainer) {
-        kpiContainer = document.createElement('div');
-        kpiContainer.id = 'kpis-container';
-        kpiContainer.className = 'form-card hidden';
-        kpiContainer.style.marginBottom = '20px';
-        document.getElementById('view-results')?.insertBefore(kpiContainer, document.getElementById('view-results').children[2]);
-      }
-      kpiContainer.innerHTML = '<h3 class="card-title">📊 المؤشرات الرئيسية لـ CORE SYSTEM</h3>';
-      const grid = document.createElement('div');
-      grid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;';
-      Object.entries(res.kpis).forEach(([k, v]) => {
-        const info = this.texts?.kpis?.[k] || { name: k, short_name: k };
-        const card = document.createElement('div');
-        card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
-        card.innerHTML = `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${v.toFixed(1)}</div>`;
-        grid.appendChild(card);
-      });
-      kpiContainer.appendChild(grid);
-      kpiContainer.classList.remove('hidden');
-    }
+    // Unified visual benchmarking
+    this.renderVisualBenchmark(res);
 
     const trapsContainer = document.getElementById('traps-container');
     if (trapsContainer) {
@@ -798,80 +809,119 @@ class ClinicEvaluatorApp {
     const leakageEl = document.getElementById('leakage-index');
     if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
 
-    const btnGroup = document.querySelector('#view-results .btn-group:last-child');
-    if (btnGroup && !document.getElementById('btn-export-csv')) {
-      const csvBtn = document.createElement('button');
-      csvBtn.id = 'btn-export-csv';
-      csvBtn.className = 'btn btn-secondary';
-      csvBtn.textContent = '📥 تصدير التقرير CSV';
-      csvBtn.onclick = () => this.exportToCSV();
-      btnGroup.insertBefore(csvBtn, btnGroup.firstChild);
-    }
+    // CSV export button REMOVED entirely
   }
 
-  /* ─────────────── CSV SPREADSHEET EXPORT ─────────────── */
+  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
 
-  exportToCSV() {
+  renderAxisComparison(currentAxisScores) {
+    if (!this.previousSessionData?.axisScores) return '';
+    
+    let html = '<div style="margin-top:16px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
+    html += '<thead><tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;text-align:right;">المحور</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الأساس</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الحالي</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">التغير</th></tr></thead><tbody>';
+    
     const axes = this.assessment?.axes || [];
-    let csv = '\uFEFF';
-    csv += 'الاسم,العيادة,الدولة,التخصص,التاريخ\n';
-    csv += `"${this.metadata.name}","${this.metadata.clinic}","${this.metadata.country}","${this.metadata.specialty}","${new Date().toLocaleDateString('ar-EG')}"\n\n`;
-    csv += 'المحور,السؤال,الدرجة التشغيلية\n';
+    Object.entries(currentAxisScores).forEach(([aid, currentScore]) => {
+      const axis = axes.find(a => a.id === aid);
+      const baseline = this.previousSessionData.axisScores[aid] || 0;
+      const diff = currentScore - baseline;
+      const diffColor = diff > 0 ? '#10b981' : diff < 0 ? '#ef4444' : '#6b7280';
+      const diffIcon = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+      
+      html += `<tr>
+        <td style="padding:8px;border:1px solid #e5e7eb;">${axis ? axis.name_ar : aid}</td>
+        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${baseline.toFixed(1)}%</td>
+        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;font-weight:700;">${currentScore.toFixed(1)}%</td>
+        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;color:${diffColor};font-weight:700;">${diffIcon} ${Math.abs(diff).toFixed(1)}%</td>
+      </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    return html;
+  }
 
-    for (const q of this.questions) {
-      const axis = axes.find(a => a.id === q.axis_id);
-      const val = this.answers[q.id];
-      let label = 'لم يتم الإجابة';
-      if (val === 100) label = 'التزام كامل';
-      else if (val === 40) label = 'أداء متأرجح';
-      else if (val === 0) label = 'قصور واضح';
-      else if (val !== undefined) label = val;
-      csv += `"${axis ? axis.name_ar : q.axis_id}","${q.text.replace(/"/g, '""')}","${label}"\n`;
+  /* ─────────────── UNIFIED VISUAL BENCHMARKING ─────────────── */
+
+  renderVisualBenchmark(res) {
+    // Remove old separate containers
+    const oldCharts = document.getElementById('charts-container');
+    const oldKpis = document.getElementById('kpis-container');
+    if (oldCharts) oldCharts.remove();
+    if (oldKpis) oldKpis.remove();
+
+    // Create unified container
+    let benchmarkContainer = document.getElementById('benchmark-container');
+    if (!benchmarkContainer) {
+      benchmarkContainer = document.createElement('div');
+      benchmarkContainer.id = 'benchmark-container';
+      benchmarkContainer.className = 'form-card fade-in';
+      benchmarkContainer.style.marginTop = '20px';
+      
+      const axesContainer = document.getElementById('axes-scores');
+      axesContainer?.parentNode?.insertBefore(benchmarkContainer, axesContainer.nextSibling);
+    }
+    
+    benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
+    
+    // Bar chart section
+    if (res.axisScores) {
+      const axes = this.assessment?.axes || [];
+      const data = Object.entries(res.axisScores).map(([aid, score]) => ({ 
+        label: axes.find(a => a.id === aid)?.name_ar || aid, 
+        value: score 
+      }));
+      
+      const chartDiv = document.createElement('div');
+      chartDiv.style.marginBottom = '24px';
+      
+      const maxVal = Math.max(...data.map(d => d.value), 1);
+      data.forEach(item => {
+        const pct = (item.value / maxVal) * 100;
+        let color = '#A33B3B';
+        if (item.value >= 75) color = '#2A6F5D';
+        else if (item.value >= 50) color = '#5C6B73';
+        else if (item.value >= 25) color = '#C67D47';
+
+        const row = document.createElement('div');
+        row.style.cssText = 'margin-bottom:12px;';
+        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span style="color:${color}">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        chartDiv.appendChild(row);
+      });
+      
+      benchmarkContainer.appendChild(chartDiv);
     }
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `تقرير_The_MD_CODE_${this.currentAssessmentKey}_${new Date().toISOString().slice(0,10)}.csv`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // KPIs section (merged into same container)
+    if (res.kpis) {
+      const kpiGrid = document.createElement('div');
+      kpiGrid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;';
+      
+      Object.entries(res.kpis).forEach(([k, v]) => {
+        const info = this.texts?.kpis?.[k] || { name: k, short_name: k };
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
+        card.innerHTML = `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${v.toFixed(1)}</div>`;
+        kpiGrid.appendChild(card);
+      });
+      
+      benchmarkContainer.appendChild(kpiGrid);
+    }
   }
 
-  /* ─────────────── BAR CHART BUILDER ─────────────── */
-
-  renderBarChart(containerId, data, title) {
-    const container = document.getElementById(containerId);
-    if (!container || !data?.length) return;
-
-    container.innerHTML = '';
-    container.classList.remove('hidden');
-
-    const titleEl = document.createElement('h3');
-    titleEl.className = 'card-title';
-    titleEl.textContent = `📊 ${title}`;
-    container.appendChild(titleEl);
-
-    const maxVal = Math.max(...data.map(d => d.value), 1);
-    data.forEach(item => {
-      const pct = (item.value / maxVal) * 100;
-      let color = '#A33B3B';
-      if (item.value >= 75) color = '#2A6F5D';
-      else if (item.value >= 50) color = '#5C6B73';
-      else if (item.value >= 25) color = '#C67D47';
-
-      const row = document.createElement('div');
-      row.style.cssText = 'margin-bottom:12px;';
-      row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span style="color:${color}">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:6px;transition:width 0.5s ease;"></div></div>`;
-      container.appendChild(row);
-    });
-  }
-
-  /* ─────────────── LOSS LEAKAGE SIMULATOR ─────────────── */
+  /* ─────────────── EV SIMULATOR — CLOUD-DRIVEN DEFAULTS ─────────────── */
 
   setupEVSimulator() {
+    // Set cloud-driven default values
+    const avgEl = document.getElementById('ev-avg');
+    const visitsEl = document.getElementById('ev-visits');
+    const yearsEl = document.getElementById('ev-years');
+    const referralEl = document.getElementById('ev-referral');
+    
+    if (avgEl) avgEl.value = this.evDefaults.avg;
+    if (visitsEl) visitsEl.value = this.evDefaults.visits;
+    if (yearsEl) yearsEl.value = this.evDefaults.years;
+    if (referralEl) referralEl.value = this.evDefaults.referral;
+
     document.getElementById('btn-ev-simulator')?.addEventListener('click', () => {
       this.hideView('view-results');
       this.showView('view-ev-simulator');
