@@ -684,9 +684,9 @@
 
   <script>
     const EDGE_URL = 'https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/admin-auth';
-    const ADMIN_PASSWORD_HASH = '6051fc84a7a0d74c225fb18a496b09952da5642e60723ecae543298edd7d82d6';
+    const ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
 
-    async function edgeRequest(action, data = {}, filter = {}, table = '') {
+    async function edgeRequest(action, data, filter, table) {
       const res = await fetch(EDGE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
