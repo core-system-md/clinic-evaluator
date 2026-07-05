@@ -18,7 +18,6 @@
     }
     .hidden { display: none !important; }
 
-    /* Login Screen */
     .login-screen {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -92,7 +91,6 @@
     }
     .btn-login:hover { background: #134e4a; }
 
-    /* Dashboard */
     .admin-container {
       max-width: 1400px;
       margin: 0 auto;
@@ -524,7 +522,6 @@
   </style>
 </head>
 <body>
-  <!-- Login Screen -->
   <div id="login-screen" class="login-screen">
     <div class="login-box">
       <h2>لوحة الإدارة</h2>
@@ -537,7 +534,6 @@
     </div>
   </div>
 
-  <!-- Dashboard -->
   <div id="dashboard-content" class="hidden">
     <div class="admin-container">
       <header class="admin-header">
@@ -640,7 +636,6 @@
     </div>
   </div>
 
-  <!-- Detail Modal -->
   <div class="modal-overlay hidden" id="detail-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -651,7 +646,6 @@
     </div>
   </div>
 
-  <!-- Add User Modal -->
   <div class="modal-overlay hidden" id="user-modal">
     <div class="modal-content">
       <div class="modal-header">
@@ -689,26 +683,26 @@
   <div class="toast hidden" id="toast"></div>
 
   <script>
-    // ============================================
-    // Edge Function Client (No Service Role Key)
-    // ============================================
     const EDGE_URL = 'https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/admin-auth';
+    const ADMIN_PASSWORD_HASH = '6051fc84a7a0d74c225fb18a496b09952da5642e60723ecae543298edd7d82d6';
 
     async function edgeRequest(action, data = {}, filter = {}, table = '') {
-      const password = sessionStorage.getItem('admin_password') || '';
       const res = await fetch(EDGE_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, data, filter, table, password })
+        body: JSON.stringify({ action, data, filter, table, password: sessionStorage.getItem('admin_pwd_hash') || '' })
       });
       const json = await res.json();
       if (!res.ok || json.error) throw new Error(json.error || 'Request failed');
       return json.data;
     }
 
-    // ============================================
-    // Admin Dashboard
-    // ============================================
+    async function sha256(str) {
+      const encoder = new TextEncoder();
+      const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(str));
+      return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
     class AdminDashboard {
       constructor() {
         this.leads = [];
@@ -761,11 +755,9 @@
           const password = document.getElementById('login-password').value;
           const errorDiv = document.getElementById('login-error');
 
-          try {
-            // Verify via Edge Function
-            await edgeRequest('select', { columns: '*', limit: 1 }, {}, 'leads');
-            // If succeeds, password is valid
-            sessionStorage.setItem('admin_password', password);
+          const hash = await sha256(password);
+          if (hash === ADMIN_PASSWORD_HASH) {
+            sessionStorage.setItem('admin_pwd_hash', hash);
             localStorage.setItem('admin_auth', JSON.stringify({ authenticated: true, timestamp: Date.now() }));
             errorDiv.classList.add('hidden');
             this.showDashboard();
@@ -776,7 +768,7 @@
             this.renderSettings();
             this.applyFilters();
             this.updateLastUpdated();
-          } catch (err) {
+          } else {
             errorDiv.classList.remove('hidden');
             document.getElementById('login-password').value = '';
           }
@@ -785,7 +777,7 @@
 
       logout() {
         localStorage.removeItem('admin_auth');
-        sessionStorage.removeItem('admin_password');
+        sessionStorage.removeItem('admin_pwd_hash');
         location.reload();
       }
 
@@ -903,9 +895,7 @@
         const maxUses = parseInt(document.getElementById('user-max-uses').value);
         const expiryDays = parseInt(document.getElementById('user-expiry-days').value);
         if (!username || !password) { this.showToast('أدخل اسم المستخدم وكلمة المرور', 'error'); return; }
-        const encoder = new TextEncoder();
-        const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(password));
-        const hash = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const hash = await sha256(password);
         const expiresAt = new Date(); expiresAt.setDate(expiresAt.getDate() + expiryDays);
         try {
           await edgeRequest('insert', { assessment_key: aKey, username, password_hash: hash, max_uses: maxUses, used_count: 0, expires_at: expiresAt.toISOString(), active: true }, {}, 'assessment_users');
@@ -1045,7 +1035,6 @@
       }
     }
 
-    // Initialize
     let adminDashboard;
     document.addEventListener('DOMContentLoaded', () => {
       adminDashboard = new AdminDashboard();
