@@ -11,7 +11,7 @@ class AdminDashboard {
   constructor() {
     this.EDGE_FUNCTION_URL = 'https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/admin-auth';
     this.ADMIN_PASSWORD_HASH = '8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918';
-    
+
     this.leads = [];
     this.sessions = [];
     this.answers = [];
@@ -309,7 +309,7 @@ class AdminDashboard {
   async duplicateAssessment(id) {
     const source = this.assessmentTypes.find(t => t.id === id);
     if (!source) return;
-    
+
     try {
       await this.edgeRequest('insert', 'assessment_types', {
         name: (source.name || source.slug) + ' (نسخة)',
@@ -381,7 +381,7 @@ class AdminDashboard {
     if (!file) return;
 
     this.showToast('جاري الرفع...', 'success');
-    
+
     try {
       const base64 = await this.fileToBase64(file);
       await this.edgeRequest('insert', 'assessment_assets', {
@@ -620,7 +620,7 @@ class AdminDashboard {
     const start = (this.currentPage - 1) * this.pageSize;
     const pageData = this.filteredLeads.slice(start, start + this.pageSize);
     const totalPages = Math.ceil(this.filteredLeads.length / this.pageSize);
-    
+
     countEl.textContent = `${this.filteredLeads.length} سجل`;
 
     if (pageData.length === 0) {
@@ -691,7 +691,7 @@ class AdminDashboard {
           <div class="detail-item"><div class="detail-label">تاريخ التقييم</div><div class="detail-value">${lead.created_at ? new Date(lead.created_at).toLocaleString('ar-SA') : '--'}</div></div>
           <div class="detail-item"><div class="detail-label">الحالة</div><div class="detail-value">${lead.completed ? '✅ مكتمل' : '⏳ غير مكتمل'}</div></div>
         </div></div>
-        
+
         ${scores.length > 0 ? `
           <div class="detail-section"><h4>📊 تحليل المحاور</h4><div class="scores-grid">
             ${scores.map(s => `<div class="score-card"><div class="score-name">${s.axis_name_ar || s.axis_id}</div><div class="score-value">${s.percentage != null ? s.percentage.toFixed(1) : '--'}%</div></div>`).join('')}
@@ -701,7 +701,7 @@ class AdminDashboard {
               <div style="color:var(--text);font-size:1rem;margin-top:10px;font-weight:600;padding:8px;background:rgba(15,118,110,0.05);border-radius:6px;">${diagnosticExplanation}</div>
             </div>
           </div></div>` : ''}
-        
+
         ${answers.length > 0 ? `
           <div class="detail-section"><h4>📝 الإجابات</h4><div class="answers-list">
             ${answers.map((a, i) => `
