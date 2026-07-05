@@ -908,7 +908,7 @@ class ClinicEvaluatorApp {
     }
   }
 
-  /* ─────────────── EV SIMULATOR — CLOUD-DRIVEN DEFAULTS ─────────────── */
+  /* ─────────────── EV SIMULATOR — CLOUD-DRIVEN DEFAULTS + PROXY ─────────────── */
 
   setupEVSimulator() {
     // Set cloud-driven default values
@@ -944,8 +944,18 @@ class ClinicEvaluatorApp {
     if (this.engine && this.assessment) {
       try {
         const axisScores = this.engine.calculateScores().axes;
+        
+        // [PROXY] For clinic-performance: map A2→A3 (trust), A3→A4 (commitment)
+        const evInputs = Object.fromEntries(axisScores.map(a => [a.axisId, a.percentage]));
+        
+        if (this.currentAssessmentKey === 'clinic-performance') {
+          evInputs['A3'] = evInputs['A2'] || 0;           // A2 (communication) → trust proxy
+          evInputs['A4'] = evInputs['A3'] || 0;           // A3 (relationship) → commitment proxy  
+          evInputs['A5'] = ((evInputs['A2'] || 0) + (evInputs['A3'] || 0)) / 2; // loyalty proxy
+        }
+        
         const evResult = this.engine.calculateEV(
-          Object.fromEntries(axisScores.map(a => [a.axisId, a.percentage])),
+          evInputs,
           { flow: visits * 12, ltv: avg * visits * years }
         );
         if (evResult) { 
