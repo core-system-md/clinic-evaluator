@@ -253,6 +253,182 @@ body {
 .text-muted { color: var(--text-muted); }
 .hidden { display: none !important; }
 
+/* ============================================================
+   A4 PRINT STYLES — Professional Report Format
+   ============================================================ */
+
+@media print {
+  @page {
+    size: A4;
+    margin: 15mm;
+  }
+
+  /* Hide interactive elements */
+  .btn-group,
+  .top-bar,
+  #view-ev-simulator,
+  .ev-simulator-section,
+  #btn-ev-simulator,
+  #btn-print-report,
+  #btn-restart,
+  #btn-back-results,
+  #btn-calculate-ev,
+  .ev-inputs,
+  #global-sync-loader,
+  #login-modal,
+  #error-toast,
+  .back-link {
+    display: none !important;
+  }
+
+  /* Reset background for clean print */
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+    line-height: 1.5;
+  }
+
+  .container {
+    max-width: 100%;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* Cards as clean document blocks */
+  .card,
+  .form-card,
+  .question-card,
+  .info-card {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    border-radius: 0 !important;
+    break-inside: avoid;
+    page-break-inside: avoid;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: white !important;
+  }
+
+  /* Header styling for print */
+  .header,
+  .hero {
+    background: white !important;
+    color: black !important;
+    border: 2px solid var(--primary-dark) !important;
+    border-radius: 0 !important;
+    padding: 20px !important;
+    margin-bottom: 20px;
+  }
+
+  .header h1,
+  .hero h1 {
+    color: var(--primary-dark) !important;
+    font-size: 18pt;
+  }
+
+  .header .subtitle,
+  .hero .subtitle,
+  .hero .en-title {
+    color: #666 !important;
+  }
+
+  /* Score circle for print */
+  .result-score-circle {
+    border: 4px solid var(--primary-dark) !important;
+    width: 120px;
+    height: 120px;
+  }
+
+  .result-score-value {
+    color: var(--primary-dark) !important;
+    font-size: 24pt;
+  }
+
+  /* Progress bars as solid fills */
+  .progress-bar-bg,
+  .axis-score-bar-bg {
+    background: #eee !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .progress-bar-fill,
+  .axis-score-bar-fill {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Trap alerts */
+  .trap-alert {
+    background: #fef2f2 !important;
+    border: 1px solid #fecaca !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Insight boxes */
+  .insight-box {
+    background: #f0fdfa !important;
+    border-right: 3px solid var(--primary-dark) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* EV results */
+  .ev-result-card {
+    border: 1px solid #ddd !important;
+    background: white !important;
+  }
+
+  .ev-result-card.highlight {
+    border: 2px solid var(--success) !important;
+  }
+
+  /* Benchmark container */
+  #benchmark-container {
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+  }
+
+  /* Axis comparison table */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 10pt;
+  }
+
+  th, td {
+    border: 1px solid #999;
+    padding: 6px;
+    text-align: right;
+  }
+
+  th {
+    background: #f3f4f6 !important;
+    font-weight: 700;
+  }
+
+  /* Page breaks */
+  .form-card {
+    page-break-inside: avoid;
+  }
+
+  h3.card-title {
+    font-size: 13pt;
+    color: var(--primary-dark) !important;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+
+  /* Ensure colors print */
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
 @media (max-width: 640px) {
   .container { padding: 16px; }
   .header h1 { font-size: 1.6rem; }
