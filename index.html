@@ -10,6 +10,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
+<!-- تضمين مكتبة الأيقونات العالمية Font Awesome لظهور الأيقونات الاحترافية -->
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
 <style>
@@ -27,285 +28,318 @@
     padding: 0 20px 40px;
   }
 
-  /* ===== HEADER ===== */
+  /* ===== HEADER WITH LARGE LOGO ===== */
   .header {
     text-align: center;
-    padding: 40px 0 20px;
+    padding: 40px 0 24px;
+    background: linear-gradient(135deg, #0f172a 0%, #134e4a 50%, #0f766e 100%);
+    border-radius: 0 0 24px 24px;
+    margin-bottom: 32px;
   }
-  .header .logo {
-    width: 220px;
+  .logo-container {
     margin-bottom: 20px;
   }
+  .logo-container img {
+    max-width: 320px;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 12px rgba(0,0,0,0.3));
+  }
   .header h1 {
-    font-size: 2.2rem;
-    font-weight: 800;
-    color: #134e4a;
-    margin-bottom: 10px;
-    line-height: 1.2;
+    font-size: 1.6rem;
+    font-weight: 700;
+    color: white;
+    opacity: 0.9;
   }
 
   .intro-card {
     background: #ffffff;
     border-radius: 16px;
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    padding: 28px;
+    margin-bottom: 24px;
     border: 1px solid #e5e7eb;
-    border-right: 4px solid #0f766e;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
   }
   .intro-card h2 {
-    font-size: 1.4rem;
-    color: #0f766e;
-    margin-bottom: 12px;
+    color: #134e4a;
+    font-size: 1.15rem;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
   .intro-card p {
-    font-size: 1rem;
     color: #4b5563;
-    margin-bottom: 10px;
-    line-height: 1.8;
+    line-height: 2;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
   }
-  .intro-card p:last-child { margin-bottom: 0; }
 
-  /* ===== DYNAMIC GRID ===== */
+  /* ===== ASSESSMENT BOXES WITH BACKGROUND IMAGES ===== */
   .assessments-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 20px;
-  }
-
-  .assessment-box {
-    position: relative;
-    display: block;
-    background: #ffffff;
-    border-radius: 16px;
-    overflow: hidden;
-    text-decoration: none;
-    color: white;
-    height: 280px;
-    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border: 1px solid #e5e7eb;
-  }
-  .assessment-box:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 20px 25px -5px rgba(0,0,0,0.15);
-  }
-  
-  .assessment-box .bg-image {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    object-fit: cover;
-    z-index: 1;
-    transition: transform 0.5s ease;
-  }
-  .assessment-box:hover .bg-image {
-    transform: scale(1.05);
-  }
-
-  .assessment-box .overlay {
-    position: absolute;
-    top: 0; left: 0; width: 100%; height: 100%;
-    background: linear-gradient(to top, rgba(15,23,42,0.9) 0%, rgba(15,23,42,0.4) 60%, rgba(15,23,42,0.1) 100%);
-    z-index: 2;
-  }
-
-  .assessment-box .content {
-    position: absolute;
-    bottom: 0; left: 0; width: 100%;
-    padding: 24px;
-    z-index: 3;
-  }
-  .assessment-box h3 {
-    font-size: 1.4rem;
-    font-weight: 800;
-    margin-bottom: 8px;
-    color: #ffffff;
-  }
-  .assessment-box p {
-    font-size: 0.95rem;
-    color: #cbd5e1;
-    margin-bottom: 20px;
-    line-height: 1.5;
-  }
-  .assessment-box .btn {
-    display: inline-block;
-    background: #e8b923;
-    color: #134e4a;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    transition: background 0.2s;
-  }
-  .assessment-box:hover .btn {
-    background: #fcd34d;
-  }
-
-  /* ===== FOOTER ===== */
-  .footer {
-    text-align: center;
-    margin-top: 50px;
-    padding-top: 30px;
-    border-top: 1px solid #e5e7eb;
-  }
-  .footer .brand {
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #134e4a;
-    margin-bottom: 8px;
-  }
-  .footer-desc {
-    font-size: 0.95rem;
-    color: #6b7280;
     margin-bottom: 24px;
   }
-  
-  .social-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 12px;
-    max-width: 700px;
-    margin: 0 auto;
+  .assessment-box {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 2px solid #e5e7eb;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: all 0.3s;
+    height: 280px;
   }
-  .social-btn {
+  .assessment-box:hover {
+    border-color: #14b8a6;
+    box-shadow: 0 10px 25px -5px rgba(20,184,166,0.2);
+    transform: translateY(-4px);
+  }
+  .assessment-box .bg-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+  .assessment-box .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, 
+      rgba(15, 23, 42, 0.95) 0%, 
+      rgba(15, 23, 42, 0.7) 40%, 
+      rgba(15, 23, 42, 0.3) 100%);
+    z-index: 2;
+  }
+  .assessment-box .content {
+    position: relative;
+    z-index: 3;
+    height: 100%;
     display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+    text-align: center;
+  }
+  .assessment-box h3 {
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .assessment-box p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .assessment-box .btn {
+    display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 8px;
-    padding: 12px;
-    border-radius: 12px;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
+    padding: 12px 28px;
+    background: #0f766e;
     color: white;
-    transition: transform 0.2s, opacity 0.2s;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    align-self: center;
+  }
+  .assessment-box .btn:hover {
+    background: #14b8a6;
+    transform: scale(1.05);
+  }
+
+  /* ===== SOCIAL CONTACT FOOTER STYLES ===== */
+  .custom-footer {
+    margin-top: 40px;
+    padding: 32px 24px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .footer-brand {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #134e4a;
+    margin-bottom: 6px;
+  }
+  .footer-desc {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  .social-grid {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
   }
   .social-btn:hover {
     transform: translateY(-2px);
-    opacity: 0.9;
   }
-  .btn-wa { background: #25D366; }
-  .btn-li { background: #0077b5; }
-  .btn-ig { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); }
-  .btn-fb { background: #1877F2; }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(15px); }
-    to { opacity: 1; transform: translateY(0); }
+  .btn-wa { background: #25D366; box-shadow: 0 4px 12px rgba(37,211,102,0.2); }
+  .btn-li { background: #0077B5; box-shadow: 0 4px 12px rgba(0,119,181,0.2); }
+  .btn-ig { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); box-shadow: 0 4px 12px rgba(193,53,132,0.2); }
+  .btn-fb { background: #1877F2; box-shadow: 0 4px 12px rgba(24,119,242,0.2); }
+  .btn-mail { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.2); }
+  
+  .copyright-text {
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: #9ca3af;
   }
-  .fade-in { animation: fadeIn 0.6s ease forwards; }
 
-  /* Loading Spinner */
+  @media (max-width: 640px) {
+    .header h1 { font-size: 1.3rem; }
+    .logo-container img { max-width: 260px; }
+    .assessment-box { height: 240px; }
+    .assessment-box h3 { font-size: 1.1rem; }
+    .social-grid { flex-direction: column; gap: 8px; }
+    .social-btn { width: 100%; }
+  }
+
+  /* بسيط مؤشر التحميل الخاص بالسكربت الديناميكي */
   .loader-container {
     grid-column: 1 / -1;
     text-align: center;
-    padding: 60px 20px;
+    padding: 40px 20px;
     color: #0f766e;
     font-weight: 700;
   }
-  .spinner {
-    width: 40px; height: 40px;
-    border: 4px solid #e5e7eb;
-    border-top-color: #0f766e;
-    border-radius: 50%;
-    margin: 0 auto 16px;
-    animation: spin 1s linear infinite;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
 </style>
 </head>
 <body>
 
 <div class="container">
-  
+
+  <!-- ===== HEADER WITH LARGE LOGO ===== -->
   <div class="header">
-    <img src="assets/images/logo.png" alt="The MD CODE Logo" class="logo" onerror="this.style.display='none'">
-    <h1>مركز التقييمات التشغيلية</h1>
+    <div class="logo-container">
+      <img src="assets/images/logo-gold.png" alt="The MD CODE Logo" onerror="this.style.display='none'">
+    </div>
+    <h1>مركز التقييمات</h1>
   </div>
 
   <div class="intro-card">
     <h2>📋 عن النظام</h2>
     <p><strong>The MD CODE</strong> هو برنامج تدريبي واستشاري متكامل لتطوير أداء العيادات الطبية. يقدم حلولاً ذكية لتحسين تجربة المريض، زيادة الإيرادات، وبناء علاقات دائمة مع المرضى من خلال منهجية علمية مثبتة.</p>
-    <p><strong>CORE SYSTEM</strong> هو نظام برمجي إلكتروني متكامل للتحليل السلوكي والتشغيلي وتحقيق الامتياز في العمليات والإيرادات التشغيلية (Clinic Operations and Revenues Excellence).</p>
+    <p><strong>CORE SYSTEM</strong> هو نظام برمجي إلكتروني متكامل يقدم أتمتة لعمليات العيادة اليومية من حجز مواعيد وتنظيم الملفات الطبية والفوترة والمتابعة.</p>
   </div>
 
+  <!-- هذا الوعاء سيقوم السكربت بحقن البطاقات داخله بناء على قاعدة البيانات -->
   <div class="assessments-grid" id="dynamic-assessments-grid">
     <div class="loader-container" id="grid-loader">
-      <div class="spinner"></div>
-      <div>جاري استحضار التقييمات المتاحة من السحابة...</div>
+      جاري تحميل التقييمات...
     </div>
   </div>
 
-  <div class="footer">
-    <div class="brand">The MD CODE & CORE SYSTEM</div>
+  <!-- ===== SOCIAL MEDIA AND WHATSAPP CONTACT FOOTER ===== -->
+  <footer class="custom-footer">
+    <div class="footer-brand">The MD CODE & CORE SYSTEM</div>
     <p class="footer-desc">برامج تطوير الأداء الاستشاري وأتمتة العمليات التشغيلية للقطاع الطبي الأردني والعربي</p>
     
     <div class="social-grid">
       <a href="https://wa.me/962786595990?text=مرحباً،%20أود%20الاستفسار%20عن%20خدمات%20تطوير%20الأداء%20العيادي" target="_blank" class="social-btn btn-wa">
         <i class="fab fa-whatsapp"></i> واتساب الاستشارات
       </a>
+      
       <a href="https://www.linkedin.com/in/yazeed-abed-alrazek" target="_blank" class="social-btn btn-li">
         <i class="fab fa-linkedin-in"></i> لينكد إن 
       </a>
+      
       <a href="https://www.instagram.com/yazeed.walid.a.r?igsh=MXRodGJmbmV0dnp4ag==" target="_blank" class="social-btn btn-ig">
         <i class="fab fa-instagram"></i> إنستغرام 
       </a>
-      <a href="https://www.facebook.com/share/157d6hDkUa/?mibextid=wwXIfr" target="_blank" class="social-btn btn-fb">
+      
+      <a href="https://www.facebook.com/share/17hNL9Fs8Q/" target="_blank" class="social-btn btn-fb">
         <i class="fab fa-facebook-f"></i> فيسبوك 
       </a>
+
+      <a href="mailto:mdcode2026@gmail.com" class="social-btn btn-mail">
+        <i class="fas fa-envelope"></i> البريد الإلكتروني
+      </a>
     </div>
-  </div>
+    
+    <div class="copyright-text">جميع الحقوق محفوظة © 2026 The MD CODE.</div>
+  </footer>
 
 </div>
 
-<script src="supabase-client.js"></script>
+<!-- ربط عميل قاعدة البيانات والبرمجة الديناميكية -->
+<script src="assets/js/supabase-client.js"></script>
 <script>
   document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.getElementById('dynamic-assessments-grid');
     const loader = document.getElementById('grid-loader');
     
-    // تهيئة عميل قاعدة البيانات
-    const supabase = typeof SupabaseClient !== 'undefined' ? new SupabaseClient() : null;
+    const supabase = typeof SupabaseClient !== 'undefined' ? window.supabaseClient : null;
 
     if (!supabase) {
-      grid.innerHTML = '<div class="loader-container" style="color:#ef4444;">⚠️ تعذر الوصول إلى قاعدة البيانات المركزية. تأكد من تحميل ملفات النظام.</div>';
+      grid.innerHTML = '<div class="loader-container" style="color:#ef4444;">⚠️ تعذر الوصول إلى قاعدة البيانات.</div>';
       return;
     }
 
     try {
-      // سحب التقييمات المنشورة فقط من قاعدة البيانات
       const assessments = await supabase.select('assessment_types', { 
         filter: { status: 'published' } 
       });
 
-      loader.remove(); // إزالة مؤشر التحميل
+      if (loader) loader.remove();
 
       if (!assessments || assessments.length === 0) {
-        grid.innerHTML = '<div class="loader-container" style="color:#6b7280;">لا توجد تقييمات متاحة أو منشورة في الوقت الحالي.</div>';
+        grid.innerHTML = '<div class="loader-container" style="color:#6b7280;">لا توجد تقييمات منشورة حالياً.</div>';
         return;
       }
 
-      // فرز التقييمات (حسب الأحدث أو الترتيب المرجعي إن وجد)
       assessments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
 
-      // رسم البطاقات ديناميكياً
-      assessments.forEach((ast, index) => {
-        // تحديد الصورة مع وضع صورة افتراضية في حال عدم توفر صورة مخصصة
+      assessments.forEach((ast) => {
         const imgUrl = `assets/images/${ast.slug}.png`;
-        const link = `${ast.slug}.html`; // توجيه للرابط الخاص بالتقييم
+        const link = `${ast.slug}.html`; 
 
         const card = document.createElement('a');
         card.href = link;
-        card.className = `assessment-box fade-in`;
-        card.style.animationDelay = `${index * 0.15}s`; // تأثير دخول متدرج
+        card.className = `assessment-box`;
         
         card.innerHTML = `
-          <img src="${imgUrl}" alt="${ast.title_ar}" class="bg-image" onerror="this.src='assets/images/default-assessment.png'; this.style.opacity='0.1';">
+          <img src="${imgUrl}" alt="${ast.title_ar}" class="bg-image" onerror="this.src='assets/images/patient-journey.png'; this.style.opacity='0.2';">
           <div class="overlay"></div>
           <div class="content">
             <h3>${ast.title_ar}</h3>
             <p>${ast.question_count || 0} سؤالاً — ${ast.axis_count || 0} محاور <br>${ast.description || ''}</p>
-            <span class="btn">ابدأ التقييم &larr;</span>
+            <span class="btn">ابدأ التقييم ←</span>
           </div>
         `;
         
@@ -314,7 +348,7 @@
 
     } catch (error) {
       console.error('[CORE System] Error fetching homepage assessments:', error);
-      grid.innerHTML = '<div class="loader-container" style="color:#ef4444;">⚠️ حدث خطأ أثناء جلب البيانات. يرجى المحاولة لاحقاً.</div>';
+      grid.innerHTML = '<div class="loader-container" style="color:#ef4444;">⚠️ حدث خطأ أثناء الاتصال. يرجى التحديث لاحقاً.</div>';
     }
   });
 </script>
