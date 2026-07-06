@@ -1,6 +1,5 @@
 /**
  * CORE System — Assessment Manager
- * المسؤول عن إدارة التقييمات في لوحة الإدارة
  */
 
 class AssessmentManager {
@@ -11,21 +10,49 @@ class AssessmentManager {
 
     async init() {
         console.log('[Module] Assessment Manager Active');
-        await this.loadAssessments();
+        await this.renderAssessmentsTable();
     }
 
-    async loadAssessments() {
-        if (!this.supabase) return;
+    async renderAssessmentsTable() {
+        const container = document.getElementById('assessments-table-container');
+        if (!container) return;
+
+        container.innerHTML = '<p>جاري تحميل التقييمات...</p>';
+
         try {
-            // جلب البيانات من Supabase
-            const assessments = await this.supabase.select('assessment_types');
+            const data = await this.supabase.select('assessment_types');
             
-            // تسجيل البيانات للتأكد من وصولها (يمكنك رؤيتها في Console المتصفح)
-            console.log('[Module] Assessments Loaded:', assessments);
-            
-            // هنا سنقوم بإضافة كود بناء الجدول في واجهة admin.html لاحقاً
+            let html = `
+                <table border="1" width="100%" style="border-collapse:collapse; text-align:center;">
+                    <thead>
+                        <tr><th>العنوان</th><th>الحالة</th><th>الإجراءات</th></tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            data.forEach(ast => {
+                html += `
+                    <tr>
+                        <td>${ast.title_ar}</td>
+                        <td>${ast.status}</td>
+                        <td>
+                            <button onclick="adminDashboard.assessmentManager.toggleStatus('${ast.id}', '${ast.status === 'published' ? 'archived' : 'published'}')">
+                                ${ast.status === 'published' ? 'إخفاء' : 'نشر'}
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += '</tbody></table>';
+            container.innerHTML = html;
         } catch (err) {
-            console.error('[Module] Failed to load assessments:', err);
+            container.innerHTML = '<p style="color:red;">خطأ في تحميل البيانات</p>';
         }
+    }
+
+    async toggleStatus(id, newStatus) {
+        await this.supabase.update('assessment_types', { status: newStatus }, { id: id });
+        await this.renderAssessmentsTable(); // تحديث الجدول بعد التغيير
     }
 }
