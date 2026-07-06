@@ -7,35 +7,528 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-  
-  <link rel="stylesheet" href="/assets/css/style.css">
-  <link rel="stylesheet" href="/admin/admin.css">
-
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: 'Cairo', sans-serif; background: #f8fafc; color: #1f2937; line-height: 1.6; min-height: 100vh; }
+    body {
+      font-family: 'Cairo', 'Segoe UI', Tahoma, Arial, sans-serif;
+      background: #f8fafc;
+      color: #1f2937;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
     .hidden { display: none !important; }
-    .login-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #1B2A4A 0%, #111827 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
-    .login-box { background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid #e5e7eb; }
-    .login-box h2 { color: #1B2A4A; text-align: center; margin-bottom: 24px; font-size: 1.6rem; font-weight: 800; }
-    .login-box input { width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; margin-bottom: 16px; text-align: center; }
-    .btn-login { width: 100%; padding: 14px; background: #1B2A4A; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
-    .btn-login:hover { background: #D4AF37; }
-    .admin-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
-    .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #ffffff; border-radius: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb; border-right: 5px solid #D4AF37; }
-    .logo { font-size: 1.3rem; font-weight: 800; color: #1B2A4A; }
-    .settings-section { background: #ffffff; border-radius: 16px; padding: 24px; border: 1px solid #e5e7eb; }
-    .settings-section h2 { color: #1B2A4A; font-size: 1.4rem; margin-bottom: 20px; font-weight: 700; border-bottom: 2px solid #f1f5f9; padding-bottom: 12px; }
+
+    .login-screen {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: linear-gradient(135deg, #0f172a 0%, #134e4a 50%, #0f766e 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+    }
+    .login-box {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 40px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      border: 1px solid #e5e7eb;
+    }
+    .login-box h2 {
+      color: #134e4a;
+      text-align: center;
+      margin-bottom: 8px;
+      font-size: 1.6rem;
+      font-weight: 800;
+    }
+    .login-box p {
+      color: #6b7280;
+      text-align: center;
+      margin-bottom: 32px;
+      font-size: 0.95rem;
+    }
+    .login-box input {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 1rem;
+      margin-bottom: 16px;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .login-box input:focus {
+      outline: none;
+      border-color: #14b8a6;
+      box-shadow: 0 0 0 3px rgba(20, 184, 166, 0.12);
+    }
+    .login-error {
+      color: #dc2626;
+      text-align: center;
+      margin-bottom: 16px;
+      padding: 10px;
+      background: #fef2f2;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .btn-login {
+      width: 100%;
+      padding: 14px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      transition: background 0.2s;
+    }
+    .btn-login:hover { background: #134e4a; }
+
+    .admin-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .admin-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: #ffffff;
+      border-radius: 16px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .logo { font-size: 1.3rem; font-weight: 800; color: #134e4a; }
+    .header-actions { display: flex; align-items: center; gap: 12px; }
+    .btn-icon {
+      background: #f3f4f6;
+      border: none;
+      color: #374151;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.1rem;
+      transition: background 0.2s;
+    }
+    .btn-icon:hover { background: #e5e7eb; }
+    #last-updated { color: #6b7280; font-size: 0.85rem; }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .stat-card {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .stat-icon { font-size: 2rem; }
+    .stat-value { font-size: 1.8rem; font-weight: 800; color: #0f766e; }
+    .stat-label { color: #6b7280; font-size: 0.9rem; }
+
+    .settings-section, .table-section {
+      background: #ffffff;
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 24px;
+      border: 1px solid #e5e7eb;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    .settings-section h2 { margin-bottom: 16px; font-size: 1.1rem; color: #134e4a; font-weight: 700; }
+    .settings-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 16px;
+    }
+    .setting-card {
+      background: #f8fafc;
+      border-radius: 12px;
+      padding: 16px;
+      border: 1px solid #e5e7eb;
+    }
+    .setting-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    .setting-title { font-weight: 700; color: #1f2937; }
+    .toggle-switch {
+      position: relative;
+      width: 48px;
+      height: 24px;
+      background: #e5e7eb;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+    .toggle-switch.active { background: #0f766e; }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      background: white;
+      border-radius: 50%;
+      top: 2px;
+      right: 2px;
+      transition: transform 0.3s;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .toggle-switch.active::after { transform: translateX(-24px); }
+    .setting-status { font-size: 0.9rem; margin-bottom: 12px; }
+    .users-list { margin-top: 12px; max-height: 200px; overflow-y: auto; }
+    .user-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      background: #ffffff;
+      border-radius: 6px;
+      margin-bottom: 6px;
+      font-size: 0.85rem;
+      border: 1px solid #e5e7eb;
+    }
+    .user-info { color: #6b7280; font-size: 0.8rem; }
+    .btn-small {
+      padding: 4px 10px;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .btn-add {
+      background: #0f766e;
+      color: white;
+      margin-top: 8px;
+      width: 100%;
+      padding: 8px;
+    }
+    .btn-add:hover { background: #134e4a; }
+    .btn-delete { background: #ef4444; color: white; }
+
+    .filters-section {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+      align-items: center;
+    }
+    .search-box {
+      display: flex;
+      flex: 1;
+      min-width: 280px;
+      gap: 8px;
+    }
+    .search-box input {
+      flex: 1;
+      padding: 10px 16px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .search-box input:focus { outline: none; border-color: #14b8a6; }
+    .search-box button {
+      padding: 10px 16px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .filter-group { display: flex; gap: 8px; flex-wrap: wrap; }
+    .filter-group select {
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2937;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .table-header h3 { font-size: 1.1rem; color: #134e4a; font-weight: 700; }
+    #results-count { color: #6b7280; font-size: 0.9rem; }
+    .table-wrapper { overflow-x: auto; }
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .data-table th {
+      text-align: right;
+      padding: 12px 16px;
+      background: #f8fafc;
+      color: #6b7280;
+      font-weight: 700;
+      font-size: 0.85rem;
+      white-space: nowrap;
+    }
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid #e5e7eb;
+      white-space: nowrap;
+    }
+    .data-table tbody tr:hover { background: #f8fafc; }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+    .badge-success { background: #dcfce7; color: #166534; }
+    .badge-warning { background: #fefce8; color: #92400e; }
+    .btn-details {
+      padding: 6px 14px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.85rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .btn-details:hover { background: #134e4a; }
+
+    .pagination {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 20px;
+    }
+    .pagination button {
+      padding: 8px 14px;
+      background: #f8fafc;
+      color: #374151;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      cursor: pointer;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 600;
+    }
+    .pagination button.active { background: #0f766e; color: white; border-color: #0f766e; }
+    .pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 20px;
+    }
+    .modal-overlay.hidden { display: none !important; }
+    .modal-content {
+      background: #ffffff;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 700px;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+      border: 1px solid #e5e7eb;
+    }
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 24px;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .modal-header h3 { font-size: 1.1rem; color: #134e4a; font-weight: 700; }
+    .btn-close {
+      background: none;
+      border: none;
+      color: #6b7280;
+      font-size: 1.3rem;
+      cursor: pointer;
+    }
+    .btn-close:hover { color: #1f2937; }
+    .modal-body { padding: 24px; }
+
+    .detail-section { margin-bottom: 20px; }
+    .detail-section h4 {
+      color: #134e4a;
+      margin-bottom: 12px;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+    }
+    .detail-item {
+      background: #f8fafc;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #e5e7eb;
+    }
+    .detail-label { color: #6b7280; font-size: 0.8rem; margin-bottom: 4px; }
+    .detail-value { font-weight: 700; color: #1f2937; }
+    .answers-list { display: flex; flex-direction: column; gap: 10px; }
+    .answer-item {
+      background: #f8fafc;
+      padding: 14px;
+      border-radius: 8px;
+      border-right: 3px solid #0f766e;
+    }
+    .answer-question { font-size: 0.9rem; margin-bottom: 6px; color: #1f2937; }
+    .answer-selected { color: #0f766e; font-weight: 700; }
+    .scores-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 12px;
+    }
+    .score-card {
+      background: #f8fafc;
+      padding: 16px;
+      border-radius: 8px;
+      text-align: center;
+      border: 1px solid #e5e7eb;
+    }
+    .score-name { font-size: 0.85rem; color: #6b7280; margin-bottom: 8px; }
+    .score-value { font-size: 1.5rem; font-weight: 800; color: #0f766e; }
+
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #374151;
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    .form-group input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid #e5e7eb;
+      border-radius: 8px;
+      background: #ffffff;
+      color: #1f2937;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus { outline: none; border-color: #14b8a6; }
+    .form-actions { display: flex; gap: 12px; margin-top: 20px; }
+    .btn-primary {
+      padding: 10px 24px;
+      background: #0f766e;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .btn-primary:hover { background: #134e4a; }
+    .btn-secondary {
+      padding: 10px 24px;
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.95rem;
+      font-family: 'Cairo', sans-serif;
+      font-weight: 700;
+      transition: background 0.2s;
+    }
+    .btn-secondary:hover { background: #e5e7eb; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #ffffff;
+      color: #1f2937;
+      padding: 14px 28px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      z-index: 2000;
+      transition: opacity 0.3s;
+      font-weight: 600;
+      border-bottom: 3px solid transparent;
+    }
+    .toast.hidden { opacity: 0; pointer-events: none; }
+    .toast.success { border-bottom-color: #10b981; }
+    .toast.error { border-bottom-color: #ef4444; }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(248,250,252,0.8);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 3000;
+    }
+    .loading-overlay.hidden { display: none !important; }
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 4px solid #e5e7eb;
+      border-top-color: #0f766e;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    @media (max-width: 768px) {
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+      .filters-section { flex-direction: column; }
+      .search-box { width: 100%; }
+      .data-table { font-size: 0.8rem; }
+      .data-table th, .data-table td { padding: 8px 10px; }
+      .login-box { padding: 24px; margin: 16px; }
+    }
   </style>
 </head>
 <body>
-
   <div id="login-screen" class="login-screen">
     <div class="login-box">
       <h2>لوحة الإدارة</h2>
+      <p>Clinic Evaluator Dashboard</p>
       <form id="login-form">
-        <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required>
-        <div id="login-error" style="color:red; display:none; text-align:center; margin-bottom:10px;">كلمة المرور غير صحيحة</div>
+        <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required autofocus>
+        <div id="login-error" class="login-error hidden">كلمة المرور غير صحيحة</div>
         <button type="submit" class="btn-login">دخول</button>
       </form>
     </div>
@@ -44,15 +537,154 @@
   <div id="dashboard-content" class="hidden">
     <div class="admin-container">
       <header class="admin-header">
-        <div class="logo">شيفرة العيادة | CORE System</div>
+        <div class="logo">لوحة الإدارة</div>
+        <div class="header-actions">
+          <button id="btn-refresh" class="btn-icon" title="تحديث">🔄</button>
+          <button id="btn-logout" class="btn-icon" title="خروج">🚪</button>
+          <span id="last-updated">--:--</span>
+        </div>
       </header>
-      
+
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon">👥</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-leads">0</div>
+            <div class="stat-label">إجمالي التقييمات</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">✅</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-completed">0</div>
+            <div class="stat-label">مكتملة</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">📊</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-avg">0%</div>
+            <div class="stat-label">متوسط الدرجة</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">🏥</div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-clinics">0</div>
+            <div class="stat-label">عدد العيادات</div>
+          </div>
+        </div>
+      </section>
+
       <section class="settings-section">
-        <h2>🔐 إدارة التقييمات التشغيلية</h2>
-        <div id="assessments-table-container"></div>
+        <h2>🔐 إدارة التقييمات</h2>
+        <div class="settings-grid" id="assessment-settings">
+          <div id="assessments-table-container">
+            <p style="padding:10px; color:#6b7280;">جاري تحميل وربط البيانات بالسيرفر...</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="filters-section">
+        <div class="search-box">
+          <input type="text" id="search-input" placeholder="بحث: اسم، بريد، هاتف، عيادة...">
+          <button id="btn-search">🔍</button>
+        </div>
+        <div class="filter-group">
+          <select id="filter-type">
+            <option value="">كل التقييمات</option>
+            <option value="patient-journey">رحلة المريض</option>
+            <option value="clinic-performance">أداء العيادة</option>
+          </select>
+          <select id="filter-status">
+            <option value="">كل الحالات</option>
+            <option value="completed">مكتمل</option>
+            <option value="incomplete">غير مكتمل</option>
+          </select>
+          <select id="filter-sort">
+            <option value="newest">الأحدث أولاً</option>
+            <option value="oldest">الأقدم أولاً</option>
+            <option value="score-high">الدرجة: الأعلى</option>
+            <option value="score-low">الدرجة: الأقل</option>
+            <option value="name">الاسم أبجدياً</option>
+          </select>
+        </div>
+      </section>
+
+      <section class="table-section">
+        <div class="table-header">
+          <h3>📋 التقييمات</h3>
+          <span id="results-count">0 نتيجة</span>
+        </div>
+        <div class="table-wrapper">
+          <table class="data-table" id="leads-table">
+            <thead>
+              <tr>
+                <th>التاريخ</th>
+                <th>الاسم</th>
+                <th>العيادة</th>
+                <th>التخصص</th>
+                <th>الفريق</th>
+                <th>السنوات</th>
+                <th>الدولة</th>
+                <th>الدرجة</th>
+                <th>الحالة</th>
+                <th>التفاصيل</th>
+              </tr>
+            </thead>
+            <tbody id="leads-tbody"></tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pagination"></div>
       </section>
     </div>
   </div>
+
+  <div class="modal-overlay hidden" id="detail-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>تفاصيل التقييم</h3>
+        <button class="btn-close" id="btn-close-modal">✕</button>
+      </div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="user-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>إضافة مستخدم</h3>
+        <button class="btn-close" id="btn-close-user-modal">✕</button>
+      </div>
+      <div class="modal-body">
+        <form id="user-form">
+          <input type="hidden" id="user-assessment-key">
+          <div class="form-group">
+            <label>اسم المستخدم</label>
+            <input type="text" id="user-username" required>
+          </div>
+          <div class="form-group">
+            <label>كلمة المرور</label>
+            <input type="password" id="user-password" required>
+          </div>
+          <div class="form-group">
+            <label>عدد الاستخدامات</label>
+            <input type="number" id="user-max-uses" value="1" min="1" required>
+          </div>
+          <div class="form-group">
+            <label>مدة الصلاحية (أيام)</label>
+            <input type="number" id="user-expiry-days" value="30" min="1" required>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn-primary">إنشاء</button>
+            <button type="button" class="btn-secondary" id="btn-cancel-user">إلغاء</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast hidden" id="toast"></div>
 
   <script src="/assets/js/supabase-client.js"></script>
   <script src="/engine/engine.js"></script>
