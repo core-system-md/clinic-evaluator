@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * الإصدار المتوافق مع شاشات الهاتف - لا يحتاج لـ Console
+ * الإصدار المتوافق مع شاشات الهاتف - نسخة الربط الكامل والآمن
  */
 
 class AssessmentManager {
@@ -32,7 +32,7 @@ class AssessmentManager {
             const data = await this.supabase.select('assessment_types');
             
             if (!data || data.length === 0) {
-                container.innerHTML = '<p style="padding:10px;">لا توجد تقييمات حالياً.</p>';
+                container.innerHTML = '<p style="padding:10px;">لا توجد تقييمات حالياً في قاعدة البيانات السحابية.</p>';
                 return;
             }
 
@@ -64,3 +64,6 @@ class AssessmentManager {
         }
     }
 }
+
+// سطر الأمان لضمان رؤية الملف من خلال متصفحات الهاتف ومنع التجميد الصامت
+window.AssessmentManager = AssessmentManager;
