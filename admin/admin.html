@@ -1,17 +1,58 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <title>لوحة الإدارة - CORE System</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>لوحة الإدارة | Clinic Evaluator</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="/assets/css/style.css">
+  <link rel="stylesheet" href="/admin/admin.css">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Cairo', sans-serif; background: #f8fafc; color: #1f2937; line-height: 1.6; min-height: 100vh; }
+    .hidden { display: none !important; }
+    .login-screen { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, #0f172a 0%, #134e4a 50%, #0f766e 100%); display: flex; align-items: center; justify-content: center; z-index: 1000; }
+    .login-box { background: #ffffff; border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); border: 1px solid #e5e7eb; }
+    .login-box h2 { color: #134e4a; text-align: center; margin-bottom: 8px; font-size: 1.6rem; font-weight: 800; }
+    .login-box input { width: 100%; padding: 14px 16px; border: 2px solid #e5e7eb; border-radius: 10px; font-size: 1rem; margin-bottom: 16px; }
+    .btn-login { width: 100%; padding: 14px; background: #0f766e; color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; }
+    .admin-container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+    .admin-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px; background: #ffffff; border-radius: 16px; margin-bottom: 24px; border: 1px solid #e5e7eb; }
+    .settings-section { background: #ffffff; border-radius: 16px; padding: 20px; border: 1px solid #e5e7eb; }
+  </style>
 </head>
 <body>
+  <div id="login-screen" class="login-screen">
     <div class="login-box">
-        <h1>لوحة الإدارة</h1>
-        <input type="password" placeholder="أدخل كلمة المرور">
-        <button>دخول</button>
+      <h2>لوحة الإدارة</h2>
+      <form id="login-form">
+        <input type="password" id="login-password" placeholder="أدخل كلمة المرور" required>
+        <div id="login-error" style="color:red; display:none;">كلمة المرور غير صحيحة</div>
+        <button type="submit" class="btn-login">دخول</button>
+      </form>
     </div>
-    <script src="/assets/js/supabase-client.js"></script>
-    <script src="/assets/js/assessment-manager.js"></script>
-    <script src="/assets/js/admin.js"></script>
+  </div>
+
+  <div id="dashboard-content" class="hidden">
+    <div class="admin-container">
+      <header class="admin-header">
+        <div class="logo">لوحة الإدارة</div>
+      </header>
+      <section class="settings-section">
+        <h2>🔐 إدارة التقييمات</h2>
+        <div id="assessments-table-container"></div>
+      </section>
+    </div>
+  </div>
+
+  <script src="/assets/js/supabase-client.js"></script>
+  <script src="/engine/engine.js"></script>
+  <script src="/admin/admin-auth.js"></script>
+  <script src="/admin/assessment-manager.js"></script>
+  <script src="/admin/admin.js"></script>
 </body>
 </html>
