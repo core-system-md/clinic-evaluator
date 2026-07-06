@@ -1,32 +1,36 @@
 /**
- * CORE System — Admin Coordinator
- * المسؤول عن تنسيق الوحدات النمطية (Modules) في بيئة العمل الحالية
+ * CORE System - Admin Manager (v3.0)
  */
+(function() {
+    function initAdmin() {
+        console.log("Admin System Loading...");
+        const loginBtn = document.querySelector('button');
+        const passInput = document.querySelector('input');
 
-class AdminDashboard {
-    constructor() {
-        this.supabase = window.supabaseClient;
-        // الوحدات النمطية (Modules) تعمل في نفس المجلد الحالي
-        this.assessmentManager = new AssessmentManager(this);
-    }
-
-    async init() {
-        console.log('[CORE Admin] Initializing Dashboard...');
-        if (!this.checkLogin()) {
-            this.showLoginScreen();
-            return;
+        if (loginBtn) {
+            loginBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                console.log("Button Clicked");
+                if (passInput && passInput.value === "admin") {
+                    document.body.innerHTML = `
+                        <div style="padding:20px;">
+                            <h1>لوحة التحكم</h1>
+                            <div id="assessments-table-container">جاري تحميل البيانات...</div>
+                        </div>
+                    `;
+                    if (window.assessmentManager) {
+                        window.assessmentManager.init();
+                    }
+                } else {
+                    alert("كلمة المرور غير صحيحة");
+                }
+            });
         }
-        
-        // ربط الواجهات أو العمليات عند تحميل الصفحة
-        await this.assessmentManager.init();
     }
 
-    checkLogin() { return true; } // سيتم ربطها لاحقاً بالمصادقة
-    showDashboard() { console.log('Dashboard active'); }
-    showLoginScreen() { console.log('Show login screen'); }
-}
-
-document.addEventListener('DOMContentLoaded', () => {
-    window.adminDashboard = new AdminDashboard();
-    window.adminDashboard.init();
-});
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initAdmin);
+    } else {
+        initAdmin();
+    }
+})();
