@@ -1,100 +1,100 @@
 {
-  "version": "1.0.0",
-  "project": "Clinic Evaluator CORE",
+  "version": "2.0.0",
+  "project": "Clinic Cipher (The MD Code)",
   "ui": {
     "buttons": {
-      "submit": "إرسال التقييم وعرض النتائج",
-      "print": "🖨️ طباعة التقرير",
-      "new_assessment": "↺ تقييم جديد",
-      "processing": "جاري المعالجة..."
+      "submit": "تحليل النتائج وتقديم التوصيات",
+      "print": "🖨️ تصدير التقرير الاستشاري",
+      "new_assessment": "↺ بدء تقييم جديد",
+      "processing": "جاري تحليل أداء العيادة..."
     },
     "metadata": {
-      "specialty_label": "التخصص الطبي",
-      "specialty_placeholder": "مثال: جلدية، تجميل، أسنان...",
-      "years_label": "سنوات الخبرة",
-      "years_placeholder": "مثال: 5",
-      "team_label": "حجم الفريق",
-      "team_placeholder": "مثال: 8"
+      "specialty_label": "التخصص السريري",
+      "specialty_placeholder": "مثال: جراحة تجميل، تقويم أسنان...",
+      "years_label": "سنوات الممارسة السريرية",
+      "years_placeholder": "مثال: 10",
+      "team_label": "عدد الكادر التشغيلي",
+      "team_placeholder": "مثال: 5"
     },
     "progress": {
       "of": "من"
     },
     "simulator": {
-      "title": "🔮 محاكي القيمة المتوقعة",
-      "description": "اضبط المتغيرات أدناه لحساب تأثير التحسينات على القيمة المالية للعيادة.",
-      "explanation_before": "القيمة الحالية هي العائد المالي المتوقع بناءً على أدائك الحالي. القيمة المحتملة (+20%) تمثل العائد إذا حسنت أداءك بمقدار 20%. القيمة المثلى (+50%) تمثل العائد المستهدف إذا وصلت لأعلى مستوى من الأداء خلال 12 شهراً. الفجوة هي الفرق بين وضعك الحالي والوضع المثلى.",
-      "report_current_ev": "القيمة الحالية: {amount}/سنة",
-      "report_potential_ev": "القيمة المحتملة (+20%): {amount}/سنة (+{increase})",
-      "report_optimized_ev": "القيمة المثلى (+50%): {amount}/سنة (+{increase})",
-      "report_gap": "الفجوة: {amount}/سنة — هذا ما تخسره",
-      "report_priority": "أولوية التحسين: {axis} — تحسينه يرفع درجتك {pct}%"
+      "title": "🔮 محاكي النمو المالي للعيادة",
+      "description": "استكشف أثر التحسينات التشغيلية على العوائد المالية (Financial Scaling).",
+      "explanation_before": "المحاكي يوضح حجم الفرص الضائعة (Leakage) نتيجة فجوات الأداء، ويقيس العائد المتوقع عند الوصول لمستويات أعلى من الاحترافية التشغيلية (Optimization).",
+      "report_current_ev": "العائد الحالي التقديري: {amount}/سنة",
+      "report_potential_ev": "العائد المستهدف (تحسين 20%): {amount}/سنة (+{increase})",
+      "report_optimized_ev": "العائد الأمثل (تحسين 50%): {amount}/سنة (+{increase})",
+      "report_gap": "فرصة النمو المفقودة (Revenue Gap): {amount}/سنة",
+      "report_priority": "الأولوية التشغيلية: {axis} — التحسين هنا يرفع كفاءة الأداء العام بنسبة {pct}%"
     }
   },
   "quartiles": {
     "Q1": {
-      "label": "فجوة هيكلية حرجة",
+      "label": "مرحلة التأسيس: الحاجة إلى بناء نظم متكاملة",
       "color": "#A33B3B"
     },
     "Q2": {
-      "label": "تذبذب ملحوظ",
+      "label": "مرحلة التفعيل: تعزيز الكفاءة التشغيلية",
       "color": "#C67D47"
     },
     "Q3": {
-      "label": "أداء مستقر",
+      "label": "مرحلة النمو: تحسين رحلة المريض",
       "color": "#5C6B73"
     },
     "Q4": {
-      "label": "أداء متميز",
+      "label": "مرحلة الريادة: التميز المؤسسي",
       "color": "#2A6F5D"
     }
   },
   "kpis": {
     "TFI": {
-      "name": "مؤشر تكوين الثقة",
+      "name": "مؤشر بناء الثقة (Trust Formation Index)",
       "short_name": "TFI",
-      "description": "Trust Formation Index"
+      "description": "قياس عمق العلاقة الأولية وبناء المصداقية"
     },
     "TAP": {
-      "name": "مؤشر قبول العلاج",
+      "name": "مؤشر قبول العلاج (Treatment Acceptance Potential)",
       "short_name": "TAP",
-      "description": "Treatment Acceptance Potential"
+      "description": "معدل التحويل من الاستشارة إلى التزام علاجي"
     },
     "PRP": {
-      "name": "مؤشر احتفاظ المرضى",
+      "name": "مؤشر الاستبقاء (Patient Retention Potential)",
       "short_name": "PRP",
-      "description": "Patient Retention Potential"
+      "description": "قدرة العيادة على استعادة المريض لزيارات أخرى"
     },
     "PLI": {
-      "name": "مؤشر ولاء المرضى",
+      "name": "مؤشر الولاء (Patient Loyalty Index)",
       "short_name": "PLI",
-      "description": "Patient Loyalty Index"
+      "description": "معدل التوصية بالعيادة للغير"
     }
   },
   "sections": {
-    "kpis": "المؤشرات الرئيسية (KPIs)",
-    "axes": "أداء المحاور",
-    "gaps": "فجوات محتملة",
-    "ev_simulator": "محاكي القيمة المتوقعة",
-    "ev_current": "القيمة الحالية",
-    "ev_potential": "القيمة المحتملة",
-    "ev_gap": "فرصة النمو المقدرة"
+    "kpis": "لوحة مؤشرات الأداء (KPIs Dashboard)",
+    "axes": "تحليل محاور الأداء الاستراتيجي",
+    "gaps": "نقاط الفجوة الهيكلية",
+    "ev_simulator": "نمذجة النمو المالي",
+    "ev_current": "الأداء الحالي",
+    "ev_potential": "النمو المستهدف",
+    "ev_gap": "فرص التطوير"
   },
   "badges": {
-    "impact_high": "تأثير عالي",
-    "impact_medium": "تأثير متوسط",
-    "impact_low": "تأثير منخفض",
-    "layer_trap": "كمين"
+    "impact_high": "تأثير استراتيجي",
+    "impact_medium": "تأثير تشغيلي",
+    "impact_low": "تأثير تكتيكي",
+    "layer_trap": "تنبيه (Trap)"
   },
   "report": {
-    "overall_score": "الدرجة الكلية",
-    "leakage_label": "فجوة الأداء",
-    "structural_diagnosis": "التشخيص الهيكلي",
-    "axis_summary": "ملخص المحاور"
+    "overall_score": "معدل الكفاءة العام",
+    "leakage_label": "نسبة الفاقد التشغيلي",
+    "structural_diagnosis": "التشخيص الاستراتيجي للعيادة",
+    "axis_summary": "تحليل الأداء حسب المحاور"
   },
   "errors": {
-    "init_failed": "فشل تحميل التطبيق. تأكد من وجود config.json وengine.js وreport_texts.json.",
-    "missing_answers": "يرجى الإجابة على {count} سؤال متبقي",
-    "processing_error": "حدث خطأ أثناء معالجة التقييم. تأكد من تحميل engine.js.",
-    "assessment_not_found": "نوع التقييم غير موجود"
+    "init_failed": "عذراً، هناك تحديث بسيط في النظام. يرجى إعادة تحميل الصفحة أو التواصل مع فريق الدعم الفني.",
+    "missing_answers": "لضمان دقة التشخيص الاستراتيجي، نحتاج لإجابتك على {count} أسئلة متبقية.",
+    "processing_error": "جاري تحليل بياناتك بدقة، يرجى الانتظار لحظات.",
+    "assessment_not_found": "المسار المطلوب غير متاح حالياً."
   }
 }
