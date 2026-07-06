@@ -1,10 +1,10 @@
 /**
- * Clinic Evaluator — app.js v7.1 (v2.0 FULL REFACTOR + CORE PHASE 1 & 2)
+ * Clinic Evaluator — app.js v7.2 (CORE FULL REFACTOR + Cloud Adapter + Absolute Paths)
  * ================================================================
  * Complete refactoring: index-based selection, CSV removal, 
  * cloud-driven EV defaults, A4 print ready, full answer storage,
  * unified visual benchmarking, automatic session history & comparison.
- * Added: Dual-Run Adapter Pattern for Supabase SSOT Migration.
+ * ADDED: Cloud Adapter for Supabase SSOT & Absolute Pathing.
  * ================================================================
  */
 
@@ -28,7 +28,7 @@ class ClinicEvaluatorApp {
     this.errorShown = false;
     this.previousScore = null;
     this.previousSessionData = null;
-    this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 }; // Cloud-driven defaults
+    this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 }; 
   }
 
   /* ─────────────── INITIALIZATION ─────────────── */
@@ -50,7 +50,6 @@ class ClinicEvaluatorApp {
       if (this.assessment) {
         this.questions = this.assessment.questions || [];
         
-        // Load cloud-driven EV defaults from assessment config
         this.loadEVDefaultsFromConfig();
         
         if (this.supabase) {
@@ -86,12 +85,12 @@ class ClinicEvaluatorApp {
     }
   }
 
-  /* ─────────────── DATA FETCHING & ADAPTER LAYER (CORE System Phase 1 & 2) ─────────────── */
+  /* ─────────────── CLOUD ADAPTER (SSOT) ─────────────── */
 
   async loadConfig() {
     try {
-      // 1. تحميل الملف القديم ليكون مرجعاً (Regression Testing)
-      const localRes = await fetch('data/config.json');
+      // 1. المسار الجذري للملف المحلي (خطة الطوارئ)
+      const localRes = await fetch('/assets/data/config.json');
       const localConfig = await localRes.json();
 
       if (!this.supabase) {
@@ -102,7 +101,7 @@ class ClinicEvaluatorApp {
 
       console.log('[CORE System] Fetching dynamic payload from cloud database...');
 
-      // 2. جلب البيانات المترابطة من قاعدة البيانات (Supabase SSOT)
+      // 2. جلب البيانات من السحابة
       const [assessmentsRes, axesRes, questionsRes, optionsRes] = await Promise.all([
         this.supabase.select('assessment_types', { filter: { status: 'published' } }),
         this.supabase.select('axes'),
@@ -110,7 +109,6 @@ class ClinicEvaluatorApp {
         this.supabase.select('options')
       ]);
 
-      // 3. بناء الكائن الديناميكي (Adapter) ليتطابق تماماً مع ما يتوقعه engine.js
       const cloudConfig = {
         version: "2.0.0",
         project: "CORE System Dynamic",
@@ -126,7 +124,7 @@ class ClinicEvaluatorApp {
               id: a.code,
               name_ar: a.title_ar || a.title,
               name_en: a.title,
-              weight: parseFloat(a.weight),
+              weight: parseFloat(a.weight) || 1,
               description: a.description
             }));
 
@@ -139,13 +137,11 @@ class ClinicEvaluatorApp {
                 .sort((a, b) => a.display_order - b.display_order)
                 .map(o => ({
                   label: o.label_ar || o.label,
-                  value: o.option_value,
+                  value: parseFloat(o.option_value),
                   is_trap: o.is_trap || false
                 }));
 
               const parentAxis = (axesRes || []).find(a => a.id === q.axis_id);
-              
-              // تحديد طبقة السؤال بناءً على وجود كمين (Trap) في خياراته ليتوافق مع المحرك
               const isTrapQuestion = qOptions.some(o => o.is_trap);
 
               return {
@@ -165,17 +161,14 @@ class ClinicEvaluatorApp {
             axis_count: ast.axis_count || astAxes.length,
             has_traps: ast.has_traps,
             has_ev_simulator: ast.has_ev_simulator,
+            simulator: { enabled: ast.has_ev_simulator },
             axes: astAxes,
             questions: astQuestions
           };
         }
       }
 
-      // 4. اختبار التطابق الصامت (Dual-Run Validation)
-      const localKeys = Object.keys(localConfig.assessment_types || {});
       const cloudKeys = Object.keys(cloudConfig.assessment_types || {});
-      
-      console.log(`[CORE Validation] Local Assessments: ${localKeys.length} | Cloud Assessments: ${cloudKeys.length}`);
       
       if (cloudKeys.length > 0) {
         console.log('[CORE System] Validation passed. Engine is now running on Cloud Data.');
@@ -187,25 +180,24 @@ class ClinicEvaluatorApp {
 
     } catch (err) {
       console.error('[CORE System] Failed to load config dynamically:', err);
-      const localRes = await fetch('data/config.json');
+      const localRes = await fetch('/assets/data/config.json');
       this.config = await localRes.json();
     }
   }
 
   async loadTexts() {
-    const res = await fetch('data/report_texts.json');
+    // المسار الجذري لملف النصوص
+    const res = await fetch('/assets/data/report_texts.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     this.texts = await res.json();
   }
 
-  // Load EV simulator defaults from config.json cloud variables
   loadEVDefaultsFromConfig() {
     const simVars = this.assessment?.simulator?.variables || [];
     simVars.forEach(v => {
       if (v.id === 'flow') this.evDefaults.flow = v.default || 50;
       if (v.id === 'ltv') this.evDefaults.ltv = v.default || 5000;
     });
-    // Calculate derived defaults: visits=3, avg=50, years=3, referral=0
     this.evDefaults.visits = 3;
     this.evDefaults.avg = 50;
     this.evDefaults.years = 3;
@@ -627,3 +619,475 @@ class ClinicEvaluatorApp {
     }
 
     const btn = document.getElementById('btn-login');
+    const newBtn = btn.cloneNode(true);
+    btn.parentNode.replaceChild(newBtn, btn);
+    newBtn.addEventListener('click', async () => {
+      const u = document.getElementById('login-username').value.trim();
+      const p = document.getElementById('login-password').value;
+      const err = document.getElementById('login-error');
+      if (!u || !p) { err.textContent = 'يرجى ملء الحقول المطلوبة.'; return; }
+      
+      this.showLoadingGlobal(true);
+      const isVerified = await this.verifyUser(u, p);
+      this.showLoadingGlobal(false);
+
+      if (isVerified) {
+        sessionStorage.setItem('assessment_auth_' + this.currentAssessmentKey, JSON.stringify({
+          username: u, timestamp: Date.now()
+        }));
+        this.hideLoginForm();
+        this.showView('view-lead-form'); 
+      } else { 
+        err.textContent = 'بيانات الدخول غير صحيحة، أو انتهت صلاحية هذا الاستخدام.'; 
+      }
+    });
+  }
+
+  hideLoginForm() {
+    const m = document.getElementById('login-modal');
+    if (m) m.style.display = 'none';
+  }
+
+  /* ─────────────── SUPABASE DATA LAYER ─────────────── */
+
+  updateSessionProgress() {
+    if (this.supabase && this.currentSessionId) {
+      this.supabase.update('sessions', { current_question: this.currentQuestionIndex }, { id: this.currentSessionId }).catch(() => {});
+    }
+  }
+
+  async saveLead() {
+    if (!this.supabase) return null;
+    try {
+      const data = {
+        assessment_type_id: this.assessmentUuid || this.currentAssessmentKey, 
+        full_name: this.metadata.name || 'طبيب غير معروف',
+        email: this.metadata.email || null,
+        phone: this.metadata.phone || null,
+        clinic_name: this.metadata.clinic || null,
+        country: this.metadata.country || null,
+        specialty: this.metadata.specialty || null,
+        years: this.metadata.years || null,
+        team: this.metadata.team || null,
+        source: window.location.pathname,
+        utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || null,
+        completed: false, 
+        score_total: 0, 
+        score_percentage: 0
+      };
+      const r = await this.supabase.insert('leads', data);
+      if (r?.[0]) { this.currentLeadId = r[0].id; return this.currentLeadId; }
+    } catch (err) { console.error('[app] saveLead failed:', err); }
+    return null;
+  }
+
+  async saveSession() {
+    if (!this.supabase || !this.currentLeadId) return null;
+    try {
+      const data = {
+        lead_id: this.currentLeadId,
+        assessment_type_id: this.assessmentUuid || this.currentAssessmentKey,
+        status: 'in_progress',
+        current_question: this.currentQuestionIndex,
+        started_at: new Date().toISOString()
+      };
+      const r = await this.supabase.insert('sessions', data);
+      if (r?.[0]) { this.currentSessionId = r[0].id; return this.currentSessionId; }
+    } catch (err) { console.error('[app] saveSession failed:', err); }
+    return null;
+  }
+
+  async saveAnswers() {
+    if (!this.supabase || !this.currentSessionId) return;
+    try {
+      const answersBulkData = [];
+      for (const [qid, ans] of Object.entries(this.answers)) {
+        const q = this.questions.find(q => q.id === qid);
+        if (q) {
+          const matchedOption = q.options?.[ans.index];
+          const optionLabel = matchedOption ? matchedOption.label : `قيمة: ${ans.value}`;
+          
+          const diagnosticCompositeText = `${q.text} [الاختيار: ${optionLabel}]`;
+
+          answersBulkData.push({
+            session_id: this.currentSessionId,
+            lead_id: this.currentLeadId,
+            question_id: qid,
+            axis_id: q.axis_id || '',
+            question_text: diagnosticCompositeText, 
+            option_index: ans.index,
+            option_value: ans.value,
+            answer_value: ans.value,
+            is_trap: q.layer === 'B',
+            trap_triggered: false,
+            answered_at: new Date().toISOString()
+          });
+        }
+      }
+      
+      if (answersBulkData.length > 0) {
+        await this.supabase.insert('answers', answersBulkData);
+      }
+    } catch (err) { console.error('[app] saveAnswers failed:', err); }
+  }
+
+  async saveScores(results) {
+    if (!this.supabase || !this.currentSessionId) return;
+    try {
+      const axes = this.assessment?.axes || [];
+      for (const [aid, score] of Object.entries(results.axisScores || {})) {
+        const axis = axes.find(a => a.id === aid);
+        await this.supabase.insert('scores', {
+          session_id: this.currentSessionId,
+          lead_id: this.currentLeadId,
+          axis_id: aid,
+          axis_name_ar: axis?.name_ar || aid,
+          axis_name_en: axis?.name_en || aid,
+          raw_score: Math.round(score),
+          max_possible: 100,
+          percentage: score,
+          weight: axis?.weight || 1,
+          weighted_score: score * (axis?.weight || 1),
+          grade: score >= 75 ? 'Q4' : score >= 50 ? 'Q3' : score >= 25 ? 'Q2' : 'Q1'
+        });
+      }
+    } catch (err) { console.error('[app] saveScores failed:', err); }
+  }
+
+  async updateLeadWithResults(results) {
+    if (!this.supabase || !this.currentLeadId) return;
+    try {
+      await this.supabase.update('leads', {
+        completed: true, 
+        score_total: Math.round(results.overallScore || 0),
+        score_percentage: results.overallScore || 0,
+        completed_at: new Date().toISOString()
+      }, { id: this.currentLeadId });
+    } catch (err) { console.error('[app] updateLeadWithResults failed:', err); }
+  }
+
+  /* ─────────────── COMPUTATION & RESULTS ─────────────── */
+
+  async submitAssessment() {
+    this.hideView('view-assessment');
+    this.showView('view-loading');
+    document.getElementById('view-loading')?.classList.add('fade-in');
+
+    const bar = document.getElementById('load-bar');
+    const status = document.getElementById('load-status');
+    let progress = 0;
+    const interval = setInterval(() => { progress += Math.random() * 15; if (progress > 90) progress = 90; if (bar) bar.style.width = `${progress}%`; if (status) status.textContent = `${Math.round(progress)}%`; }, 200);
+
+    try {
+      if (typeof AssessmentEngine === 'undefined') throw new Error('engine.js not loaded');
+      
+      this.engine = new AssessmentEngine(this.config, this.texts);
+      const results = this.engine.evaluate(this.getAnswersForEngine(), this.currentAssessmentKey, this.metadata);
+
+      if (this.supabase) {
+        try {
+          if (this.currentSessionId) {
+            await this.supabase.update('sessions', { status: 'completed', completed_at: new Date().toISOString() }, { id: this.currentSessionId });
+          }
+          await this.saveAnswers();
+          await this.saveScores(results);
+          await this.updateLeadWithResults(results);
+        } catch (e) { console.error('[app] Supabase completion sync error:', e); }
+      }
+
+      clearInterval(interval);
+      if (bar) bar.style.width = '100%';
+      if (status) status.textContent = '100%';
+      setTimeout(() => { this.hideView('view-loading'); this.renderResults(results); }, 500);
+    } catch (err) {
+      clearInterval(interval);
+      this.showFatalError('حدث خطأ فني أثناء معالجة التقرير الاستشاري: ' + err.message);
+    }
+  }
+
+  renderResults(res) {
+    this.showView('view-results');
+    document.getElementById('view-results')?.classList.add('fade-in');
+
+    const q = res.classification || 'Q2';
+    const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
+    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
+
+    // Enhanced trend analysis with baseline comparison
+    let trendHtml = "";
+    if (this.previousSessionData) {
+      const diff = res.overallScore - this.previousSessionData.overallScore;
+      const daysSince = Math.floor((Date.now() - new Date(this.previousSessionData.completedAt).getTime()) / (24 * 60 * 60 * 1000));
+      
+      if (diff > 0) {
+        trendHtml = `<div style="margin-top:10px; color:#10b981; font-weight:700; font-size:0.95rem;">📈 تحسن تشغيلي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
+      } else if (diff < 0) {
+        trendHtml = `<div style="margin-top:10px; color:#ef4444; font-weight:700; font-size:0.95rem;">📉 تراجع في الكفاءة بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
+      } else {
+        trendHtml = `<div style="margin-top:10px; color:#6b7280; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر ومطابق للتقييم السابق</div>`;
+      }
+      
+      trendHtml += this.renderAxisComparison(res.axisScores);
+    }
+
+    const circle = document.getElementById('result-score-circle');
+    if (circle) circle.style.borderColor = qData.color;
+    const scoreVal = document.getElementById('result-score-value');
+    if (scoreVal) { scoreVal.textContent = score + '%'; scoreVal.style.color = qData.color; }
+    const scoreLabel = document.getElementById('result-score-label');
+    if (scoreLabel) scoreLabel.textContent = qData.label;
+    const title = document.getElementById('result-title');
+    if (title) title.textContent = qData.label;
+    const body = document.getElementById('result-body');
+    
+    if (body) {
+      body.innerHTML = `<div>درجتك الكلية للعيادة: ${score} من 100 — ${qData.label}</div>${trendHtml}`;
+    }
+
+    const axesContainer = document.getElementById('axes-scores');
+    if (axesContainer && res.axisScores) {
+      axesContainer.innerHTML = '';
+      const axes = this.assessment?.axes || [];
+      Object.entries(res.axisScores).forEach(([aid, score]) => {
+        const axis = axes.find(a => a.id === aid);
+        const color = score >= 75 ? '#2A6F5D' : score >= 50 ? '#5C6B73' : score >= 25 ? '#C67D47' : '#A33B3B';
+        const row = document.createElement('div');
+        row.className = 'axis-score-row fade-in';
+        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis ? axis.name_ar : aid}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill" style="width:${score}%;background:${color}"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
+        axesContainer.appendChild(row);
+      });
+    }
+
+    // Unified visual benchmarking
+    this.renderVisualBenchmark(res);
+
+    const trapsContainer = document.getElementById('traps-container');
+    if (trapsContainer) {
+      if (res.traps?.length) {
+        trapsContainer.classList.remove('hidden');
+        trapsContainer.innerHTML = '<h3 class="card-title">🚨 نقاط الضعف وفخاخ التناقض السلوكي</h3>';
+        res.traps.forEach(t => {
+          const alert = document.createElement('div');
+          alert.className = 'trap-alert fade-in';
+          alert.innerHTML = `<div class="icon">⚠️</div><div class="content"><h4>${t.name}</h4><p>${t.message}</p></div>`;
+          trapsContainer.appendChild(alert);
+        });
+      } else trapsContainer.classList.add('hidden');
+    }
+
+    const recContainer = document.getElementById('recommendations-container');
+    if (recContainer) {
+      recContainer.classList.remove('hidden');
+      recContainer.innerHTML = '<h3 class="card-title">💡 التوجيهات الاستشارية وفرص التطوير الهيكلي</h3>';
+      if (res.axisScores) {
+        const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
+        const weakest = sorted[0];
+        const strongest = sorted[sorted.length - 1];
+        const axes = this.assessment?.axes || [];
+        const weakAxis = axes.find(x => x.id === weakest[0]);
+        const strongAxis = axes.find(x => x.id === strongest[0]);
+        const box = document.createElement('div');
+        box.className = 'insight-box fade-in';
+        box.innerHTML = `<h4>🎯 الأولوية التشغيلية القصوى: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4><p>هذا المحور يمثل الفجوة الأكبر ويتطلب تدخل فوري وسد منافذ التسريب بنسبة أداء (${weakest[1].toFixed(1)}%).</p><h4 style="margin-top:12px;">💪 نقطة القوة المرتكز عليها: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4><p>معيار متميز وكفاءة تشغيلية مستقرة بنسبة أداء (${strongest[1].toFixed(1)}%).</p>`;
+        recContainer.appendChild(box);
+      }
+    }
+
+    const evEnabled = this.assessment?.simulator?.enabled === true;
+    const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
+    if (evSection) evSection.classList.toggle('hidden', !evEnabled);
+
+    const leakageEl = document.getElementById('leakage-index');
+    if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
+  }
+
+  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
+
+  renderAxisComparison(currentAxisScores) {
+    if (!this.previousSessionData?.axisScores) return '';
+    
+    let html = '<div style="margin-top:16px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
+    html += '<thead><tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;text-align:right;">المحور</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الأساس</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الحالي</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">التغير</th></tr></thead><tbody>';
+    
+    const axes = this.assessment?.axes || [];
+    Object.entries(currentAxisScores).forEach(([aid, currentScore]) => {
+      const axis = axes.find(a => a.id === aid);
+      const baseline = this.previousSessionData.axisScores[aid] || 0;
+      const diff = currentScore - baseline;
+      const diffColor = diff > 0 ? '#10b981' : diff < 0 ? '#ef4444' : '#6b7280';
+      const diffIcon = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
+      
+      html += `<tr>
+        <td style="padding:8px;border:1px solid #e5e7eb;">${axis ? axis.name_ar : aid}</td>
+        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${baseline.toFixed(1)}%</td>
+        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;font-weight:700;">${currentScore.toFixed(1)}%</td>
+        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;color:${diffColor};font-weight:700;">${diffIcon} ${Math.abs(diff).toFixed(1)}%</td>
+      </tr>`;
+    });
+    
+    html += '</tbody></table></div>';
+    return html;
+  }
+
+  /* ─────────────── UNIFIED VISUAL BENCHMARKING ─────────────── */
+
+  renderVisualBenchmark(res) {
+    const oldCharts = document.getElementById('charts-container');
+    const oldKpis = document.getElementById('kpis-container');
+    if (oldCharts) oldCharts.remove();
+    if (oldKpis) oldKpis.remove();
+
+    let benchmarkContainer = document.getElementById('benchmark-container');
+    if (!benchmarkContainer) {
+      benchmarkContainer = document.createElement('div');
+      benchmarkContainer.id = 'benchmark-container';
+      benchmarkContainer.className = 'form-card fade-in';
+      benchmarkContainer.style.marginTop = '20px';
+      
+      const axesContainer = document.getElementById('axes-scores');
+      axesContainer?.parentNode?.insertBefore(benchmarkContainer, axesContainer.nextSibling);
+    }
+    
+    benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
+    
+    if (res.axisScores) {
+      const axes = this.assessment?.axes || [];
+      const data = Object.entries(res.axisScores).map(([aid, score]) => ({ 
+        label: axes.find(a => a.id === aid)?.name_ar || aid, 
+        value: score 
+      }));
+      
+      const chartDiv = document.createElement('div');
+      chartDiv.style.marginBottom = '24px';
+      
+      const maxVal = Math.max(...data.map(d => d.value), 1);
+      data.forEach(item => {
+        const pct = (item.value / maxVal) * 100;
+        let color = '#A33B3B';
+        if (item.value >= 75) color = '#2A6F5D';
+        else if (item.value >= 50) color = '#5C6B73';
+        else if (item.value >= 25) color = '#C67D47';
+
+        const row = document.createElement('div');
+        row.style.cssText = 'margin-bottom:12px;';
+        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span style="color:${color}">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        chartDiv.appendChild(row);
+      });
+      
+      benchmarkContainer.appendChild(chartDiv);
+    }
+
+    if (res.kpis) {
+      const kpiGrid = document.createElement('div');
+      kpiGrid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;';
+      
+      Object.entries(res.kpis).forEach(([k, v]) => {
+        const info = this.texts?.kpis?.[k] || { name: k, short_name: k };
+        const card = document.createElement('div');
+        card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
+        card.innerHTML = `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${v.toFixed(1)}</div>`;
+        kpiGrid.appendChild(card);
+      });
+      
+      benchmarkContainer.appendChild(kpiGrid);
+    }
+  }
+
+  /* ─────────────── EV SIMULATOR ─────────────── */
+
+  setupEVSimulator() {
+    const avgEl = document.getElementById('ev-avg');
+    const visitsEl = document.getElementById('ev-visits');
+    const yearsEl = document.getElementById('ev-years');
+    const referralEl = document.getElementById('ev-referral');
+    
+    if (avgEl) avgEl.value = this.evDefaults.avg;
+    if (visitsEl) visitsEl.value = this.evDefaults.visits;
+    if (yearsEl) yearsEl.value = this.evDefaults.years;
+    if (referralEl) referralEl.value = this.evDefaults.referral;
+
+    document.getElementById('btn-ev-simulator')?.addEventListener('click', () => {
+      this.hideView('view-results');
+      this.showView('view-ev-simulator');
+      document.getElementById('view-ev-simulator')?.classList.add('fade-in');
+    });
+    document.getElementById('btn-calculate-ev')?.addEventListener('click', () => this.calculateEV());
+    document.getElementById('btn-back-results')?.addEventListener('click', () => {
+      this.showView('view-results');
+      this.hideView('view-ev-simulator');
+    });
+  }
+
+  calculateEV() {
+    const avg = parseFloat(document.getElementById('ev-avg')?.value) || 0;
+    const visits = parseFloat(document.getElementById('ev-visits')?.value) || 0;
+    const years = parseFloat(document.getElementById('ev-years')?.value) || 0;
+    const referral = parseFloat(document.getElementById('ev-referral')?.value) || 0;
+
+    let current, opt20, opt50;
+    if (this.engine && this.assessment) {
+      try {
+        const axisScores = this.engine.calculateScores().axes;
+        
+        const evInputs = Object.fromEntries(axisScores.map(a => [a.axisId, a.percentage]));
+        
+        if (this.currentAssessmentKey === 'clinic-performance') {
+          evInputs['A3'] = evInputs['A2'] || 0;           
+          evInputs['A4'] = evInputs['A3'] || 0;           
+          evInputs['A5'] = ((evInputs['A2'] || 0) + (evInputs['A3'] || 0)) / 2; 
+        }
+        
+        const evResult = this.engine.calculateEV(
+          evInputs,
+          { flow: visits * 12, ltv: avg * visits * years }
+        );
+        if (evResult) { 
+          current = evResult.currentEV; 
+          opt20 = Math.round(current * 1.2); 
+          opt50 = Math.round(current * 1.5); 
+        }
+      } catch (e) {}
+    }
+
+    if (!current) {
+      const annual = visits * 12;
+      const ltv = avg * visits * years;
+      const refMult = 1 + (referral / 100);
+      current = Math.round(annual * ltv * refMult);
+      opt20 = Math.round(current * 1.2);
+      opt50 = Math.round(current * 1.5);
+    }
+
+    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
+    setText('ev-current', '$' + current.toLocaleString());
+    setText('ev-opt20', '$' + opt20.toLocaleString());
+    setText('ev-opt50', '$' + opt50.toLocaleString());
+    setText('ev-increase20', '+$' + (opt20 - current).toLocaleString());
+    setText('ev-increase50', '+$' + (opt50 - current).toLocaleString());
+    document.getElementById('ev-results')?.classList.remove('hidden');
+  }
+
+  /* ─────────────── PRINT HANDLING ─────────────── */
+
+  setupPrint() {
+    document.getElementById('btn-print-report')?.addEventListener('click', () => window.print());
+  }
+
+  showLoadingGlobal(show) {
+    let overlay = document.getElementById('global-sync-loader');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-sync-loader';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:11000;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      overlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid #334155;border-top-color:#e8b923;border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+}
+
+/* ─────────────── INITIALIZE APPLICATION ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new ClinicEvaluatorApp();
+  window.app.init();
+});
