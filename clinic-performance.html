@@ -9,7 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+
+<link rel="stylesheet" href="/assets/css/style.css">
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -437,7 +439,7 @@
 <div class="container">
 
   <div class="top-bar">
-    <a href="index.html" class="back-link">← العودة لمركز التقييمات</a>
+    <a href="/index.html" class="back-link">← العودة لمركز التقييمات</a>
   </div>
 
   <div class="hero">
@@ -582,7 +584,6 @@
       <h3 class="card-title">💡 توصيات التحسين</h3>
     </div>
 
-    <!-- [ADDED] EV Simulator CTA for clinic-performance -->
     <div class="form-card text-center" style="background: linear-gradient(135deg, #1e3a5f 0%, #0f766e 100%); color: white; border: none;">
       <div class="card-title" style="color: white; border-bottom: none;">📈 جرب محاكي القيمة الدائمة</div>
       <p style="margin-bottom: 16px; opacity: 0.9; font-size: 0.95rem;">شوف كم راح تربح لو حسنت أداء العيادة</p>
@@ -590,12 +591,11 @@
     </div>
 
     <div class="btn-group" style="margin-top: 20px;">
-      <a href="index.html" class="btn btn-secondary">← مركز التقييمات</a>
+      <a href="/index.html" class="btn btn-secondary">← مركز التقييمات</a>
       <button id="btn-print-report" class="btn btn-primary" style="flex:1;">🖨️ طباعة / حفظ PDF</button>
     </div>
   </div>
 
-  <!-- [ADDED] EV Simulator view for clinic-performance -->
   <div id="view-ev-simulator" style="display: none;">
     <div class="form-card">
       <div class="card-title">🔢 بيانات العيادة</div>
@@ -649,13 +649,12 @@
 
 </div>
 
-<!-- Correct script order: engine.js → preSelectedAssessment → app.js -->
-<script src="assets/js/supabase-client.js"></script>
-<script src="assets/js/engine.js"></script>
+<script src="/assets/js/supabase-client.js"></script>
+<script src="/engine/engine.js"></script>
 <script>
   window.preSelectedAssessment = 'clinic-performance';
 </script>
-<script src="assets/js/app.js"></script>
+<script src="/assets/js/app.js"></script>
 
 </body>
 </html>
