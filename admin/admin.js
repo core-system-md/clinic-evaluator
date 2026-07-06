@@ -1,11 +1,13 @@
+// admin.js - النسخة النهائية
 (function() {
     function start() {
-        const btn = document.querySelector('button');
-        const input = document.querySelector('input');
-        if (btn) {
-            btn.onclick = function(e) {
+        const buttons = document.querySelectorAll('button');
+        const inputs = document.querySelectorAll('input');
+
+        if (buttons.length > 0) {
+            buttons[0].onclick = function(e) {
                 e.preventDefault();
-                if (input && input.value === "admin") {
+                if (inputs.length > 0 && inputs[0].value === "admin") {
                     document.body.innerHTML = '<div style="padding:20px;"><h1>لوحة التحكم</h1><div id="assessments-table-container">جاري التحميل...</div></div>';
                     if (window.assessmentManager) window.assessmentManager.init();
                 } else {
