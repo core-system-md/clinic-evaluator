@@ -9,7 +9,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/css/style.css">
+
+<link rel="stylesheet" href="/assets/css/style.css">
+
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
@@ -465,7 +467,7 @@
 <div class="container">
 
   <div class="top-bar">
-    <a href="index.html" class="back-link">← العودة لمركز التقييمات</a>
+    <a href="/index.html" class="back-link">← العودة لمركز التقييمات</a>
   </div>
 
   <div class="hero">
@@ -618,7 +620,7 @@
     </div>
 
     <div class="btn-group" style="margin-top: 20px;">
-      <a href="index.html" class="btn btn-secondary">← مركز التقييمات</a>
+      <a href="/index.html" class="btn btn-secondary">← مركز التقييمات</a>
       <button id="btn-print-report" class="btn btn-primary" style="flex:1;">🖨️ طباعة / حفظ PDF</button>
     </div>
   </div>
@@ -676,13 +678,12 @@
 
 </div>
 
-<!-- [REFACTOR] Correct script order: engine.js → preSelectedAssessment → app.js -->
-<script src="assets/js/supabase-client.js"></script>
-<script src="assets/js/engine.js"></script>
+<script src="/assets/js/supabase-client.js"></script>
+<script src="/engine/engine.js"></script>
 <script>
   window.preSelectedAssessment = 'patient-journey';
 </script>
-<script src="assets/js/app.js"></script>
+<script src="/assets/js/app.js"></script>
 
 </body>
 </html>
