@@ -103,3 +103,250 @@
     top: 0;
     left: 0;
     width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+  }
+  .assessment-box .overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to top, 
+      rgba(15, 23, 42, 0.95) 0%, 
+      rgba(15, 23, 42, 0.7) 40%, 
+      rgba(15, 23, 42, 0.3) 100%);
+    z-index: 2;
+  }
+  .assessment-box .content {
+    position: relative;
+    z-index: 3;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 24px;
+    text-align: center;
+  }
+  .assessment-box h3 {
+    color: white;
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  .assessment-box p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+    line-height: 1.6;
+  }
+  .assessment-box .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 28px;
+    background: #0f766e;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-family: 'Cairo', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.2s;
+    align-self: center;
+  }
+  .assessment-box .btn:hover {
+    background: #14b8a6;
+    transform: scale(1.05);
+  }
+
+  /* ===== SOCIAL CONTACT FOOTER STYLES ===== */
+  .custom-footer {
+    margin-top: 40px;
+    padding: 32px 24px;
+    background: #ffffff;
+    border-top: 1px solid #e5e7eb;
+    text-align: center;
+    border-radius: 16px;
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+  }
+  .footer-brand {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #134e4a;
+    margin-bottom: 6px;
+  }
+  .footer-desc {
+    color: #6b7280;
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+  }
+  .social-grid {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .social-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 18px;
+    color: white;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .social-btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn-wa { background: #25D366; box-shadow: 0 4px 12px rgba(37,211,102,0.2); }
+  .btn-li { background: #0077B5; box-shadow: 0 4px 12px rgba(0,119,181,0.2); }
+  .btn-ig { background: linear-gradient(45deg, #405DE6, #5851DB, #833AB4, #C13584, #E1306C, #FD1D1D); box-shadow: 0 4px 12px rgba(193,53,132,0.2); }
+  .btn-fb { background: #1877F2; box-shadow: 0 4px 12px rgba(24,119,242,0.2); }
+  .btn-mail { background: #ea4335; box-shadow: 0 4px 12px rgba(234,67,53,0.2); }
+  
+  .copyright-text {
+    margin-top: 24px;
+    font-size: 0.75rem;
+    color: #9ca3af;
+  }
+
+  @media (max-width: 640px) {
+    .header h1 { font-size: 1.3rem; }
+    .logo-container img { max-width: 260px; }
+    .assessment-box { height: 240px; }
+    .assessment-box h3 { font-size: 1.1rem; }
+    .social-grid { flex-direction: column; gap: 8px; }
+    .social-btn { width: 100%; }
+  }
+
+  /* بسيط مؤشر التحميل الخاص بالسكربت الديناميكي */
+  .loader-container {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 40px 20px;
+    color: #0f766e;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="logo-container">
+      <img src="/assets/images/logo-gold.png" alt="The MD CODE Logo" onerror="this.style.display='none'">
+    </div>
+    <h1>مركز التقييمات</h1>
+  </div>
+
+  <div class="intro-card">
+    <h2>📋 عن النظام</h2>
+    <p><strong>The MD CODE</strong> هو برنامج تدريبي واستشاري متكامل لتطوير أداء العيادات الطبية. يقدم حلولاً ذكية لتحسين تجربة المريض، زيادة الإيرادات، وبناء علاقات دائمة مع المرضى من خلال منهجية علمية مثبتة.</p>
+    <p><strong>CORE SYSTEM</strong> هو نظام برمجي إلكتروني متكامل يقدم أتمتة لعمليات العيادة اليومية من حجز مواعيد وتنظيم الملفات الطبية والفوترة والمتابعة.</p>
+  </div>
+
+  <div class="assessments-grid" id="dynamic-assessments-grid">
+    <div class="loader-container" id="grid-loader">
+      جاري تحميل التقييمات...
+    </div>
+  </div>
+
+  <footer class="custom-footer">
+    <div class="footer-brand">The MD CODE & CORE SYSTEM</div>
+    <p class="footer-desc">برامج تطوير الأداء الاستشاري وأتمتة العمليات التشغيلية للقطاع الطبي الأردني والعربي</p>
+    
+    <div class="social-grid">
+      <a href="https://wa.me/962786595990?text=مرحباً،%20أود%20الاستفسار%20عن%20خدمات%20تطوير%20الأداء%20العيادي" target="_blank" class="social-btn btn-wa">
+        <i class="fab fa-whatsapp"></i> واتساب الاستشارات
+      </a>
+      
+      <a href="https://www.linkedin.com/in/yazeed-abed-alrazek" target="_blank" class="social-btn btn-li">
+        <i class="fab fa-linkedin-in"></i> لينكد إن 
+      </a>
+      
+      <a href="https://www.instagram.com/yazeed.walid.a.r?igsh=MXRodGJmbmV0dnp4ag==" target="_blank" class="social-btn btn-ig">
+        <i class="fab fa-instagram"></i> إنستغرام 
+      </a>
+      
+      <a href="https://www.facebook.com/share/17hNL9Fs8Q/" target="_blank" class="social-btn btn-fb">
+        <i class="fab fa-facebook-f"></i> فيسبوك 
+      </a>
+
+      <a href="mailto:mdcode2026@gmail.com" class="social-btn btn-mail">
+        <i class="fas fa-envelope"></i> البريد الإلكتروني
+      </a>
+    </div>
+    
+    <div class="copyright-text">جميع الحقوق محفوظة © 2026 The MD CODE.</div>
+  </footer>
+
+</div>
+
+<script src="/assets/js/supabase-client.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', async () => {
+    const grid = document.getElementById('dynamic-assessments-grid');
+    const loader = document.getElementById('grid-loader');
+    
+    const supabase = typeof SupabaseClient !== 'undefined' ? window.supabaseClient : null;
+
+    if (!supabase) {
+      grid.innerHTML = '<div class="loader-container" style="color:#ef4444;">⚠️ تعذر الوصول إلى قاعدة البيانات.</div>';
+      return;
+    }
+
+    try {
+      const assessments = await supabase.select('assessment_types', { 
+        filter: { status: 'published' } 
+      });
+
+      if (loader) loader.remove();
+
+      if (!assessments || assessments.length === 0) {
+        grid.innerHTML = '<div class="loader-container" style="color:#6b7280;">لا توجد تقييمات منشورة حالياً.</div>';
+        return;
+      }
+
+      assessments.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+
+      assessments.forEach((ast) => {
+        const imgUrl = `/assets/images/${ast.slug}.png`;
+        const link = `/${ast.slug}.html`; 
+
+        const card = document.createElement('a');
+        card.href = link;
+        card.className = `assessment-box`;
+        
+        card.innerHTML = `
+          <img src="${imgUrl}" alt="${ast.title_ar}" class="bg-image" onerror="this.src='/assets/images/patient-journey.png'; this.style.opacity='0.2';">
+          <div class="overlay"></div>
+          <div class="content">
+            <h3>${ast.title_ar}</h3>
+            <p>${ast.question_count || 0} سؤالاً — ${ast.axis_count || 0} محاور <br>${ast.description || ''}</p>
+            <span class="btn">ابدأ التقييم ←</span>
+          </div>
+        `;
+        
+        grid.appendChild(card);
+      });
+
+    } catch (error) {
+      console.error('[CORE System] Error fetching homepage assessments:', error);
+      grid.innerHTML = '<div class="loader-container" style="color:#ef4444;">⚠️ حدث خطأ أثناء الاتصال. يرجى التحديث لاحقاً.</div>';
+    }
+  });
+</script>
+
+</body>
+</html>
