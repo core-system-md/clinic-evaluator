@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * الإصدار المطور لإدارة التقييمات (Full CRUD & Relational Mapping)
+ * الإصدار المطور المتوافق تماماً مع الـ Wrapper الخاص بالمشروع
  */
 
 class AssessmentManager {
@@ -28,13 +28,8 @@ class AssessmentManager {
                 return;
             }
 
-            // جلب البيانات مع ترتيبها وتصفية المحذوف soft delete إن وجد
-            const { data, error } = await this.supabase
-                .from('assessment_types')
-                .select('*')
-                .order('created_at', { ascending: false });
-            
-            if (error) throw error;
+            // العودة الحصرية للصيغة الأصلية المستقرة الخاصة بمشروعك لمنع كسر الربط
+            const data = await this.supabase.select('assessment_types');
 
             if (!data || data.length === 0) {
                 container.innerHTML = `
@@ -43,6 +38,11 @@ class AssessmentManager {
                         <button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="margin-top:10px; padding:8px 16px;">إضافة تقييم جديد +</button>
                     </div>`;
                 return;
+            }
+
+            // ترتيب البيانات برمجياً (Client-side) لضمان الترتيب التنازلي دون كسر الـ Wrapper
+            if (Array.isArray(data)) {
+                data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
             }
 
             // بناء جدول متجاوب يدعم العرض المريح على الهاتف
@@ -100,7 +100,6 @@ class AssessmentManager {
         }
     }
 
-    // الكود الهيكلي للعمليات التشغيلية (سيتم ربطه بواجهات الـ HTML في الخطوة القادمة)
     createNewAssessment() {
         alert("سيتم فتح نموذج إنشاء تقييم جديد فور تعديل ملف admin.html في الخطوة القادمة.");
     }
