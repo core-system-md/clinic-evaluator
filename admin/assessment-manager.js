@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * النسخة المكتملة والمستقرة - مع التوليد التلقائي للـ Slug لمنع أخطاء القيود
+ * النسخة المكتملة والمستقرة - معالجة قيد الـ Status Constraint وتوحيد الحالات برمجياً
  */
 
 class AssessmentManager {
@@ -74,8 +74,11 @@ class AssessmentManager {
                 let badgeClass = 'badge-warning';
                 let statusText = 'مسودة';
                 
-                if (ast.status === 'Published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
-                if (ast.status === 'Archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
+                // قراءة ذكية وحيادية لحالة السجل (Case-Insensitive Check) لمنع أخطاء العرض
+                const currentStatusClean = (ast.status || '').toLowerCase();
+                
+                if (currentStatusClean === 'published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
+                if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
 
                 html += `
                     <tr style="border-bottom:1px solid #f1f5f9;">
@@ -92,7 +95,7 @@ class AssessmentManager {
                             <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
                                 <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 8px; font-size:0.75rem;">⚙️ تعديل</button>
                                 <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 8px; font-size:0.75rem; background:#6366f1;">📋 نسخ</button>
-                                <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status}')" class="btn-small" style="padding:4px 8px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 ${ast.status === 'Archived' ? 'تنشيط' : 'أرشفة'}</button>
+                                <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 8px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 ${currentStatusClean === 'archived' ? 'تنشيط' : 'أرشفة'}</button>
                             </div>
                         </td>
                     </tr>
@@ -121,11 +124,17 @@ class AssessmentManager {
             const ast = allAssessments.find(a => a.id === id);
             if (!ast) return this.showToast("التقييم المطلوب غير موجود.", true);
 
+            // توحيد قراءة الحالة وعرضها في المودال بشكل صحيح متطابق مع الاختيارات
+            let mappedStatus = 'Draft';
+            const rawStat = (ast.status || '').toLowerCase();
+            if (rawStat === 'published') mappedStatus = 'Published';
+            if (rawStat === 'archived') mappedStatus = 'Archived';
+
             document.getElementById('ast-id').value = ast.id;
             document.getElementById('ast-title-ar').value = ast.title_ar || '';
             document.getElementById('ast-title-en').value = ast.title_en || '';
             document.getElementById('ast-description').value = ast.description || '';
-            document.getElementById('ast-status').value = ast.status || 'Draft';
+            document.getElementById('ast-status').value = mappedStatus;
             document.getElementById('ast-has-traps').checked = !!ast.has_traps;
             document.getElementById('ast-has-simulator').checked = !!ast.has_ev_simulator;
 
@@ -191,16 +200,18 @@ class AssessmentManager {
     async saveAssessment() {
         const id = document.getElementById('ast-id').value;
         const titleEn = document.getElementById('ast-title-en').value;
-        
-        // توليد الـ slug برمجياً لمنع تعارض قاعدة البيانات
         const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
+        
+        // تحويل الحالة إلى أحرف صغيرة إجبارياً لإرضاء قيد الـ Check Constraint الخاص بقاعدة البيانات
+        const rawStatusValue = document.getElementById('ast-status').value;
+        const databaseStatus = rawStatusValue ? rawStatusValue.toLowerCase() : 'draft';
 
         const payload = {
             title_ar: document.getElementById('ast-title-ar').value,
             title_en: titleEn,
             slug: generatedSlug,
             description: document.getElementById('ast-description').value,
-            status: document.getElementById('ast-status').value,
+            status: databaseStatus, 
             has_traps: document.getElementById('ast-has-traps').checked,
             has_ev_simulator: document.getElementById('ast-has-simulator').checked
         };
@@ -225,10 +236,13 @@ class AssessmentManager {
     }
 
     async archiveAssessment(id, currentStatus) {
-        const nextStatus = currentStatus === 'Archived' ? 'Draft' : 'Archived';
+        // تحويل الحالات إلى أحرف صغيرة لمطابقة القيود البرمجية لقاعدة البيانات
+        const currentClean = (currentStatus || '').toLowerCase();
+        const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
+        
         try {
             await this.supabase.update('assessment_types', { status: nextStatus }, { id: id });
-            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus === 'Archived' ? 'مؤرشف' : 'مسودة'}`);
+            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus === 'archived' ? 'مؤرشف' : 'مسودة'}`);
             await this.renderAssessmentsTable();
         } catch (err) {
             this.showToast("فشل تعديل الحالة: " + err.message, true);
@@ -248,7 +262,7 @@ class AssessmentManager {
                 title_en: original.title_en ? `${original.title_en} (Copy)` : '',
                 slug: `${original.slug || 'assessment'}-copy-${Date.now()}`,
                 description: original.description,
-                status: 'Draft',
+                status: 'draft', // الالتزام التام بالأحرف الصغيرة لقيد قاعدة البيانات
                 has_traps: !!original.has_traps,
                 has_ev_simulator: !!original.has_ev_simulator,
                 axis_count: original.axis_count || 0,
@@ -277,7 +291,7 @@ class AssessmentManager {
                     description: axis.description,
                     weight: axis.weight,
                     display_order: axis.display_order,
-                    status: axis.status
+                    status: axis.status ? axis.status.toLowerCase() : 'draft'
                 };
 
                 const insertedAxisRes = await this.supabase.insert('axes', cloneAxisPayload);
@@ -295,7 +309,7 @@ class AssessmentManager {
                         display_order: q.display_order,
                         is_required: !!q.is_required,
                         trap_index: q.trap_index,
-                        status: q.status
+                        status: q.status ? q.status.toLowerCase() : 'draft'
                     };
 
                     const insertedQRes = await this.supabase.insert('questions', cloneQPayload);
