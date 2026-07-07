@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * النسخة المكتملة والمستقرة - معالجة قيد الـ Status Constraint وتوحيد الحالات برمجياً
+ * النسخة المستقرة الكاملة - دعم الشطب الآمن (Soft Delete) وإدارة الهيكل علائقياً من الهاتف
  */
 
 class AssessmentManager {
@@ -49,9 +49,19 @@ class AssessmentManager {
                 return;
             }
 
-            if (Array.isArray(data)) {
-                data.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            // تصفية البيانات لعرض التقييمات النشطة فقط وتطبيق الـ Soft Delete لمنع الفوضى
+            const activeAssessments = data.filter(ast => ast.is_active !== false);
+
+            if (activeAssessments.length === 0) {
+                container.innerHTML = `
+                    <div style="padding:20px; text-align:center; color:#6b7280;">
+                        <p>جميع التقييمات مشطوبة أو مؤرشفة حالياً.</p>
+                        <button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="margin-top:10px; padding:8px 16px;">إضافة تقييم جديد +</button>
+                    </div>`;
+                return;
             }
+
+            activeAssessments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
             let html = `
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
@@ -70,13 +80,11 @@ class AssessmentManager {
                         <tbody>
             `;
 
-            data.forEach(ast => {
+            activeAssessments.forEach(ast => {
                 let badgeClass = 'badge-warning';
                 let statusText = 'مسودة';
                 
-                // قراءة ذكية وحيادية لحالة السجل (Case-Insensitive Check) لمنع أخطاء العرض
                 const currentStatusClean = (ast.status || '').toLowerCase();
-                
                 if (currentStatusClean === 'published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
                 if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
 
@@ -92,10 +100,11 @@ class AssessmentManager {
                             <span class="badge ${badgeClass}">${statusText}</span>
                         </td>
                         <td style="padding:12px 10px; text-align:center;">
-                            <div style="display:flex; gap:6px; justify-content:center; flex-wrap:wrap;">
-                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 8px; font-size:0.75rem;">⚙️ تعديل</button>
-                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 8px; font-size:0.75rem; background:#6366f1;">📋 نسخ</button>
-                                <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 8px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 ${currentStatusClean === 'archived' ? 'تنشيط' : 'أرشفة'}</button>
+                            <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
+                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">⚙️ هيكلة</button>
+                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخ</button>
+                                <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>
+                                <button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>
                             </div>
                         </td>
                     </tr>
@@ -114,7 +123,7 @@ class AssessmentManager {
         document.getElementById('assessment-form').reset();
         document.getElementById('ast-id').value = '';
         document.getElementById('assessment-modal-title').innerText = "إنشاء تقييم استشاري جديد";
-        document.getElementById('modal-tab-content').innerHTML = '<p style="color:#6b7280; padding:10px; text-align:center; font-size:0.85rem;">يرجى حفظ بيانات التقييم الأساسية أولاً لتتمكن من إضافة وربط المحاور والأسئلة له علائقياً في السيرفر.</p>';
+        document.getElementById('modal-tab-content').innerHTML = '<p style="color:#0f766e; padding:15px; background:#f0fdf4; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً لتتمكن من إضافة وربط المحاور والأسئلة له علائقياً في السيرفر مباشرة.</p>';
         document.getElementById('assessment-modal').classList.remove('hidden');
     }
 
@@ -124,7 +133,6 @@ class AssessmentManager {
             const ast = allAssessments.find(a => a.id === id);
             if (!ast) return this.showToast("التقييم المطلوب غير موجود.", true);
 
-            // توحيد قراءة الحالة وعرضها في المودال بشكل صحيح متطابق مع الاختيارات
             let mappedStatus = 'Draft';
             const rawStat = (ast.status || '').toLowerCase();
             if (rawStat === 'published') mappedStatus = 'Published';
@@ -144,7 +152,7 @@ class AssessmentManager {
             const currentAxes = allAxes.filter(x => x.assessment_type_id === id);
             const currentQuestions = allQuestions.filter(q => q.assessment_type_id === id);
 
-            this.renderModalTabs(currentAxes, currentQuestions);
+            this.renderModalTabs(currentAxes, currentQuestions, id);
 
             document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
             document.getElementById('assessment-modal').classList.remove('hidden');
@@ -153,14 +161,21 @@ class AssessmentManager {
         }
     }
 
-    renderModalTabs(axes, questions) {
+    renderModalTabs(axes, questions, assessmentId) {
         const contentContainer = document.getElementById('modal-tab-content');
         if (!contentContainer) return;
 
         let html = '<div style="display:flex; flex-direction:column; gap:12px; text-align:right; dir:rtl;">';
         
+        // زر إضافة محور جديد للتقييم مباشرة من المودال لضمان عدم الحاجة لتعديل الكود
+        html += `
+            <div style="text-align:left; margin-bottom:5px;">
+                <button type="button" onclick="window.assessmentManager.addAxisInline('${assessmentId}')" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; background:#0f766e;">+ إضافة محور جديد للتقييم</button>
+            </div>
+        `;
+
         if (axes.length === 0) {
-            html += '<p style="color:#6b7280; text-align:center; padding:10px; font-size:0.85rem;">لا توجد محاور مرتبط بهذا التقييم حالياً.</p>';
+            html += '<p style="color:#6b7280; text-align:center; padding:20px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.85rem;">لا توجد محاور مرتبطة بهذا التقييم حالياً. اضغط على الزر أعلاه لإضافة محورك الأول.</p>';
         } else {
             axes.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
             
@@ -169,20 +184,21 @@ class AssessmentManager {
                 axisQuestions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
                 html += `
-                    <div style="background:#f8fafc; padding:10px; border-radius:8px; border-right:4px solid #0f766e; border-top:1px solid #e5e7eb; border-left:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:6px;">
-                            <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || ''})</span>
-                            <span style="font-size:0.75rem; color:#6b7280; margin-right:auto;">الوزن: %${axis.weight || 0}</span>
+                    <div style="background:#f8fafc; padding:12px; border-radius:8px; border-right:4px solid #0f766e; border-top:1px solid #e5e7eb; border-left:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:8px; flex-wrap:wrap; gap:5px;">
+                            <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || 'لا يوجد رمز'})</span>
+                            <span style="font-size:0.75rem; color:#6b7280; margin-right:auto; margin-left:10px;">الوزن: %${axis.weight || 0}</span>
+                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال لهذا المحور</button>
                         </div>
                         <div style="padding-right:8px; display:flex; flex-direction:column; gap:4px;">
                 `;
                 
                 if (axisQuestions.length === 0) {
-                    html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0;">⚠️ لا توجد أسئلة مضافة تحت هذا المحور.</p>';
+                    html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0; padding:4px 0;">⚠️ لا توجد أسئلة مضافة تحت هذا المحور حالياً.</p>';
                 } else {
                     axisQuestions.forEach(q => {
                         html += `
-                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between;">
+                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
                                 <span>❓ ${q.question_text_ar || q.question_text}</span>
                                 <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
                             </div>`;
@@ -197,12 +213,74 @@ class AssessmentManager {
         contentContainer.innerHTML = html;
     }
 
+    // دالة إضافة محور جديد علائقياً وسحابياً مباشرة من لوحة التحكم
+    async addAxisInline(assessmentId) {
+        const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
+        if (!titleAr) return;
+        const code = prompt("أدخل رمز المحور الإنجليزي (مثال: AXIS_MARKETING):") || 'AXIS_' + Date.now();
+        const weight = prompt("أدخل وزن المحور (رقم من 1 إلى 100):") || "0";
+
+        try {
+            const payload = {
+                assessment_type_id: assessmentId,
+                title_ar: titleAr,
+                code: code,
+                weight: parseFloat(weight) || 0,
+                display_order: 1,
+                status: 'active'
+            };
+            await this.supabase.insert('axes', payload);
+            
+            // تحديث العداد تلقائياً في جدول التقييم الرئيسي
+            const allAssessments = await this.supabase.select('assessment_types');
+            const currentAst = allAssessments.find(a => a.id === assessmentId);
+            const currentCount = currentAst ? (currentAst.axis_count || 0) : 0;
+            await this.supabase.update('assessment_types', { axis_count: currentCount + 1 }, { id: assessmentId });
+
+            this.showToast("تم إضافة المحور بنجاح.");
+            await this.editAssessment(assessmentId); // إعادة تحميل المحتوى تلقائياً
+        } catch (err) {
+            this.showToast("فشل إضافة المحور: " + err.message, true);
+        }
+    }
+
+    // دالة إضافة سؤال جديد علائقياً وسحابياً مباشرة تحت المحور المختار
+    async addQuestionInline(assessmentId, axisId) {
+        const qTextAr = prompt("أدخل نص السؤال الاستشاري الجديد (بالعربية):");
+        if (!qTextAr) return;
+        const code = prompt("أدخل رمز السؤال (مثال: Q_LEAD_1):") || 'Q_' + Date.now();
+
+        try {
+            const payload = {
+                assessment_type_id: assessmentId,
+                axis_id: axisId,
+                question_text_ar: qTextAr,
+                code: code,
+                question_type: 'single',
+                display_order: 1,
+                is_required: true,
+                status: 'active'
+            };
+            await this.supabase.insert('questions', payload);
+
+            // تحديث عداد الأسئلة التلقائي في التقييم
+            const allAssessments = await this.supabase.select('assessment_types');
+            const currentAst = allAssessments.find(a => a.id === assessmentId);
+            const currentCount = currentAst ? (currentAst.question_count || 0) : 0;
+            await this.supabase.update('assessment_types', { question_count: currentCount + 1 }, { id: assessmentId });
+
+            this.showToast("تم إضافة السؤال بنجاح.");
+            await this.editAssessment(assessmentId); // إعادة تحميل المحتوى تلقائياً
+        } catch (err) {
+            this.showToast("فشل إضافة السؤال: " + err.message, true);
+        }
+    }
+
     async saveAssessment() {
         const id = document.getElementById('ast-id').value;
         const titleEn = document.getElementById('ast-title-en').value;
         const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
         
-        // تحويل الحالة إلى أحرف صغيرة إجبارياً لإرضاء قيد الـ Check Constraint الخاص بقاعدة البيانات
         const rawStatusValue = document.getElementById('ast-status').value;
         const databaseStatus = rawStatusValue ? rawStatusValue.toLowerCase() : 'draft';
 
@@ -213,7 +291,8 @@ class AssessmentManager {
             description: document.getElementById('ast-description').value,
             status: databaseStatus, 
             has_traps: document.getElementById('ast-has-traps').checked,
-            has_ev_simulator: document.getElementById('ast-has-simulator').checked
+            has_ev_simulator: document.getElementById('ast-has-simulator').checked,
+            is_active: true // التأكد من تفعيله كعنصر نشط عند الحفظ أو الإنشاء
         };
 
         try {
@@ -235,8 +314,19 @@ class AssessmentManager {
         }
     }
 
+    // دالة الـ Soft Delete لحماية الجدول من الفوضى وإخفاء التقييمات المشطوبة فوراً
+    async deleteAssessment(id) {
+        if (!confirm("هل أنت متأكد من شطب هذا التقييم نهائياً وإخفائه من لوحة التحكم؟")) return;
+        try {
+            await this.supabase.update('assessment_types', { is_active: false }, { id: id });
+            this.showToast("تم شطب وإخفاء التقييم بنجاح منعاً للفوضى.");
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل شطب التقييم: " + err.message, true);
+        }
+    }
+
     async archiveAssessment(id, currentStatus) {
-        // تحويل الحالات إلى أحرف صغيرة لمطابقة القيود البرمجية لقاعدة البيانات
         const currentClean = (currentStatus || '').toLowerCase();
         const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
         
@@ -262,13 +352,14 @@ class AssessmentManager {
                 title_en: original.title_en ? `${original.title_en} (Copy)` : '',
                 slug: `${original.slug || 'assessment'}-copy-${Date.now()}`,
                 description: original.description,
-                status: 'draft', // الالتزام التام بالأحرف الصغيرة لقيد قاعدة البيانات
+                status: 'draft',
                 has_traps: !!original.has_traps,
                 has_ev_simulator: !!original.has_ev_simulator,
                 axis_count: original.axis_count || 0,
                 question_count: original.question_count || 0,
                 version: (original.version || 1) + 1,
-                parent_id: original.id
+                parent_id: original.id,
+                is_active: true
             };
 
             const insertedAstRes = await this.supabase.insert('assessment_types', cloneAstPayload);
