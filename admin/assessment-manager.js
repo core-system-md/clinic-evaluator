@@ -104,7 +104,7 @@ class AssessmentManager {
             container.innerHTML = html;
 
         } catch (err) {
-            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>';
+            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>`;
         }
     }
 
@@ -152,7 +152,7 @@ class AssessmentManager {
         let html = '<div style="display:flex; flex-direction:column; gap:12px; text-align:right; dir:rtl;">';
         
         if (axes.length === 0) {
-            html += '<p style="color:#6b7280; text-align:center; padding:10px; font-size:0.85rem;">لا توجد محاور مرتبطة بهذا التقييم حالياً.</p>';
+            html += '<p style="color:#6b7280; text-align:center; padding:10px; font-size:0.85rem;">لا توجد محاور مرتبط بهذا التقييم حالياً.</p>';
         } else {
             axes.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
             
@@ -189,7 +189,6 @@ class AssessmentManager {
         contentContainer.innerHTML = html;
     }
 
-    // دالة الحفظ والتحديث السحابي المتوافقة تماماً مع الـ Wrapper الخاص بك
     async saveAssessment() {
         const id = document.getElementById('ast-id').value;
         const payload = {
@@ -203,11 +202,9 @@ class AssessmentManager {
 
         try {
             if (id) {
-                // عملية تحديث السجل الحالي (Update)
                 await this.supabase.update('assessment_types', payload, { id: id });
                 this.showToast("تم تحديث بيانات التقييم بنجاح.");
             } else {
-                // عملية إنشاء سجل جديد بالكامل (Insert)
                 payload.axis_count = 0;
                 payload.question_count = 0;
                 payload.version = 1;
@@ -222,7 +219,6 @@ class AssessmentManager {
         }
     }
 
-    // دالة التغيير المباشر والسريع للحالات (أرشفة / تنشيط)
     async archiveAssessment(id, currentStatus) {
         const nextStatus = currentStatus === 'Archived' ? 'Draft' : 'Archived';
         try {
@@ -234,17 +230,14 @@ class AssessmentManager {
         }
     }
 
-    // دالة النسخ المتطابق العلائقي (Relational Duplication) الشاملة
     async duplicateAssessment(id) {
         if (!confirm("هل أنت متأكد من رغبتك في مضاعفة هذا التقييم بكافة محاوره وأسئلته علائقياً وسحابياً؟")) return;
 
         try {
-            // 1. جلب التقييم الأصلي
             const allAssessments = await this.supabase.select('assessment_types');
             const original = allAssessments.find(a => a.id === id);
             if (!original) return this.showToast("التقييم الأصلي غير موجود.", true);
 
-            // 2. تجهيز بيانات التقييم المنسوخ كـ Draft دائماً
             const cloneAstPayload = {
                 title_ar: `${original.title_ar} (نسخة)`,
                 title_en: original.title_en ? `${original.title_en} (Copy)` : '',
@@ -258,12 +251,10 @@ class AssessmentManager {
                 parent_id: original.id
             };
 
-            // 3. إدراج التقييم الجديد وجلب معرّفه الفريد
             const insertedAstRes = await this.supabase.insert('assessment_types', cloneAstPayload);
             const newAst = Array.isArray(insertedAstRes) ? insertedAstRes[0] : insertedAstRes;
             const newAstId = newAst.id;
 
-            // 4. جلب المحاور والأسئلة والخيارات الأصلية بالتصفية البرمجية المستقرة
             const allAxes = await this.supabase.select('axes') || [];
             const allQuestions = await this.supabase.select('questions') || [];
             const allOptions = await this.supabase.select('options') || [];
@@ -271,7 +262,6 @@ class AssessmentManager {
             const originalAxes = allAxes.filter(x => x.assessment_type_id === id);
             const originalQuestions = allQuestions.filter(q => q.assessment_type_id === id);
 
-            // 5. النسخ المتسلسل والمترابط للمحاور والأسئلة والخيارات
             for (const axis of originalAxes) {
                 const cloneAxisPayload = {
                     assessment_type_id: newAstId,
@@ -287,7 +277,6 @@ class AssessmentManager {
                 const insertedAxisRes = await this.supabase.insert('axes', cloneAxisPayload);
                 const newAxis = Array.isArray(insertedAxisRes) ? insertedAxisRes[0] : insertedAxisRes;
 
-                // تصفية ونسخ الأسئلة التابعة لهذا المحور حصراً
                 const axisQuestions = originalQuestions.filter(q => q.axis_id === axis.id);
                 for (const q of axisQuestions) {
                     const cloneQPayload = {
@@ -306,7 +295,6 @@ class AssessmentManager {
                     const insertedQRes = await this.supabase.insert('questions', cloneQPayload);
                     const newQ = Array.isArray(insertedQRes) ? insertedQRes[0] : insertedQRes;
 
-                    // تصفية ونسخ الخيارات والأوزان التابعة لهذا السؤال حصراً
                     const qOptions = allOptions.filter(o => o.question_id === q.id);
                     for (const opt of qOptions) {
                         const cloneOptPayload = {
