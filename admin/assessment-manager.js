@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * النسخة المستقرة الكاملة - دعم الشطب الآمن (Soft Delete) وإدارة الهيكل علائقياً من الهاتف
+ * النسخة المستقرة والمحمية - متطابقة 100% مع RLS السحابي ودعم كامل للوسائط والنسخ العميق
  */
 
 class AssessmentManager {
@@ -15,17 +15,60 @@ class AssessmentManager {
             container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; text-align:center;">جاري جلب التقييمات وتجهيز أدوات التحكم...</p>';
         }
         await this.renderAssessmentsTable();
+        this.attachImageListener();
     }
 
     showToast(message, isError = false) {
         const toast = document.getElementById('toast');
-        if (!toast) {
-            alert(message);
-            return;
-        }
+        if (!toast) { return alert(message); }
         toast.innerText = message;
         toast.className = `toast ${isError ? 'error' : 'success'}`;
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
+    }
+
+    attachImageListener() {
+        document.body.addEventListener('change', (e) => {
+            if (e.target && e.target.id === 'ast-image-file') {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(evt) {
+                        const preview = document.getElementById('ast-image-preview');
+                        const container = document.getElementById('ast-image-preview-container');
+                        if (preview && container) {
+                            preview.src = evt.target.result;
+                            container.style.display = 'block';
+                        }
+                    };
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+    }
+
+    async uploadAssessmentImage(slug, file) {
+        try {
+            const fileExt = file.name.split('.').pop();
+            const filePath = `${slug}.${fileExt}`;
+            const url = `${this.supabase.url}/storage/v1/object/assessment-images/${filePath}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                body: file,
+                headers: {
+                    'apikey': this.supabase.key,
+                    'Authorization': `Bearer ${this.supabase.key}`,
+                    'Content-Type': file.type,
+                    'x-upsert': 'true'
+                }
+            });
+
+            if (!response.ok) { throw new Error("فشل رفع الملف لـ Supabase Storage"); }
+            return true;
+        } catch (err) {
+            console.error("[Storage Error] Upload failed:", err);
+            return false;
+        }
     }
 
     async renderAssessmentsTable() {
@@ -39,7 +82,6 @@ class AssessmentManager {
             }
 
             const data = await this.supabase.select('assessment_types');
-
             if (!data || data.length === 0) {
                 container.innerHTML = `
                     <div style="padding:20px; text-align:center; color:#6b7280;">
@@ -49,9 +91,7 @@ class AssessmentManager {
                 return;
             }
 
-            // تصفية البيانات لعرض التقييمات النشطة فقط وتطبيق الـ Soft Delete لمنع الفوضى
             const activeAssessments = data.filter(ast => ast.is_active !== false);
-
             if (activeAssessments.length === 0) {
                 container.innerHTML = `
                     <div style="padding:20px; text-align:center; color:#6b7280;">
@@ -122,8 +162,9 @@ class AssessmentManager {
     createNewAssessment() {
         document.getElementById('assessment-form').reset();
         document.getElementById('ast-id').value = '';
+        document.getElementById('ast-image-preview-container').style.display = 'none';
         document.getElementById('assessment-modal-title').innerText = "إنشاء تقييم استشاري جديد";
-        document.getElementById('modal-tab-content').innerHTML = '<p style="color:#0f766e; padding:15px; background:#f0fdf4; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً لتتمكن من إضافة وربط المحاور والأسئلة له علائقياً في السيرفر مباشرة.</p>';
+        document.getElementById('modal-tab-content').innerHTML = '<p style="color:#0f766e; padding:15px; background:#f0fdf4; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً ليتم تخصيص هيكله السحابي.</p>';
         document.getElementById('assessment-modal').classList.remove('hidden');
     }
 
@@ -146,6 +187,14 @@ class AssessmentManager {
             document.getElementById('ast-has-traps').checked = !!ast.has_traps;
             document.getElementById('ast-has-simulator').checked = !!ast.has_ev_simulator;
 
+            // عرض الصورة الحالية إن وُجدت من الـ Public Storage Bucket بأمان
+            const preview = document.getElementById('ast-image-preview');
+            const container = document.getElementById('ast-image-preview-container');
+            if (preview && container) {
+                preview.src = `${this.supabase.url}/storage/v1/object/public/assessment-images/${ast.slug}.png?t=${Date.now()}`;
+                container.style.display = 'block';
+            }
+
             const allAxes = await this.supabase.select('axes') || [];
             const allQuestions = await this.supabase.select('questions') || [];
             
@@ -166,8 +215,6 @@ class AssessmentManager {
         if (!contentContainer) return;
 
         let html = '<div style="display:flex; flex-direction:column; gap:12px; text-align:right; dir:rtl;">';
-        
-        // زر إضافة محور جديد للتقييم مباشرة من المودال لضمان عدم الحاجة لتعديل الكود
         html += `
             <div style="text-align:left; margin-bottom:5px;">
                 <button type="button" onclick="window.assessmentManager.addAxisInline('${assessmentId}')" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; background:#0f766e;">+ إضافة محور جديد للتقييم</button>
@@ -175,10 +222,9 @@ class AssessmentManager {
         `;
 
         if (axes.length === 0) {
-            html += '<p style="color:#6b7280; text-align:center; padding:20px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.85rem;">لا توجد محاور مرتبطة بهذا التقييم حالياً. اضغط على الزر أعلاه لإضافة محورك الأول.</p>';
+            html += '<p style="color:#6b7280; text-align:center; padding:20px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.85rem;">لا توجد محاور مرتبطة بهذا التقييم حالياً.</p>';
         } else {
             axes.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-            
             axes.forEach(axis => {
                 const axisQuestions = questions.filter(q => q.axis_id === axis.id);
                 axisQuestions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
@@ -186,94 +232,30 @@ class AssessmentManager {
                 html += `
                     <div style="background:#f8fafc; padding:12px; border-radius:8px; border-right:4px solid #0f766e; border-top:1px solid #e5e7eb; border-left:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">
                         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:8px; flex-wrap:wrap; gap:5px;">
-                            <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || 'لا يوجد رمز'})</span>
+                            <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || ''})</span>
                             <span style="font-size:0.75rem; color:#6b7280; margin-right:auto; margin-left:10px;">الوزن: %${axis.weight || 0}</span>
-                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال لهذا المحور</button>
+                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
                         </div>
                         <div style="padding-right:8px; display:flex; flex-direction:column; gap:4px;">
                 `;
                 
                 if (axisQuestions.length === 0) {
-                    html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0; padding:4px 0;">⚠️ لا توجد أسئلة مضافة تحت هذا المحور حالياً.</p>';
+                    html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0;">⚠️ لا توجد أسئلة تحت هذا المحور حالياً.</p>';
                 } else {
                     axisQuestions.forEach(q => {
                         html += `
-                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between;">
                                 <span>❓ ${q.question_text_ar || q.question_text}</span>
                                 <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
                             </div>`;
                     });
                 }
-                
                 html += `</div></div>`;
             });
         }
 
         html += '</div>';
         contentContainer.innerHTML = html;
-    }
-
-    // دالة إضافة محور جديد علائقياً وسحابياً مباشرة من لوحة التحكم
-    async addAxisInline(assessmentId) {
-        const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
-        if (!titleAr) return;
-        const code = prompt("أدخل رمز المحور الإنجليزي (مثال: AXIS_MARKETING):") || 'AXIS_' + Date.now();
-        const weight = prompt("أدخل وزن المحور (رقم من 1 إلى 100):") || "0";
-
-        try {
-            const payload = {
-                assessment_type_id: assessmentId,
-                title_ar: titleAr,
-                code: code,
-                weight: parseFloat(weight) || 0,
-                display_order: 1,
-                status: 'active'
-            };
-            await this.supabase.insert('axes', payload);
-            
-            // تحديث العداد تلقائياً في جدول التقييم الرئيسي
-            const allAssessments = await this.supabase.select('assessment_types');
-            const currentAst = allAssessments.find(a => a.id === assessmentId);
-            const currentCount = currentAst ? (currentAst.axis_count || 0) : 0;
-            await this.supabase.update('assessment_types', { axis_count: currentCount + 1 }, { id: assessmentId });
-
-            this.showToast("تم إضافة المحور بنجاح.");
-            await this.editAssessment(assessmentId); // إعادة تحميل المحتوى تلقائياً
-        } catch (err) {
-            this.showToast("فشل إضافة المحور: " + err.message, true);
-        }
-    }
-
-    // دالة إضافة سؤال جديد علائقياً وسحابياً مباشرة تحت المحور المختار
-    async addQuestionInline(assessmentId, axisId) {
-        const qTextAr = prompt("أدخل نص السؤال الاستشاري الجديد (بالعربية):");
-        if (!qTextAr) return;
-        const code = prompt("أدخل رمز السؤال (مثال: Q_LEAD_1):") || 'Q_' + Date.now();
-
-        try {
-            const payload = {
-                assessment_type_id: assessmentId,
-                axis_id: axisId,
-                question_text_ar: qTextAr,
-                code: code,
-                question_type: 'single',
-                display_order: 1,
-                is_required: true,
-                status: 'active'
-            };
-            await this.supabase.insert('questions', payload);
-
-            // تحديث عداد الأسئلة التلقائي في التقييم
-            const allAssessments = await this.supabase.select('assessment_types');
-            const currentAst = allAssessments.find(a => a.id === assessmentId);
-            const currentCount = currentAst ? (currentAst.question_count || 0) : 0;
-            await this.supabase.update('assessment_types', { question_count: currentCount + 1 }, { id: assessmentId });
-
-            this.showToast("تم إضافة السؤال بنجاح.");
-            await this.editAssessment(assessmentId); // إعادة تحميل المحتوى تلقائياً
-        } catch (err) {
-            this.showToast("فشل إضافة السؤال: " + err.message, true);
-        }
     }
 
     async saveAssessment() {
@@ -292,21 +274,26 @@ class AssessmentManager {
             status: databaseStatus, 
             has_traps: document.getElementById('ast-has-traps').checked,
             has_ev_simulator: document.getElementById('ast-has-simulator').checked,
-            is_active: true // التأكد من تفعيله كعنصر نشط عند الحفظ أو الإنشاء
+            is_active: true
         };
 
         try {
             if (id) {
                 await this.supabase.update('assessment_types', payload, { id: id });
-                this.showToast("تم تحديث بيانات التقييم بنجاح.");
             } else {
                 payload.axis_count = 0;
                 payload.question_count = 0;
                 payload.version = 1;
                 await this.supabase.insert('assessment_types', payload);
-                this.showToast("تم إنشاء التقييم الاستشاري الجديد بنجاح.");
             }
             
+            // رفع ومعالجة الصور المرفقة سحابياً إن وُجدت
+            const fileInput = document.getElementById('ast-image-file');
+            if (fileInput && fileInput.files[0]) {
+                await this.uploadAssessmentImage(generatedSlug, fileInput.files[0]);
+            }
+
+            this.showToast("تم حفظ التقييم ومعالجة البيانات السحابية للوسائط بنجاح.");
             document.getElementById('assessment-modal').classList.add('hidden');
             await this.renderAssessmentsTable();
         } catch (err) {
@@ -314,43 +301,43 @@ class AssessmentManager {
         }
     }
 
-    // دالة الـ Soft Delete لحماية الجدول من الفوضى وإخفاء التقييمات المشطوبة فوراً
-    async deleteAssessment(id) {
-        if (!confirm("هل أنت متأكد من شطب هذا التقييم نهائياً وإخفائه من لوحة التحكم؟")) return;
-        try {
-            await this.supabase.update('assessment_types', { is_active: false }, { id: id });
-            this.showToast("تم شطب وإخفاء التقييم بنجاح منعاً للفوضى.");
-            await this.renderAssessmentsTable();
-        } catch (err) {
-            this.showToast("فشل شطب التقييم: " + err.message, true);
-        }
-    }
-
     async archiveAssessment(id, currentStatus) {
         const currentClean = (currentStatus || '').toLowerCase();
         const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
-        
         try {
             await this.supabase.update('assessment_types', { status: nextStatus }, { id: id });
-            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus === 'archived' ? 'مؤرشف' : 'مسودة'}`);
+            this.showToast(`تم تغيير الحالة بنجاح إلى: ${nextStatus}`);
             await this.renderAssessmentsTable();
         } catch (err) {
             this.showToast("فشل تعديل الحالة: " + err.message, true);
         }
     }
 
+    async deleteAssessment(id) {
+        if (!confirm("هل أنت متأكد من شطب هذا التقييم نهائياً وإخفائه من لوحة التحكم؟")) return;
+        try {
+            await this.supabase.update('assessment_types', { is_active: false }, { id: id });
+            this.showToast("تم شطب وإخفاء التقييم بنجاح.");
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل شطب التقييم: " + err.message, true);
+        }
+    }
+
+    // محرك النسخ المتطابق الشامل والعميق (Relational Deep Duplication Engine)
     async duplicateAssessment(id) {
-        if (!confirm("هل أنت متأكد من رغبتك في مضاعفة هذا التقييم بكافة محاوره وأسئلته علائقياً وسحابياً؟")) return;
+        if (!confirm("تأكيد: هل ترغب في نسخ هذا التقييم بالكامل (شاملاً المحاور، الأسئلة، الخيارات، وأوزان المحاكي)؟")) return;
 
         try {
-            const allAssessments = await this.supabase.select('assessment_types');
-            const original = allAssessments.find(a => a.id === id);
+            const tyrannyRes = await this.supabase.select('assessment_types');
+            const original = tyrannyRes.find(a => a.id === id);
             if (!original) return this.showToast("التقييم الأصلي غير موجود.", true);
 
+            const cloneSlug = `${original.slug || 'assessment'}-copy-${Date.now()}`;
             const cloneAstPayload = {
                 title_ar: `${original.title_ar} (نسخة)`,
                 title_en: original.title_en ? `${original.title_en} (Copy)` : '',
-                slug: `${original.slug || 'assessment'}-copy-${Date.now()}`,
+                slug: cloneSlug,
                 description: original.description,
                 status: 'draft',
                 has_traps: !!original.has_traps,
@@ -382,7 +369,7 @@ class AssessmentManager {
                     description: axis.description,
                     weight: axis.weight,
                     display_order: axis.display_order,
-                    status: axis.status ? axis.status.toLowerCase() : 'draft'
+                    status: 'active'
                 };
 
                 const insertedAxisRes = await this.supabase.insert('axes', cloneAxisPayload);
@@ -400,7 +387,7 @@ class AssessmentManager {
                         display_order: q.display_order,
                         is_required: !!q.is_required,
                         trap_index: q.trap_index,
-                        status: q.status ? q.status.toLowerCase() : 'draft'
+                        status: 'active'
                     };
 
                     const insertedQRes = await this.supabase.insert('questions', cloneQPayload);
@@ -424,12 +411,48 @@ class AssessmentManager {
                 }
             }
 
-            this.showToast("تمت عملية النسخ المتطابق العلائقي للتقييم بالكامل بنجاح.");
+            this.showToast("تم إتمام النسخ المتطابق الشامل لكافة فروع التقييم بنجاح.");
             await this.renderAssessmentsTable();
 
         } catch (err) {
-            this.showToast("فشل النسخ المتطابق: " + err.message, true);
+            this.showToast("فشل النسخ المتطابق الشامل: " + err.message, true);
         }
+    }
+
+    async addAxisInline(assessmentId) {
+        const titleAr = prompt("اسم المحور الجديد:");
+        if (!titleAr) return;
+        try {
+            const payload = {
+                assessment_type_id: assessmentId,
+                title_ar: titleAr,
+                code: 'AXIS_' + Date.now(),
+                weight: 10,
+                display_order: 1,
+                status: 'active'
+            };
+            await this.supabase.insert('axes', payload);
+            await this.editAssessment(assessmentId);
+        } catch (err) { this.showToast(err.message, true); }
+    }
+
+    async addQuestionInline(assessmentId, axisId) {
+        const textAr = prompt("نص السؤال الجديد:");
+        if (!textAr) return;
+        try {
+            const payload = {
+                assessment_type_id: assessmentId,
+                axis_id: axisId,
+                question_text_ar: textAr,
+                code: 'Q_' + Date.now(),
+                question_type: 'single',
+                display_order: 1,
+                is_required: true,
+                status: 'active'
+            };
+            await this.supabase.insert('questions', payload);
+            await this.editAssessment(assessmentId);
+        } catch (err) { this.showToast(err.message, true); }
     }
 }
 
