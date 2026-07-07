@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * النسخة المكتملة والمستقرة لإدارة العمليات السحابية والنسخ العلائقي المتطابق
+ * النسخة المكتملة والمستقرة - مع التوليد التلقائي للـ Slug لمنع أخطاء القيود
  */
 
 class AssessmentManager {
@@ -17,7 +17,6 @@ class AssessmentManager {
         await this.renderAssessmentsTable();
     }
 
-    // دالة مساعدة لإظهار التنبيهات باستخدام الـ Toast المتاح في الـ HTML
     showToast(message, isError = false) {
         const toast = document.getElementById('toast');
         if (!toast) {
@@ -191,9 +190,15 @@ class AssessmentManager {
 
     async saveAssessment() {
         const id = document.getElementById('ast-id').value;
+        const titleEn = document.getElementById('ast-title-en').value;
+        
+        // توليد الـ slug برمجياً لمنع تعارض قاعدة البيانات
+        const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
+
         const payload = {
             title_ar: document.getElementById('ast-title-ar').value,
-            title_en: document.getElementById('ast-title-en').value,
+            title_en: titleEn,
+            slug: generatedSlug,
             description: document.getElementById('ast-description').value,
             status: document.getElementById('ast-status').value,
             has_traps: document.getElementById('ast-has-traps').checked,
@@ -241,6 +246,7 @@ class AssessmentManager {
             const cloneAstPayload = {
                 title_ar: `${original.title_ar} (نسخة)`,
                 title_en: original.title_en ? `${original.title_en} (Copy)` : '',
+                slug: `${original.slug || 'assessment'}-copy-${Date.now()}`,
                 description: original.description,
                 status: 'Draft',
                 has_traps: !!original.has_traps,
