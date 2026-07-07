@@ -684,6 +684,7 @@
     </div>
   </div>
 
+  <!-- مودال إدارة ومراجعة التقييمات المطور الشامل (دعم الهيكل، المحاكي، والوسائط) -->
   <div class="modal-overlay hidden" id="assessment-modal">
     <div class="modal-content" style="max-width: 850px; width: 95%;">
       <div class="modal-header">
@@ -708,6 +709,15 @@
           <div class="form-group" style="margin-bottom: 16px;">
             <label style="font-weight:600; font-size:0.85rem;">الوصف التشخيصي للتقييم</label>
             <input type="text" id="ast-description" style="padding:10px; border-radius:8px; border:2px solid #e5e7eb; font-family:'Cairo';">
+          </div>
+
+          <!-- إدارة غلاف وصور التقييم سحابياً (Supabase Storage) -->
+          <div class="form-group" style="background:#f1f5f9; padding:12px; border-radius:8px; margin-bottom:16px; border:1px dashed #cbd5e1;">
+            <label style="font-weight:700; font-size:0.85rem; color:#0f766e;">🖼️ غلاف التقييم (Supabase Storage)</label>
+            <input type="file" id="ast-image-file" accept="image/*" style="padding:6px; background:white; width:100%; border-radius:6px; border:1px solid #cbd5e1; font-family:'Cairo'; font-size:0.8rem; margin-top:4px;">
+            <div id="ast-image-preview-container" style="margin-top:8px; display:none; text-align:center;">
+              <img id="ast-image-preview" src="" style="max-width:140px; border-radius:8px; border:2px solid white; box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+            </div>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 16px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e5e7eb;">
