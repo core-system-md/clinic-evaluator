@@ -1,6 +1,6 @@
 /**
  * CORE System — Assessment Manager
- * إصدار إدارة النماذج والمطابقة العلائقية الكاملة المتوافق مع شاشات الهاتف
+ * النسخة المكتملة والمستقرة لإدارة العمليات السحابية والنسخ العلائقي المتطابق
  */
 
 class AssessmentManager {
@@ -15,6 +15,18 @@ class AssessmentManager {
             container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; text-align:center;">جاري جلب التقييمات وتجهيز أدوات التحكم...</p>';
         }
         await this.renderAssessmentsTable();
+    }
+
+    // دالة مساعدة لإظهار التنبيهات باستخدام الـ Toast المتاح في الـ HTML
+    showToast(message, isError = false) {
+        const toast = document.getElementById('toast');
+        if (!toast) {
+            alert(message);
+            return;
+        }
+        toast.innerText = message;
+        toast.className = `toast ${isError ? 'error' : 'success'}`;
+        setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
     }
 
     async renderAssessmentsTable() {
@@ -92,7 +104,7 @@ class AssessmentManager {
             container.innerHTML = html;
 
         } catch (err) {
-            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>`;
+            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>';
         }
     }
 
@@ -108,9 +120,8 @@ class AssessmentManager {
         try {
             const allAssessments = await this.supabase.select('assessment_types');
             const ast = allAssessments.find(a => a.id === id);
-            if (!ast) return alert("التقييم المطلوب غير موجود.");
+            if (!ast) return this.showToast("التقييم المطلوب غير موجود.", true);
 
-            // تعبئة البيانات الأساسية في النموذج
             document.getElementById('ast-id').value = ast.id;
             document.getElementById('ast-title-ar').value = ast.title_ar || '';
             document.getElementById('ast-title-en').value = ast.title_en || '';
@@ -119,7 +130,6 @@ class AssessmentManager {
             document.getElementById('ast-has-traps').checked = !!ast.has_traps;
             document.getElementById('ast-has-simulator').checked = !!ast.has_ev_simulator;
 
-            // جلب المحاور والأسئلة وتصفيتها علائقياً برمجياً لضمان استقرار الـ Wrapper
             const allAxes = await this.supabase.select('axes') || [];
             const allQuestions = await this.supabase.select('questions') || [];
             
@@ -131,7 +141,7 @@ class AssessmentManager {
             document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
             document.getElementById('assessment-modal').classList.remove('hidden');
         } catch (err) {
-            alert("خطأ أثناء تحميل تفاصيل التقييم علائقياً: " + err.message);
+            this.showToast("خطأ أثناء تحميل تفاصيل التقييم علائقياً: " + err.message, true);
         }
     }
 
@@ -144,12 +154,10 @@ class AssessmentManager {
         if (axes.length === 0) {
             html += '<p style="color:#6b7280; text-align:center; padding:10px; font-size:0.85rem;">لا توجد محاور مرتبطة بهذا التقييم حالياً.</p>';
         } else {
-            // ترتيب المحاور حسب الـ display_order
             axes.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
             
             axes.forEach(axis => {
                 const axisQuestions = questions.filter(q => q.axis_id === axis.id);
-                // ترتيب الأسئلة داخل المحور
                 axisQuestions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
 
                 html += `
@@ -181,16 +189,148 @@ class AssessmentManager {
         contentContainer.innerHTML = html;
     }
 
+    // دالة الحفظ والتحديث السحابي المتوافقة تماماً مع الـ Wrapper الخاص بك
     async saveAssessment() {
-        alert("تأكيد: نموذج البيانات الأساسية جاهز ومطابق لهيكلية قاعدة البيانات المكتشفة.");
+        const id = document.getElementById('ast-id').value;
+        const payload = {
+            title_ar: document.getElementById('ast-title-ar').value,
+            title_en: document.getElementById('ast-title-en').value,
+            description: document.getElementById('ast-description').value,
+            status: document.getElementById('ast-status').value,
+            has_traps: document.getElementById('ast-has-traps').checked,
+            has_ev_simulator: document.getElementById('ast-has-simulator').checked
+        };
+
+        try {
+            if (id) {
+                // عملية تحديث السجل الحالي (Update)
+                await this.supabase.update('assessment_types', payload, { id: id });
+                this.showToast("تم تحديث بيانات التقييم بنجاح.");
+            } else {
+                // عملية إنشاء سجل جديد بالكامل (Insert)
+                payload.axis_count = 0;
+                payload.question_count = 0;
+                payload.version = 1;
+                await this.supabase.insert('assessment_types', payload);
+                this.showToast("تم إنشاء التقييم الاستشاري الجديد بنجاح.");
+            }
+            
+            document.getElementById('assessment-modal').classList.add('hidden');
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل حفظ البيانات: " + err.message, true);
+        }
     }
 
-    async duplicateAssessment(id) {
-        alert("محرك النسخ المتطابق (Duplicate) جاهز وجاري استدعاء السطور المرتبطة علائقياً...");
-    }
-
+    // دالة التغيير المباشر والسريع للحالات (أرشفة / تنشيط)
     async archiveAssessment(id, currentStatus) {
-        alert("محرك الحالات جاهز وجاري تغيير حالة التقييم سحابياً...");
+        const nextStatus = currentStatus === 'Archived' ? 'Draft' : 'Archived';
+        try {
+            await this.supabase.update('assessment_types', { status: nextStatus }, { id: id });
+            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus === 'Archived' ? 'مؤرشف' : 'مسودة'}`);
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل تعديل الحالة: " + err.message, true);
+        }
+    }
+
+    // دالة النسخ المتطابق العلائقي (Relational Duplication) الشاملة
+    async duplicateAssessment(id) {
+        if (!confirm("هل أنت متأكد من رغبتك في مضاعفة هذا التقييم بكافة محاوره وأسئلته علائقياً وسحابياً؟")) return;
+
+        try {
+            // 1. جلب التقييم الأصلي
+            const allAssessments = await this.supabase.select('assessment_types');
+            const original = allAssessments.find(a => a.id === id);
+            if (!original) return this.showToast("التقييم الأصلي غير موجود.", true);
+
+            // 2. تجهيز بيانات التقييم المنسوخ كـ Draft دائماً
+            const cloneAstPayload = {
+                title_ar: `${original.title_ar} (نسخة)`,
+                title_en: original.title_en ? `${original.title_en} (Copy)` : '',
+                description: original.description,
+                status: 'Draft',
+                has_traps: !!original.has_traps,
+                has_ev_simulator: !!original.has_ev_simulator,
+                axis_count: original.axis_count || 0,
+                question_count: original.question_count || 0,
+                version: (original.version || 1) + 1,
+                parent_id: original.id
+            };
+
+            // 3. إدراج التقييم الجديد وجلب معرّفه الفريد
+            const insertedAstRes = await this.supabase.insert('assessment_types', cloneAstPayload);
+            const newAst = Array.isArray(insertedAstRes) ? insertedAstRes[0] : insertedAstRes;
+            const newAstId = newAst.id;
+
+            // 4. جلب المحاور والأسئلة والخيارات الأصلية بالتصفية البرمجية المستقرة
+            const allAxes = await this.supabase.select('axes') || [];
+            const allQuestions = await this.supabase.select('questions') || [];
+            const allOptions = await this.supabase.select('options') || [];
+
+            const originalAxes = allAxes.filter(x => x.assessment_type_id === id);
+            const originalQuestions = allQuestions.filter(q => q.assessment_type_id === id);
+
+            // 5. النسخ المتسلسل والمترابط للمحاور والأسئلة والخيارات
+            for (const axis of originalAxes) {
+                const cloneAxisPayload = {
+                    assessment_type_id: newAstId,
+                    code: axis.code,
+                    title: axis.title,
+                    title_ar: axis.title_ar,
+                    description: axis.description,
+                    weight: axis.weight,
+                    display_order: axis.display_order,
+                    status: axis.status
+                };
+
+                const insertedAxisRes = await this.supabase.insert('axes', cloneAxisPayload);
+                const newAxis = Array.isArray(insertedAxisRes) ? insertedAxisRes[0] : insertedAxisRes;
+
+                // تصفية ونسخ الأسئلة التابعة لهذا المحور حصراً
+                const axisQuestions = originalQuestions.filter(q => q.axis_id === axis.id);
+                for (const q of axisQuestions) {
+                    const cloneQPayload = {
+                        axis_id: newAxis.id,
+                        assessment_type_id: newAstId,
+                        code: q.code,
+                        question_text: q.question_text,
+                        question_text_ar: q.question_text_ar,
+                        question_type: q.question_type,
+                        display_order: q.display_order,
+                        is_required: !!q.is_required,
+                        trap_index: q.trap_index,
+                        status: q.status
+                    };
+
+                    const insertedQRes = await this.supabase.insert('questions', cloneQPayload);
+                    const newQ = Array.isArray(insertedQRes) ? insertedQRes[0] : insertedQRes;
+
+                    // تصفية ونسخ الخيارات والأوزان التابعة لهذا السؤال حصراً
+                    const qOptions = allOptions.filter(o => o.question_id === q.id);
+                    for (const opt of qOptions) {
+                        const cloneOptPayload = {
+                            question_id: newQ.id,
+                            option_index: opt.option_index,
+                            option_value: opt.option_value,
+                            label: opt.label,
+                            label_ar: opt.label_ar,
+                            display_text: opt.display_text,
+                            display_text_ar: opt.display_text_ar,
+                            is_trap: !!opt.is_trap,
+                            display_order: opt.display_order
+                        };
+                        await this.supabase.insert('options', cloneOptPayload);
+                    }
+                }
+            }
+
+            this.showToast("تمت عملية النسخ المتطابق العلائقي للتقييم بالكامل بنجاح.");
+            await this.renderAssessmentsTable();
+
+        } catch (err) {
+            this.showToast("فشل النسخ المتطابق: " + err.message, true);
+        }
     }
 }
 
