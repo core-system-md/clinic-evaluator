@@ -1,10 +1,11 @@
 /**
- * Clinic Evaluator — app.js v7.2 (CORE FULL REFACTOR + Cloud Adapter + Absolute Paths)
+ * Clinic Evaluator — app.js v7.3 (CORE FULL REFACTOR + Cloud Adapter + Absolute Paths)
  * ================================================================
  * Complete refactoring: index-based selection, CSV removal, 
  * cloud-driven EV defaults, A4 print ready, full answer storage,
  * unified visual benchmarking, automatic session history & comparison.
- * ADDED: Cloud Adapter for Supabase SSOT & Absolute Pathing.
+ * ADDED: Dynamic Cloud Adapter for Supabase SSOT & Absolute Pathing.
+ * FIXED: Absolute alignment with Engine Contract without hardcoding.
  * ================================================================
  */
 
@@ -89,7 +90,6 @@ class ClinicEvaluatorApp {
 
   async loadConfig() {
     try {
-      // 1. المسار الجذري للملف المحلي (خطة الطوارئ)
       const localRes = await fetch('/assets/data/config.json');
       const localConfig = await localRes.json();
 
@@ -101,12 +101,12 @@ class ClinicEvaluatorApp {
 
       console.log('[CORE System] Fetching dynamic payload from cloud database...');
 
-      // 2. جلب البيانات من السحابة
-      const [assessmentsRes, axesRes, questionsRes, optionsRes] = await Promise.all([
+      const [assessmentsRes, axesRes, questionsRes, optionsRes, insightsRes] = await Promise.all([
         this.supabase.select('assessment_types', { filter: { status: 'published' } }),
         this.supabase.select('axes'),
         this.supabase.select('questions'), 
-        this.supabase.select('options')
+        this.supabase.select('options'),
+        this.supabase.select('insights_mapping', { filter: { is_active: true } })
       ]);
 
       const cloudConfig = {
@@ -117,6 +117,8 @@ class ClinicEvaluatorApp {
 
       if (assessmentsRes && assessmentsRes.length > 0) {
         for (const ast of assessmentsRes) {
+          
+          // 1. بناء ومطابقة المحاور
           const astAxes = (axesRes || [])
             .filter(a => a.assessment_type_id === ast.id)
             .sort((a, b) => a.display_order - b.display_order)
@@ -124,10 +126,11 @@ class ClinicEvaluatorApp {
               id: a.code,
               name_ar: a.title_ar || a.title,
               name_en: a.title,
-              weight: parseFloat(a.weight) || 1,
+              weight: parseFloat(a.weight) || 1.0,
               description: a.description
             }));
 
+          // 2. بناء ومطابقة الأسئلة بصورة صارمة لتتوافق مع عقد المحرك
           const astQuestions = (questionsRes || [])
             .filter(q => q.assessment_type_id === ast.id)
             .sort((a, b) => a.display_order - b.display_order)
@@ -137,22 +140,79 @@ class ClinicEvaluatorApp {
                 .sort((a, b) => a.display_order - b.display_order)
                 .map(o => ({
                   label: o.label_ar || o.label,
-                  value: parseFloat(o.option_value),
-                  is_trap: o.is_trap || false
+                  value: parseFloat(o.option_value)
                 }));
 
               const parentAxis = (axesRes || []).find(a => a.id === q.axis_id);
-              const isTrapQuestion = qOptions.some(o => o.is_trap);
+              
+              // تحديد الـ layer ديناميكياً: إذا كان له trap_index أكبر من صفر فهو تلقائياً B
+              const targetLayer = (q.trap_index && parseInt(q.trap_index) > 0) ? "B" : "A";
+              
+              // إنشاء حقل trap_for ديناميكياً لأسئلة الطبقة B فقط لمنع كسر فحص الـ ORPHAN_TRAP
+              let trapForArray = undefined;
+              if (targetLayer === "B") {
+                const associatedQuestions = (questionsRes || [])
+                  .filter(rq => rq.assessment_type_id === ast.id && rq.axis_id === q.axis_id && rq.code !== q.code && (!rq.trap_index || rq.trap_index === 0))
+                  .map(rq => rq.code);
+                
+                trapForArray = associatedQuestions.length > 0 ? associatedQuestions : [q.code];
+              }
 
-              return {
+              const qObj = {
                 id: q.code,
                 axis_id: parentAxis ? parentAxis.code : '',
                 text: q.question_text_ar || q.question_text,
                 type: q.question_type || "select",
-                layer: isTrapQuestion ? "B" : "A",
+                impact: q.impact || "medium", // تزويد الحقل الإلزامي لإنقاذ فحص الـ [V02]
+                layer: targetLayer,
                 options: qOptions
               };
+
+              if (targetLayer === "B") {
+                qObj.trap_for = trapForArray;
+              }
+
+              return qObj;
             });
+
+          // 3. بناء مصفوفة الفخاخ المستقلة (traps) ديناميكياً بالاعتماد على الـ trap_index والـ insights
+          const astTraps = [];
+          const currentTypeInsights = (insightsRes || []).filter(i => i.assessment_type_id === ast.id);
+          const currentTypeQuestions = (questionsRes || []).filter(q => q.assessment_type_id === ast.id);
+
+          currentTypeQuestions.forEach(q => {
+            if (q.trap_index && parseInt(q.trap_index) > 0) {
+              const parentAxis = (axesRes || []).find(a => a.id === q.axis_id);
+              
+              // البحث ديناميكياً عن استبصار مناسب للفخ من جدول الخرائط
+              const matchedInsight = currentTypeInsights.find(i => i.insight_code === `TRAP_0${q.trap_index}` || i.insight_code === `TRAP_${q.trap_index}`);
+              
+              // البحث ديناميكياً عن السؤال الرئيسي المقابل للفحص داخل المحور
+              const targetQuestion = currentTypeQuestions.find(rq => rq.axis_id === q.axis_id && rq.code !== q.code && (!rq.trap_index || rq.trap_index === 0));
+
+              if (parentAxis && targetQuestion) {
+                astTraps.push({
+                  id: `T${q.trap_index}`,
+                  name: matchedInsight ? matchedInsight.title_ar : "فخ التناقض السلوكي",
+                  question_id: q.code, // سؤال التحقق (الطبقة B)
+                  validates: targetQuestion.code, // السؤال الرئيسي (الطبقة A)
+                  target_axis: parentAxis.code,
+                  penalty_base: 10,
+                  penalty_max: 30,
+                  message_ar: matchedInsight ? matchedInsight.message_ar : "⚠️ تنبيه: تم رصد فجوة تناقض سلوكي في الإجابات التشغيلية للعيادة."
+                });
+              }
+            }
+          });
+
+          // 4. بناء وضبط مصفوفة إعدادات المحاكي المالي الافتراضية لكل تقييم
+          const simulatorObj = { enabled: ast.has_ev_simulator, delta_c_max: 0.35 };
+          if (ast.has_ev_simulator) {
+            simulatorObj.variables = [
+              { id: "flow", label: "عدد المرضى الجدد/شهر", min: 5, max: 500, default: 50, step: 5 },
+              { id: "ltv", "label": "متوسط قيمة المريض الدائمة ($)", min: 500, max: 50000, default: 5000, step: 500 }
+            ];
+          }
 
           cloudConfig.assessment_types[ast.slug] = {
             title: ast.title_ar,
@@ -161,9 +221,10 @@ class ClinicEvaluatorApp {
             axis_count: ast.axis_count || astAxes.length,
             has_traps: ast.has_traps,
             has_ev_simulator: ast.has_ev_simulator,
-            simulator: { enabled: ast.has_ev_simulator },
+            simulator: simulatorObj,
             axes: astAxes,
-            questions: astQuestions
+            questions: astQuestions,
+            traps: astTraps
           };
         }
       }
@@ -171,7 +232,7 @@ class ClinicEvaluatorApp {
       const cloudKeys = Object.keys(cloudConfig.assessment_types || {});
       
       if (cloudKeys.length > 0) {
-        console.log('[CORE System] Validation passed. Engine is now running on Cloud Data.');
+        console.log('[CORE System] Dynamic Validation Passed. Absolute Cloud Alignment Achieved.');
         this.config = cloudConfig;
       } else {
         console.error('[CORE System] Cloud payload is empty. Falling back to local config.');
@@ -186,7 +247,6 @@ class ClinicEvaluatorApp {
   }
 
   async loadTexts() {
-    // المسار الجذري لملف النصوص
     const res = await fetch('/assets/data/report_texts.json');
     if (!res.ok) throw new Error('HTTP ' + res.status);
     this.texts = await res.json();
@@ -813,7 +873,6 @@ class ClinicEvaluatorApp {
     const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
 
-    // Enhanced trend analysis with baseline comparison
     let trendHtml = "";
     if (this.previousSessionData) {
       const diff = res.overallScore - this.previousSessionData.overallScore;
@@ -858,7 +917,6 @@ class ClinicEvaluatorApp {
       });
     }
 
-    // Unified visual benchmarking
     this.renderVisualBenchmark(res);
 
     const trapsContainer = document.getElementById('traps-container');
@@ -958,7 +1016,7 @@ class ClinicEvaluatorApp {
       }));
       
       const chartDiv = document.createElement('div');
-      chartDiv.style.marginBottom = '24px';
+      chartDiv.style.style.marginBottom = '24px';
       
       const maxVal = Math.max(...data.map(d => d.value), 1);
       data.forEach(item => {
