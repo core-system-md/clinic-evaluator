@@ -1,6 +1,7 @@
 /**
  * CORE System — Assessment Manager
- * النسخة المستقرة والمحمية - متطابقة 100% مع RLS السحابي ودعم كامل للوسائط والنسخ العميق
+ * المسار: /admin/assessment-manager.js
+ * النسخة المستقرة والمحمية - نفاذ عبر RPC سحابي دائم ومطابق لقيود الحماية والأكواد المشفرة
  */
 
 class AssessmentManager {
@@ -15,60 +16,23 @@ class AssessmentManager {
             container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; text-align:center;">جاري جلب التقييمات وتجهيز أدوات التحكم...</p>';
         }
         await this.renderAssessmentsTable();
-        this.attachImageListener();
     }
 
     showToast(message, isError = false) {
         const toast = document.getElementById('toast');
-        if (!toast) { return alert(message); }
+        if (!toast) return alert(message);
         toast.innerText = message;
         toast.className = `toast ${isError ? 'error' : 'success'}`;
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
     }
 
-    attachImageListener() {
-        document.body.addEventListener('change', (e) => {
-            if (e.target && e.target.id === 'ast-image-file') {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        const preview = document.getElementById('ast-image-preview');
-                        const container = document.getElementById('ast-image-preview-container');
-                        if (preview && container) {
-                            preview.src = evt.target.result;
-                            container.style.display = 'block';
-                        }
-                    };
-                    reader.readAsDataURL(file);
-                }
-            }
-        });
-    }
-
-    async uploadAssessmentImage(slug, file) {
-        try {
-            const fileExt = file.name.split('.').pop();
-            const filePath = `${slug}.${fileExt}`;
-            const url = `${this.supabase.url}/storage/v1/object/assessment-images/${filePath}`;
-
-            const response = await fetch(url, {
-                method: 'POST',
-                body: file,
-                headers: {
-                    'apikey': this.supabase.key,
-                    'Authorization': `Bearer ${this.supabase.key}`,
-                    'Content-Type': file.type,
-                    'x-upsert': 'true'
-                }
-            });
-
-            if (!response.ok) { throw new Error("فشل رفع الملف لـ Supabase Storage"); }
-            return true;
-        } catch (err) {
-            console.error("[Storage Error] Upload failed:", err);
-            return false;
-        }
+    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماً مع نظام مطابقة نفاذ المرضى والعيادات
+    async simpleHash(str) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     }
 
     async renderAssessmentsTable() {
@@ -81,7 +45,10 @@ class AssessmentManager {
                 return;
             }
 
+            // جلب حزم البيانات المتزامنة للتقييمات وإعدادات بوابات النفاذ ماليًا
             const data = await this.supabase.select('assessment_types');
+            const authSettings = await this.supabase.select('assessment_settings') || [];
+
             if (!data || data.length === 0) {
                 container.innerHTML = `
                     <div style="padding:20px; text-align:center; color:#6b7280;">
@@ -91,7 +58,9 @@ class AssessmentManager {
                 return;
             }
 
+            // تطبيق الـ Soft Delete برمجياً لعرض السجلات النشطة فقط ومنع الفوضى البصرية
             const activeAssessments = data.filter(ast => ast.is_active !== false);
+
             if (activeAssessments.length === 0) {
                 container.innerHTML = `
                     <div style="padding:20px; text-align:center; color:#6b7280;">
@@ -114,6 +83,7 @@ class AssessmentManager {
                             <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
                                 <th style="padding:12px 10px; color:#475569;">عنوان التقييم</th>
                                 <th style="padding:12px 10px; color:#475569;">الحالة</th>
+                                <th style="padding:12px 10px; color:#475569;">نمط النفاذ</th>
                                 <th style="padding:12px 10px; color:#475569; text-align:center;">إجراءات التحكم</th>
                             </tr>
                         </thead>
@@ -128,6 +98,10 @@ class AssessmentManager {
                 if (currentStatusClean === 'published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
                 if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
 
+                // تتبع ومطابقة قفل بوابات الدفع والنفاذ المالي للتقييم
+                const lockedSetting = authSettings.find(s => s.assessment_key === ast.slug);
+                const isLocked = lockedSetting ? !!lockedSetting.auth_enabled : false;
+
                 html += `
                     <tr style="border-bottom:1px solid #f1f5f9;">
                         <td style="padding:12px 10px; font-weight:600; color:#1e293b;">
@@ -139,11 +113,20 @@ class AssessmentManager {
                         <td style="padding:12px 10px;">
                             <span class="badge ${badgeClass}">${statusText}</span>
                         </td>
+                        <td style="padding:12px 10px;">
+                            <span class="badge" style="background:${isLocked ? '#fee2e2' : '#dcfce7'}; color:${isLocked ? '#991b1b' : '#166534'}; border:1px solid ${isLocked ? '#fca5a5' : '#86efac'};">
+                                ${isLocked ? '🔒 مدفوع محمي' : '🔓 مجاني عام'}
+                            </span>
+                        </td>
                         <td style="padding:12px 10px; text-align:center;">
                             <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
                                 <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">⚙️ هيكلة</button>
                                 <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخ</button>
                                 <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>
+                                <button onclick="window.assessmentManager.toggleAuthLock('${ast.slug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
+                                    ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
+                                </button>
+                                ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${ast.slug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
                                 <button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>
                             </div>
                         </td>
@@ -155,16 +138,158 @@ class AssessmentManager {
             container.innerHTML = html;
 
         } catch (err) {
-            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>`;
+            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل مخرجات قاعدة البيانات: ${err.message}</p>`;
+        }
+    }
+
+    // استدعاء دالة الـ RPC السحابية الآمنة لتبديل نمط النفاذ (مجاني / مدفوع)
+    async toggleAuthLock(slug, isLocked) {
+        try {
+            await this.supabase.request('rpc/toggle_assessment_auth_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_slug: slug, p_enabled: !isLocked })
+            });
+            this.showToast("تم تحديث نمط النفاذ المالي ومستوى الأمان سحابياً.");
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("تعذر تعديل نمط النفاذ: " + err.message, true);
+        }
+    }
+
+    openUserModal(slug) {
+        const modal = document.getElementById('user-modal');
+        const form = document.getElementById('user-form');
+        const keyInput = document.getElementById('user-assessment-key');
+        
+        if (form) form.reset();
+        if (keyInput) keyInput.value = slug;
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    // توليد أكواد ورموز النفاذ المشفرة بـ SHA-256 وحقنها سحابياً عبر الـ RPC الآمن للعيادات المدفوعة
+    async generateAccessCode() {
+        const slug = document.getElementById('user-assessment-key').value;
+        const username = document.getElementById('user-username').value.trim();
+        const password = document.getElementById('user-password').value;
+        const maxUses = parseInt(document.getElementById('user-max-uses').value, 10) || 1;
+        const expiryDays = parseInt(document.getElementById('user-expiry-days').value, 10) || 30;
+
+        try {
+            const hashedPassword = await this.simpleHash(password);
+            
+            await this.supabase.request('rpc/generate_assessment_user_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_slug: slug,
+                    p_username: username,
+                    p_password_hash: hashedPassword,
+                    p_max_uses: maxUses,
+                    p_expiry_days: expiryDays
+                })
+            });
+
+            this.showToast(`تم بنجاح توليد كود النفاذ المالي للعيادة: ${username}`);
+            const modal = document.getElementById('user-modal');
+            if (modal) modal.classList.add('hidden');
+        } catch (err) {
+            this.showToast("فشل تفعيل وحقن كود النفاذ: " + err.message, true);
+        }
+    }
+
+    // استدعاء دالة الـ RPC لحفظ وتحديث البيانات الأساسية للتقييمات
+    async saveAssessment() {
+        const id = document.getElementById('ast-id').value || null;
+        const titleEn = document.getElementById('ast-title-en').value;
+        const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
+        
+        const rawStatusValue = document.getElementById('ast-status').value;
+        const databaseStatus = rawStatusValue ? rawStatusValue.toLowerCase() : 'draft';
+
+        const payload = {
+            p_id: id,
+            p_title_ar: document.getElementById('ast-title-ar').value,
+            p_title_en: titleEn,
+            p_slug: generatedSlug,
+            p_description: document.getElementById('ast-description').value,
+            p_status: databaseStatus, 
+            p_has_traps: document.getElementById('ast-has-traps').checked,
+            p_has_ev_simulator: document.getElementById('ast-has-simulator').checked
+        };
+
+        try {
+            await this.supabase.request('rpc/save_assessment_secure', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            
+            this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
+            document.getElementById('assessment-modal').classList.add('hidden');
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل حفظ التعديلات: " + err.message, true);
+        }
+    }
+
+    // استدعاء دالة الـ RPC للتبديل السريع للحالات (مسودة / مؤرشف)
+    async archiveAssessment(id, currentStatus) {
+        const currentClean = (currentStatus || '').toLowerCase();
+        const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
+        
+        try {
+            await this.supabase.request('rpc/update_assessment_status_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_id: id, p_status: nextStatus, p_is_active: true })
+            });
+            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus}`);
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل تعديل الحالة: " + err.message, true);
+        }
+    }
+
+    // استدعاء دالة الـ RPC لشطب التقييم (Soft Delete) وإخفائه منعاً للفوضى
+    async deleteAssessment(id) {
+        if (!confirm("هل أنت متأكد من شطب هذا التقييم نهائياً وإخفائه من لوحة التحكم؟")) return;
+        try {
+            await this.supabase.request('rpc/update_assessment_status_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_id: id, p_status: 'draft', p_is_active: false })
+            });
+            this.showToast("تم شطب وإخفاء سجل التقييم بنجاح حماية للمنظومة.");
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل شطب التقييم: " + err.message, true);
+        }
+    }
+
+    // استدعاء دالة الـ RPC لتنفيذ محرك النسخ المتطابق الشامل والعميق (Deep Relational Duplication)
+    async duplicateAssessment(id) {
+        if (!confirm("تأكيد هندسي: هل ترغب في مضاعفة هذا التقييم بكافة محاوره وأسئلته وخياراته علائقياً وسحابياً؟")) return;
+
+        try {
+            const allAssessments = await this.supabase.select('assessment_types');
+            const original = allAssessments.find(a => a.id === id);
+            if (!original) return this.showToast("التقييم الأصلي غير موجود.", true);
+
+            const cloneSlug = `${original.slug || 'assessment'}-copy-${Date.now()}`;
+            
+            await this.supabase.request('rpc/duplicate_assessment_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_id: id, p_clone_slug: cloneSlug })
+            });
+
+            this.showToast("تمت عملية النسخ المتطابق الشامل لكافة الجداول بنجاح.");
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل النسخ المتطابق العلائقي: " + err.message, true);
         }
     }
 
     createNewAssessment() {
         document.getElementById('assessment-form').reset();
         document.getElementById('ast-id').value = '';
-        document.getElementById('ast-image-preview-container').style.display = 'none';
         document.getElementById('assessment-modal-title').innerText = "إنشاء تقييم استشاري جديد";
-        document.getElementById('modal-tab-content').innerHTML = '<p style="color:#0f766e; padding:15px; background:#f0fdf4; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً ليتم تخصيص هيكله السحابي.</p>';
+        document.getElementById('modal-tab-content').innerHTML = '<p style="color:#0f766e; padding:15px; background:#f0fdf4; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً لتتمكن من تخصيص هيكله السحابي علائقياً.</p>';
         document.getElementById('assessment-modal').classList.remove('hidden');
     }
 
@@ -187,14 +312,6 @@ class AssessmentManager {
             document.getElementById('ast-has-traps').checked = !!ast.has_traps;
             document.getElementById('ast-has-simulator').checked = !!ast.has_ev_simulator;
 
-            // عرض الصورة الحالية إن وُجدت من الـ Public Storage Bucket بأمان
-            const preview = document.getElementById('ast-image-preview');
-            const container = document.getElementById('ast-image-preview-container');
-            if (preview && container) {
-                preview.src = `${this.supabase.url}/storage/v1/object/public/assessment-images/${ast.slug}.png?t=${Date.now()}`;
-                container.style.display = 'block';
-            }
-
             const allAxes = await this.supabase.select('axes') || [];
             const allQuestions = await this.supabase.select('questions') || [];
             
@@ -206,7 +323,7 @@ class AssessmentManager {
             document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
             document.getElementById('assessment-modal').classList.remove('hidden');
         } catch (err) {
-            this.showToast("خطأ أثناء تحميل تفاصيل التقييم علائقياً: " + err.message, true);
+            this.showToast("خطأ أثناء تحميل تفاصيل الهيكل العلائقي: " + err.message, true);
         }
     }
 
@@ -217,14 +334,15 @@ class AssessmentManager {
         let html = '<div style="display:flex; flex-direction:column; gap:12px; text-align:right; dir:rtl;">';
         html += `
             <div style="text-align:left; margin-bottom:5px;">
-                <button type="button" onclick="window.assessmentManager.addAxisInline('${assessmentId}')" class="btn-primary" style="padding:6px 12px; font-size:0.8rem; background:#0f766e;">+ إضافة محور جديد للتقييم</button>
+                <button type="button" onclick="window.assessmentManager.addAxisInline('${assessmentId}')" class="btn-primary" style="padding:6px 12px; font-size:0.8rem;">+ إضافة محور جديد</button>
             </div>
         `;
 
         if (axes.length === 0) {
-            html += '<p style="color:#6b7280; text-align:center; padding:20px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.85rem;">لا توجد محاور مرتبطة بهذا التقييم حالياً.</p>';
+            html += '<p style="color:#6b7280; text-align:center; padding:20px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.85rem;">لا توجد محاور مرتبطة حالياً. اضغط أعلاه لإضافة محورك الأول.</p>';
         } else {
             axes.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+            
             axes.forEach(axis => {
                 const axisQuestions = questions.filter(q => q.axis_id === axis.id);
                 axisQuestions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
@@ -240,16 +358,17 @@ class AssessmentManager {
                 `;
                 
                 if (axisQuestions.length === 0) {
-                    html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0;">⚠️ لا توجد أسئلة تحت هذا المحور حالياً.</p>';
+                    html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0; padding:4px 0;">⚠️ لا توجد أسئلة تحت هذا المحور حالياً.</p>';
                 } else {
                     axisQuestions.forEach(q => {
                         html += `
-                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between;">
+                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
                                 <span>❓ ${q.question_text_ar || q.question_text}</span>
                                 <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
                             </div>`;
                     });
                 }
+                
                 html += `</div></div>`;
             });
         }
@@ -258,201 +377,38 @@ class AssessmentManager {
         contentContainer.innerHTML = html;
     }
 
-    async saveAssessment() {
-        const id = document.getElementById('ast-id').value;
-        const titleEn = document.getElementById('ast-title-en').value;
-        const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
-        
-        const rawStatusValue = document.getElementById('ast-status').value;
-        const databaseStatus = rawStatusValue ? rawStatusValue.toLowerCase() : 'draft';
-
-        const payload = {
-            title_ar: document.getElementById('ast-title-ar').value,
-            title_en: titleEn,
-            slug: generatedSlug,
-            description: document.getElementById('ast-description').value,
-            status: databaseStatus, 
-            has_traps: document.getElementById('ast-has-traps').checked,
-            has_ev_simulator: document.getElementById('ast-has-simulator').checked,
-            is_active: true
-        };
-
-        try {
-            if (id) {
-                await this.supabase.update('assessment_types', payload, { id: id });
-            } else {
-                payload.axis_count = 0;
-                payload.question_count = 0;
-                payload.version = 1;
-                await this.supabase.insert('assessment_types', payload);
-            }
-            
-            // رفع ومعالجة الصور المرفقة سحابياً إن وُجدت
-            const fileInput = document.getElementById('ast-image-file');
-            if (fileInput && fileInput.files[0]) {
-                await this.uploadAssessmentImage(generatedSlug, fileInput.files[0]);
-            }
-
-            this.showToast("تم حفظ التقييم ومعالجة البيانات السحابية للوسائط بنجاح.");
-            document.getElementById('assessment-modal').classList.add('hidden');
-            await this.renderAssessmentsTable();
-        } catch (err) {
-            this.showToast("فشل حفظ البيانات: " + err.message, true);
-        }
-    }
-
-    async archiveAssessment(id, currentStatus) {
-        const currentClean = (currentStatus || '').toLowerCase();
-        const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
-        try {
-            await this.supabase.update('assessment_types', { status: nextStatus }, { id: id });
-            this.showToast(`تم تغيير الحالة بنجاح إلى: ${nextStatus}`);
-            await this.renderAssessmentsTable();
-        } catch (err) {
-            this.showToast("فشل تعديل الحالة: " + err.message, true);
-        }
-    }
-
-    async deleteAssessment(id) {
-        if (!confirm("هل أنت متأكد من شطب هذا التقييم نهائياً وإخفائه من لوحة التحكم؟")) return;
-        try {
-            await this.supabase.update('assessment_types', { is_active: false }, { id: id });
-            this.showToast("تم شطب وإخفاء التقييم بنجاح.");
-            await this.renderAssessmentsTable();
-        } catch (err) {
-            this.showToast("فشل شطب التقييم: " + err.message, true);
-        }
-    }
-
-    // محرك النسخ المتطابق الشامل والعميق (Relational Deep Duplication Engine)
-    async duplicateAssessment(id) {
-        if (!confirm("تأكيد: هل ترغب في نسخ هذا التقييم بالكامل (شاملاً المحاور، الأسئلة، الخيارات، وأوزان المحاكي)؟")) return;
-
-        try {
-            const tyrannyRes = await this.supabase.select('assessment_types');
-            const original = tyrannyRes.find(a => a.id === id);
-            if (!original) return this.showToast("التقييم الأصلي غير موجود.", true);
-
-            const cloneSlug = `${original.slug || 'assessment'}-copy-${Date.now()}`;
-            const cloneAstPayload = {
-                title_ar: `${original.title_ar} (نسخة)`,
-                title_en: original.title_en ? `${original.title_en} (Copy)` : '',
-                slug: cloneSlug,
-                description: original.description,
-                status: 'draft',
-                has_traps: !!original.has_traps,
-                has_ev_simulator: !!original.has_ev_simulator,
-                axis_count: original.axis_count || 0,
-                question_count: original.question_count || 0,
-                version: (original.version || 1) + 1,
-                parent_id: original.id,
-                is_active: true
-            };
-
-            const insertedAstRes = await this.supabase.insert('assessment_types', cloneAstPayload);
-            const newAst = Array.isArray(insertedAstRes) ? insertedAstRes[0] : insertedAstRes;
-            const newAstId = newAst.id;
-
-            const allAxes = await this.supabase.select('axes') || [];
-            const allQuestions = await this.supabase.select('questions') || [];
-            const allOptions = await this.supabase.select('options') || [];
-
-            const originalAxes = allAxes.filter(x => x.assessment_type_id === id);
-            const originalQuestions = allQuestions.filter(q => q.assessment_type_id === id);
-
-            for (const axis of originalAxes) {
-                const cloneAxisPayload = {
-                    assessment_type_id: newAstId,
-                    code: axis.code,
-                    title: axis.title,
-                    title_ar: axis.title_ar,
-                    description: axis.description,
-                    weight: axis.weight,
-                    display_order: axis.display_order,
-                    status: 'active'
-                };
-
-                const insertedAxisRes = await this.supabase.insert('axes', cloneAxisPayload);
-                const newAxis = Array.isArray(insertedAxisRes) ? insertedAxisRes[0] : insertedAxisRes;
-
-                const axisQuestions = originalQuestions.filter(q => q.axis_id === axis.id);
-                for (const q of axisQuestions) {
-                    const cloneQPayload = {
-                        axis_id: newAxis.id,
-                        assessment_type_id: newAstId,
-                        code: q.code,
-                        question_text: q.question_text,
-                        question_text_ar: q.question_text_ar,
-                        question_type: q.question_type,
-                        display_order: q.display_order,
-                        is_required: !!q.is_required,
-                        trap_index: q.trap_index,
-                        status: 'active'
-                    };
-
-                    const insertedQRes = await this.supabase.insert('questions', cloneQPayload);
-                    const newQ = Array.isArray(insertedQRes) ? insertedQRes[0] : insertedQRes;
-
-                    const qOptions = allOptions.filter(o => o.question_id === q.id);
-                    for (const opt of qOptions) {
-                        const cloneOptPayload = {
-                            question_id: newQ.id,
-                            option_index: opt.option_index,
-                            option_value: opt.option_value,
-                            label: opt.label,
-                            label_ar: opt.label_ar,
-                            display_text: opt.display_text,
-                            display_text_ar: opt.display_text_ar,
-                            is_trap: !!opt.is_trap,
-                            display_order: opt.display_order
-                        };
-                        await this.supabase.insert('options', cloneOptPayload);
-                    }
-                }
-            }
-
-            this.showToast("تم إتمام النسخ المتطابق الشامل لكافة فروع التقييم بنجاح.");
-            await this.renderAssessmentsTable();
-
-        } catch (err) {
-            this.showToast("فشل النسخ المتطابق الشامل: " + err.message, true);
-        }
-    }
-
     async addAxisInline(assessmentId) {
-        const titleAr = prompt("اسم المحور الجديد:");
+        const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
         if (!titleAr) return;
         try {
-            const payload = {
+            await this.supabase.insert('axes', {
                 assessment_type_id: assessmentId,
                 title_ar: titleAr,
                 code: 'AXIS_' + Date.now(),
                 weight: 10,
                 display_order: 1,
                 status: 'active'
-            };
-            await this.supabase.insert('axes', payload);
+            });
             await this.editAssessment(assessmentId);
-        } catch (err) { this.showToast(err.message, true); }
+        } catch (err) { this.showToast("فشل إضافة المحور: " + err.message, true); }
     }
 
     async addQuestionInline(assessmentId, axisId) {
-        const textAr = prompt("نص السؤال الجديد:");
-        if (!textAr) return;
+        const qTextAr = prompt("أدخل نص السؤال الجديد (بالعربية):");
+        if (!qTextAr) return;
         try {
-            const payload = {
+            await this.supabase.insert('questions', {
                 assessment_type_id: assessmentId,
                 axis_id: axisId,
-                question_text_ar: textAr,
+                question_text_ar: qTextAr,
                 code: 'Q_' + Date.now(),
                 question_type: 'single',
                 display_order: 1,
                 is_required: true,
                 status: 'active'
-            };
-            await this.supabase.insert('questions', payload);
+            });
             await this.editAssessment(assessmentId);
-        } catch (err) { this.showToast(err.message, true); }
+        } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
     }
 }
 
