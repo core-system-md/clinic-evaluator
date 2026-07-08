@@ -221,6 +221,7 @@ class AssessmentManager {
     // استدعاء دالة الـ RPC لحفظ وتحديث البيانات الأساسية للتقييمات
     async saveAssessment() {
         const id = document.getElementById('ast-id').value || null;
+        const isNew = !id; // تحديد إذا كان إنشاء جديد أو تعديل
         const titleEn = document.getElementById('ast-title-en').value;
         const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
         
@@ -239,14 +240,38 @@ class AssessmentManager {
         };
 
         try {
-            await this.supabase.request('rpc/save_assessment_secure', {
+            const result = await this.supabase.request('rpc/save_assessment_secure', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
             
-            this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
-            document.getElementById('assessment-modal').classList.add('hidden');
-            await this.renderAssessmentsTable();
+            // استخراج المعرف الجديد من الرد بأي شكل ممكن (نص، مصفوفة، كائن)
+            let returnedId = null;
+            if (result) {
+                if (typeof result === 'string') {
+                    returnedId = result;
+                } else if (Array.isArray(result) && result.length > 0) {
+                    if (typeof result[0] === 'string') {
+                        returnedId = result[0];
+                    } else if (result[0] && typeof result[0] === 'object') {
+                        returnedId = result[0].id || result[0].p_id || result[0].uuid || result[0].assessment_id || null;
+                    }
+                } else if (typeof result === 'object') {
+                    returnedId = result.id || result.p_id || result.uuid || result.assessment_id || null;
+                }
+            }
+
+            if (isNew && returnedId) {
+                // إنشاء جديد: لا تسكر الـ Modal، افتح محرر الهيكل مباشرة
+                this.showToast("تم إنشاء التقييم. جاري فتح محرر الهيكل...");
+                document.getElementById('ast-id').value = returnedId;
+                await this.editAssessment(returnedId);
+            } else {
+                // تعديل موجود: السلوك القديم (سكر الـ Modal وحدث الجدول)
+                this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
+                document.getElementById('assessment-modal').classList.add('hidden');
+                await this.renderAssessmentsTable();
+            }
         } catch (err) {
             this.showToast("فشل حفظ التعديلات: " + err.message, true);
         }
