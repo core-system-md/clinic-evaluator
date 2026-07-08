@@ -29,6 +29,7 @@ class AssessmentManager {
         
         // تشغيل الجزء الأول: إدارة وهيكلة التقييمات الأصلية دون مساس
         await this.renderAssessmentsTable();
+        this.populateFilterDropdown();
 
         // تشغيل الجزء الثاني: مزامنة لوحة التحكم وجدول التقييمات التي نفذها المستخدمون
         await this.loadUserSubmissionsDashboard();
@@ -43,7 +44,7 @@ class AssessmentManager {
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
     }
 
-    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماُ مع نظام مطابقة نفاذ المرضى والعيادات
+    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماً مع نظام مطابقة نفاذ المرضى والعيادات
     async simpleHash(str) {
         const encoder = new TextEncoder();
         const data = encoder.encode(str);
@@ -79,6 +80,8 @@ class AssessmentManager {
             data.forEach(ast => {
                 this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug;
             });
+
+            this.populateFilterDropdown();
 
             // تطبيق الـ Soft Delete برمجياً لعرض السجلات النشطة فقط ومنع الفوضى البصرية
             const activeAssessments = data.filter(ast => ast.is_active !== false);
@@ -221,7 +224,6 @@ class AssessmentManager {
     // استدعاء دالة الـ RPC لحفظ وتحديث البيانات الأساسية للتقييمات
     async saveAssessment() {
         const id = document.getElementById('ast-id').value || null;
-        const isNew = !id; // تحديد إذا كان إنشاء جديد أو تعديل
         const titleEn = document.getElementById('ast-title-en').value;
         const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
         
@@ -240,38 +242,14 @@ class AssessmentManager {
         };
 
         try {
-            const result = await this.supabase.request('rpc/save_assessment_secure', {
+            await this.supabase.request('rpc/save_assessment_secure', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
             
-            // استخراج المعرف الجديد من الرد بأي شكل ممكن (نص، مصفوفة، كائن)
-            let returnedId = null;
-            if (result) {
-                if (typeof result === 'string') {
-                    returnedId = result;
-                } else if (Array.isArray(result) && result.length > 0) {
-                    if (typeof result[0] === 'string') {
-                        returnedId = result[0];
-                    } else if (result[0] && typeof result[0] === 'object') {
-                        returnedId = result[0].id || result[0].p_id || result[0].uuid || result[0].assessment_id || null;
-                    }
-                } else if (typeof result === 'object') {
-                    returnedId = result.id || result.p_id || result.uuid || result.assessment_id || null;
-                }
-            }
-
-            if (isNew && returnedId) {
-                // إنشاء جديد: لا تسكر الـ Modal، افتح محرر الهيكل مباشرة
-                this.showToast("تم إنشاء التقييم. جاري فتح محرر الهيكل...");
-                document.getElementById('ast-id').value = returnedId;
-                await this.editAssessment(returnedId);
-            } else {
-                // تعديل موجود: السلوك القديم (سكر الـ Modal وحدث الجدول)
-                this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
-                document.getElementById('assessment-modal').classList.add('hidden');
-                await this.renderAssessmentsTable();
-            }
+            this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
+            document.getElementById('assessment-modal').classList.add('hidden');
+            await this.renderAssessmentsTable();
         } catch (err) {
             this.showToast("فشل حفظ التعديلات: " + err.message, true);
         }
@@ -427,82 +405,35 @@ class AssessmentManager {
     async addAxisInline(assessmentId) {
         const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
         if (!titleAr) return;
-
-        // قائمة الأوزان الجاهزة
-        const weightOptions = [
-            { label: 'خفيف جداً (10%)', value: 10 },
-            { label: 'خفيف (15%)', value: 15 },
-            { label: 'متوسط (20%)', value: 20 },
-            { label: 'ثقيل (25%)', value: 25 },
-            { label: 'ثقيل جداً (30%)', value: 30 },
-            { label: 'حاسم (40%)', value: 40 },
-            { label: 'مخصص (تكتب يدوياً)', value: null }
-        ];
-
-        let weightSelection = prompt(
-            "اختر وزن المحور:\n" +
-            weightOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n') +
-            "\n\nاكتب رقم الخيار (1-7):"
-        );
-
-        const selectedIndex = parseInt(weightSelection, 10) - 1;
-        let weight = 10; // افتراضي
-
-        if (selectedIndex >= 0 && selectedIndex < weightOptions.length) {
-            if (weightOptions[selectedIndex].value === null) {
-                // مخصص
-                const customWeight = prompt("أدخل الوزن المخصص (1-100):");
-                weight = parseInt(customWeight, 10) || 10;
-            } else {
-                weight = weightOptions[selectedIndex].value;
-            }
-        }
-
-        // توليد كود قصير: AX_ + 7 أرقام من الوقت = 10 أحرف بالضبط
-        const timestamp = Date.now().toString();
-        const shortCode = 'AX_' + timestamp.slice(-7);
-
         try {
-            await this.supabase.request('rpc/save_axis_secure', {
-                method: 'POST',
-                body: JSON.stringify({
-                    p_assessment_type_id: assessmentId,
-                    p_title: titleAr,
-                    p_title_ar: titleAr,
-                    p_code: shortCode,
-                    p_weight: weight,
-                    p_display_order: 1
-                })
+            await this.supabase.insert('axes', {
+                assessment_type_id: assessmentId,
+                title_ar: titleAr,
+                code: 'AXIS_' + Date.now(),
+                weight: 10,
+                display_order: 1,
+                status: 'active'
             });
-            this.showToast(`تم إضافة المحور "${titleAr}" بوزن ${weight}%`);
             await this.editAssessment(assessmentId);
-        } catch (err) { 
-            this.showToast("فشل إضافة المحور: " + err.message, true); 
-        }
+        } catch (err) { this.showToast("فشل إضافة المحور: " + err.message, true); }
     }
 
     async addQuestionInline(assessmentId, axisId) {
         const qTextAr = prompt("أدخل نص السؤال الجديد (بالعربية):");
         if (!qTextAr) return;
         try {
-            await this.supabase.request('rpc/save_question_secure', {
-                method: 'POST',
-                body: JSON.stringify({
-                    p_assessment_type_id: assessmentId,
-                    p_axis_id: axisId,
-                    p_question_text: qTextAr,
-                    p_question_text_ar: qTextAr,
-                    p_code: 'Q_' + Date.now(),
-                    p_question_type: 'single',
-                    p_display_order: 1,
-                    p_is_required: true
-                })
+            await this.supabase.insert('questions', {
+                assessment_type_id: assessmentId,
+                axis_id: axisId,
+                question_text_ar: qTextAr,
+                code: 'Q_' + Date.now(),
+                question_type: 'single',
+                display_order: 1,
+                is_required: true,
+                status: 'active'
             });
-            this.showToast("تم إضافة السؤال بنجاح.");
             await this.editAssessment(assessmentId);
-        } catch (err) { 
-            this.showToast("فشل إضافة السؤال: " + err.message, true); 
-        }
+        } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
     }
 
     /* ─────────────── تفعيل وتطوير جدول المستخدمين (LEADS) ─────────────── */
@@ -536,10 +467,28 @@ class AssessmentManager {
             const now = new Date();
             document.getElementById('last-updated').textContent = now.toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' });
 
+            this.populateFilterDropdown();
             this.applyDashboardFilters();
         } catch (err) {
             console.error('[CORE System] Leads compilation error:', err);
         }
+    }
+
+    // ملء قائمة الفلترة ديناميكياً بأنواع التقييمات الحقيقية من قاعدة البيانات
+    populateFilterDropdown() {
+        const select = document.getElementById('filter-type');
+        if (!select) return;
+        
+        // الاحتفاظ بخيار "كل التقييمات" فقط وإزالة الباقي
+        select.innerHTML = '<option value="">كل التقييمات</option>';
+        
+        // إضافة التقييمات الحقيقية من الخارطة الديناميكية
+        Object.entries(this.assessmentTypesMap).forEach(([id, title]) => {
+            const option = document.createElement('option');
+            option.value = id;
+            option.textContent = title;
+            select.appendChild(option);
+        });
     }
 
     setupDashboardFilterEvents() {
@@ -589,7 +538,7 @@ class AssessmentManager {
         });
 
         if (sortOrder === 'newest') this.filteredLeads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        else if (sortOrder === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
+        else if (sortOrder === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(a.created_at));
         else if (sortOrder === 'score-high') this.filteredLeads.sort((a, b) => (parseFloat(b.score_percentage) || 0) - (parseFloat(a.score_percentage) || 0));
         else if (sortOrder === 'score-low') this.filteredLeads.sort((a, b) => (parseFloat(a.score_percentage) || 0) - (parseFloat(b.score_percentage) || 0));
         else if (sortOrder === 'name') this.filteredLeads.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
