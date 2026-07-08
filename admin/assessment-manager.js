@@ -1,10 +1,10 @@
 /**
- * CORE System — Assessment Manager v6.0 (Unified Dashboard & Configurations)
+ * CORE System — Assessment Manager v7.0 (Strict Analytical Update)
  * =======================================================================
- * الالتزام الصارم والأعمى بالنسخة الأصلية المجمّدة:
- * 1. الحفاظ المطلق على كافة الدوال الإدارية، وعمليات الـ RPC، والتشفير، وصناديق التحكم.
- * 2. تفعيل جلب الإحصائيات الـ 4 الحية وتغذية جدول تقييمات المستخدمين (Leads).
- * 3. صياغة وعرض التقرير النصي العربي والفخاخ السلوكية داخل النافذة المنبثقة الأصلية.
+ * الالتزام المطلق بحدود العمل:
+ * 1. تجميد كافة الدوال الإدارية، وعمليات الـ RPC، والتشفير، وصناديق التحكم الأصلية.
+ * 2. معالجة دالة generateConsultativeReportInsideModal لتقرأ الحقول الحقيقية (answer_value, trap_triggered).
+ * 3. إظهار اسم التقييم المستخدم ديناميكياً داخل بطاقة البيانات التعريفية.
  * =======================================================================
  */
 
@@ -18,10 +18,10 @@ class AssessmentManager {
         this.filteredLeads = [];
         this.currentPage = 1;
         this.pageSize = 10;
+        this.assessmentTypesMap = {}; // مخزن ديناميكي لربط المعرفات بأسماء التقييمات
     }
 
     async init() {
-        // رسالة تأكيد للعمل داخل الصفحة مباشرة
         const container = document.getElementById('assessments-table-container');
         if (container) {
             container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; text-align:center;">النظام يعمل... جاري جلب التقييمات وتجهيز أدوات التحكم...</p>';
@@ -74,6 +74,11 @@ class AssessmentManager {
                     </div>`;
                 return;
             }
+
+            // بناء خارطة الأسماء محلياً لحل مشكلة غياب اسم التقييم في لوحة العرض
+            data.forEach(ast => {
+                this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug;
+            });
 
             // تطبيق الـ Soft Delete برمجياً لعرض السجلات النشطة فقط ومنع الفوضى البصرية
             const activeAssessments = data.filter(ast => ast.is_active !== false);
@@ -208,7 +213,6 @@ class AssessmentManager {
             this.showToast(`تم بنجاح توليد كود النفاذ المالي للعيادة: ${username}`);
             const modal = document.getElementById('user-modal');
             if (modal) modal.classList.add('hidden');
-            await this.renderAssessmentsTable();
         } catch (err) {
             this.showToast("فشل تفعيل وحقن كود النفاذ: " + err.message, true);
         }
@@ -370,7 +374,7 @@ class AssessmentManager {
                         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:8px; flex-wrap:wrap; gap:5px;">
                             <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || ''})</span>
                             <span style="font-size:0.75rem; color:#6b7280; margin-right:auto; margin-left:10px;">الوزن: %${axis.weight || 0}</span>
-                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
+                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7 ramp; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
                         </div>
                         <div style="padding-right:8px; display:flex; flex-direction:column; gap:4px;">
                 `;
@@ -382,7 +386,7 @@ class AssessmentManager {
                         html += `
                             <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
                                 <span>❓ ${q.question_text_ar || q.question_text}</span>
-                                <span style="color:#0f766e; font-weight:600; font-size:0.70rem;">(${q.code || ''})</span>
+                                <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
                             </div>`;
                     });
                 }
@@ -431,9 +435,6 @@ class AssessmentManager {
 
     /* ─────────────── تفعيل وتطوير جدول المستخدمين (LEADS) ─────────────── */
 
-    /**
-     * جلب سجلات المستخدمين الحاصلة من الشاشة الرئيسية وحساب العدادات العلوية للوحة التحكم
-     */
     async loadUserSubmissionsDashboard() {
         try {
             if (!this.supabase) return;
@@ -443,7 +444,6 @@ class AssessmentManager {
 
             this.allLeads = leads || [];
             
-            // حساب العدادات العلوية الأربعة (Stats Grid) وحقنها في الـ HTML الأصلي
             const totalLeads = this.allLeads.length;
             const completedLeads = this.allLeads.filter(l => l.completed);
             const completedCount = completedLeads.length;
@@ -645,7 +645,8 @@ class AssessmentManager {
 
             // فحص ومعالجة فخاخ التناقض السلوكي نصياً بالعربية
             let behaviorTrapsHtml = '';
-            const triggeredTraps = answers ? answers.filter(a => a.is_trap || a.answer_value === 0 || a.option_value === 0) : [];
+            // قراءة الحقول الحقيقية المعتمدة سحابياً وهي answers.is_trap و trap_triggered
+            const triggeredTraps = answers ? answers.filter(a => a.trap_triggered === true || a.is_trap === true) : [];
             
             if (triggeredTraps.length > 0) {
                 triggeredTraps.forEach((trap, idx) => {
@@ -654,7 +655,7 @@ class AssessmentManager {
                             <div class="answer-question" style="font-weight:700; color:#991b1b;">🚨 فجوة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
                             <div style="font-size:0.85rem; color:#7f1d1d; line-height:1.6; margin-top:4px;">
                                 <strong>المعيار المفحوص:</strong> ${trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.'} <br>
-                                <span style="color:#b91c1c; font-weight:700;">📌 واقع رد الفريق المطبق في المحادثات:</span> ${trap.chosen_option_label || 'إرسال السعر مباشرة بدون نقاش.'}
+                                <span style="color:#b91c1c; font-weight:700;">📌 واقع رد الفريق المطبق في المحادثات (قيمة: ${trap.answer_value || 1}):</span>
                             </div>
                         </div>
                     `;
@@ -664,16 +665,23 @@ class AssessmentManager {
             }
 
             // احتساب مؤشرات الأداء الحيوية القياسية (KPIs Dashboard) ديناميكياً لتطابق عقد المحرك
-            const fetchAxisScore = (id) => parseFloat(scores?.find(s => s.axis_id === id)?.percentage || 50);
+            const fetchAxisScore = (id) => {
+                const found = scores?.find(s => s.axis_id === id);
+                return found ? parseFloat(found.percentage) : 50;
+            };
             const tfiIndex = Math.round((fetchAxisScore('A1') + fetchAxisScore('A2')) / 2);
             const tapIndex = Math.round((fetchAxisScore('A3') + fetchAxisScore('A4')) / 2);
             const prpIndex = Math.round(fetchAxisScore('A5'));
+
+            // جلب اسم التقييم الفعلي من الخارطة التي قمنا ببنائها ديناميكياً
+            const currentAssessmentName = this.assessmentTypesMap[lead.assessment_type_id] || 'نموذج تقييم استشاري';
 
             // دمج وحقن التقارير النصية العربية المتكاملة في الـ Modal دون تغيير هيكلة الـ HTML الأصلية
             modalBody.innerHTML = `
                 <div class="detail-section" style="text-align:right;">
                     <h4>📋 البيانات الاستشارية والتعريفية للمنشأة الطبية</h4>
                     <div class="detail-grid">
+                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${currentAssessmentName}</div></div>
                         <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${lead.full_name}</div></div>
                         <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${lead.clinic_name || '---'}</div></div>
                         <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${lead.phone || '---'}</div></div>
@@ -695,7 +703,7 @@ class AssessmentManager {
                 <div class="detail-section" style="text-align:right;">
                     <h4>🎯 كفاءة محاور الأداء الاستراتيجي لرحلة المريض</h4>
                     <div class="scores-grid">
-                        ${axisGridHtml || '<p style="color:#6b7280;">لا توجد درجات محاور مسجلة.</p>'}
+                        ${axisGridHtml || '<p style="color:#6b7280; text-align:center; grid-column: 1/-1;">لا توجد درجات محاور مسجلة في قاعدة البيانات لهذا السجل حالياً.</p>'}
                     </div>
                 </div>
 
@@ -704,13 +712,13 @@ class AssessmentManager {
                     <div style="background:#f0fdfa; border-right:4px solid #0f766e; padding:12px; border-radius:6px; margin-bottom:8px;">
                         <strong style="color:#134e4a; font-size:0.9rem; display:block; margin-bottom:4px;">🎯 الأولوية التشغيلية القصوى للتدخل السريع:</strong>
                         <p style="font-size:0.85rem; color:#374151; line-height:1.6; margin:0;">
-                            يمثل محور <strong>"${weakestAxis.name}"</strong> الفجوة التشغيلية الأكبر والمنفذ الرئيسي المسبب لـ الفاقد المالي وتسريب المرضى بنسبة أداء حرج بلغت (${weakestAxis.score.toFixed(1)}%). يتطلب هذا المعيار تدخلاً فورياً لإعادة صياغة بروتوكول العقد المسبق وأنظمة المتابعة لمنع الفاقد المالي (Leakage).
+                            يمثل محور <strong>"${weakestAxis.name}"</strong> الفجوة التشغيلية الأكبر والمنفذ الرئيسي المسبب لـ الفاقد المالي وتسريب المرضى بنسبة أداء بلغت (${weakestAxis.score <= 100 ? weakestAxis.score.toFixed(1) + '%' : 'قيد الاحتساب'}). يتطلب هذا المعيار تدخلاً فورياً لإعادة صياغة بروتوكول العقد المسبق وأنظمة المتابعة لمنع الفاقد المالي (Leakage).
                         </p>
                     </div>
                     <div style="background:#f8fafc; border-right:4px solid #6b7280; padding:12px; border-radius:6px;">
                         <strong style="color:#1f2937; font-size:0.9rem; display:block; margin-bottom:4px;">💪 نقطة القوة المرتكز عليها في العيادة:</strong>
                         <p style="font-size:0.85rem; color:#6b7280; line-height:1.6; margin:0;">
-                            تتمتع العيادة بنظام تشغيلي مستقر وكفاءة متميزة في محور <strong>"${strongestAxis.name}"</strong> بنسبة نجاح بلغت (${strongestAxis.score.toFixed(1)}%). يمكن الارتكاز على هذه القوة التنافسية لرفع كفاءة الأداء المالي والتشغيلي لباقي الكادر التشغيلي.
+                            تتمتع العيادة بنظام تشغيلي مستقر وكفاءة متميزة في محور <strong>"${strongestAxis.name}"</strong> بنسبة نجاح بلغت (${strongestAxis.score >= 0 ? strongestAxis.score.toFixed(1) + '%' : 'قيد الاحتساب'}). يمكن الارتكاز على هذه القوة التنافسية لرفع كفاءة الأداء المالي والتشغيلي لباقي الكادر.
                         </p>
                     </div>
                 </div>
