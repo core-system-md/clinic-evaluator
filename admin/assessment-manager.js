@@ -427,17 +427,55 @@ class AssessmentManager {
     async addAxisInline(assessmentId) {
         const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
         if (!titleAr) return;
+
+        // قائمة الأوزان الجاهزة
+        const weightOptions = [
+            { label: 'خفيف جداً (10%)', value: 10 },
+            { label: 'خفيف (15%)', value: 15 },
+            { label: 'متوسط (20%)', value: 20 },
+            { label: 'ثقيل (25%)', value: 25 },
+            { label: 'ثقيل جداً (30%)', value: 30 },
+            { label: 'حاسم (40%)', value: 40 },
+            { label: 'مخصص (تكتب يدوياً)', value: null }
+        ];
+
+        let weightSelection = prompt(
+            "اختر وزن المحور:\n" +
+            weightOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n') +
+            "\n\nاكتب رقم الخيار (1-7):"
+        );
+
+        const selectedIndex = parseInt(weightSelection, 10) - 1;
+        let weight = 10; // افتراضي
+
+        if (selectedIndex >= 0 && selectedIndex < weightOptions.length) {
+            if (weightOptions[selectedIndex].value === null) {
+                // مخصص
+                const customWeight = prompt("أدخل الوزن المخصص (1-100):");
+                weight = parseInt(customWeight, 10) || 10;
+            } else {
+                weight = weightOptions[selectedIndex].value;
+            }
+        }
+
+        // توليد كود قصير: AX_ + 7 أرقام من الوقت (10 أحرف كحد أقصى)
+        const timestamp = Date.now().toString();
+        const shortCode = 'AX_' + timestamp.slice(-7);
+
         try {
             await this.supabase.insert('axes', {
                 assessment_type_id: assessmentId,
                 title_ar: titleAr,
-                code: 'AXIS_' + Date.now(),
-                weight: 10,
+                code: shortCode,
+                weight: weight,
                 display_order: 1,
                 status: 'active'
             });
+            this.showToast(`تم إضافة المحور "${titleAr}" بوزن ${weight}%`);
             await this.editAssessment(assessmentId);
-        } catch (err) { this.showToast("فشل إضافة المحور: " + err.message, true); }
+        } catch (err) { 
+            this.showToast("فشل إضافة المحور: " + err.message, true); 
+        }
     }
 
     async addQuestionInline(assessmentId, axisId) {
@@ -455,7 +493,9 @@ class AssessmentManager {
                 status: 'active'
             });
             await this.editAssessment(assessmentId);
-        } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
+        } catch (err) { 
+            this.showToast("فشل إضافة السؤال: " + err.message, true); 
+        }
     }
 
     /* ─────────────── تفعيل وتطوير جدول المستخدمين (LEADS) ─────────────── */
