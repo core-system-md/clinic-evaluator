@@ -32,7 +32,38 @@ class AssessmentManager {
 
         // تشغيل الجزء الثاني: مزامنة لوحة التحكم وجدول التقييمات التي نفذها المستخدمون
         await this.loadUserSubmissionsDashboard();
+        
+        // ملء قائمة الفلترة ديناميكياً من قاعدة البيانات
+        await this.populateFilterTypeDropdown();
+        
         this.setupDashboardFilterEvents();
+    }
+
+    // دالة جديدة: ملء قائمة الفلترة ديناميكياً بأنواع التقييمات الحقيقية
+    async populateFilterTypeDropdown() {
+        const select = document.getElementById('filter-type');
+        if (!select) return;
+
+        try {
+            const data = await this.supabase.select('assessment_types');
+            if (!data || data.length === 0) return;
+
+            // حفظ الخيار الأول "كل التقييمات"
+            const firstOption = select.querySelector('option[value=""]');
+            select.innerHTML = '';
+            if (firstOption) select.appendChild(firstOption);
+
+            // إضافة كل تقييم كخيار (UUID كقيمة، الاسم العربي كنص ظاهر)
+            data.forEach(ast => {
+                if (ast.is_active === false) return; // تخطي المشطوبة
+                const option = document.createElement('option');
+                option.value = ast.id; // UUID الحقيقي
+                option.textContent = ast.title_ar || ast.title_en || ast.slug || 'تقييم بدون اسم';
+                select.appendChild(option);
+            });
+        } catch (err) {
+            console.error('[CORE System] فشل ملء قائمة الفلترة:', err);
+        }
     }
 
     showToast(message, isError = false) {
@@ -43,7 +74,7 @@ class AssessmentManager {
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
     }
 
-    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماُ مع نظام مطابقة نفاذ المرضى والعيادات
+    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماً مع نظام مطابقة نفاذ المرضى والعيادات
     async simpleHash(str) {
         const encoder = new TextEncoder();
         const data = encoder.encode(str);
@@ -62,7 +93,7 @@ class AssessmentManager {
                 return;
             }
 
-            // جلب حزم البيانات المتزامنة للتقييمات وإعدادات بوابات النفاذ ماليًا
+            // جلب حزم البيانات المتزامنة للتقييمات وإعدادات بوابات النفاذ مالياً
             const data = await this.supabase.select('assessment_types');
             const authSettings = await this.supabase.select('assessment_settings') || [];
 
@@ -685,138 +716,4 @@ class AssessmentManager {
         modalBody.innerHTML = '<p style="text-align:center; padding:24px; font-weight:600; color:#475569;">⏳ جاري قراءة وفحص الفخاخ السلوكية واستنباط التحليلات النصية لرحلة المريض...</p>';
 
         try {
-            const lead = this.allLeads.find(l => l.id === leadId);
-            if (!lead) return;
-
-            // جلب درجات المحاور والإجابات المصلحة من قاعدة البيانات
-            const [scores, answers] = await Promise.all([
-                this.supabase.select('scores', { filter: { lead_id: leadId } }),
-                this.supabase.select('answers', { filter: { lead_id: leadId } })
-            ]);
-
-            let axisGridHtml = '';
-            let weakestAxis = { name: 'المحاور قيد المعالجة', score: 101 };
-            let strongestAxis = { name: 'المحاور قيد المعالجة', score: -1 };
-
-            if (scores && scores.length > 0) {
-                scores.forEach(s => {
-                    const pct = parseFloat(s.percentage) || 0;
-                    const name = s.axis_name_ar || s.axis_id;
-                    
-                    if (pct < weakestAxis.score) { weakestAxis = { name: name, score: pct }; }
-                    if (pct > strongestAxis.score) { strongestAxis = { name: name, score: pct }; }
-
-                    axisGridHtml += `
-                        <div class="score-card">
-                            <div class="score-name">${name}</div>
-                            <div class="score-value">${pct.toFixed(1)}%</div>
-                        </div>
-                    `;
-                });
-            }
-
-            // فحص ومعالجة فخاخ التناقض السلوكي نصياً بالعربية
-            let behaviorTrapsHtml = '';
-            // قراءة الحقول الحقيقية المعتمدة سحابياً وهي answers.is_trap و trap_triggered
-            const triggeredTraps = answers ? answers.filter(a => a.trap_triggered === true || a.is_trap === true) : [];
-            
-            if (triggeredTraps.length > 0) {
-                triggeredTraps.forEach((trap, idx) => {
-                    behaviorTrapsHtml += `
-                        <div class="answer-item" style="background:#fff5f5; border-right:3px solid #ef4444; padding:12px; margin-bottom:8px; border-radius:6px; text-align:right;">
-                            <div class="answer-question" style="font-weight:700; color:#991b1b;">🚨 فجوة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
-                            <div style="font-size:0.85rem; color:#7f1d1d; line-height:1.6; margin-top:4px;">
-                                <strong>المعيار المفحوص:</strong> ${trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.'} <br>
-                                <span style="color:#b91c1c; font-weight:700;">📌 واقع رد الفريق المطبق في المحادثات (قيمة: ${trap.answer_value || 1}):</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">✅ أداء العيادة متطابق ومتزن بالكامل مع الرد السلوكي المعلن، ولم يتم رصد فخاخ تسريب حادة.</p>';
-            }
-
-            // احتساب مؤشرات الأداء الحيوية القياسية (KPIs Dashboard) ديناميكياً لتطابق عقد المحرك
-            const fetchAxisScore = (id) => {
-                const found = scores?.find(s => s.axis_id === id);
-                return found ? parseFloat(found.percentage) : 50;
-            };
-            const tfiIndex = Math.round((fetchAxisScore('A1') + fetchAxisScore('A2')) / 2);
-            const tapIndex = Math.round((fetchAxisScore('A3') + fetchAxisScore('A4')) / 2);
-            const prpIndex = Math.round(fetchAxisScore('A5'));
-
-            // جلب اسم التقييم الفعلي من الخارطة التي قمنا ببنائها ديناميكياً
-            const currentAssessmentName = this.assessmentTypesMap[lead.assessment_type_id] || 'نموذج تقييم استشاري';
-
-            // دمج وحقن التقارير النصية العربية المتكاملة في الـ Modal دون تغيير هيكلة الـ HTML الأصلية
-            modalBody.innerHTML = `
-                <div class="detail-section" style="text-align:right;">
-                    <h4>📋 البيانات الاستشارية والتعريفية للمنشأة الطبية</h4>
-                    <div class="detail-grid">
-                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${currentAssessmentName}</div></div>
-                        <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${lead.full_name}</div></div>
-                        <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${lead.clinic_name || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${lead.phone || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">البريد الإلكتروني التجاري</div><div class="detail-value">${lead.email || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">التخصص السريري والبلد</div><div class="detail-value">${this.translateSpecialty(lead.specialty)} • ${lead.country === 'JO' ? 'الأردن 🇯🇴' : lead.country === 'SA' ? 'السعودية 🇸🇦' : lead.country || '🌍 أخرى'}</div></div>
-                        <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${lead.score_percentage ? parseFloat(lead.score_percentage).toFixed(1) + '%' : '---'}</div></div>
-                    </div>
-                </div>
-
-                <div class="detail-section" style="text-align:right;">
-                    <h4>📊 لوحة مؤشرات الأداء الحيوية (KPIs Dashboard)</h4>
-                    <div class="scores-grid">
-                        <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tapIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">الاستبقاء والولاء (PRP)</div><div class="score-value">${prpIndex}%</div></div>
-                    </div>
-                </div>
-
-                <div class="detail-section" style="text-align:right;">
-                    <h4>🎯 كفاءة محاور الأداء الاستراتيجي لرحلة المريض</h4>
-                    <div class="scores-grid">
-                        ${axisGridHtml || '<p style="color:#6b7280; text-align:center; grid-column: 1/-1;">لا توجد درجات محاور مسجلة في قاعدة البيانات لهذا السجل حالياً.</p>'}
-                    </div>
-                </div>
-
-                <div class="detail-section" style="text-align:right;">
-                    <h4>💡 التوجيهات الاستشارية وفرص التطوير الهيكلي ("شيفرة العيادة")</h4>
-                    <div style="background:#f0fdfa; border-right:4px solid #0f766e; padding:12px; border-radius:6px; margin-bottom:8px;">
-                        <strong style="color:#134e4a; font-size:0.9rem; display:block; margin-bottom:4px;">🎯 الأولوية التشغيلية القصوى للتدخل السريع:</strong>
-                        <p style="font-size:0.85rem; color:#374151; line-height:1.6; margin:0;">
-                            يمثل محور <strong>"${weakestAxis.name}"</strong> الفجوة التشغيلية الأكبر والمنفذ الرئيسي المسبب لـ الفاقد المالي وتسريب المرضى بنسبة أداء بلغت (${weakestAxis.score <= 100 ? weakestAxis.score.toFixed(1) + '%' : 'قيد الاحتساب'}). يتطلب هذا المعيار تدخلاً فورياً لإعادة صياغة بروتوكول العقد المسبق وأنظمة المتابعة لمنع الفاقد المالي (Leakage).
-                        </p>
-                    </div>
-                    <div style="background:#f8fafc; border-right:4px solid #6b7280; padding:12px; border-radius:6px;">
-                        <strong style="color:#1f2937; font-size:0.9rem; display:block; margin-bottom:4px;">💪 نقطة القوة المرتكز عليها في العيادة:</strong>
-                        <p style="font-size:0.85rem; color:#6b7280; line-height:1.6; margin:0;">
-                            تتمتع العيادة بنظام تشغيلي مستقر وكفاءة متميزة في محور <strong>"${strongestAxis.name}"</strong> بنسبة نجاح بلغت (${strongestAxis.score >= 0 ? strongestAxis.score.toFixed(1) + '%' : 'قيد الاحتساب'}). يمكن الارتكاز على هذه القوة التنافسية لرفع كفاءة الأداء المالي والتشغيلي لباقي الكادر.
-                        </p>
-                    </div>
-                </div>
-
-                <div class="detail-section" style="text-align:right;">
-                    <h4>🚨 رصد فجوات الأداء ومنافذ التسريب السلوكي لرحلة المريض</h4>
-                    <div class="answers-list">
-                        ${behaviorTrapsHtml}
-                    </div>
-                </div>
-            `;
-
-        } catch (err) {
-            modalBody.innerHTML = `<p style="color:red; padding:12px; text-align:center;">❌ فشل معالجة واستخراج تقرير القراءة الاستشارية: ${err.message}</p>`;
-        }
-    }
-
-    translateSpecialty(s) {
-        const map = { cosmetic: 'تجميل وليزر', dental: 'أسنان', general: 'عام وعائلي', derma: 'جلدية', ortho: 'عظام وعلاج طبيعي', eye: 'عيون' };
-        return map[s] || s || '---';
-    }
-
-    translateStaffSize(t) {
-        const map = { '1': '1 – 3 أفراد', '2': '4 – 8 أفراد', '3': '9 – 15 فرداً', '4': 'أكثر من 15 فرداً' };
-        return map[t] || t || '---';
-    }
-}
-
-window.AssessmentManager = AssessmentManager;
+            const lead = this.allLeads.find(l => l.id === leadId
