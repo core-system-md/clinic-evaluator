@@ -1,7 +1,7 @@
 /**
  * ============================================================
- * Centralized Supabase Client — supabase-client.js v2.0
- * CORE SYSTEM — التحديث الأمني وعزل صلاحيات النفاذ
+ * Centralized Supabase Client — supabase-client.js v3.0
+ * CORE SYSTEM — التحديث الأمني ودعم معالجة البيانات الجماعية (Bulk Insert)
  * ============================================================
  */
 
@@ -9,7 +9,7 @@ class SupabaseClient {
   constructor(useServiceRole = false) {
     this.url = 'https://oaqpzaarppccbnepffxx.supabase.co';
 
-    // المفتاح العام (Anon Key) - آمن للنشر في متصفحات المرضى ويسمح بالإدخال فقط
+    // المفتاح العام (Anon Key) - آمن للنشر في متصفحات المرضى والأطباء ويسمح بالإدخال والربط
     this.anonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHfA';
 
     // في حال استدعاء العميل من لوحة الإدارة، يتم تمرير مفتاح التحكم المطلق المعزول ديناميكياً
@@ -39,10 +39,24 @@ class SupabaseClient {
     return await response.json();
   }
 
+  /**
+   * دالة الإدخال المحدثة والموسعة لدعم الحفظ الجماعي (Bulk Insert)
+   * أصبحت تقبل إدخال سجل واحد ككائن، أو مصفوفة سجلات كاملة دفعة واحدة
+   */
   async insert(table, data) {
+    // التحقق داخلياً إذا كانت البيانات المرسلة هي مصفوفة (إجابات جماعية) لتجهيز ترويسة الطلب المناسبة
+    const isBulk = Array.isArray(data);
+    const customHeaders = {};
+    
+    if (isBulk) {
+      // إبلاغ السيرفر السحابي رسمياً بأننا نرسل كتلة بيانات جماعية ليتم معالجتها دفعة واحدة دون رفض
+      customHeaders['Prefer'] = 'return=representation';
+    }
+
     return this.request(table, {
       method: 'POST',
-      body: JSON.stringify(data)
+      body: JSON.stringify(data),
+      headers: customHeaders
     });
   }
 
