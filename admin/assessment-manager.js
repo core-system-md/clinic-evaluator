@@ -484,14 +484,17 @@ class AssessmentManager {
 
     async updateOption(optionId, field, value) {
         try {
-            const payload = {};
+            const payload = { p_option_id: optionId };
             if (field === 'option_value') {
-                payload.option_value = parseInt(value, 10) || 0;
+                payload.p_option_value = parseInt(value, 10) || 0;
             } else if (field === 'label_ar') {
-                payload.label_ar = value.trim();
+                payload.p_label_ar = value.trim();
             }
             
-            await this.supabase.update('options', payload, { id: optionId });
+            await this.supabase.request('rpc/update_option_secure', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
             this.showToast("تم تحديث الخيار بنجاح.");
         } catch (err) {
             this.showToast("فشل تحديث الخيار: " + err.message, true);
@@ -510,14 +513,17 @@ class AssessmentManager {
             
             const maxOrder = qOptions.reduce((max, o) => Math.max(max, o.display_order || 0), 0);
             
-            await this.supabase.insert('options', {
-                question_id: questionId,
-                label_ar: 'خيار جديد',
-                label: 'New Option',
-                option_value: 0,
-                option_index: qOptions.length,
-                display_order: maxOrder + 1,
-                is_trap: false
+            await this.supabase.request('rpc/add_option_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_question_id: questionId,
+                    p_label_ar: 'خيار جديد',
+                    p_label: 'New Option',
+                    p_option_value: 0,
+                    p_option_index: qOptions.length,
+                    p_display_order: maxOrder + 1,
+                    p_is_trap: false
+                })
             });
             
             this.showToast("تم إضافة الخيار الجديد.");
@@ -530,7 +536,10 @@ class AssessmentManager {
     async deleteOption(optionId, assessmentId) {
         if (!confirm("هل أنت متأكد من حذف هذا الخيار؟")) return;
         try {
-            await this.supabase.delete('options', { id: optionId });
+            await this.supabase.request('rpc/delete_option_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_option_id: optionId })
+            });
             this.showToast("تم حذف الخيار.");
             await this.editAssessment(assessmentId);
         } catch (err) {
