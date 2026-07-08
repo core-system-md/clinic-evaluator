@@ -343,6 +343,9 @@ class AssessmentManager {
             const currentAxes = allAxes.filter(x => x.assessment_type_id === id);
             const currentQuestions = allQuestions.filter(q => q.assessment_type_id === id);
 
+            const allOptions = await this.supabase.select('options') || [];
+            this.currentOptions = allOptions.filter(o => currentQuestions.some(q => q.id === o.question_id));
+
             this.renderModalTabs(currentAxes, currentQuestions, id);
 
             document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
@@ -377,7 +380,7 @@ class AssessmentManager {
                         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:8px; flex-wrap:wrap; gap:5px;">
                             <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || ''})</span>
                             <span style="font-size:0.75rem; color:#6b7280; margin-right:auto; margin-left:10px;">الوزن: %${axis.weight || 0}</span>
-                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7 ramp; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
+                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
                         </div>
                         <div style="padding-right:8px; display:flex; flex-direction:column; gap:4px;">
                 `;
@@ -386,11 +389,54 @@ class AssessmentManager {
                     html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0; padding:4px 0;">⚠️ لا توجد أسئلة تحت هذا المحور حالياً.</p>';
                 } else {
                     axisQuestions.forEach(q => {
+                        const qOptions = (this.currentOptions || []).filter(o => o.question_id === q.id);
+                        qOptions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
+                        
                         html += `
-                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
-                                <span>❓ ${q.question_text_ar || q.question_text}</span>
-                                <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
-                            </div>`;
+                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; margin-bottom:4px;">
+                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                                    <span style="font-weight:600;">❓ ${q.question_text_ar || q.question_text}</span>
+                                    <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
+                                </div>
+                                <div style="padding-right:12px; border-right:2px solid #e5e7eb; margin-right:4px;">
+                                    <div style="font-size:0.7rem; color:#6b7280; margin-bottom:4px; font-weight:600;">خيارات الإجابة:</div>
+                        `;
+                        
+                        if (qOptions.length === 0) {
+                            html += '<p style="font-size:0.7rem; color:#94a3b8; margin:0;">لا توجد خيارات لهذا السؤال.</p>';
+                        } else {
+                            qOptions.forEach((opt, idx) => {
+                                html += `
+                                    <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
+                                        <span style="font-size:0.7rem; color:#6b7280; min-width:20px;">${idx + 1}.</span>
+                                        <input type="text" 
+                                            value="${(opt.label_ar || opt.label || '').replace(/"/g, '&quot;')}" 
+                                            onblur="window.assessmentManager.updateOption('${opt.id}', 'label_ar', this.value)"
+                                            placeholder="نص الخيار بالعربية"
+                                            style="flex:1; min-width:120px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-family:'Cairo'; font-size:0.7rem;"
+                                        >
+                                        <input type="number" 
+                                            value="${opt.option_value !== null && opt.option_value !== undefined ? opt.option_value : ''}" 
+                                            onblur="window.assessmentManager.updateOption('${opt.id}', 'option_value', this.value)"
+                                            placeholder="الوزن"
+                                            style="width:60px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-family:'Cairo'; font-size:0.7rem; text-align:center;"
+                                        >
+                                        <button type="button" onclick="window.assessmentManager.deleteOption('${opt.id}', '${assessmentId}')" style="padding:2px 6px; font-size:0.65rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2; border-radius:4px; cursor:pointer; font-family:'Cairo';">🗑️</button>
+                                    </div>
+                                `;
+                            });
+                        }
+                        
+                        const canAddMore = qOptions.length < 5;
+                        html += `
+                                    <button type="button" 
+                                        onclick="window.assessmentManager.addOption('${q.id}', '${assessmentId}')" 
+                                        style="margin-top:4px; padding:3px 8px; font-size:0.65rem; background:#f0fdf4; color:#0f766e; border:1px solid #86efac; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600; ${canAddMore ? '' : 'opacity:0.4; cursor:not-allowed;'}"
+                                        ${canAddMore ? '' : 'disabled'}
+                                    >+ إضافة خيار (${qOptions.length}/5)</button>
+                                </div>
+                            </div>
+                        `;
                     });
                 }
                 
@@ -434,6 +480,62 @@ class AssessmentManager {
             });
             await this.editAssessment(assessmentId);
         } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
+    }
+
+    async updateOption(optionId, field, value) {
+        try {
+            const payload = {};
+            if (field === 'option_value') {
+                payload.option_value = parseInt(value, 10) || 0;
+            } else if (field === 'label_ar') {
+                payload.label_ar = value.trim();
+            }
+            
+            await this.supabase.update('options', payload, { id: optionId });
+            this.showToast("تم تحديث الخيار بنجاح.");
+        } catch (err) {
+            this.showToast("فشل تحديث الخيار: " + err.message, true);
+        }
+    }
+
+    async addOption(questionId, assessmentId) {
+        try {
+            const allOptions = await this.supabase.select('options') || [];
+            const qOptions = allOptions.filter(o => o.question_id === questionId);
+            
+            if (qOptions.length >= 5) {
+                this.showToast("الحد الأقصى 5 خيارات لكل سؤال.", true);
+                return;
+            }
+            
+            const maxOrder = qOptions.reduce((max, o) => Math.max(max, o.display_order || 0), 0);
+            
+            await this.supabase.insert('options', {
+                question_id: questionId,
+                label_ar: 'خيار جديد',
+                label: 'New Option',
+                option_value: 0,
+                option_index: qOptions.length,
+                display_order: maxOrder + 1,
+                is_trap: false
+            });
+            
+            this.showToast("تم إضافة الخيار الجديد.");
+            await this.editAssessment(assessmentId);
+        } catch (err) {
+            this.showToast("فشل إضافة الخيار: " + err.message, true);
+        }
+    }
+
+    async deleteOption(optionId, assessmentId) {
+        if (!confirm("هل أنت متأكد من حذف هذا الخيار؟")) return;
+        try {
+            await this.supabase.delete('options', { id: optionId });
+            this.showToast("تم حذف الخيار.");
+            await this.editAssessment(assessmentId);
+        } catch (err) {
+            this.showToast("فشل حذف الخيار: " + err.message, true);
+        }
     }
 
     /* ─────────────── تفعيل وتطوير جدول المستخدمين (LEADS) ─────────────── */
