@@ -1,69 +1,90 @@
-/**
- * CORE System — Assessment Manager
- * الإصدار المتوافق مع شاشات الهاتف - نسخة الربط الكامل والآمن
- */
-
-class AssessmentManager {
-    constructor(dashboard) {
-        this.dashboard = dashboard;
-        this.supabase = dashboard.supabase;
-    }
-
-    async init() {
-        // رسالة تأكيد للعمل داخل الصفحة مباشرة
-        const container = document.getElementById('assessments-table-container');
-        if (container) {
-            container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px;">النظام يعمل... جاري جلب التقييمات</p>';
+// admin.js - النسخة المعدلة بالكامل لإدارة جلسة الدخول لمدة 24 ساعة وتفعيل زر الخروج
+(function() {
+    // دالة موحدة لإظهار لوحة التحكم وتشغيل مدير التقييمات
+    function showDashboard() {
+        const loginScreen = document.getElementById('login-screen');
+        const dashboardContent = document.getElementById('dashboard-content');
+        
+        if (loginScreen) {
+            loginScreen.classList.add('hidden');
+            loginScreen.style.display = 'none';
+        }
+        if (dashboardContent) {
+            dashboardContent.classList.remove('hidden');
+            dashboardContent.style.display = 'block';
         }
         
-        await this.renderAssessmentsTable();
-    }
-
-    async renderAssessmentsTable() {
-        const container = document.getElementById('assessments-table-container');
-        if (!container) return;
-
-        try {
-            if (!this.supabase) {
-                container.innerHTML = '<p style="color:red; padding:10px;">خطأ: Supabase غير متصل</p>';
-                return;
-            }
-
-            const data = await this.supabase.select('assessment_types');
-            
-            if (!data || data.length === 0) {
-                container.innerHTML = '<p style="padding:10px;">لا توجد تقييمات حالياً في قاعدة البيانات السحابية.</p>';
-                return;
-            }
-
-            let html = `
-                <table style="width:100%; border-collapse:collapse; margin-top:10px; background:white;">
-                    <thead>
-                        <tr style="background:#f3f4f6;">
-                            <th style="padding:10px; border:1px solid #ddd;">العنوان</th>
-                            <th style="padding:10px; border:1px solid #ddd;">الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
-
-            data.forEach(ast => {
-                html += `
-                    <tr style="border-bottom:1px solid #eee;">
-                        <td style="padding:10px;">${ast.title_ar || 'بدون عنوان'}</td>
-                        <td style="padding:10px;">${ast.status}</td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table>';
-            container.innerHTML = html;
-
-        } catch (err) {
-            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>`;
+        // تشغيل مدير التقييمات الأصلي ديناميكياً
+        if (typeof AssessmentManager !== 'undefined') {
+            window.assessmentManager = new AssessmentManager({ supabase: window.supabaseClient });
+            window.assessmentManager.init();
+        } else if (window.AssessmentManager) {
+            window.assessmentManager = new window.AssessmentManager({ supabase: window.supabaseClient });
+            window.assessmentManager.init();
         }
     }
-}
 
-// سطر الأمان لضمان رؤية الملف من خلال متصفحات الهاتف ومنع التجميد الصامت
-window.AssessmentManager = AssessmentManager;
+    // دالة الفحص الذكي لصلاحية الجلسة (24 ساعة)
+    function checkSession() {
+        const sessionTime = localStorage.getItem('core_admin_session');
+        if (sessionTime) {
+            const diff = Date.now() - parseInt(sessionTime, 10);
+            const twentyFourHours = 24 * 60 * 60 * 1000; // 24 ساعة بالملي ثانية
+            if (diff < twentyFourHours) {
+                showDashboard();
+                return true;
+            }
+        }
+        return false;
+    }
+
+    function start() {
+        // 1. فحص الجلسة تلقائياً عند تحميل الشاشة
+        const hasActiveSession = checkSession();
+
+        // 2. إدارة عملية الدخول وحفظ الجلسة سحابياً ومحلياً
+        const loginForm = document.getElementById('login-form');
+        const passwordInput = document.getElementById('login-password');
+
+        if (loginForm && passwordInput) {
+            loginForm.onsubmit = function(e) {
+                e.preventDefault();
+                if (passwordInput.value === "admin") {
+                    // حفظ وقت الدخول الفعلي في متصفح الهاتف
+                    localStorage.setItem('core_admin_session', Date.now().toString());
+                    showDashboard();
+                } else {
+                    const errorDiv = document.getElementById('login-error');
+                    if (errorDiv) errorDiv.classList.remove('hidden');
+                    else alert("كلمة المرور غير صحيحة");
+                }
+            };
+        } else {
+            // كود احتياطي متوافق مع الآلية القديمة للأزرار العامة
+            const buttons = document.querySelectorAll('button');
+            const inputs = document.querySelectorAll('input');
+            if (buttons.length > 0 && !hasActiveSession) {
+                buttons[0].onclick = function(e) {
+                    e.preventDefault();
+                    if (inputs.length > 0 && inputs[0].value === "admin") {
+                        localStorage.setItem('core_admin_session', Date.now().toString());
+                        showDashboard();
+                    } else {
+                        alert("كلمة المرور غير صحيحة");
+                    }
+                };
+            }
+        }
+
+        // 3. تفعيل زر الخروج (🚪) المتاح في كود الـ HTML الأصلي للأمان
+        const logoutBtn = document.getElementById('btn-logout');
+        if (logoutBtn) {
+            logoutBtn.onclick = function(e) {
+                e.preventDefault();
+                localStorage.removeItem('core_admin_session'); // مسح الجلسة فوراً
+                window.location.reload(); // إعادة تحميل الشاشة للقفل
+            };
+        }
+    }
+    window.addEventListener('load', start);
+})();
