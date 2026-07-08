@@ -114,6 +114,21 @@ class AssessmentManager {
 
             activeAssessments.forEach(ast => {
                 let badgeClass = 'badge-warning';
+                let statusText569 = 'مسودة';
+                
+                const currentStatusClean = (ast.status || '').toLowerCase();
+                if (currentStatusClean === 'published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
+                if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
+
+;">نمط النفاذ</th>
+                                <th style="padding:12px 10px; color:#475569; text-align:center;">إجراءات التحكم</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+
+            activeAssessments.forEach(ast => {
+                let badgeClass = 'badge-warning';
                 let statusText = 'مسودة';
                 
                 const currentStatusClean = (ast.status || '').toLowerCase();
@@ -458,15 +473,16 @@ class AssessmentManager {
             }
         }
 
-        // توليد كود قصير: AX_ + 7 أرقام من الوقت (10 أحرف كحد أقصى)
+        // توليد كود قصير: AX_ + 7 أرقام من الوقت = 10 أحرف بالضبط
         const timestamp = Date.now().toString();
         const shortCode = 'AX_' + timestamp.slice(-7);
 
         try {
             await this.supabase.insert('axes', {
                 assessment_type_id: assessmentId,
-                title_ar: titleAr,
-                code: shortCode,
+                title: titleAr,        // إجباري في الجدول (NOT NULL)
+                title_ar: titleAr,     // اختياري بس نملأه أيضاً
+                code: shortCode,       // 10 أحرف بالضبط
                 weight: weight,
                 display_order: 1,
                 status: 'active'
@@ -485,7 +501,8 @@ class AssessmentManager {
             await this.supabase.insert('questions', {
                 assessment_type_id: assessmentId,
                 axis_id: axisId,
-                question_text_ar: qTextAr,
+                question_text: qTextAr,      // إجباري في الجدول (NOT NULL)
+                question_text_ar: qTextAr,   // اختياري بس نملأه أيضاً
                 code: 'Q_' + Date.now(),
                 question_type: 'single',
                 display_order: 1,
