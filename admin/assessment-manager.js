@@ -43,7 +43,7 @@ class AssessmentManager {
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
     }
 
-    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماً مع نظام مطابقة نفاذ المرضى والعيادات
+    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماُ مع نظام مطابقة نفاذ المرضى والعيادات
     async simpleHash(str) {
         const encoder = new TextEncoder();
         const data = encoder.encode(str);
@@ -106,21 +106,6 @@ class AssessmentManager {
                                 <th style="padding:12px 10px; color:#475569;">عنوان التقييم</th>
                                 <th style="padding:12px 10px; color:#475569;">الحالة</th>
                                 <th style="padding:12px 10px; color:#475569;">نمط النفاذ</th>
-                                <th style="padding:12px 10px; color:#475569; text-align:center;">إجراءات التحكم</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
-
-            activeAssessments.forEach(ast => {
-                let badgeClass = 'badge-warning';
-                let statusText569 = 'مسودة';
-                
-                const currentStatusClean = (ast.status || '').toLowerCase();
-                if (currentStatusClean === 'published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
-                if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
-
-;">نمط النفاذ</th>
                                 <th style="padding:12px 10px; color:#475569; text-align:center;">إجراءات التحكم</th>
                             </tr>
                         </thead>
@@ -478,14 +463,16 @@ class AssessmentManager {
         const shortCode = 'AX_' + timestamp.slice(-7);
 
         try {
-            await this.supabase.insert('axes', {
-                assessment_type_id: assessmentId,
-                title: titleAr,        // إجباري في الجدول (NOT NULL)
-                title_ar: titleAr,     // اختياري بس نملأه أيضاً
-                code: shortCode,       // 10 أحرف بالضبط
-                weight: weight,
-                display_order: 1,
-                status: 'active'
+            await this.supabase.request('rpc/save_axis_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_assessment_type_id: assessmentId,
+                    p_title: titleAr,
+                    p_title_ar: titleAr,
+                    p_code: shortCode,
+                    p_weight: weight,
+                    p_display_order: 1
+                })
             });
             this.showToast(`تم إضافة المحور "${titleAr}" بوزن ${weight}%`);
             await this.editAssessment(assessmentId);
@@ -498,17 +485,20 @@ class AssessmentManager {
         const qTextAr = prompt("أدخل نص السؤال الجديد (بالعربية):");
         if (!qTextAr) return;
         try {
-            await this.supabase.insert('questions', {
-                assessment_type_id: assessmentId,
-                axis_id: axisId,
-                question_text: qTextAr,      // إجباري في الجدول (NOT NULL)
-                question_text_ar: qTextAr,   // اختياري بس نملأه أيضاً
-                code: 'Q_' + Date.now(),
-                question_type: 'single',
-                display_order: 1,
-                is_required: true,
-                status: 'active'
+            await this.supabase.request('rpc/save_question_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_assessment_type_id: assessmentId,
+                    p_axis_id: axisId,
+                    p_question_text: qTextAr,
+                    p_question_text_ar: qTextAr,
+                    p_code: 'Q_' + Date.now(),
+                    p_question_type: 'single',
+                    p_display_order: 1,
+                    p_is_required: true
+                })
             });
+            this.showToast("تم إضافة السؤال بنجاح.");
             await this.editAssessment(assessmentId);
         } catch (err) { 
             this.showToast("فشل إضافة السؤال: " + err.message, true); 
