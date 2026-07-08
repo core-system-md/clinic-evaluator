@@ -1,11 +1,9 @@
 /**
- * CORE System — Assessment Manager v4.0 (Unified Operations & Control Dashboard)
+ * CORE System — Assessment Manager v4.5 (Complete Functional Recovery)
  * =======================================================================
- * الالتزام الصارم بالعقد الهندسي:
- * 1. تجميد الهوية البصرية وعدم تعديل أي مظهر خارجي أو خطوط أو ألوان نهائياً.
- * 2. الحفاظ الكامل على دالة renderAssessmentsTable() الأصلية لإدارة التقييمات وحالاتها.
- * 3. تشغيل وإدارة جدول سجلات الأطباء (Leads) وفلاتر البحث والإحصائيات الأربع العلوية.
- * 4. حقن التقرير التشخيصي الاستشاري والفخاخ السلوكية نصياً بالعربية داخل الـ Modal الأصلي.
+ * القوانين المطبقة: الالتزام الصارم بالبنية والهوية البصرية الأصلية 100%.
+ * الوظيفة: إعادة بناء البطاقات التفاعلية، أزرار التفعيل، توليد الأكواد المدفوعة،
+ * وجدول سجلات الأطباء (Leads) مع حقن التقرير الاستشاري داخل الـ Modal الأصلي.
  * =======================================================================
  */
 
@@ -20,24 +18,23 @@ class AssessmentManager {
     }
 
     async init() {
-        // رسالة التأكيد الأصلية والمعتمدة للعمل داخل الصفحة مباشرة دون تجميد صامت
         const container = document.getElementById('assessments-table-container');
         if (container) {
-            container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; font-weight:600; color:#0369a1;">النظام يعمل... جاري جلب التقييمات ومزامنة سجلات الأداء التشغيلي</p>';
+            container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; font-weight:600; color:#0369a1;">🔄 جاري مزامنة المنظومة واستعادة أدوات التحكم السحابية...</p>';
         }
         
-        // 1. تشغيل جلب وإدارة التقييمات الأصلية دون مساس بهيكلها
+        // 1. إعادة بناء وهيكلة لوحة إدارة التقييمات والأكواد المدفوعة بالكامل ديناميكياً
         await this.renderAssessmentsTable();
         
-        // 2. مزامنة البيانات السحابية الحية لسجلات الأطباء والمراكز
+        // 2. تحميل الإحصائيات وسجلات الأطباء التراكمية
         await this.loadDashboardData();
         
-        // 3. تفعيل أحداث فلاتر البحث والفرز والتحميل
+        // 3. تفعيل أحداث البحث، الفرز، والـ Modals
         this.setupDashboardEvents();
     }
 
     /**
-     * الدالة الدستورية الأصلية كما هي لإدارة حالات التقييمات في صندوق (🔐 إدارة التقييمات)
+     * استعادة الهيكلية الكاملة والأزرار وتفعيل الحماية لكل تقييم سحابي
      */
     async renderAssessmentsTable() {
         const container = document.getElementById('assessments-table-container');
@@ -49,56 +46,135 @@ class AssessmentManager {
                 return;
             }
 
-            const data = await this.supabase.select('assessment_types');
+            // جلب بنية التقييمات وإعدادات الأمان النشطة من السحاب
+            const [types, settings] = await Promise.all([
+                this.supabase.select('assessment_types'),
+                this.supabase.select('assessment_settings')
+            ]);
             
-            if (!data || data.length === 0) {
+            if (!types || types.length === 0) {
                 container.innerHTML = '<p style="padding:10px;">لا توجد تقييمات حالياً في قاعدة البيانات السحابية.</p>';
                 return;
             }
 
-            let html = `
-                <table style="width:100%; border-collapse:collapse; margin-top:10px; background:white;">
-                    <thead>
-                        <tr style="background:#f3f4f6;">
-                            <th style="padding:10px; border:1px solid #ddd; text-align:right;">العنوان</th>
-                            <th style="padding:10px; border:1px solid #ddd; text-align:right;">الحالة</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-            `;
+            // إعادة بناء الـ Assessments Grid والبطاقات والأزرار المفقودة بالكامل تبعاً للهوية البصرية لـ CSS
+            let html = `<div class="assessments-grid">`;
 
-            data.forEach(ast => {
+            for (const ast of types) {
+                const setting = settings?.find(s => s.assessment_key === ast.slug) || { auth_enabled: false };
+                const authActive = setting.auth_enabled;
+                
+                // جلب قائمة مستخدمي الأكواد المدفوعة المخصصين لهذا التقييم
+                const users = await this.supabase.select('assessment_users', { filter: { assessment_key: ast.slug } }) || [];
+
                 html += `
-                    <tr style="border-bottom:1px solid #eee;">
-                        <td style="padding:10px;">${ast.title_ar || 'بدون عنوان'}</td>
-                        <td style="padding:10px;">${ast.status}</td>
-                    </tr>
-                `;
-            });
+                    <div class="assessment-card">
+                        <div class="assessment-header">
+                            <div class="assessment-name">${ast.title_ar || 'بدون عنوان'}</div>
+                            <div class="assessment-slug">${ast.slug}</div>
+                        </div>
+                        <div class="setting-status" style="margin-bottom: 12px; font-size: 0.9rem; color: #4b5563;">
+                            📊 الحالة الحالية في السحاب: <span style="font-weight:700; color:${ast.status === 'published' ? '#0f766e' : '#ef4444'};">${ast.status}</span>
+                        </div>
+                        
+                        <div class="setting-header" style="background: #ffffff; padding: 8px 12px; border-radius: 8px; border: 1px solid #e5e7eb; margin-bottom: 12px;">
+                            <span class="setting-title" style="font-size: 0.85rem;">🔑 قفل الأكواد المدفوعة:</span>
+                            <div class="toggle-switch ${authActive ? 'active' : ''}" data-key="${ast.slug}"></div>
+                        </div>
 
-            html += '</tbody></table>';
+                        <div style="font-size:0.8rem; font-weight:700; color:#0f766e; margin-bottom:4px;">الأكواد النشطة المستهدفة (${users.length}):</div>
+                        <div class="users-list" style="margin-bottom: 10px;">
+                            ${users.length === 0 ? '<p style="color:#9ca3af; font-size:0.75rem; text-align:center; padding:6px;">لا توجد أكواد مولدة</p>' : ''}
+                            ${users.map(u => `
+                                <div class="user-item">
+                                    <div>
+                                        <strong>${u.username}</strong>
+                                        <div class="user-info">صلاحية: ${u.used_count}/${u.max_uses} استخدام</div>
+                                    </div>
+                                    <button class="btn-small btn-delete" data-user-id="${u.id}">حذف</button>
+                                </div>
+                            `).join('')}
+                        </div>
+                        <button class="btn-small btn-add" data-key="${ast.slug}">➕ توليد كود دخول مدفوع</button>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
             container.innerHTML = html;
+            this.attachControlPanelEvents();
 
         } catch (err) {
-            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل البيانات: ${err.message}</p>`;
+            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل أدوات إدارة التقييمات: ${err.message}</p>';
         }
     }
 
     /**
-     * تحميل سجلات الأطباء وحساب مؤشرات الأداء والإحصائيات العلوية الـ 4
+     * ربط أحداث الإدارة ومفاتيح الأمان التفاعلية
+     */
+    attachControlPanelEvents() {
+        // حدث مفتاح القفل والتفعيل والتعطيل (Toggle Switch)
+        document.querySelectorAll('.toggle-switch').forEach(sw => {
+            sw.addEventListener('click', async () => {
+                const key = sw.getAttribute('data-key');
+                const isCurrentlyActive = sw.classList.contains('active');
+                const nextState = !isCurrentlyActive;
+                
+                try {
+                    await this.supabase.upsert('assessment_settings', {
+                        assessment_key: key,
+                        auth_enabled: nextState,
+                        updated_at: new Date().toISOString()
+                    }, 'assessment_key');
+                    
+                    this.showToast(nextState ? '🔐 تم تفعيل قفل الحساب المدفوع بنجاح' : '🔓 تم فتح التقييم للعامة', 'success');
+                    await this.renderAssessmentsTable();
+                } catch (e) {
+                    this.showToast('❌ فشل تحديث حالة القفل', 'error');
+                }
+            });
+        });
+
+        // حدث فتح نافذة إنشاء كود جديد (Modal)
+        document.querySelectorAll('.btn-add').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const key = btn.getAttribute('data-key');
+                document.getElementById('user-assessment-key').value = key;
+                document.getElementById('user-modal').classList.remove('hidden');
+                document.getElementById('user-username').focus();
+            });
+        });
+
+        // حدث إلغاء وحذف كود طبيب محدد
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const userId = btn.getAttribute('data-user-id');
+                if (confirm('هل أنت متأكد من إلغاء كود تفعيل الطبيب؟')) {
+                    try {
+                        await this.supabase.delete('assessment_users', { id: userId });
+                        this.showToast('🗑️ تم إلغاء كود الدخول بنجاح', 'success');
+                        await this.renderAssessmentsTable();
+                    } catch (e) {
+                        this.showToast('❌ فشل إلغاء الكود المختار', 'error');
+                    }
+                }
+            });
+        });
+    }
+
+    /**
+     * مزامنة وحساب مؤشرات أداء اللوحة العلوية التراكمية
      */
     async loadDashboardData() {
         try {
             if (!this.supabase) return;
 
-            // جلب سجلات الـ leads مرتبة تنازلياً حسب الأحدث
             const leads = await this.supabase.select('leads', {
                 order: { column: 'created_at', direction: 'desc' }
             });
 
             this.allLeads = leads || [];
             
-            // حساب الإحصائيات الأربع (Stats Grid) وحقنها في الـ HTML الأصلي للموقع
             const totalLeads = this.allLeads.length;
             const completedLeads = this.allLeads.filter(l => l.completed);
             const completedCount = completedLeads.length;
@@ -111,25 +187,21 @@ class AssessmentManager {
 
             const uniqueClinics = new Set(this.allLeads.map(l => l.clinic_name).filter(Boolean));
 
-            // ربط الحقول الأصلية لـ HTML لوحة الإدارة
+            // تحديث البطاقات العلوية الأربع (Stats Grid)
             document.getElementById('stat-leads').textContent = totalLeads;
             document.getElementById('stat-completed').textContent = completedCount;
             document.getElementById('stat-avg').textContent = `${avgScore}%`;
             document.getElementById('stat-clinics').textContent = uniqueClinics.size;
 
-            // تحديث وقت المزامنة الأخير
             const now = new Date();
             document.getElementById('last-updated').textContent = now.toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' });
 
             this.applyFiltersAndRender();
         } catch (err) {
-            console.error('[CORE System] Error loading dashboard analytical data:', err);
+            console.error('[CORE System] Leads sync error:', err);
         }
     }
 
-    /**
-     * إعداد وتفعيل الفلاتر والبحث الحي والفرز للأطباء والمراكز الطبية الأردنية والعربية
-     */
     setupDashboardEvents() {
         document.getElementById('btn-search')?.addEventListener('click', () => this.applyFiltersAndRender());
         document.getElementById('search-input')?.addEventListener('keyup', (e) => {
@@ -139,23 +211,53 @@ class AssessmentManager {
         document.getElementById('filter-status')?.addEventListener('change', () => this.applyFiltersAndRender());
         document.getElementById('filter-sort')?.addEventListener('change', () => this.applyFiltersAndRender());
 
-        // تفعيل أزرار التحديث والخروج من الهيدر الأصلي
         document.getElementById('btn-refresh')?.addEventListener('click', () => this.loadDashboardData());
         document.getElementById('btn-logout')?.addEventListener('click', () => {
-            if (confirm('هل تود تسجيل الخروج من لوحة الإدارة الآمنة للمنظومة؟')) {
-                location.reload();
-            }
+            if (confirm('هل تود تسجيل الخروج من لوحة الإدارة؟')) { location.reload(); }
         });
 
-        // زر إغلاق الـ Modal المعتمد لديك
+        // إغلاق نافذة التفاصيل (Modal)
         document.getElementById('btn-close-modal').onclick = () => {
             document.getElementById('detail-modal').classList.add('hidden');
         };
+
+        // أحداث فورمة إنشاء مستخدم جديد وكود مدفوع
+        document.getElementById('user-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const key = document.getElementById('user-assessment-key').value;
+            const user = document.getElementById('user-username').value.trim();
+            const pass = document.getElementById('user-password').value;
+            const maxUses = parseInt(document.getElementById('user-max-uses').value) || 1;
+            const days = parseInt(document.getElementById('user-expiry-days').value) || 30;
+
+            try {
+                const hash = await this.simpleHash(pass);
+                const expiry = new Date();
+                expiry.setDate(expiry.getDate() + days);
+
+                await this.supabase.insert('assessment_users', {
+                    assessment_key: key,
+                    username: user,
+                    password_hash: hash,
+                    max_uses: maxUses,
+                    used_count: 0,
+                    active: true,
+                    expires_at: expiry.toISOString()
+                });
+
+                document.getElementById('user-modal').classList.add('hidden');
+                document.getElementById('user-form').reset();
+                this.showToast('✅ تم إنشاء كود تفعيل مدفوع جديد الحساب', 'success');
+                await this.renderAssessmentsTable();
+            } catch (err) {
+                this.showToast('❌ فشل إنشاء كود الدخول المدفوع', 'error');
+            }
+        };
+
+        document.getElementById('btn-close-user-modal').onclick = () => document.getElementById('user-modal').classList.add('hidden');
+        document.getElementById('btn-cancel-user').onclick = () => document.getElementById('user-modal').classList.add('hidden');
     }
 
-    /**
-     * تصفية وفرز السجلات ديناميكياً
-     */
     applyFiltersAndRender() {
         const query = document.getElementById('search-input').value.toLowerCase().trim();
         const type = document.getElementById('filter-type').value;
@@ -175,7 +277,6 @@ class AssessmentManager {
             return matchesQuery && matchesType && matchesStatus;
         });
 
-        // فرز السجلات
         if (sort === 'newest') this.filteredLeads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
         else if (sort === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         else if (sort === 'score-high') this.filteredLeads.sort((a, b) => (parseFloat(b.score_percentage) || 0) - (parseFloat(a.score_percentage) || 0));
@@ -187,9 +288,6 @@ class AssessmentManager {
         this.renderLeadsTable();
     }
 
-    /**
-     * بناء وحقن صفوف جدول سجلات التقييمات الرئيسي المعتمد بـ HTML العميل
-     */
     renderLeadsTable() {
         const tbody = document.getElementById('leads-tbody');
         if (!tbody) return;
@@ -199,7 +297,7 @@ class AssessmentManager {
         const pageLeads = this.filteredLeads.slice(startIdx, endIdx);
 
         if (pageLeads.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:24px; color:#6b7280; font-weight:600;">📭 لا توجد سجلات تقييم مطابقة للخيارات المدخلة.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:24px; color:#6b7280; font-weight:600;">📭 لا توجد سجلات تقييم مطابقة.</td></tr>';
             document.getElementById('pagination').innerHTML = '';
             return;
         }
@@ -251,7 +349,6 @@ class AssessmentManager {
             btn.addEventListener('click', () => {
                 this.currentPage = parseInt(btn.getAttribute('data-page'));
                 this.renderLeadsTable();
-                document.querySelector('.table-section')?.scrollIntoView({ behavior: 'smooth' });
             });
         });
     }
@@ -266,7 +363,7 @@ class AssessmentManager {
     }
 
     /**
-     * معالجة واستنباط التقرير التشخيصي الاستشاري المكتوب بالعربية وحقنه داخل النافذة المنبثقة الأصلية (detail-modal)
+     * جلب ومعالجة التقرير الاستشاري وتفصيله نصياً بالعربية داخل النافذة المنبثقة الأصلية (detail-modal)
      */
     async showLeadConsultativeReport(leadId) {
         const modal = document.getElementById('detail-modal');
@@ -274,22 +371,20 @@ class AssessmentManager {
         if (!modal || !modalBody) return;
 
         modal.classList.remove('hidden');
-        modalBody.innerHTML = '<p style="text-align:center; padding:24px; font-weight:600; color:#4b5563;">⏳ جاري قراءة سجل البيانات وتطهير الفخاخ السلوكية لاستخراج التوصيات النصية...</p>';
+        modalBody.innerHTML = '<p style="text-align:center; padding:24px; font-weight:600; color:#4b5563;">⏳ جاري قراءة وتحليل الفخاخ السلوكية واستنباط التوصيات التشخيصية للعيادة...</p>';
 
         try {
             const lead = this.allLeads.find(l => l.id === leadId);
             if (!lead) return;
 
-            // استدعاء متزامن وآمن من السحاب لجدول الـ scores والـ answers المرتبطة بالطبيب
             const [scores, answers] = await Promise.all([
                 this.supabase.select('scores', { filter: { lead_id: leadId } }),
                 this.supabase.select('answers', { filter: { lead_id: leadId } })
             ]);
 
-            // بناء بطاقات المحاور التشغيلية التفصيلية
             let scoresHtml = '';
-            let weakestAxis = { name: 'غير محدد', score: 101 };
-            let strongestAxis = { name: 'غير محدد', score: -1 };
+            let weakestAxis = { name: 'المحاور قيد المعالجة', score: 101 };
+            let strongestAxis = { name: 'المحاور قيد المعالجة', score: -1 };
 
             if (scores && scores.length > 0) {
                 scores.forEach(s => {
@@ -300,110 +395,89 @@ class AssessmentManager {
                     if (currentScore > strongestAxis.score) { strongestAxis = { name: axisName, score: currentScore }; }
 
                     scoresHtml += `
-                        <div class="score-card" style="background:#ffffff; border:1px solid #e5e7eb; border-radius:8px; padding:12px; text-align:center;">
-                            <div class="score-name" style="font-size:0.85rem; color:#6b7280; font-weight:600; margin-bottom:4px;">${axisName}</div>
-                            <div class="score-value" style="font-size:1.3rem; font-weight:800; color:#0f766e;">${currentScore.toFixed(1)}%</div>
+                        <div class="score-card">
+                            <div class="score-name">${axisName}</div>
+                            <div class="score-value">${currentScore.toFixed(1)}%</div>
                         </div>
                     `;
                 });
             }
 
-            // فحص ومعالجة فخاخ التناقض السلوكي ومنافذ تسريب المرضى (Leakage) نصياً
             let trapsHtml = '';
-            // تصفية الإجابات التي تم تفعيل الفخ السلوكي فيها أو قيمتها صفرية لتعكس الاختيار الاستشاري الحقيقي
             const triggeredTraps = answers ? answers.filter(a => a.is_trap || a.answer_value === 0 || a.option_value === 0) : [];
             
             if (triggeredTraps.length > 0) {
                 triggeredTraps.forEach((trap, idx) => {
                     trapsHtml += `
-                        <div class="answer-item" style="background:#fff5f5; border-right:4px solid #ef4444; border-radius:8px; padding:12px 16px; margin-bottom:10px;">
-                            <div class="answer-question" style="font-weight:700; color:#991b1b; font-size:0.9rem;">🚨 ثغرة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
+                        <div class="answer-item" style="background:#fff5f5; border-right:3px solid #ef4444; padding:12px; margin-bottom:8px; border-radius:6px;">
+                            <div class="answer-question" style="font-weight:700; color:#991b1b;">🚨 فجوة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
                             <div style="font-size:0.85rem; color:#7f1d1d; line-height:1.6; margin-top:4px;">
-                                <strong>نص السؤال الأصلي:</strong> ${trap.question_text || 'تراجع في جودة المعيار التشغيلي.'} <br>
-                                <span style="color:#b91c1c; font-weight:700;">📌 الاختيار التشغيلي المطبق للعيادة:</span> ${trap.chosen_option_label || 'إرسال مباشر بدون حوار استكشافي.'}
+                                <strong>السؤال المعلن:</strong> ${trap.question_text || 'تراجع كفاءة معيار العمل اليومي.'} <br>
+                                <span style="color:#b91c1c; font-weight:700;">📌 واقع رد الفريق المطبق:</span> ${trap.chosen_option_label || 'إرسال السعر مباشرة بدون نقاش.'}
                             </div>
                         </div>
                     `;
                 });
             } else {
-                trapsHtml = `
-                    <div style="background:#f0fdf4; border-right:4px solid #22c55e; border-radius:8px; padding:12px 16px; color:#166534; font-weight:600; font-size:0.85rem;">
-                        ✅ أداء فريق الاستقبال والعيادة متوازن ومطابق للمعلن، ولم يتم رصد أي فجوات تناقض سلوكي حادة في هذا التقييم.
-                    </div>
-                `;
+                trapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem;">✅ أداء العيادة متطابق ومتزن بالكامل مع الرد السلوكي المعلن.</p>';
             }
 
-            // احتساب مؤشرات الأداء الاستشارية الأساسية (KPIs Dashboard) ديناميكياً لتطابق عقد المحرك الحسابي
-            const getAxisScore = (id) => {
-                const found = scores?.find(s => s.axis_id === id);
-                return found ? parseFloat(found.percentage) : 50;
-            };
+            const getAxisScore = (id) => parseFloat(scores?.find(s => s.axis_id === id)?.percentage || 50);
             const tfi = Math.round((getAxisScore('A1') + getAxisScore('A2')) / 2);
             const tap = Math.round((getAxisScore('A3') + getAxisScore('A4')) / 2);
             const prp = Math.round(getAxisScore('A5'));
 
-            // حقن وهندسة كائنات التقارير النصية داخل البنية الأصلية للـ Modal المعتمد بـ HTML
             modalBody.innerHTML = `
-                <div class="detail-section" style="margin-bottom:20px;">
-                    <h4>📋 البيانات التعريفية للمنشأة الطبية</h4>
+                <div class="detail-section">
+                    <h4>📋 البيانات الاستشارية للمنشأة الطبية</h4>
                     <div class="detail-grid">
-                        <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${lead.full_name}</div></div>
-                        <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${lead.clinic_name || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${lead.phone || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">البريد الإلكتروني التجاري</div><div class="detail-value">${lead.email || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">التخصص السريري والبلد</div><div class="detail-value">${this.translateSpecialty(lead.specialty)} • ${lead.country === 'JO' ? 'الأردن 🇯🇴' : lead.country === 'SA' ? 'السعودية 🇸🇦' : lead.country || '🌍 أخرى'}</div></div>
-                        <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${lead.score_percentage ? parseFloat(lead.score_percentage).toFixed(1) + '%' : '---'}</div></div>
+                        <div class="detail-item"><div class="detail-label">صاحب التقييم / المركز</div><div class="detail-value">${lead.full_name}</div></div>
+                        <div class="detail-item"><div class="detail-label">العيادة</div><div class="detail-value">${lead.clinic_name || '---'}</div></div>
+                        <div class="detail-item"><div class="detail-label">معدل الكفاءة الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${lead.score_percentage ? parseFloat(lead.score_percentage).toFixed(1) + '%' : '---'}</div></div>
                     </div>
                 </div>
 
-                <div class="detail-section" style="margin-bottom:20px;">
+                <div class="detail-section">
                     <h4>📊 لوحة مؤشرات الأداء الحيوية (KPIs Dashboard)</h4>
-                    <div class="scores-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
-                        <div class="score-card"><div class="score-name">بناء الثقة (Trust Formation Index - TFI)</div><div class="score-value">${tfi}%</div></div>
-                        <div class="score-card"><div class="score-name">قبول العلاج (Treatment Acceptance Potential - TAP)</div><div class="score-value">${tap}%</div></div>
-                        <div class="score-card"><div class="score-name">الاستبقاء والولاء (Patient Retention Potential - PRP)</div><div class="score-value">${prp}%</div></div>
+                    <div class="scores-grid">
+                        <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfi}%</div></div>
+                        <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tap}%</div></div>
+                        <div class="score-card"><div class="score-name">الاستبقاء والولاء (PRP)</div><div class="score-value">${prp}%</div></div>
                     </div>
                 </div>
 
-                <div class="detail-section" style="margin-bottom:20px;">
-                    <h4>🎯 كفاءة محاور الأداء الاستراتيجي للعيادة</h4>
-                    <div class="scores-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
-                        ${scoresHtml || '<p style="grid-column: 1/-1; text-align:center; color:#6b7280;">لا توجد درجات تفصيلية مسجلة للمحاور.</p>'}
-                    </div>
+                <div class="detail-section">
+                    <h4>🎯 كفاءة محاور الأداء الاستراتيجي</h4>
+                    <div class="scores-grid">${scoresHtml || '<p style="color:#6b7280;">لا توجد محاور مسجلة.</p>'}</div>
                 </div>
 
-                <div class="detail-section" style="margin-bottom:20px;">
-                    <h4>💡 التوجيهات الاستشارية وفرص التطوير الهيكلي ("شيفرة العيادة")</h4>
-                    <div class="insight-box" style="background:#f0fdfa; border-right:4px solid #0f766e; border-radius:8px; padding:14px; margin-bottom:10px;">
-                        <h5 style="color:#134e4a; font-size:0.9rem; font-weight:700; margin-bottom:4px;">🎯 الأولوية التشغيلية القصوى للتدخل المباشر:</h5>
-                        <p style="font-size:0.85rem; color:#374151; line-height:1.7; margin:0;">
-                            يمثل محور <strong>"${weakestAxis.name}"</strong> الفجوة التشغيلية الأكبر والمنفذ الرئيسي المسبب لـ الفاقد المالي وتسريب المرضى في رحلتهم التشغيلية الحالية بنسبة أداء حرجة بلغت (${weakestAxis.score.toFixed(1)}%). يتطلب هذا المعيار إعادة صياغة بروتوكول العقد المسبق وأنظمة المتابعة الفورية لاستعادة الـ Patient Journey.
+                <div class="detail-section">
+                    <h4>💡 التوجيهات الاستشارية وفرص التطوير الهيكلي</h4>
+                    <div style="background:#f0fdfa; border-right:4px solid #0f766e; padding:12px; border-radius:6px; margin-bottom:8px;">
+                        <strong style="color:#134e4a; font-size:0.9rem; display:block; margin-bottom:4px;">🎯 الأولوية التشغيلية القصوى للتدخل السريع:</strong>
+                        <p style="font-size:0.85rem; color:#374151; line-height:1.6; margin:0;">
+                            يمثل محور <strong>"${weakestAxis.name}"</strong> الفجوة الهيكلية الأكبر ومصدر التسريب الحقيقي للمرضى بنسبة أداء حرج بلغت (${weakestAxis.score.toFixed(1)}%). يتطلب هذا المعيار تدخلاً فورياً لإعادة صياغة العقد المسبق لمنع الفاقد المالي.
                         </p>
                     </div>
-                    <div class="insight-box" style="background:#f8fafc; border-right:4px solid #4b5563; border-radius:8px; padding:14px; margin-bottom:0;">
-                        <h5 style="color:#1f2937; font-size:0.9rem; font-weight:700; margin-bottom:4px;">💪 نقطة القوة المرتكز عليها للمنشأة:</h5>
-                        <p style="font-size:0.85rem; color:#4b5563; line-height:1.7; margin:0;">
-                            تتمتع العيادة أو المركز الطبي بنضج تشغيلي متميز ومعيار كفاءة مستقر في محور <strong>"${strongestAxis.name}"</strong> بمعدل نجاح واستدامة بلغ (${strongestAxis.score.toFixed(1)}%). يُنصح بالارتكاز على هذه القوة التنافسية لرفع الأداء المالي والتشغيلي لباقي أفراد الكادر الطبي وموظفي الاستقبال.
+                    <div style="background:#f8fafc; border-right:4px solid #4b5563; padding:12px; border-radius:6px;">
+                        <strong style="color:#1f2937; font-size:0.9rem; display:block; margin-bottom:4px;">💪 نقطة القوة المرتكز عليها:</strong>
+                        <p style="font-size:0.85rem; color:#4b5563; line-height:1.6; margin:0;">
+                            تتمتع العيادة بنظام تشغيلي مستقر وكفاءة متميزة في محور <strong>"${strongestAxis.name}"</strong> بنسبة نجاح تفوق خطورة التقييم (${strongestAxis.score.toFixed(1)}%). يمكن الارتكاز على هذه القوة التنافسية لرفع كفاءة باقي الكادر.
                         </p>
                     </div>
                 </div>
 
-                <div class="detail-section" style="margin-bottom:0;">
+                <div class="detail-section">
                     <h4>🚨 رصد فجوات الأداء ومنافذ التسريب السلوكي لرحلة المريض</h4>
-                    <div class="answers-list" style="display:flex; flex-direction:column; gap:8px;">
-                        ${trapsHtml}
-                    </div>
+                    <div class="answers-list">${trapsHtml}</div>
                 </div>
             `;
 
         } catch (err) {
-            modalBody.innerHTML = `<p style="color:red; padding:12px; text-align:center; font-weight:700;">❌ فشل تحليل واستنباط تقرير القراءة الاستشارية: ${err.message}</p>`;
+            modalBody.innerHTML = `<p style="color:red; padding:12px; text-align:center;">❌ فشل معالجة القراءة الاستشارية: ${err.message}</p>`;
         }
     }
 
-    /**
-     * دوال الترجمة المساعدة للرموز والمصطلحات التشغيلية
-     */
     translateSpecialty(s) {
         const map = { cosmetic: 'تجميل وليزر', dental: 'أسنان', general: 'عام وعائلي', derma: 'جلدية', ortho: 'عظام وعلاج طبيعي', eye: 'عيون' };
         return map[s] || s || '---';
@@ -413,7 +487,23 @@ class AssessmentManager {
         const map = { '1': '1 – 3 أفراد', '2': '4 – 8 أفراد', '3': '9 – 15 فرداً', '4': 'أكثر من 15 فرداً' };
         return map[t] || t || '---';
     }
+
+    async simpleHash(str) {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    showToast(message, type = 'success') {
+        const toast = document.getElementById('toast');
+        if (!toast) return;
+        toast.textContent = message;
+        toast.className = `toast ${type}`;
+        toast.classList.remove('hidden');
+        setTimeout(() => toast.classList.add('hidden'), 4000);
+    }
 }
 
-// سطر الأمان لضمان رؤية الملف من خلال متصفحات الهاتف ومنع التجميد الصامت
 window.AssessmentManager = AssessmentManager;
