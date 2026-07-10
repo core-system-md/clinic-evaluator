@@ -101,6 +101,7 @@ class AssessmentManager {
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
                     <h4 style="color:#134e4a; font-weight:700;">التقييمات المتاحة في النظام</h4>
                     <button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="padding:6px 12px; font-size:0.85rem;">+ تقييم جديد</button>
+                    <button onclick="window.assessmentManager.importAssessment()" class="btn-primary" style="padding:6px 12px; font-size:0.85rem; background:#6366f1;">📥 استيراد</button>
                 </div>
                 <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
                     <table style="width:100%; border-collapse:collapse; background:white; font-size:0.85rem; text-align:right;">
@@ -176,6 +177,7 @@ class AssessmentManager {
             });
             this.showToast("تم تحديث نمط النفاذ المالي ومستوى الأمان سحابياً.");
             await this.renderAssessmentsTable();
+        this.populateFilterDropdown();
         } catch (err) {
             this.showToast("تعذر تعديل نمط النفاذ: " + err.message, true);
         }
@@ -250,6 +252,7 @@ class AssessmentManager {
             this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
             document.getElementById('assessment-modal').classList.add('hidden');
             await this.renderAssessmentsTable();
+        this.populateFilterDropdown();
         } catch (err) {
             this.showToast("فشل حفظ التعديلات: " + err.message, true);
         }
@@ -267,6 +270,7 @@ class AssessmentManager {
             });
             this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus}`);
             await this.renderAssessmentsTable();
+        this.populateFilterDropdown();
         } catch (err) {
             this.showToast("فشل تعديل الحالة: " + err.message, true);
         }
@@ -282,6 +286,7 @@ class AssessmentManager {
             });
             this.showToast("تم شطب وإخفاء سجل التقييم بنجاح حماية للمنظومة.");
             await this.renderAssessmentsTable();
+        this.populateFilterDropdown();
         } catch (err) {
             this.showToast("فشل شطب التقييم: " + err.message, true);
         }
@@ -305,6 +310,7 @@ class AssessmentManager {
 
             this.showToast("تمت عملية النسخ المتطابق الشامل لكافة الجداول بنجاح.");
             await this.renderAssessmentsTable();
+        this.populateFilterDropdown();
         } catch (err) {
             this.showToast("فشل النسخ المتطابق العلائقي: " + err.message, true);
         }
@@ -342,7 +348,6 @@ class AssessmentManager {
             
             const currentAxes = allAxes.filter(x => x.assessment_type_id === id);
             const currentQuestions = allQuestions.filter(q => q.assessment_type_id === id);
-
             const allOptions = await this.supabase.select('options') || [];
             this.currentOptions = allOptions.filter(o => currentQuestions.some(q => q.id === o.question_id));
 
@@ -370,7 +375,7 @@ class AssessmentManager {
             html += '<p style="color:#6b7280; text-align:center; padding:20px; background:#f8fafc; border-radius:8px; border:1px dashed #cbd5e1; font-size:0.85rem;">لا توجد محاور مرتبطة حالياً. اضغط أعلاه لإضافة محورك الأول.</p>';
         } else {
             axes.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-            
+
             axes.forEach(axis => {
                 const axisQuestions = questions.filter(q => q.axis_id === axis.id);
                 axisQuestions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
@@ -384,14 +389,14 @@ class AssessmentManager {
                         </div>
                         <div style="padding-right:8px; display:flex; flex-direction:column; gap:4px;">
                 `;
-                
+
                 if (axisQuestions.length === 0) {
                     html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0; padding:4px 0;">⚠️ لا توجد أسئلة تحت هذا المحور حالياً.</p>';
                 } else {
                     axisQuestions.forEach(q => {
                         const qOptions = (this.currentOptions || []).filter(o => o.question_id === q.id);
                         qOptions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-                        
+
                         html += `
                             <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; margin-bottom:4px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -401,7 +406,7 @@ class AssessmentManager {
                                 <div style="padding-right:12px; border-right:2px solid #e5e7eb; margin-right:4px;">
                                     <div style="font-size:0.7rem; color:#6b7280; margin-bottom:4px; font-weight:600;">خيارات الإجابة:</div>
                         `;
-                        
+
                         if (qOptions.length === 0) {
                             html += '<p style="font-size:0.7rem; color:#94a3b8; margin:0;">لا توجد خيارات لهذا السؤال.</p>';
                         } else {
@@ -426,7 +431,7 @@ class AssessmentManager {
                                 `;
                             });
                         }
-                        
+
                         const canAddMore = qOptions.length < 5;
                         html += `
                                     <button type="button" 
@@ -439,7 +444,7 @@ class AssessmentManager {
                         `;
                     });
                 }
-                
+
                 html += `</div></div>`;
             });
         }
@@ -482,6 +487,24 @@ class AssessmentManager {
         } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
     }
 
+    async importAssessment() {
+        const jsonText = prompt("الصق JSON التقييم هنا:");
+        if (!jsonText) return;
+
+        try {
+            const data = JSON.parse(jsonText);
+            const result = await this.supabase.request('rpc/import_assessment_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_data: data })
+            });
+
+            this.showToast("تم استيراد التقييم بنجاح!");
+            await this.renderAssessmentsTable();
+        } catch (err) {
+            this.showToast("فشل الاستيراد: " + err.message, true);
+        }
+    }
+
     async updateOption(optionId, field, value) {
         try {
             const payload = { p_option_id: optionId };
@@ -490,7 +513,7 @@ class AssessmentManager {
             } else if (field === 'label_ar') {
                 payload.p_label_ar = value.trim();
             }
-            
+
             await this.supabase.request('rpc/update_option_secure', {
                 method: 'POST',
                 body: JSON.stringify(payload)
@@ -505,14 +528,14 @@ class AssessmentManager {
         try {
             const allOptions = await this.supabase.select('options') || [];
             const qOptions = allOptions.filter(o => o.question_id === questionId);
-            
+
             if (qOptions.length >= 5) {
                 this.showToast("الحد الأقصى 5 خيارات لكل سؤال.", true);
                 return;
             }
-            
+
             const maxOrder = qOptions.reduce((max, o) => Math.max(max, o.display_order || 0), 0);
-            
+
             await this.supabase.request('rpc/add_option_secure', {
                 method: 'POST',
                 body: JSON.stringify({
@@ -525,7 +548,7 @@ class AssessmentManager {
                     p_is_trap: false
                 })
             });
-            
+
             this.showToast("تم إضافة الخيار الجديد.");
             await this.editAssessment(assessmentId);
         } catch (err) {
@@ -546,6 +569,7 @@ class AssessmentManager {
             this.showToast("فشل حذف الخيار: " + err.message, true);
         }
     }
+
 
     /* ─────────────── تفعيل وتطوير جدول المستخدمين (LEADS) ─────────────── */
 
@@ -589,10 +613,10 @@ class AssessmentManager {
     populateFilterDropdown() {
         const select = document.getElementById('filter-type');
         if (!select) return;
-        
+
         // الاحتفاظ بخيار "كل التقييمات" فقط وإزالة الباقي
         select.innerHTML = '<option value="">كل التقييمات</option>';
-        
+
         // إضافة التقييمات الحقيقية من الخارطة الديناميكية
         Object.entries(this.assessmentTypesMap).forEach(([id, title]) => {
             const option = document.createElement('option');
@@ -605,6 +629,7 @@ class AssessmentManager {
     setupDashboardFilterEvents() {
         document.getElementById('btn-search')?.addEventListener('click', () => this.applyDashboardFilters());
         document.getElementById('search-input')?.addEventListener('keyup', (e) => {
+            this.populateFilterDropdown();
             if (e.key === 'Enter') this.applyDashboardFilters();
         });
         document.getElementById('filter-type')?.addEventListener('change', () => this.applyDashboardFilters());
@@ -649,7 +674,7 @@ class AssessmentManager {
         });
 
         if (sortOrder === 'newest') this.filteredLeads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        else if (sortOrder === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(a.created_at));
+        else if (sortOrder === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         else if (sortOrder === 'score-high') this.filteredLeads.sort((a, b) => (parseFloat(b.score_percentage) || 0) - (parseFloat(a.score_percentage) || 0));
         else if (sortOrder === 'score-low') this.filteredLeads.sort((a, b) => (parseFloat(a.score_percentage) || 0) - (parseFloat(b.score_percentage) || 0));
         else if (sortOrder === 'name') this.filteredLeads.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
