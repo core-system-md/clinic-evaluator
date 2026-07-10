@@ -100,11 +100,12 @@ class ClinicEvaluatorApp {
 
       console.log('[CORE System] Fetching dynamic payload from cloud database...');
 
-      const [assessmentsRes, axesRes, questionsRes, optionsRes] = await Promise.all([
+      const [assessmentsRes, axesRes, questionsRes, optionsRes, trapsRes] = await Promise.all([
         this.supabase.select('assessment_types', { filter: { status: 'published' } }),
         this.supabase.select('axes'),
         this.supabase.select('questions'), 
-        this.supabase.select('options')
+        this.supabase.select('options'),
+        this.supabase.select('traps')
       ]);
 
       const cloudConfig = {
@@ -147,7 +148,9 @@ class ClinicEvaluatorApp {
                 axis_id: parentAxis ? parentAxis.code : '',
                 text: q.question_text_ar || q.question_text,
                 type: q.question_type || "select",
-                layer: isTrapQuestion ? "B" : "A",
+                layer: q.layer || (isTrapQuestion ? "B" : "A"),
+                impact: q.impact || "medium",
+                trap_for: q.trap_for || [],
                 options: qOptions
               };
             });
@@ -160,6 +163,16 @@ class ClinicEvaluatorApp {
             has_traps: ast.has_traps,
             has_ev_simulator: ast.has_ev_simulator,
             simulator: { enabled: ast.has_ev_simulator },
+            traps: (trapsRes || []).filter(t => t.assessment_type_id === ast.id).map(t => ({
+              name: t.name,
+              question_id: t.question_id,
+              validates: t.validates,
+              target_axis: t.target_axis,
+              penalty_base: parseFloat(t.penalty_base) || 0,
+              penalty_max: parseFloat(t.penalty_max) || 0,
+              message: t.message,
+              message_ar: t.message_ar
+            })),
             axes: astAxes,
             questions: astQuestions
           };
