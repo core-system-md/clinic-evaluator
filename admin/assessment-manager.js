@@ -455,7 +455,7 @@ class AssessmentManager {
             await this.supabase.insert('axes', {
                 assessment_type_id: assessmentId,
                 title_ar: titleAr,
-                code: 'AXIS_' + Date.now(),
+                code: 'AX' + Date.now().toString(36).toUpperCase(),
                 weight: 10,
                 display_order: 1,
                 status: 'active'
@@ -472,7 +472,7 @@ class AssessmentManager {
                 assessment_type_id: assessmentId,
                 axis_id: axisId,
                 question_text_ar: qTextAr,
-                code: 'Q_' + Date.now(),
+                code: 'Q' + Date.now().toString(36).toUpperCase(),
                 question_type: 'single',
                 display_order: 1,
                 is_required: true,
