@@ -19,9 +19,6 @@ class AssessmentManager {
         this.currentPage = 1;
         this.pageSize = 10;
         this.assessmentTypesMap = {}; // مخزن ديناميكي لربط المعرفات بأسماء التقييمات
-        
-        // ─── المرحلة 4: تتبع التقييم قيد التحرير للحماية ───
-        this._currentEditingAssessmentId = null;
     }
 
     async init() {
@@ -45,185 +42,6 @@ class AssessmentManager {
         toast.innerText = message;
         toast.className = `toast ${isError ? 'error' : 'success'}`;
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
-    }
-
-    /**
-     * ═══════════════════════════════════════════════════════════════════════
-     * المرحلة 4: حماية التقييمات المنشورة + التفريع التلقائي
-     * ═══════════════════════════════════════════════════════════════════════
-     * قبل أي تعديل هيكلي على تقييم published:
-     * 1. فحص جدول leads — إذا لا يوجد leads → السماح بالتعديل المباشر
-     * 2. إذا يوجد leads → أرشفة + نسخ + فتح تلقائي
-     */
-
-    /**
-     * فحص وجود leads مرتبطة بتقييم معين
-     * @param {string} assessmentId — UUID التقييم
-     * @returns {Promise<boolean>} — true إذا يوجد leads
-     */
-    async _hasLeads(assessmentId) {
-        try {
-            const result = await this.supabase.request('rpc/check_assessment_leads_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_assessment_id: assessmentId })
-            });
-            // النتيجة قد تأتي كـ array أو كائن مباشر
-            if (Array.isArray(result) && result.length > 0) {
-                return result[0] === true || result[0] === 'true' || result[0] === 1 || result[0] === 't';
-            }
-            return result === true || result === 'true' || result === 1 || result === 't';
-        } catch (err) {
-            console.error('[Stage 4] _hasLeads error:', err);
-            // في حالة الخطأ — نفترض وجود leads لحماية البيانات
-            return true;
-        }
-    }
-
-    /**
-     * التفريع التلقائي: أرشفة التقييم الحالي + إنشاء نسخة مسودة + فتحها
-     * @param {string} assessmentId — UUID التقييم الأصلي
-     * @returns {Promise<string|null>} — UUID النسخة الجديدة أو null
-     */
-    async _forkAssessment(assessmentId) {
-        try {
-            // 1. جلب بيانات التقييم الأصلي
-            const allAssessments = await this.supabase.select('assessment_types');
-            const original = allAssessments.find(a => a.id === assessmentId);
-            if (!original) {
-                this.showToast("التقييم الأصلي غير موجود.", true);
-                return null;
-            }
-
-            // 2. أرشفة التقييم الحالي
-            await this.supabase.request('rpc/update_assessment_status_secure', {
-                method: 'POST',
-                body: JSON.stringify({
-                    p_id: assessmentId,
-                    p_status: 'archived',
-                    p_is_active: true
-                })
-            });
-
-            // 3. إنشاء slug فريد للنسخة الجديدة
-            const cloneSlug = `${original.slug || 'assessment'}-copy-${Date.now()}`;
-
-            // 4. نسخ التقييم
-            const duplicateResult = await this.supabase.request('rpc/duplicate_assessment_secure', {
-                method: 'POST',
-                body: JSON.stringify({
-                    p_id: assessmentId,
-                    p_clone_slug: cloneSlug
-                })
-            });
-
-            // 5. استخراج UUID النسخة الجديدة من النتيجة
-            let newAssessmentId = null;
-            if (duplicateResult) {
-                if (typeof duplicateResult === 'object') {
-                    newAssessmentId = duplicateResult.new_id || duplicateResult.id || duplicateResult;
-                }
-                if (typeof newAssessmentId === 'object' && newAssessmentId !== null) {
-                    newAssessmentId = newAssessmentId.new_id || newAssessmentId.id;
-                }
-            }
-
-            if (!newAssessmentId || typeof newAssessmentId !== 'string') {
-                this.showToast("تمت الأرشفة لكن فشل استخراج معرف النسخة الجديدة.", true);
-                return null;
-            }
-
-            // 6. التأكد من أن النسخة الجديدة في حالة draft
-            await this.supabase.request('rpc/update_assessment_status_secure', {
-                method: 'POST',
-                body: JSON.stringify({
-                    p_id: newAssessmentId,
-                    p_status: 'draft',
-                    p_is_active: true
-                })
-            });
-
-            // 7. إعادة تحميل الجدول
-            await this.renderAssessmentsTable();
-
-            return newAssessmentId;
-
-        } catch (err) {
-            this.showToast("فشل التفريع التلقائي: " + err.message, true);
-            console.error('[Stage 4] _forkAssessment error:', err);
-            return null;
-        }
-    }
-
-    /**
-     * البوابة المركزية للحماية: قبل أي تعديل هيكلي
-     * @param {string} assessmentId — UUID التقييم
-     * @param {string} operationName — اسم العملية للرسالة (مثال: "إضافة محور")
-     * @returns {Promise<string|null>} — UUID التقييم المسموح بالتعديل عليه (قد يكون نسخة جديدة)
-     */
-    async _checkLeadsAndProtect(assessmentId, operationName = "التعديل") {
-        // 1. جلب حالة التقييم
-        try {
-            const allAssessments = await this.supabase.select('assessment_types');
-            const assessment = allAssessments.find(a => a.id === assessmentId);
-
-            // إذا التقييم ليس published → لا حماية مطلوبة
-            if (!assessment || (assessment.status || '').toLowerCase() !== 'published') {
-                return assessmentId;
-            }
-
-            // 2. فحص وجود leads
-            const hasLeads = await this._hasLeads(assessmentId);
-
-            if (!hasLeads) {
-                // لا يوجد leads → السماح بالتعديل المباشر
-                return assessmentId;
-            }
-
-            // 3. يوجد leads → التفريع التلقائي
-            const userConfirmed = confirm(
-                `⚠️ تحذير هام:
-
-` +
-                `هذا التقييم منشور ويحتوي على بيانات مرضى حقيقية.
-` +
-                `التعديل المباشر سيفسد معنى الإجابات التاريخية.
-
-` +
-                `سيتم:
-` +
-                `• أرشفة التقييم الحالي
-` +
-                `• إنشاء نسخة مسودة جديدة
-` +
-                `• فتح النسخة الجديدة تلقائياً
-
-` +
-                `هل تريد المتابعة؟`
-            );
-
-            if (!userConfirmed) {
-                this.showToast(`تم إلغاء ${operationName}.`);
-                return null;
-            }
-
-            // 4. تنفيذ التفريع
-            this.showToast("⏳ جاري التفريع التلقائي: أرشفة + نسخ...");
-            const newId = await this._forkAssessment(assessmentId);
-
-            if (newId) {
-                this.showToast("✅ تم إنشاء نسخة مسودة جديدة وفتحها تلقائياً.");
-                // فتح النسخة الجديدة في المحرر
-                await this.editAssessment(newId);
-                return null; // إيقاف العملية الأصلية — النسخة الجديدة مفتوحة الآن
-            }
-
-            return null;
-
-        } catch (err) {
-            this.showToast("فشل فحص الحماية: " + err.message, true);
-            console.error('[Stage 4] _checkLeadsAndProtect error:', err);
-            return null;
-        }
     }
 
     // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماً مع نظام مطابقة نفاذ المرضى والعيادات
@@ -501,10 +319,6 @@ class AssessmentManager {
     }
 
     async editAssessment(id) {
-        // ─── المرحلة 4: تتبع التقييم قيد التحرير ───
-        this._currentEditingAssessmentId = id;
-        // ────────────────────────────────────────────
-
         try {
             const allAssessments = await this.supabase.select('assessment_types');
             const ast = allAssessments.find(a => a.id === id);
@@ -635,12 +449,6 @@ class AssessmentManager {
     }
 
     async addAxisInline(assessmentId) {
-        // ─── المرحلة 4: حماية التقييمات المنشورة ───
-        const targetId = await this._checkLeadsAndProtect(assessmentId, "إضافة محور");
-        if (!targetId) return;
-        assessmentId = targetId;
-        // ────────────────────────────────────────────
-
         const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
         if (!titleAr) return;
         try {
@@ -657,12 +465,6 @@ class AssessmentManager {
     }
 
     async addQuestionInline(assessmentId, axisId) {
-        // ─── المرحلة 4: حماية التقييمات المنشورة ───
-        const targetId = await this._checkLeadsAndProtect(assessmentId, "إضافة سؤال");
-        if (!targetId) return;
-        assessmentId = targetId;
-        // ────────────────────────────────────────────
-
         const qTextAr = prompt("أدخل نص السؤال الجديد (بالعربية):");
         if (!qTextAr) return;
         try {
@@ -681,14 +483,6 @@ class AssessmentManager {
     }
 
     async updateOption(optionId, field, value) {
-        // ─── المرحلة 4: حماية التقييمات المنشورة ───
-        const assessmentId = this._currentEditingAssessmentId;
-        if (assessmentId) {
-            const targetId = await this._checkLeadsAndProtect(assessmentId, "تعديل خيار");
-            if (!targetId) return;
-        }
-        // ────────────────────────────────────────────
-
         try {
             const payload = { p_option_id: optionId };
             if (field === 'option_value') {
@@ -708,12 +502,6 @@ class AssessmentManager {
     }
 
     async addOption(questionId, assessmentId) {
-        // ─── المرحلة 4: حماية التقييمات المنشورة ───
-        const targetId = await this._checkLeadsAndProtect(assessmentId, "إضافة خيار");
-        if (!targetId) return;
-        assessmentId = targetId;
-        // ────────────────────────────────────────────
-
         try {
             const allOptions = await this.supabase.select('options') || [];
             const qOptions = allOptions.filter(o => o.question_id === questionId);
@@ -746,12 +534,6 @@ class AssessmentManager {
     }
 
     async deleteOption(optionId, assessmentId) {
-        // ─── المرحلة 4: حماية التقييمات المنشورة ───
-        const targetId = await this._checkLeadsAndProtect(assessmentId, "حذف خيار");
-        if (!targetId) return;
-        assessmentId = targetId;
-        // ────────────────────────────────────────────
-
         if (!confirm("هل أنت متأكد من حذف هذا الخيار؟")) return;
         try {
             await this.supabase.request('rpc/delete_option_secure', {
