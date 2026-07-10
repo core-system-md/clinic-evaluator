@@ -29,7 +29,6 @@ class AssessmentManager {
         
         // تشغيل الجزء الأول: إدارة وهيكلة التقييمات الأصلية دون مساس
         await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
 
         // تشغيل الجزء الثاني: مزامنة لوحة التحكم وجدول التقييمات التي نفذها المستخدمون
         await this.loadUserSubmissionsDashboard();
@@ -44,7 +43,7 @@ class AssessmentManager {
         setTimeout(() => { toast.className = 'toast hidden'; }, 3000);
     }
 
-    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماً مع نظام مطابقة نفاذ المرضى والعيادات
+    // خوارزمية التشفير القياسية SHA-256 المتوافقة تماماُ مع نظام مطابقة نفاذ المرضى والعيادات
     async simpleHash(str) {
         const encoder = new TextEncoder();
         const data = encoder.encode(str);
@@ -80,8 +79,6 @@ class AssessmentManager {
             data.forEach(ast => {
                 this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug;
             });
-
-            this.populateFilterDropdown();
 
             // تطبيق الـ Soft Delete برمجياً لعرض السجلات النشطة فقط ومنع الفوضى البصرية
             const activeAssessments = data.filter(ast => ast.is_active !== false);
@@ -224,6 +221,7 @@ class AssessmentManager {
     // استدعاء دالة الـ RPC لحفظ وتحديث البيانات الأساسية للتقييمات
     async saveAssessment() {
         const id = document.getElementById('ast-id').value || null;
+        const isNew = !id; // تحديد إذا كان إنشاء جديد أو تعديل
         const titleEn = document.getElementById('ast-title-en').value;
         const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
         
@@ -242,14 +240,38 @@ class AssessmentManager {
         };
 
         try {
-            await this.supabase.request('rpc/save_assessment_secure', {
+            const result = await this.supabase.request('rpc/save_assessment_secure', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
             
-            this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
-            document.getElementById('assessment-modal').classList.add('hidden');
-            await this.renderAssessmentsTable();
+            // استخراج المعرف الجديد من الرد بأي شكل ممكن (نص، مصفوفة، كائن)
+            let returnedId = null;
+            if (result) {
+                if (typeof result === 'string') {
+                    returnedId = result;
+                } else if (Array.isArray(result) && result.length > 0) {
+                    if (typeof result[0] === 'string') {
+                        returnedId = result[0];
+                    } else if (result[0] && typeof result[0] === 'object') {
+                        returnedId = result[0].id || result[0].p_id || result[0].uuid || result[0].assessment_id || null;
+                    }
+                } else if (typeof result === 'object') {
+                    returnedId = result.id || result.p_id || result.uuid || result.assessment_id || null;
+                }
+            }
+
+            if (isNew && returnedId) {
+                // إنشاء جديد: لا تسكر الـ Modal، افتح محرر الهيكل مباشرة
+                this.showToast("تم إنشاء التقييم. جاري فتح محرر الهيكل...");
+                document.getElementById('ast-id').value = returnedId;
+                await this.editAssessment(returnedId);
+            } else {
+                // تعديل موجود: السلوك القديم (سكر الـ Modal وحدث الجدول)
+                this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
+                document.getElementById('assessment-modal').classList.add('hidden');
+                await this.renderAssessmentsTable();
+            }
         } catch (err) {
             this.showToast("فشل حفظ التعديلات: " + err.message, true);
         }
@@ -343,9 +365,6 @@ class AssessmentManager {
             const currentAxes = allAxes.filter(x => x.assessment_type_id === id);
             const currentQuestions = allQuestions.filter(q => q.assessment_type_id === id);
 
-            const allOptions = await this.supabase.select('options') || [];
-            this.currentOptions = allOptions.filter(o => currentQuestions.some(q => q.id === o.question_id));
-
             this.renderModalTabs(currentAxes, currentQuestions, id);
 
             document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
@@ -380,7 +399,7 @@ class AssessmentManager {
                         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:8px; flex-wrap:wrap; gap:5px;">
                             <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || ''})</span>
                             <span style="font-size:0.75rem; color:#6b7280; margin-right:auto; margin-left:10px;">الوزن: %${axis.weight || 0}</span>
-                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
+                            <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7 ramp; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
                         </div>
                         <div style="padding-right:8px; display:flex; flex-direction:column; gap:4px;">
                 `;
@@ -389,54 +408,11 @@ class AssessmentManager {
                     html += '<p style="font-size:0.75rem; color:#94a3b8; margin:0; padding:4px 0;">⚠️ لا توجد أسئلة تحت هذا المحور حالياً.</p>';
                 } else {
                     axisQuestions.forEach(q => {
-                        const qOptions = (this.currentOptions || []).filter(o => o.question_id === q.id);
-                        qOptions.sort((a, b) => (a.display_order || 0) - (b.display_order || 0));
-                        
                         html += `
-                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; margin-bottom:4px;">
-                                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                    <span style="font-weight:600;">❓ ${q.question_text_ar || q.question_text}</span>
-                                    <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
-                                </div>
-                                <div style="padding-right:12px; border-right:2px solid #e5e7eb; margin-right:4px;">
-                                    <div style="font-size:0.7rem; color:#6b7280; margin-bottom:4px; font-weight:600;">خيارات الإجابة:</div>
-                        `;
-                        
-                        if (qOptions.length === 0) {
-                            html += '<p style="font-size:0.7rem; color:#94a3b8; margin:0;">لا توجد خيارات لهذا السؤال.</p>';
-                        } else {
-                            qOptions.forEach((opt, idx) => {
-                                html += `
-                                    <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
-                                        <span style="font-size:0.7rem; color:#6b7280; min-width:20px;">${idx + 1}.</span>
-                                        <input type="text" 
-                                            value="${(opt.label_ar || opt.label || '').replace(/"/g, '&quot;')}" 
-                                            onblur="window.assessmentManager.updateOption('${opt.id}', 'label_ar', this.value)"
-                                            placeholder="نص الخيار بالعربية"
-                                            style="flex:1; min-width:120px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-family:'Cairo'; font-size:0.7rem;"
-                                        >
-                                        <input type="number" 
-                                            value="${opt.option_value !== null && opt.option_value !== undefined ? opt.option_value : ''}" 
-                                            onblur="window.assessmentManager.updateOption('${opt.id}', 'option_value', this.value)"
-                                            placeholder="الوزن"
-                                            style="width:60px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-family:'Cairo'; font-size:0.7rem; text-align:center;"
-                                        >
-                                        <button type="button" onclick="window.assessmentManager.deleteOption('${opt.id}', '${assessmentId}')" style="padding:2px 6px; font-size:0.65rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2; border-radius:4px; cursor:pointer; font-family:'Cairo';">🗑️</button>
-                                    </div>
-                                `;
-                            });
-                        }
-                        
-                        const canAddMore = qOptions.length < 5;
-                        html += `
-                                    <button type="button" 
-                                        onclick="window.assessmentManager.addOption('${q.id}', '${assessmentId}')" 
-                                        style="margin-top:4px; padding:3px 8px; font-size:0.65rem; background:#f0fdf4; color:#0f766e; border:1px solid #86efac; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600; ${canAddMore ? '' : 'opacity:0.4; cursor:not-allowed;'}"
-                                        ${canAddMore ? '' : 'disabled'}
-                                    >+ إضافة خيار (${qOptions.length}/5)</button>
-                                </div>
-                            </div>
-                        `;
+                            <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                                <span>❓ ${q.question_text_ar || q.question_text}</span>
+                                <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
+                            </div>`;
                     });
                 }
                 
@@ -451,99 +427,81 @@ class AssessmentManager {
     async addAxisInline(assessmentId) {
         const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
         if (!titleAr) return;
+
+        // قائمة الأوزان الجاهزة
+        const weightOptions = [
+            { label: 'خفيف جداً (10%)', value: 10 },
+            { label: 'خفيف (15%)', value: 15 },
+            { label: 'متوسط (20%)', value: 20 },
+            { label: 'ثقيل (25%)', value: 25 },
+            { label: 'ثقيل جداً (30%)', value: 30 },
+            { label: 'حاسم (40%)', value: 40 },
+            { label: 'مخصص (تكتب يدوياً)', value: null }
+        ];
+
+        let weightSelection = prompt(
+            "اختر وزن المحور:\n" +
+            weightOptions.map((opt, i) => `${i + 1}. ${opt.label}`).join('\n') +
+            "\n\nاكتب رقم الخيار (1-7):"
+        );
+
+        const selectedIndex = parseInt(weightSelection, 10) - 1;
+        let weight = 10; // افتراضي
+
+        if (selectedIndex >= 0 && selectedIndex < weightOptions.length) {
+            if (weightOptions[selectedIndex].value === null) {
+                // مخصص
+                const customWeight = prompt("أدخل الوزن المخصص (1-100):");
+                weight = parseInt(customWeight, 10) || 10;
+            } else {
+                weight = weightOptions[selectedIndex].value;
+            }
+        }
+
+        // توليد كود قصير: AX_ + 7 أرقام من الوقت = 10 أحرف بالضبط
+        const timestamp = Date.now().toString();
+        const shortCode = 'AX_' + timestamp.slice(-7);
+
         try {
-            await this.supabase.insert('axes', {
-                assessment_type_id: assessmentId,
-                title_ar: titleAr,
-                code: 'AX' + Date.now().toString(36).toUpperCase(),
-                weight: 10,
-                display_order: 1,
-                status: 'active'
+            await this.supabase.request('rpc/save_axis_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_assessment_type_id: assessmentId,
+                    p_title: titleAr,
+                    p_title_ar: titleAr,
+                    p_code: shortCode,
+                    p_weight: weight,
+                    p_display_order: 1
+                })
             });
+            this.showToast(`تم إضافة المحور "${titleAr}" بوزن ${weight}%`);
             await this.editAssessment(assessmentId);
-        } catch (err) { this.showToast("فشل إضافة المحور: " + err.message, true); }
+        } catch (err) { 
+            this.showToast("فشل إضافة المحور: " + err.message, true); 
+        }
     }
 
     async addQuestionInline(assessmentId, axisId) {
         const qTextAr = prompt("أدخل نص السؤال الجديد (بالعربية):");
         if (!qTextAr) return;
         try {
-            await this.supabase.insert('questions', {
-                assessment_type_id: assessmentId,
-                axis_id: axisId,
-                question_text_ar: qTextAr,
-                code: 'Q' + Date.now().toString(36).toUpperCase(),
-                question_type: 'single',
-                display_order: 1,
-                is_required: true,
-                status: 'active'
-            });
-            await this.editAssessment(assessmentId);
-        } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
-    }
-
-    async updateOption(optionId, field, value) {
-        try {
-            const payload = { p_option_id: optionId };
-            if (field === 'option_value') {
-                payload.p_option_value = parseInt(value, 10) || 0;
-            } else if (field === 'label_ar') {
-                payload.p_label_ar = value.trim();
-            }
-            
-            await this.supabase.request('rpc/update_option_secure', {
-                method: 'POST',
-                body: JSON.stringify(payload)
-            });
-            this.showToast("تم تحديث الخيار بنجاح.");
-        } catch (err) {
-            this.showToast("فشل تحديث الخيار: " + err.message, true);
-        }
-    }
-
-    async addOption(questionId, assessmentId) {
-        try {
-            const allOptions = await this.supabase.select('options') || [];
-            const qOptions = allOptions.filter(o => o.question_id === questionId);
-            
-            if (qOptions.length >= 5) {
-                this.showToast("الحد الأقصى 5 خيارات لكل سؤال.", true);
-                return;
-            }
-            
-            const maxOrder = qOptions.reduce((max, o) => Math.max(max, o.display_order || 0), 0);
-            
-            await this.supabase.request('rpc/add_option_secure', {
+            await this.supabase.request('rpc/save_question_secure', {
                 method: 'POST',
                 body: JSON.stringify({
-                    p_question_id: questionId,
-                    p_label_ar: 'خيار جديد',
-                    p_label: 'New Option',
-                    p_option_value: 0,
-                    p_option_index: qOptions.length,
-                    p_display_order: maxOrder + 1,
-                    p_is_trap: false
+                    p_assessment_type_id: assessmentId,
+                    p_axis_id: axisId,
+                    p_question_text: qTextAr,
+                    p_question_text_ar: qTextAr,
+                    p_code: 'Q_' + Date.now(),
+                    p_question_type: 'single',
+                    p_display_order: 1,
+                    p_is_required: true
                 })
             });
-            
-            this.showToast("تم إضافة الخيار الجديد.");
+            this.showToast("تم إضافة السؤال بنجاح.");
             await this.editAssessment(assessmentId);
-        } catch (err) {
-            this.showToast("فشل إضافة الخيار: " + err.message, true);
-        }
-    }
-
-    async deleteOption(optionId, assessmentId) {
-        if (!confirm("هل أنت متأكد من حذف هذا الخيار؟")) return;
-        try {
-            await this.supabase.request('rpc/delete_option_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_option_id: optionId })
-            });
-            this.showToast("تم حذف الخيار.");
-            await this.editAssessment(assessmentId);
-        } catch (err) {
-            this.showToast("فشل حذف الخيار: " + err.message, true);
+        } catch (err) { 
+            this.showToast("فشل إضافة السؤال: " + err.message, true); 
         }
     }
 
@@ -578,28 +536,10 @@ class AssessmentManager {
             const now = new Date();
             document.getElementById('last-updated').textContent = now.toLocaleTimeString('ar-JO', { hour: '2-digit', minute: '2-digit' });
 
-            this.populateFilterDropdown();
             this.applyDashboardFilters();
         } catch (err) {
             console.error('[CORE System] Leads compilation error:', err);
         }
-    }
-
-    // ملء قائمة الفلترة ديناميكياً بأنواع التقييمات الحقيقية من قاعدة البيانات
-    populateFilterDropdown() {
-        const select = document.getElementById('filter-type');
-        if (!select) return;
-        
-        // الاحتفاظ بخيار "كل التقييمات" فقط وإزالة الباقي
-        select.innerHTML = '<option value="">كل التقييمات</option>';
-        
-        // إضافة التقييمات الحقيقية من الخارطة الديناميكية
-        Object.entries(this.assessmentTypesMap).forEach(([id, title]) => {
-            const option = document.createElement('option');
-            option.value = id;
-            option.textContent = title;
-            select.appendChild(option);
-        });
     }
 
     setupDashboardFilterEvents() {
@@ -649,7 +589,7 @@ class AssessmentManager {
         });
 
         if (sortOrder === 'newest') this.filteredLeads.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-        else if (sortOrder === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(a.created_at));
+        else if (sortOrder === 'oldest') this.filteredLeads.sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
         else if (sortOrder === 'score-high') this.filteredLeads.sort((a, b) => (parseFloat(b.score_percentage) || 0) - (parseFloat(a.score_percentage) || 0));
         else if (sortOrder === 'score-low') this.filteredLeads.sort((a, b) => (parseFloat(a.score_percentage) || 0) - (parseFloat(b.score_percentage) || 0));
         else if (sortOrder === 'name') this.filteredLeads.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
