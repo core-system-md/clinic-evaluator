@@ -22,6 +22,13 @@ class AssessmentManager {
     }
 
     async init() {
+        // تحميل كل التقييمات للوصول إلى axis_roles و kpi_mappings
+        try {
+            this.allAssessments = await this.supabase.select('assessment_types') || [];
+        } catch (e) {
+            this.allAssessments = [];
+        }
+
         const container = document.getElementById('assessments-table-container');
         if (container) {
             container.innerHTML = '<p style="padding:10px; background:#e0f2fe; border-radius:8px; text-align:center;">النظام يعمل... جاري جلب التقييمات وتجهيز أدوات التحكم...</p>';
@@ -821,14 +828,68 @@ class AssessmentManager {
                 behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">✅ أداء العيادة متطابق ومتزن بالكامل مع الرد السلوكي المعلن، ولم يتم رصد فخاخ تسريب حادة.</p>';
             }
 
-            // احتساب مؤشرات الأداء الحيوية القياسية (KPIs Dashboard) ديناميكياً لتطابق عقد المحرك
-            const fetchAxisScore = (id) => {
-                const found = scores?.find(s => s.axis_id === id);
-                return found ? parseFloat(found.percentage) : 50;
+            // احتساب مؤشرات الأداء الحيوية (KPIs Dashboard) ديناميكياً باستخدام Axis Roles
+            const calculateKPIsFromRoles = () => {
+                // جلب axis_roles و kpi_mappings من التقييم
+                const assessment = this.allAssessments?.find(a => a.id === lead.assessment_type_id);
+                const axisRoles = assessment?.axis_roles || {};
+                const kpiMappings = assessment?.kpi_mappings || {};
+
+                // ترجمة درجات المحاور إلى درجات الأدوار
+                const roleScores = {};
+                const availableScores = [];
+
+                if (scores && scores.length > 0) {
+                    scores.forEach(s => {
+                        const pct = parseFloat(s.percentage) || 0;
+                        availableScores.push(pct);
+                        const role = axisRoles[s.axis_id];
+                        if (role) {
+                            if (roleScores[role] !== undefined) {
+                                roleScores[role] = (roleScores[role] + pct) / 2;
+                            } else {
+                                roleScores[role] = pct;
+                            }
+                        }
+                    });
+                }
+
+                // Fallback: أدوار غير موجودة = متوسط الأدوار المتاحة
+                const avgScore = availableScores.length > 0
+                    ? availableScores.reduce((a, b) => a + b, 0) / availableScores.length
+                    : 50;
+
+                const allRoles = ['TRUST','COMMUNICATION','CONVERSION','RETENTION','LOYALTY',
+                    'SCHEDULING','RECEPTION','ADMIN','COORDINATION','JOURNEY','OPERATIONS','TEAM','GROWTH'];
+                allRoles.forEach(role => {
+                    if (roleScores[role] === undefined) roleScores[role] = avgScore;
+                });
+
+                // حساب كل KPI
+                const kpis = {};
+                for (const [kpiCode, mapping] of Object.entries(kpiMappings)) {
+                    let weightedSum = 0;
+                    let totalWeight = 0;
+                    for (const [role, weight] of Object.entries(mapping)) {
+                        weightedSum += (roleScores[role] || 0) * weight;
+                        totalWeight += weight;
+                    }
+                    kpis[kpiCode] = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+                }
+
+                return kpis;
             };
-            const tfiIndex = Math.round((fetchAxisScore('A1') + fetchAxisScore('A2')) / 2);
-            const tapIndex = Math.round((fetchAxisScore('A3') + fetchAxisScore('A4')) / 2);
-            const prpIndex = Math.round(fetchAxisScore('A5'));
+
+            const kpis = calculateKPIsFromRoles();
+            const tfiIndex = kpis.TFI || 0;
+            const tapIndex = kpis.TAP || 0;
+            const prpIndex = kpis.PRP || 0;
+            const pliIndex = kpis.PLI || 0;
+            const psiIndex = kpis.PSI || 0;
+            const npiIndex = kpis.NPI || 0;
+            const eviIndex = kpis.EVI || 0;
+            const tciIndex = kpis.TCI || 0;
+            const rriIndex = kpis.RRI || null; // خاص بالاستقبال
 
             // جلب اسم التقييم الفعلي من الخارطة التي قمنا ببنائها ديناميكياً
             const currentAssessmentName = this.assessmentTypesMap[lead.assessment_type_id] || 'نموذج تقييم استشاري';
@@ -853,7 +914,13 @@ class AssessmentManager {
                     <div class="scores-grid">
                         <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfiIndex}%</div></div>
                         <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tapIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">الاستبقاء والولاء (PRP)</div><div class="score-value">${prpIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">الاستبقاء (PRP)</div><div class="score-value">${prpIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">الولاء (PLI)</div><div class="score-value">${pliIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">رضا المريض (PSI)</div><div class="score-value">${psiIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">التوصية (NPI)</div><div class="score-value">${npiIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}%</div></div>
+                        ${rriIndex !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriIndex}%</div></div>` : ''}
                     </div>
                 </div>
 
