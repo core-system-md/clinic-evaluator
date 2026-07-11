@@ -677,6 +677,25 @@ body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+  .cta-box .cta-social-btn i,
+  .cta-box .cta-social-btn svg,
+  .cta-box .cta-social-btn .fab,
+  .cta-box .cta-social-btn .fas {
+    display: none !important;
+  }
+  .cta-box .cta-social-btn {
+    padding: 4px 10px !important;
+    font-size: 8pt !important;
+  }
+  .cta-box .cta-title {
+    font-size: 10pt !important;
+  }
+  .cta-box .cta-desc {
+    font-size: 8pt !important;
+  }
+  .cta-box .cta-phone {
+    font-size: 9pt !important;
+  }
   .cta-title {
     font-size: 11pt !important;
   }
