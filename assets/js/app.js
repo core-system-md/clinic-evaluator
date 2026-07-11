@@ -823,6 +823,8 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
+    this.renderUserInfoBox();
+
     const q = res.classification || 'Q2';
     const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
@@ -914,6 +916,88 @@ class ClinicEvaluatorApp {
 
     const leakageEl = document.getElementById('leakage-index');
     if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
+
+    this.renderCTA();
+  }
+
+  /* ─────────────── USER INFO BOX ─────────────── */
+
+  renderUserInfoBox() {
+    const container = document.getElementById('view-results');
+    if (!container) return;
+    const box = document.createElement('div');
+    box.className = 'form-card user-info-box fade-in';
+    const date = new Date().toLocaleDateString('ar-SA');
+    const specialtyMap = {
+      cosmetic: 'تجميل وليزر', dental: 'أسنان', general: 'عام وعائلي',
+      derma: 'جلدية', ortho: 'عظام وعلاج طبيعي', eye: 'عيون', other: 'تخصص آخر'
+    };
+    const countryMap = {
+      JO: 'الأردن', SA: 'السعودية', AE: 'الإمارات', QA: 'قطر',
+      KW: 'الكويت', BH: 'البحرين', EG: 'مصر', IQ: 'العراق', other: 'أخرى'
+    };
+    box.innerHTML = `
+      <h3 class="card-title">📋 بيانات التقييم</h3>
+      <div class="user-info-grid">
+        <div class="user-info-item">
+          <div class="user-info-label">الاسم</div>
+          <div class="user-info-value">${this.metadata.name || '-'}</div>
+        </div>
+        <div class="user-info-item">
+          <div class="user-info-label">العيادة</div>
+          <div class="user-info-value">${this.metadata.clinic || '-'}</div>
+        </div>
+        <div class="user-info-item">
+          <div class="user-info-label">التخصص</div>
+          <div class="user-info-value">${specialtyMap[this.metadata.specialty] || this.metadata.specialty || '-'}</div>
+        </div>
+        <div class="user-info-item">
+          <div class="user-info-label">الدولة</div>
+          <div class="user-info-value">${countryMap[this.metadata.country] || this.metadata.country || '-'}</div>
+        </div>
+        <div class="user-info-item">
+          <div class="user-info-label">التاريخ</div>
+          <div class="user-info-value">${date}</div>
+        </div>
+        <div class="user-info-item">
+          <div class="user-info-label">نوع التقييم</div>
+          <div class="user-info-value">${this.assessment?.title || '-'}</div>
+        </div>
+      </div>
+    `;
+    container.insertBefore(box, container.children[1]);
+  }
+
+  /* ─────────────── CTA BOX ─────────────── */
+
+  renderCTA() {
+    const container = document.getElementById('view-results');
+    if (!container) return;
+    const cta = document.createElement('div');
+    cta.className = 'form-card cta-box fade-in';
+    cta.innerHTML = `
+      <div class="cta-title">🚀 هل تريد تطوير أداء عيادتك؟</div>
+      <div class="cta-desc">احصل على استشارة مجانية مع فريق The MD CODE لتطوير أداء عيادتك أو مركزك الطبي.</div>
+      <div class="cta-social-grid">
+        <a href="https://wa.me/962786595990?text=مرحباً،%20أود%20الاستفسار%20عن%20خدمات%20تطوير%20الأداء%20العيادي" target="_blank" class="cta-social-btn" style="background:#25D366;">
+          <i class="fab fa-whatsapp"></i> واتساب
+        </a>
+        <a href="https://www.linkedin.com/in/yazeed-abed-alrazek" target="_blank" class="cta-social-btn" style="background:#0077B5;">
+          <i class="fab fa-linkedin-in"></i> لينكد إن
+        </a>
+        <a href="https://www.instagram.com/yazeed.walid.a.r?igsh=MXRodGJmbmV0dnp4ag==" target="_blank" class="cta-social-btn" style="background:linear-gradient(45deg,#405DE6,#C13584);">
+          <i class="fab fa-instagram"></i> إنستغرام
+        </a>
+        <a href="https://www.facebook.com/share/17hNL9Fs8Q/" target="_blank" class="cta-social-btn" style="background:#1877F2;">
+          <i class="fab fa-facebook-f"></i> فيسبوك
+        </a>
+        <a href="mailto:mdcode2026@gmail.com" class="cta-social-btn" style="background:#ea4335;">
+          <i class="fas fa-envelope"></i> بريد
+        </a>
+      </div>
+      <div class="cta-phone">📞 +962 7 8659 5990</div>
+    `;
+    container.appendChild(cta);
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
