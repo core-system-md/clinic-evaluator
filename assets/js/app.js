@@ -174,7 +174,10 @@ class ClinicEvaluatorApp {
               message_ar: t.message_ar
             })),
             axes: astAxes,
-            questions: astQuestions
+            questions: astQuestions,
+            axis_roles: ast.axis_roles || {},
+            kpi_mappings: ast.kpi_mappings || {},
+            ev_mappings: ast.ev_mappings || {}
           };
         }
       }
@@ -339,12 +342,13 @@ class ClinicEvaluatorApp {
 
     const num = this.currentQuestionIndex + 1;
     const total = this.questions.length;
-    const letters = ['A', 'B', 'C', 'D', 'E'];
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     let optsHtml = '';
     q.options.forEach((opt, i) => {
       const sel = (this.answers[q.id]?.index === i) ? 'sel' : '';
-      optsHtml += `<div class="opt ${sel}" data-index="${i}" data-value="${opt.value}"><div class="opt-letter">${letters[i] || ''}</div><div>${opt.label}</div></div>`;
+      const letter = letters[i] || (i + 1);
+      optsHtml += `<div class="opt ${sel}" data-index="${i}" data-value="${opt.value}"><div class="opt-letter">${letter}</div><div>${opt.label}</div></div>`;
     });
 
     container.innerHTML = `
@@ -427,11 +431,24 @@ class ClinicEvaluatorApp {
 
       if (e.key === 'ArrowRight') this.goNext();
       else if (e.key === 'ArrowLeft') this.goPrevious();
-      else if (/^[a-e1-5]$/i.test(e.key)) {
-        const map = { a:0, b:1, c:2, d:3, e:4, A:0, B:1, C:2, D:3, E:4, 1:0, 2:1, 3:2, 4:3, 5:4 };
-        const idx = map[e.key];
+      else if (/^[a-z0-9]$/i.test(e.key)) {
         const q = this.questions[this.currentQuestionIndex];
-        if (q?.options?.[idx]) {
+        if (!q?.options) return;
+
+        let idx = -1;
+        const key = e.key.toLowerCase();
+
+        // Map letter to index (a=0, b=1, ...)
+        if (/^[a-z]$/.test(key)) {
+          idx = key.charCodeAt(0) - 'a'.charCodeAt(0);
+        }
+        // Map number to index (1=0, 2=1, ...)
+        else if (/^[0-9]$/.test(key)) {
+          idx = parseInt(key) - 1;
+          if (key === '0') idx = 9; // 0 = 10th option
+        }
+
+        if (idx >= 0 && idx < q.options.length) {
           this.answers[q.id] = { index: idx, value: q.options[idx].value };
           const opts = document.querySelectorAll('#question-container .opt');
           opts.forEach((o, i) => o.classList.toggle('sel', i === idx));
@@ -823,8 +840,6 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
-    this.renderUserInfoBox();
-
     const q = res.classification || 'Q2';
     const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
@@ -852,7 +867,6 @@ class ClinicEvaluatorApp {
     }
     const scoreVal = document.getElementById('result-score-value');
     if (scoreVal) { scoreVal.textContent = score + '%'; }
-    // Note: color is controlled by CSS (white with text-shadow)
     const scoreLabel = document.getElementById('result-score-label');
     if (scoreLabel) scoreLabel.textContent = qData.label;
     const title = document.getElementById('result-title');
@@ -917,88 +931,6 @@ class ClinicEvaluatorApp {
 
     const leakageEl = document.getElementById('leakage-index');
     if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
-
-    this.renderCTA();
-  }
-
-  /* ─────────────── USER INFO BOX ─────────────── */
-
-  renderUserInfoBox() {
-    const container = document.getElementById('view-results');
-    if (!container) return;
-    const box = document.createElement('div');
-    box.className = 'form-card user-info-box fade-in';
-    const date = new Date().toLocaleDateString('ar-SA');
-    const specialtyMap = {
-      cosmetic: 'تجميل وليزر', dental: 'أسنان', general: 'عام وعائلي',
-      derma: 'جلدية', ortho: 'عظام وعلاج طبيعي', eye: 'عيون', other: 'تخصص آخر'
-    };
-    const countryMap = {
-      JO: 'الأردن', SA: 'السعودية', AE: 'الإمارات', QA: 'قطر',
-      KW: 'الكويت', BH: 'البحرين', EG: 'مصر', IQ: 'العراق', other: 'أخرى'
-    };
-    box.innerHTML = `
-      <h3 class="card-title">📋 بيانات التقييم</h3>
-      <div class="user-info-grid">
-        <div class="user-info-item">
-          <div class="user-info-label">الاسم</div>
-          <div class="user-info-value">${this.metadata.name || '-'}</div>
-        </div>
-        <div class="user-info-item">
-          <div class="user-info-label">العيادة</div>
-          <div class="user-info-value">${this.metadata.clinic || '-'}</div>
-        </div>
-        <div class="user-info-item">
-          <div class="user-info-label">التخصص</div>
-          <div class="user-info-value">${specialtyMap[this.metadata.specialty] || this.metadata.specialty || '-'}</div>
-        </div>
-        <div class="user-info-item">
-          <div class="user-info-label">الدولة</div>
-          <div class="user-info-value">${countryMap[this.metadata.country] || this.metadata.country || '-'}</div>
-        </div>
-        <div class="user-info-item">
-          <div class="user-info-label">التاريخ</div>
-          <div class="user-info-value">${date}</div>
-        </div>
-        <div class="user-info-item">
-          <div class="user-info-label">نوع التقييم</div>
-          <div class="user-info-value">${this.assessment?.title || '-'}</div>
-        </div>
-      </div>
-    `;
-    container.insertBefore(box, container.children[1]);
-  }
-
-  /* ─────────────── CTA BOX ─────────────── */
-
-  renderCTA() {
-    const container = document.getElementById('view-results');
-    if (!container) return;
-    const cta = document.createElement('div');
-    cta.className = 'form-card cta-box fade-in';
-    cta.innerHTML = `
-      <div class="cta-title">🚀 هل تريد تطوير أداء عيادتك؟</div>
-      <div class="cta-desc">احصل على استشارة مجانية مع فريق The MD CODE لتطوير أداء عيادتك أو مركزك الطبي.</div>
-      <div class="cta-social-grid">
-        <a href="https://wa.me/962786595990?text=مرحباً،%20أود%20الاستفسار%20عن%20خدمات%20تطوير%20الأداء%20العيادي" target="_blank" class="cta-social-btn" style="background:#25D366;">
-          <i class="fab fa-whatsapp"></i> واتساب
-        </a>
-        <a href="https://www.linkedin.com/in/yazeed-abed-alrazek" target="_blank" class="cta-social-btn" style="background:#0077B5;">
-          <i class="fab fa-linkedin-in"></i> لينكد إن
-        </a>
-        <a href="https://www.instagram.com/yazeed.walid.a.r?igsh=MXRodGJmbmV0dnp4ag==" target="_blank" class="cta-social-btn" style="background:linear-gradient(45deg,#405DE6,#C13584);">
-          <i class="fab fa-instagram"></i> إنستغرام
-        </a>
-        <a href="https://www.facebook.com/share/17hNL9Fs8Q/" target="_blank" class="cta-social-btn" style="background:#1877F2;">
-          <i class="fab fa-facebook-f"></i> فيسبوك
-        </a>
-        <a href="mailto:mdcode2026@gmail.com" class="cta-social-btn" style="background:#ea4335;">
-          <i class="fas fa-envelope"></i> بريد
-        </a>
-      </div>
-      <div class="cta-phone">📞 +962 7 8659 5990</div>
-    `;
-    container.appendChild(cta);
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
@@ -1070,7 +1002,7 @@ class ClinicEvaluatorApp {
 
         const row = document.createElement('div');
         row.style.cssText = 'margin-bottom:12px;';
-        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="benchmark-bar-fill ${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
         chartDiv.appendChild(row);
       });
       
