@@ -852,6 +852,7 @@ class ClinicEvaluatorApp {
     }
     const scoreVal = document.getElementById('result-score-value');
     if (scoreVal) { scoreVal.textContent = score + '%'; }
+    // Note: color is controlled by CSS (white with text-shadow)
     const scoreLabel = document.getElementById('result-score-label');
     if (scoreLabel) scoreLabel.textContent = qData.label;
     const title = document.getElementById('result-title');
