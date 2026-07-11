@@ -1,0 +1,81 @@
+{
+  "title_ar": "التقييم الشامل للعيادة",
+  "title_en": "Comprehensive Clinic Assessment",
+  "slug": "comprehensive-clinic-assessment",
+  "description": "تقييم مؤسسي متكامل لأداء العيادة في جميع المحاور",
+  "has_traps": true,
+  "axes": [
+    {
+      "title_ar": "رحلة المريض",
+      "weight": 20,
+      "questions": [
+        {"text": "كيف يتم استقبال المريض عند وصوله؟", "is_trap": false, "options": [{"label_ar": "تسجيل فقط", "value": 0}, {"label_ar": "ترحيب وتوجيه", "value": 40}, {"label_ar": "استقبال متكامل ومتابعة", "value": 100}]},
+        {"text": "هل يتم توضيح مدة الانتظار المتوقعة؟", "is_trap": false, "options": [{"label_ar": "لا", "value": 0}, {"label_ar": "أحياناً", "value": 40}, {"label_ar": "نعم دائماً", "value": 100}]},
+        {"text": "كيف يتم إنهاء زيارة المريض؟", "is_trap": false, "options": [{"label_ar": "مغادرة بدون متابعة", "value": 0}, {"label_ar": "تعليمات شفهية", "value": 40}, {"label_ar": "خطة واضحة ومتابعة محددة", "value": 100}]},
+        {"text": "هل يتم متابعة المرضى الذين لم يحضروا الموعد؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "أحياناً", "value": 40}, {"label_ar": "نعم بشكل منتظم", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم قياس رضا المرضى؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "بشكل غير منتظم", "value": 40}, {"label_ar": "نعم بشكل دوري", "value": 100, "is_trap": true}]},
+        {"text": "هل تم تعديل أي إجراء بناء على نتائج الرضا؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "نادراً", "value": 40}, {"label_ar": "نعم بشكل مستمر", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم إبلاغ الفريق بنتائج الرضا؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "أحياناً", "value": 40}, {"label_ar": "نعم بشكل دوري", "value": 100, "is_trap": true}]}
+      ]
+    },
+    {
+      "title_ar": "التحويل للعلاج وبناء الثقة",
+      "weight": 20,
+      "questions": [
+        {"text": "كيف يتم شرح الخطة العلاجية للمريض؟", "is_trap": false, "options": [{"label_ar": "إجراء فقط", "value": 0}, {"label_ar": "شرح مختصر", "value": 40}, {"label_ar": "شرح مفصل مع البدائل", "value": 100}]},
+        {"text": "كيف يتم التعامل مع المرضى المترددين؟", "is_trap": false, "options": [{"label_ar": "إعادة شرح فقط", "value": 0}, {"label_ar": "وقت إضافي للتفكير", "value": 40}, {"label_ar": "معالجة المخاوف منظماً", "value": 100}]},
+        {"text": "هل يتم متابعة المرضى الذين لم يبدأوا العلاج؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "أحياناً", "value": 40}, {"label_ar": "نعم بشكل منتظم", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم تسجيل أسباب عدم بدء العلاج؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "نادراً", "value": 40}, {"label_ar": "نعم بشكل منهجي", "value": 100, "is_trap": true}]},
+        {"text": "من المسؤول عن متابعة الحالات غير المبادرة؟", "is_trap": true, "options": [{"label_ar": "لا أحد محدد", "value": 0, "is_trap": true}, {"label_ar": "يعتمد على الحالة", "value": 40}, {"label_ar": "مسؤول محدد وواضح", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم قياس أثر المتابعة على بدء العلاج؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "بشكل غير منتظم", "value": 40}, {"label_ar": "نعم بشكل دوري", "value": 100, "is_trap": true}]},
+        {"text": "هل يمكن معرفة أكثر أسباب عدم بدء العلاج بسهولة؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "صعوبة متوسطة", "value": 40}, {"label_ar": "نعم بسهولة", "value": 100, "is_trap": true}]}
+      ]
+    },
+    {
+      "title_ar": "الإدارة والتشغيل",
+      "weight": 20,
+      "questions": [
+        {"text": "كيف يتم تنظيم المواعيد اليومية؟", "is_trap": false, "options": [{"label_ar": "خبرة شخصية", "value": 0}, {"label_ar": "طريقة غير مكتوبة", "value": 40}, {"label_ar": "آلية واضحة ومنظمة", "value": 100}]},
+        {"text": "هل توجد سياسة واضحة للتأخير؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "غير رسمية", "value": 40}, {"label_ar": "نعم واضحة", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم تطبيق سياسة التأخير باستمرار؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "أحياناً", "value": 40}, {"label_ar": "نعم دائماً", "value": 100, "is_trap": true}]},
+        {"text": "ماذا يحدث عند تأخر الطبيب؟", "is_trap": true, "options": [{"label_ar": "انتظار بدون إبلاغ", "value": 0, "is_trap": true}, {"label_ar": "تقدير الموظف", "value": 40}, {"label_ar": "إبلاغ وإعادة ترتيب", "value": 100, "is_trap": true}]},
+        {"text": "ماذا يحدث عند زيادة الضغط؟", "is_trap": true, "options": [{"label_ar": "فوضى", "value": 0, "is_trap": true}, {"label_ar": "تأخيرات", "value": 40}, {"label_ar": "إدارة منظمة", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم مراجعة أسباب التأخير بشكل دوري؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "نادراً", "value": 40}, {"label_ar": "نعم بشكل منتظم", "value": 100, "is_trap": true}]},
+        {"text": "كيف يتم إدارة البيانات والملفات؟", "is_trap": false, "options": [{"label_ar": "تختلف بين الموظفين", "value": 0}, {"label_ar": "طريقة غير موحدة", "value": 40}, {"label_ar": "إجراءات واضحة", "value": 100}]}
+      ]
+    },
+    {
+      "title_ar": "الفريق الطبي",
+      "weight": 15,
+      "questions": [
+        {"text": "كيف يتم التعامل مع خصوصية المرضى؟", "is_trap": false, "options": [{"label_ar": "لا إجراءات", "value": 0}, {"label_ar": "في أغلب الحالات", "value": 40}, {"label_ar": "إجراءات واضحة ثابتة", "value": 100}]},
+        {"text": "كيف يتم توثيق المعلومات؟", "is_trap": false, "options": [{"label_ar": "أساسية فقط", "value": 0}, {"label_ar": "مقبولة لكن مختلفة", "value": 40}, {"label_ar": "موحدة وواضحة", "value": 100}]},
+        {"text": "كيف يتم التعامل مع الشكاوى؟", "is_trap": false, "options": [{"label_ar": "عند الحدوث فقط", "value": 0}, {"label_ar": "مناقشة غير منتظمة", "value": 40}, {"label_ar": "آلية واضحة", "value": 100}]},
+        {"text": "كيف يتم تبادل المعلومات بين الفريق والإدارة؟", "is_trap": false, "options": [{"label_ar": "شفهي فقط", "value": 0}, {"label_ar": "غير موحد", "value": 40}, {"label_ar": "آلية واضحة", "value": 100}]},
+        {"text": "عند غياب أحد أعضاء الفريق، كيف تستمر العمليات؟", "is_trap": true, "options": [{"label_ar": "تتأثر بشكل واضح", "value": 0, "is_trap": true}, {"label_ar": "حسب الظروف", "value": 40}, {"label_ar": "مستقرة بفضل الوضوح", "value": 100, "is_trap": true}]}
+      ]
+    },
+    {
+      "title_ar": "المتابعة والاحتفاظ بالمريض",
+      "weight": 15,
+      "questions": [
+        {"text": "كيف يتم متابعة المرضى بعد بدء العلاج؟", "is_trap": false, "options": [{"label_ar": "لا متابعة", "value": 0}, {"label_ar": "بعض الحالات", "value": 40}, {"label_ar": "آلية واضحة", "value": 100}]},
+        {"text": "هل تكون المعلومات متوفرة عند المراجعة لاحقاً؟", "is_trap": true, "options": [{"label_ar": "غالباً لا", "value": 0, "is_trap": true}, {"label_ar": "حسب الشخص", "value": 40}, {"label_ar": "نعم بسهولة", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم قياس معدل عودة المرضى؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "بشكل غير منتظم", "value": 40}, {"label_ar": "نعم بشكل دوري", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم تحليل أسباب عدم العودة؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "نادراً", "value": 40}, {"label_ar": "نعم بشكل منهجي", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم قياس أثر التحسينات على الاحتفاظ؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "بشكل غير منتظم", "value": 40}, {"label_ar": "نعم بشكل دوري", "value": 100, "is_trap": true}]}
+      ]
+    },
+    {
+      "title_ar": "النمو والاستدامة",
+      "weight": 10,
+      "questions": [
+        {"text": "هل يتم قياس الأداء المالي للعيادة؟", "is_trap": false, "options": [{"label_ar": "لا", "value": 0}, {"label_ar": "بشكل غير منتظم", "value": 40}, {"label_ar": "نعم بشكل دوري", "value": 100}]},
+        {"text": "هل يتم تحليل مصادر النمو المحتملة؟", "is_trap": false, "options": [{"label_ar": "لا", "value": 0}, {"label_ar": "نادراً", "value": 40}, {"label_ar": "نعم بشكل منهجي", "value": 100}]},
+        {"text": "هل يتم قياس تكلفة اكتساب مريض جديد؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "بشكل تقريبي", "value": 40}, {"label_ar": "نعم بدقة", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم قياس قيمة المريض على المدى الطويل؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "بشكل تقريبي", "value": 40}, {"label_ar": "نعم بدقة", "value": 100, "is_trap": true}]},
+        {"text": "هل يتم مراجعة الاستراتيجية بشكل دوري؟", "is_trap": true, "options": [{"label_ar": "لا", "value": 0, "is_trap": true}, {"label_ar": "نادراً", "value": 40}, {"label_ar": "نعم بشكل منتظم", "value": 100, "is_trap": true}]}
+      ]
+    }
+  ]
+}
