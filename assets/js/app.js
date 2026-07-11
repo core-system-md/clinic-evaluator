@@ -844,9 +844,12 @@ class ClinicEvaluatorApp {
     }
 
     const circle = document.getElementById('result-score-circle');
-    if (circle) circle.style.borderColor = qData.color;
+    if (circle) {
+      circle.classList.remove('q1', 'q2', 'q3', 'q4');
+      circle.classList.add(q.toLowerCase());
+    }
     const scoreVal = document.getElementById('result-score-value');
-    if (scoreVal) { scoreVal.textContent = score + '%'; scoreVal.style.color = qData.color; }
+    if (scoreVal) { scoreVal.textContent = score + '%'; }
     const scoreLabel = document.getElementById('result-score-label');
     if (scoreLabel) scoreLabel.textContent = qData.label;
     const title = document.getElementById('result-title');
@@ -863,10 +866,10 @@ class ClinicEvaluatorApp {
       const axes = this.assessment?.axes || [];
       Object.entries(res.axisScores).forEach(([aid, score]) => {
         const axis = axes.find(a => a.id === aid);
-        const color = score >= 75 ? '#2A6F5D' : score >= 50 ? '#5C6B73' : score >= 25 ? '#C67D47' : '#A33B3B';
+        const qClass = score >= 75 ? 'q4' : score >= 50 ? 'q3' : score >= 25 ? 'q2' : 'q1';
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
-        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis ? axis.name_ar : aid}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill" style="width:${score}%;background:${color}"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
+        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis ? axis.name_ar : aid}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
         axesContainer.appendChild(row);
       });
     }
@@ -975,14 +978,14 @@ class ClinicEvaluatorApp {
       const maxVal = Math.max(...data.map(d => d.value), 1);
       data.forEach(item => {
         const pct = (item.value / maxVal) * 100;
-        let color = '#A33B3B';
-        if (item.value >= 75) color = '#2A6F5D';
-        else if (item.value >= 50) color = '#5C6B73';
-        else if (item.value >= 25) color = '#C67D47';
+        let qClass = 'q1';
+        if (item.value >= 75) qClass = 'q4';
+        else if (item.value >= 50) qClass = 'q3';
+        else if (item.value >= 25) qClass = 'q2';
 
         const row = document.createElement('div');
         row.style.cssText = 'margin-bottom:12px;';
-        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span style="color:${color}">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div style="width:${pct}%;height:100%;background:${color};border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
         chartDiv.appendChild(row);
       });
       
