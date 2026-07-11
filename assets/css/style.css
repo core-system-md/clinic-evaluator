@@ -1,5 +1,5 @@
 /* ============================================
-   MD CODE Clinic Evaluator — Global Styles
+   MD CODE Clinic Evaluator — Global Styles (FIXED)
    ============================================ */
 
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap');
@@ -20,6 +20,12 @@
   --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
   --radius: 12px;
   --radius-sm: 8px;
+
+  /* ── Quartile Colors (FIXED) ── */
+  --q1-red:     #A33B3B;
+  --q2-orange:  #C67D47;
+  --q3-bluegrey:#5C6B73;
+  --q4-green:   #2A6F5D;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -190,22 +196,45 @@ body {
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); border-radius: 4px; transition: width 0.4s ease; }
 .progress-text { text-align: center; margin-top: 8px; font-size: 0.9rem; color: var(--text-muted); }
 
+/* ── RESULT SCORE CIRCLE (FIXED) ── */
 .result-score-circle {
-  width: 160px;
-  height: 160px;
+  width: 180px;
+  height: 180px;
   border-radius: 50%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   margin: 0 auto 24px;
-  border: 8px solid var(--primary-light);
+  position: relative;
   background: white;
+  border: 8px solid var(--q2-orange);
 }
 
-.result-score-value { font-size: 3rem; font-weight: 800; color: var(--primary); }
-.result-score-label { font-size: 1.2rem; color: var(--text-muted); }
+.result-score-value {
+  font-size: 2.8rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  text-align: center;
+}
 
+.result-score-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 4px;
+  max-width: 120px;
+  line-height: 1.3;
+}
+
+/* Quartile colour classes for the circle border */
+.result-score-circle.q1 { border-color: var(--q1-red); }
+.result-score-circle.q2 { border-color: var(--q2-orange); }
+.result-score-circle.q3 { border-color: var(--q3-bluegrey); }
+.result-score-circle.q4 { border-color: var(--q4-green); }
+
+/* ── AXIS SCORE ROW (FIXED) ── */
 .axis-score-row {
   display: flex;
   align-items: center;
@@ -217,9 +246,35 @@ body {
 
 .axis-score-info { flex: 1; }
 .axis-score-name { font-weight: 700; }
-.axis-score-bar-bg { width: 100%; height: 10px; background: var(--border); border-radius: 5px; margin-top: 6px; overflow: hidden; }
-.axis-score-bar-fill { height: 100%; border-radius: 5px; transition: width 0.6s ease; }
-.axis-score-value { font-weight: 700; font-size: 1.1rem; margin-right: 16px; min-width: 50px; text-align: left; }
+
+.axis-score-bar-bg {
+  width: 100%;
+  height: 10px;
+  background: var(--border);
+  border-radius: 5px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.axis-score-bar-fill {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+
+/* Quartile fill colours */
+.axis-score-bar-fill.q1 { background: var(--q1-red); }
+.axis-score-bar-fill.q2 { background: var(--q2-orange); }
+.axis-score-bar-fill.q3 { background: var(--q3-bluegrey); }
+.axis-score-bar-fill.q4 { background: var(--q4-green); }
+
+.axis-score-value {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-right: 16px;
+  min-width: 50px;
+  text-align: left;
+}
 
 .trap-alert {
   background: #fef2f2;
@@ -254,7 +309,7 @@ body {
 .hidden { display: none !important; }
 
 /* ============================================================
-   A4 PRINT STYLES — Professional Report Format
+   A4 PRINT STYLES — Professional Report Format (FIXED)
    ============================================================ */
 
 @media print {
@@ -277,7 +332,27 @@ body {
   #global-sync-loader,
   #login-modal,
   #error-toast,
-  .back-link {
+  .back-link,
+  .likert-scale,
+  .progress-wrapper,
+  .form-group,
+  .question-card,
+  .assessment-grid,
+  nav, header nav, .nav, .navigation,
+  .floating-action-btn, .fab,
+  .edit-btn, .delete-btn, .action-btn,
+  .modal, .modal-overlay, .overlay,
+  .toast, .snackbar,
+  .loading-spinner, .spinner, .loader,
+  .tooltip, .popover,
+  .dropdown-menu, .menu,
+  .collapsible-toggle, .accordion-toggle,
+  .tab-bar, .tabs,
+  .filter-bar, .search-bar,
+  .sort-controls, .pagination,
+  .mobile-nav, .bottom-nav,
+  .hamburger, .hamburger-menu,
+  .sidebar-toggle, .drawer-toggle {
     display: none !important;
   }
 
@@ -335,17 +410,28 @@ body {
 
   /* Score circle for print */
   .result-score-circle {
-    border: 4px solid var(--primary-dark) !important;
-    width: 120px;
-    height: 120px;
+    border: 6px solid var(--q2-orange) !important;
+    width: 130px;
+    height: 130px;
+    margin-bottom: 16px;
   }
+
+  .result-score-circle.q1 { border-color: var(--q1-red) !important; }
+  .result-score-circle.q2 { border-color: var(--q2-orange) !important; }
+  .result-score-circle.q3 { border-color: var(--q3-bluegrey) !important; }
+  .result-score-circle.q4 { border-color: var(--q4-green) !important; }
 
   .result-score-value {
-    color: var(--primary-dark) !important;
-    font-size: 24pt;
+    color: var(--text) !important;
+    font-size: 22pt;
   }
 
-  /* Progress bars as solid fills */
+  .result-score-label {
+    font-size: 9pt;
+    color: #555 !important;
+  }
+
+  /* Progress bars / axis bars as solid fills */
   .progress-bar-bg,
   .axis-score-bar-bg {
     background: #eee !important;
@@ -358,6 +444,11 @@ body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+
+  .axis-score-bar-fill.q1 { background: var(--q1-red) !important; }
+  .axis-score-bar-fill.q2 { background: var(--q2-orange) !important; }
+  .axis-score-bar-fill.q3 { background: var(--q3-bluegrey) !important; }
+  .axis-score-bar-fill.q4 { background: var(--q4-green) !important; }
 
   /* Trap alerts */
   .trap-alert {
@@ -422,6 +513,27 @@ body {
     margin-bottom: 12px;
   }
 
+  /* Ensure axis rows print cleanly */
+  .axis-score-row {
+    background: #fafafa !important;
+    border: 1px solid #eee !important;
+    page-break-inside: avoid;
+    margin-bottom: 10px;
+    padding: 12px;
+  }
+
+  .axis-score-name {
+    font-size: 11pt;
+    font-weight: 700;
+    color: #222 !important;
+  }
+
+  .axis-score-value {
+    font-size: 12pt;
+    font-weight: 700;
+    margin-right: 12px;
+  }
+
   /* Ensure colors print */
   * {
     -webkit-print-color-adjust: exact !important;
@@ -436,4 +548,10 @@ body {
   .question-card { padding: 20px; }
   .likert-option { min-width: 60px; padding: 12px 4px; }
   .likert-option .value { font-size: 1.2rem; }
+
+  .result-score-circle {
+    width: 150px;
+    height: 150px;
+  }
+  .result-score-value { font-size: 2.4rem; }
 }
