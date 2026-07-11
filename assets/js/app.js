@@ -29,6 +29,7 @@ class ClinicEvaluatorApp {
     this.previousScore = null;
     this.previousSessionData = null;
     this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 }; 
+    this.specialtyProfile = null;
   }
 
   /* ─────────────── INITIALIZATION ─────────────── */
@@ -236,6 +237,81 @@ class ClinicEvaluatorApp {
     return key ? this.config.assessment_types[key] : null;
   }
 
+  /* ─────────────── SPECIALTY PROFILE LOADER ─────────────── */
+
+  async loadSpecialtyProfile() {
+    if (!this.supabase || !this.metadata.specialty) return;
+    try {
+      const profiles = await this.supabase.select('specialty_profiles', {
+        filter: { specialty_key: this.metadata.specialty }
+      });
+      if (profiles && profiles[0]) {
+        this.specialtyProfile = profiles[0];
+        this.applyProfileDefaults();
+      }
+    } catch (e) {
+      console.error('[app] Failed to load specialty profile:', e);
+    }
+  }
+
+  applyProfileDefaults() {
+    const p = this.specialtyProfile;
+    if (!p) return;
+    this.evDefaults.avg = p.default_avg_visit;
+    this.evDefaults.visits = p.default_visits_per_year;
+    this.evDefaults.years = p.default_years_relationship;
+    this.evDefaults.referral = p.default_referral_rate;
+    const avgEl = document.getElementById('ev-avg');
+    const visitsEl = document.getElementById('ev-visits');
+    const yearsEl = document.getElementById('ev-years');
+    const referralEl = document.getElementById('ev-referral');
+    if (avgEl) avgEl.value = this.evDefaults.avg;
+    if (visitsEl) visitsEl.value = this.evDefaults.visits;
+    if (yearsEl) yearsEl.value = this.evDefaults.years;
+    if (referralEl) referralEl.value = this.evDefaults.referral;
+  }
+
+  getExperienceMultiplier() {
+    const years = this.metadata.years;
+    if (!years) return 1.0;
+    if (years.includes('7')) return 1.08;
+    if (years.includes('3')) return 1.00;
+    if (years.includes('1')) return 0.90;
+    return 0.80;
+  }
+
+  getTeamCapacityFactor() {
+    const team = this.metadata.team;
+    if (!team) return 1.0;
+    if (team.includes('15')) return 1.15;
+    if (team.includes('9')) return 1.10;
+    if (team.includes('4')) return 1.00;
+    return 0.90;
+  }
+
+  buildSimulatorVars() {
+    const p = this.specialtyProfile || {};
+    const avg = parseFloat(document.getElementById('ev-avg')?.value) || p.default_avg_visit || 50;
+    const visits = parseFloat(document.getElementById('ev-visits')?.value) || p.default_visits_per_year || 4;
+    const years = parseFloat(document.getElementById('ev-years')?.value) || p.default_years_relationship || 5;
+    const referral = parseFloat(document.getElementById('ev-referral')?.value) || p.default_referral_rate || 0;
+    const specialtyMult = p.specialty_multiplier || 1.0;
+    const experienceMult = this.getExperienceMultiplier();
+    const teamFactor = this.getTeamCapacityFactor();
+    const flow = visits * teamFactor;
+    const ltv = avg * visits * years;
+    return {
+      flow: flow,
+      ltv: ltv,
+      specialtyMultiplier: specialtyMult,
+      experienceMultiplier: experienceMult,
+      referralRate: referral,
+      ...this.metadata
+    };
+  }
+
+
+
   /* ─────────────── UI VIEWS CONTROLLER ─────────────── */
 
   showView(id) {
@@ -312,6 +388,7 @@ class ClinicEvaluatorApp {
     this.questions = this.assessment.questions;
     this.answers = {};
     this.currentQuestionIndex = 0;
+    await this.loadSpecialtyProfile();
 
     if (this.supabase && this.assessmentUuid) {
       this.showLoadingGlobal(true);
@@ -813,7 +890,8 @@ class ClinicEvaluatorApp {
       if (typeof AssessmentEngine === 'undefined') throw new Error('engine.js not loaded');
       
       this.engine = new AssessmentEngine(this.config, this.texts);
-      const results = this.engine.evaluate(this.getAnswersForEngine(), this.currentAssessmentKey, this.metadata);
+      const simulatorVars = this.buildSimulatorVars();
+      const results = this.engine.evaluate(this.getAnswersForEngine(), this.currentAssessmentKey, simulatorVars);
 
       if (this.supabase) {
         try {
@@ -929,13 +1007,51 @@ class ClinicEvaluatorApp {
     const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
     if (evSection) evSection.classList.toggle('hidden', !evEnabled);
 
+    // عرض EV تلقائياً إذا متاح
+    if (evEnabled && res.evSimulator) {
+      this.renderEVCard(res.evSimulator);
+    }
+
     const leakageEl = document.getElementById('leakage-index');
     if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
 
-  renderAxisComparison(currentAxisScores) {
+    renderEVCard(evData) {
+    let evCard = document.getElementById('ev-auto-card');
+    if (!evCard) {
+      evCard = document.createElement('div');
+      evCard.id = 'ev-auto-card';
+      evCard.className = 'form-card fade-in';
+      evCard.style.marginTop = '20px';
+      const recContainer = document.getElementById('recommendations-container');
+      recContainer?.parentNode?.insertBefore(evCard, recContainer.nextSibling);
+    }
+    evCard.innerHTML = `
+      <h3 class="card-title">💰 نمذجة النمو المالي (مبنية على أدائك)</h3>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;text-align:center;margin-top:16px;">
+        <div>
+          <div style="font-size:0.85rem;color:#6b7280;">العائد الحالي التقديري</div>
+          <div style="font-size:1.5rem;font-weight:800;color:#134e4a;">$${(evData.currentEV || 0).toLocaleString()}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:#6b7280;">النمو المستهدف</div>
+          <div style="font-size:1.5rem;font-weight:800;color:#2A6F5D;">$${(evData.potentialEV || 0).toLocaleString()}</div>
+        </div>
+        <div>
+          <div style="font-size:0.85rem;color:#6b7280;">فرص التطوير</div>
+          <div style="font-size:1.5rem;font-weight:800;color:#C67D47;">+$${(evData.gap || 0).toLocaleString()}</div>
+        </div>
+      </div>
+      <p style="margin-top:12px;font-size:0.85rem;color:#6b7280;text-align:center;">
+        استناداً إلى تخصصك (${this.specialtyProfile?.specialty_name_ar || 'غير محدد'}) وأداء تقييمك. 
+        <a href="#" onclick="document.getElementById('btn-ev-simulator').click(); return false;" style="color:#0f766e;font-weight:600;">اضغط هنا للتعديل</a>
+      </p>
+    `;
+  }
+
+renderAxisComparison(currentAxisScores) {
     if (!this.previousSessionData?.axisScores) return '';
     
     let html = '<div style="margin-top:16px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
