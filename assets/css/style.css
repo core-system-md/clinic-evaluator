@@ -24,7 +24,7 @@
   /* ── Quartile Colors (FIXED) ── */
   --q1-red:     #A33B3B;
   --q2-orange:  #C67D47;
-  --q3-bluegrey:#5C6B73;
+  --q3-blue:#3B82F6;
   --q4-green:   #2A6F5D;
 }
 
@@ -212,7 +212,7 @@ body {
 }
 
 .result-score-value {
-  font-size: 2.8rem;
+  font-size: 2.2rem;
   font-weight: 800;
   color: var(--text);
   line-height: 1.1;
@@ -231,7 +231,7 @@ body {
 /* Quartile colour classes for the circle border */
 .result-score-circle.q1 { border-color: var(--q1-red); }
 .result-score-circle.q2 { border-color: var(--q2-orange); }
-.result-score-circle.q3 { border-color: var(--q3-bluegrey); }
+.result-score-circle.q3 { border-color: var(--q3-blue); }
 .result-score-circle.q4 { border-color: var(--q4-green); }
 
 /* ── AXIS SCORE ROW (FIXED) ── */
@@ -265,13 +265,19 @@ body {
 /* Quartile fill colours */
 .axis-score-bar-fill.q1 { background: var(--q1-red); }
 .axis-score-bar-fill.q2 { background: var(--q2-orange); }
-.axis-score-bar-fill.q3 { background: var(--q3-bluegrey); }
+.axis-score-bar-fill.q3 { background: var(--q3-blue); }
 .axis-score-bar-fill.q4 { background: var(--q4-green); }
 /* Quartile text colours (for benchmark labels) */
 .q1-text { color: var(--q1-red); }
 .q2-text { color: var(--q2-orange); }
-.q3-text { color: var(--q3-bluegrey); }
+.q3-text { color: var(--q3-blue); }
 .q4-text { color: var(--q4-green); }
+
+/* Benchmark bar colours (used in renderVisualBenchmark) */
+.benchmark-bar-fill.q1 { background: var(--q1-red); }
+.benchmark-bar-fill.q2 { background: var(--q2-orange); }
+.benchmark-bar-fill.q3 { background: var(--q3-blue); }
+.benchmark-bar-fill.q4 { background: var(--q4-green); }
 
 
 .axis-score-value {
@@ -325,6 +331,7 @@ body {
   }
 
   /* Hide interactive elements */
+  .info-card,
   .btn-group,
   .top-bar,
   #view-ev-simulator,
@@ -424,7 +431,7 @@ body {
 
   .result-score-circle.q1 { border-color: var(--q1-red) !important; }
   .result-score-circle.q2 { border-color: var(--q2-orange) !important; }
-  .result-score-circle.q3 { border-color: var(--q3-bluegrey) !important; }
+  .result-score-circle.q3 { border-color: var(--q3-blue) !important; }
   .result-score-circle.q4 { border-color: var(--q4-green) !important; }
 
   .result-score-value {
@@ -453,11 +460,11 @@ body {
 
   .axis-score-bar-fill.q1 { background: var(--q1-red) !important; }
   .axis-score-bar-fill.q2 { background: var(--q2-orange) !important; }
-  .axis-score-bar-fill.q3 { background: var(--q3-bluegrey) !important; }
+  .axis-score-bar-fill.q3 { background: var(--q3-blue) !important; }
   .axis-score-bar-fill.q4 { background: var(--q4-green) !important; }
   .q1-text { color: var(--q1-red) !important; }
   .q2-text { color: var(--q2-orange) !important; }
-  .q3-text { color: var(--q3-bluegrey) !important; }
+  .q3-text { color: var(--q3-blue) !important; }
   .q4-text { color: var(--q4-green) !important; }
 
 
