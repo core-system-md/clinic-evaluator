@@ -196,7 +196,7 @@ body {
 .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--primary-light), var(--primary)); border-radius: 4px; transition: width 0.4s ease; }
 .progress-text { text-align: center; margin-top: 8px; font-size: 0.9rem; color: var(--text-muted); }
 
-/* ── RESULT SCORE CIRCLE (FIXED) ── */
+/* ── RESULT SCORE CIRCLE (FULL COLOR + WHITE TEXT) ── */
 .result-score-circle {
   width: 180px;
   height: 180px;
@@ -207,32 +207,34 @@ body {
   justify-content: center;
   margin: 0 auto 24px;
   position: relative;
-  background: white;
-  border: 8px solid var(--q2-orange);
+  background: var(--q2-orange);
+  border: 3px solid rgba(255,255,255,0.3);
 }
 
 .result-score-value {
   font-size: 2.2rem;
   font-weight: 800;
-  color: var(--text);
+  color: white;
   line-height: 1.1;
   text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 1px rgba(0,0,0,0.8);
 }
 
 .result-score-label {
   font-size: 0.85rem;
-  color: var(--text-muted);
+  color: white;
   text-align: center;
   margin-top: 4px;
-  max-width: 120px;
+  max-width: 140px;
   line-height: 1.3;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 1px rgba(0,0,0,0.8);
 }
 
-/* Quartile colour classes for the circle border */
-.result-score-circle.q1 { border-color: var(--q1-red); }
-.result-score-circle.q2 { border-color: var(--q2-orange); }
-.result-score-circle.q3 { border-color: var(--q3-blue); }
-.result-score-circle.q4 { border-color: var(--q4-green); }
+/* Quartile colour classes — full background */
+.result-score-circle.q1 { background: var(--q1-red); }
+.result-score-circle.q2 { background: var(--q2-orange); }
+.result-score-circle.q3 { background: var(--q3-blue); }
+.result-score-circle.q4 { background: var(--q4-green); }
 
 /* ── AXIS SCORE ROW (FIXED) ── */
 .axis-score-row {
@@ -324,6 +326,83 @@ body {
    A4 PRINT STYLES — Professional Report Format (FIXED)
    ============================================================ */
 
+
+/* ── USER INFO BOX ── */
+.user-info-box {
+  background: #f8fafc;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.user-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.user-info-item {
+  font-size: 0.9rem;
+}
+.user-info-label {
+  color: #6b7280;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
+}
+.user-info-value {
+  font-weight: 700;
+  color: #134e4a;
+}
+
+/* ── CTA BOX ── */
+.cta-box {
+  background: linear-gradient(135deg, #0f172a 0%, #134e4a 100%);
+  color: white;
+  border-radius: 16px;
+  padding: 28px;
+  margin-top: 20px;
+  text-align: center;
+}
+.cta-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+.cta-desc {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+.cta-social-grid {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.cta-social-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: white;
+  text-decoration: none;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: transform 0.2s;
+}
+.cta-social-btn:hover {
+  transform: translateY(-2px);
+}
+.cta-phone {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-top: 8px;
+  opacity: 0.9;
+}
+
+
 @media print {
   @page {
     size: A4;
@@ -373,7 +452,7 @@ body {
   body {
     background: white !important;
     color: black !important;
-    font-size: 11pt;
+    font-size: 10pt;
     line-height: 1.5;
   }
 
@@ -393,8 +472,8 @@ body {
     border-radius: 0 !important;
     break-inside: avoid;
     page-break-inside: avoid;
-    margin-bottom: 16px;
-    padding: 16px;
+    margin-bottom: 8px;
+    padding: 10px;
     background: white !important;
   }
 
@@ -405,8 +484,8 @@ body {
     color: black !important;
     border: 2px solid var(--primary-dark) !important;
     border-radius: 0 !important;
-    padding: 20px !important;
-    margin-bottom: 20px;
+    padding: 12px !important;
+    margin-bottom: 12px;
   }
 
   .header h1,
@@ -423,25 +502,28 @@ body {
 
   /* Score circle for print */
   .result-score-circle {
-    border: 6px solid var(--q2-orange) !important;
-    width: 130px;
-    height: 130px;
-    margin-bottom: 16px;
+    background: var(--q2-orange) !important;
+    border: 3px solid rgba(255,255,255,0.3) !important;
+    width: 110px;
+    height: 110px;
+    margin-bottom: 12px;
   }
 
-  .result-score-circle.q1 { border-color: var(--q1-red) !important; }
-  .result-score-circle.q2 { border-color: var(--q2-orange) !important; }
-  .result-score-circle.q3 { border-color: var(--q3-blue) !important; }
-  .result-score-circle.q4 { border-color: var(--q4-green) !important; }
+  .result-score-circle.q1 { background: var(--q1-red) !important; }
+  .result-score-circle.q2 { background: var(--q2-orange) !important; }
+  .result-score-circle.q3 { background: var(--q3-blue) !important; }
+  .result-score-circle.q4 { background: var(--q4-green) !important; }
 
   .result-score-value {
-    color: var(--text) !important;
-    font-size: 22pt;
+    color: white !important;
+    font-size: 18pt;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 1px rgba(0,0,0,0.8) !important;
   }
 
   .result-score-label {
-    font-size: 9pt;
-    color: #555 !important;
+    font-size: 8pt;
+    color: white !important;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.6), 0 0 1px rgba(0,0,0,0.8) !important;
   }
 
   /* Progress bars / axis bars as solid fills */
@@ -524,11 +606,11 @@ body {
   }
 
   h3.card-title {
-    font-size: 13pt;
+    font-size: 11pt;
     color: var(--primary-dark) !important;
     border-bottom: 1px solid #ddd;
-    padding-bottom: 8px;
-    margin-bottom: 12px;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
   }
 
   /* Ensure axis rows print cleanly */
@@ -536,8 +618,8 @@ body {
     background: #fafafa !important;
     border: 1px solid #eee !important;
     page-break-inside: avoid;
-    margin-bottom: 10px;
-    padding: 12px;
+    margin-bottom: 6px;
+    padding: 8px;
   }
 
   .axis-score-name {
@@ -558,6 +640,59 @@ body {
     print-color-adjust: exact !important;
   }
 }
+
+
+  /* User info box for print */
+  .user-info-box {
+    background: #f8fafc !important;
+    border: 1px solid #ddd !important;
+    border-radius: 0 !important;
+    padding: 10px !important;
+    margin-bottom: 8px !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .user-info-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+  .user-info-item {
+    font-size: 9pt !important;
+  }
+  .user-info-label {
+    font-size: 8pt !important;
+  }
+  .user-info-value {
+    font-size: 9pt !important;
+  }
+
+  /* CTA box for print */
+  .cta-box {
+    background: #134e4a !important;
+    border-radius: 0 !important;
+    padding: 16px !important;
+    margin-top: 12px !important;
+    page-break-inside: avoid;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .cta-title {
+    font-size: 11pt !important;
+  }
+  .cta-desc {
+    font-size: 9pt !important;
+  }
+  .cta-social-grid {
+    gap: 6px !important;
+  }
+  .cta-social-btn {
+    padding: 6px 10px !important;
+    font-size: 8pt !important;
+  }
+  .cta-phone {
+    font-size: 10pt !important;
+  }
 
 @media (max-width: 640px) {
   .container { padding: 16px; }
