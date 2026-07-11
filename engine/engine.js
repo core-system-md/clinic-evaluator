@@ -1,13 +1,16 @@
 /**
  * ============================================================
- * Centralized Assessment Engine v3.0 — CLEAN VERSION
+ * Centralized Assessment Engine v4.0 — AXIS ROLES EDITION
  * Generic Engine — يقرأ config.json وينفذ المنطق بالكامل
- * Compatible with app.js v5.0
+ * Compatible with app.js v7.4+
  * ============================================================
- * CHANGELOG:
- *   - SupabaseClient removed (moved to supabase-client.js)
- *   - Engine focuses on calculation logic only
- *   - 12 validation checks preserved
+ * CHANGELOG v4.0:
+ *   - Axis Roles System: KPIs and EV calculate from roles, not axis names
+ *   - Unlimited axes support
+ *   - Fallback roles when a role is missing
+ *   - Executive KPIs: TFI, TAP, PRP, PLI, PSI, NPI, EVI, TCI
+ *   - Assessment-specific KPI: RRI (Reception Readiness Index)
+ *   - Backward compatible with legacy A1-A5 assessments
  * ============================================================
  */
 
@@ -82,6 +85,70 @@ class AssessmentEngine {
     console.log('[ENGINE] ✅ Validation passed');
   }
 
+  /* ─────────────── AXIS ROLES SYSTEM ─────────────── */
+
+  /**
+   * ترجمة درجات المحاور إلى درجات الأدوار
+   * axisScores: { "A1": 80, "A2": 70, ... }
+   * axisRoles: { "A1": "TRUST", "A2": "COMMUNICATION", ... }
+   * returns: { "TRUST": 80, "COMMUNICATION": 70, ... }
+   */
+  translateToRoleScores(axisScores, axisRoles) {
+    const roleScores = {};
+    const availableScores = [];
+
+    // أولاً: ترجمة المحاور المعروفة
+    for (const [axisId, score] of Object.entries(axisScores)) {
+      availableScores.push(score);
+      const role = axisRoles?.[axisId];
+      if (role) {
+        // إذا كان الدور موجوداً مسبقاً، نأخذ المتوسط
+        if (roleScores[role] !== undefined) {
+          roleScores[role] = (roleScores[role] + score) / 2;
+        } else {
+          roleScores[role] = score;
+        }
+      }
+    }
+
+    // ثانياً: Fallback — إذا دور غير موجود، نستخدم متوسط كل الأدوار المتاحة
+    const avgScore = availableScores.length > 0
+      ? availableScores.reduce((a, b) => a + b, 0) / availableScores.length
+      : 50;
+
+    const allRoles = [
+      'TRUST', 'COMMUNICATION', 'CONVERSION', 'RETENTION', 'LOYALTY',
+      'SCHEDULING', 'RECEPTION', 'ADMIN', 'COORDINATION',
+      'JOURNEY', 'OPERATIONS', 'TEAM', 'GROWTH', 'PROFESSIONALISM', 'TEAMWORK'
+    ];
+
+    for (const role of allRoles) {
+      if (roleScores[role] === undefined) {
+        roleScores[role] = avgScore;
+      }
+    }
+
+    return roleScores;
+  }
+
+  /**
+   * حساب KPI من درجات الأدوار والأوزان
+   * roleScores: { "TRUST": 80, "COMMUNICATION": 70, ... }
+   * kpiMapping: { "TRUST": 0.4, "COMMUNICATION": 0.4, "RECEPTION": 0.2 }
+   */
+  calculateKPIFromRoles(roleScores, kpiMapping) {
+    let weightedSum = 0;
+    let totalWeight = 0;
+
+    for (const [role, weight] of Object.entries(kpiMapping)) {
+      const roleScore = roleScores[role] || 0;
+      weightedSum += roleScore * weight;
+      totalWeight += weight;
+    }
+
+    return totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
+  }
+
   calculateRawScores(answers) {
     const cfg = this.currentAssessment || this.config;
     const rawScores = {};
@@ -152,37 +219,69 @@ class AssessmentEngine {
     };
   }
 
+  /* ─────────────── KPIs — DYNAMIC WITH AXIS ROLES ─────────────── */
+
   calculateKPIs(finalScores) {
-    const ids = Object.keys(finalScores);
-    const getScore = (id) => finalScores[id] || 0;
-    const a1 = ids.find(id => id.includes('1')) || ids[0];
-    const a2 = ids.find(id => id.includes('2')) || ids[1];
-    const a3 = ids.find(id => id.includes('3')) || ids[2];
-    const a4 = ids.find(id => id.includes('4')) || ids[3];
-    const a5 = ids.find(id => id.includes('5')) || ids[4];
-    return {
-      TFI: Math.round((getScore(a1) + getScore(a2)) / 2),
-      TAP: Math.round((getScore(a3) + getScore(a4)) / 2),
-      PRP: Math.round(getScore(a5)),
-      PLI: Math.round(getScore(a5))
-    };
+    const cfg = this.currentAssessment || this.config;
+    const axisRoles = cfg.axis_roles || {};
+    const kpiMappings = cfg.kpi_mappings || {};
+
+    // ترجمة المحاور إلى أدوار
+    const roleScores = this.translateToRoleScores(finalScores, axisRoles);
+
+    // حساب كل KPI ديناميكياً
+    const kpis = {};
+    for (const [kpiCode, mapping] of Object.entries(kpiMappings)) {
+      kpis[kpiCode] = this.calculateKPIFromRoles(roleScores, mapping);
+    }
+
+    // التأكد من وجود المؤشرات الأساسية (للتوافقية)
+    const defaultKPIs = ['TFI', 'TAP', 'PRP', 'PLI', 'PSI', 'NPI', 'EVI', 'TCI'];
+    for (const kpi of defaultKPIs) {
+      if (kpis[kpi] === undefined) {
+        kpis[kpi] = 0;
+      }
+    }
+
+    return kpis;
   }
+
+  /* ─────────────── EV — DYNAMIC WITH AXIS ROLES ─────────────── */
 
   calculateEV(axisScores, simulatorVars) {
     const cfg = this.currentAssessment || this.config;
     if (!cfg.simulator || cfg.simulator.enabled !== true) return null;
-    const ids = Object.keys(axisScores);
-    const a3 = ids.find(id => id.includes('3')) || ids[2];
-    const a4 = ids.find(id => id.includes('4')) || ids[3];
-    const a5 = ids.find(id => id.includes('5')) || ids[4];
+
+    const axisRoles = cfg.axis_roles || {};
+    const evMappings = cfg.ev_mappings || {};
     const deltaCMax = cfg.simulator.delta_c_max || 0.35;
     const flow = simulatorVars?.flow || 50;
     const ltv = simulatorVars?.ltv || 5000;
+
     if (deltaCMax <= 0 || flow <= 0 || ltv <= 0) return null;
-    const weightedScore = (axisScores[a3] || 0) * 0.4 + (axisScores[a4] || 0) * 0.4 + (axisScores[a5] || 0) * 0.2;
-    const deltaC = (weightedScore / 100) * deltaCMax;
+
+    // ترجمة المحاور إلى أدوار
+    const roleScores = this.translateToRoleScores(axisScores, axisRoles);
+
+    // حساب الدرجة المرجحة من EV Mapping
+    let weightedScore = 0;
+    let totalWeight = 0;
+
+    for (const [role, weight] of Object.entries(evMappings)) {
+      const roleScore = roleScores[role] || 0;
+      weightedScore += roleScore * weight;
+      totalWeight += weight;
+    }
+
+    const normalizedScore = totalWeight > 0 ? (weightedScore / totalWeight) : 0;
+    const deltaC = (normalizedScore / 100) * deltaCMax;
     const EV_base = deltaC * flow * ltv;
-    return { currentEV: Math.round(EV_base * 0.7), potentialEV: Math.round(EV_base * 1.25), gap: Math.round(EV_base * 0.55) };
+
+    return {
+      currentEV: Math.round(EV_base * 0.7),
+      potentialEV: Math.round(EV_base * 1.25),
+      gap: Math.round(EV_base * 0.55)
+    };
   }
 
   getQuartile(score) {
