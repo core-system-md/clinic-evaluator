@@ -1,5 +1,5 @@
 {
-  "version": "2.0.0",
+  "version": "2.1.0",
   "project": "Clinic Cipher (The MD Code)",
   "ui": {
     "buttons": {
@@ -68,6 +68,31 @@
       "name": "مؤشر الولاء (Patient Loyalty Index)",
       "short_name": "PLI",
       "description": "معدل التوصية بالعيادة للغير"
+    },
+    "PSI": {
+      "name": "مؤشر رضا المريض (Patient Satisfaction Index)",
+      "short_name": "PSI",
+      "description": "قياس رضا المريض عن النتيجة بعد العلاج"
+    },
+    "NPI": {
+      "name": "مؤشر التوصية (Net Promoter Index)",
+      "short_name": "NPI",
+      "description": "قياس احتمالية توصية المريض بالعيادة لغيره"
+    },
+    "EVI": {
+      "name": "مؤشر قيمة التجربة (Experience Value Index)",
+      "short_name": "EVI",
+      "description": "هل تجربة المريض تستحق السعر المدفوع؟"
+    },
+    "TCI": {
+      "name": "مؤشر ثقة العلاج (Treatment Confidence Index)",
+      "short_name": "TCI",
+      "description": "قياس قناعة المريض بالخطة العلاجية والطبيب"
+    },
+    "RRI": {
+      "name": "مؤشر جاهزية الاستقبال (Reception Readiness Index)",
+      "short_name": "RRI",
+      "description": "قياس جاهزية الاستقبال لتحضير المريض نفسياً قبل الطبيب"
     }
   },
   "sections": {
