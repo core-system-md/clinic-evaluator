@@ -267,6 +267,12 @@ body {
 .axis-score-bar-fill.q2 { background: var(--q2-orange); }
 .axis-score-bar-fill.q3 { background: var(--q3-bluegrey); }
 .axis-score-bar-fill.q4 { background: var(--q4-green); }
+/* Quartile text colours (for benchmark labels) */
+.q1-text { color: var(--q1-red); }
+.q2-text { color: var(--q2-orange); }
+.q3-text { color: var(--q3-bluegrey); }
+.q4-text { color: var(--q4-green); }
+
 
 .axis-score-value {
   font-weight: 700;
@@ -449,6 +455,11 @@ body {
   .axis-score-bar-fill.q2 { background: var(--q2-orange) !important; }
   .axis-score-bar-fill.q3 { background: var(--q3-bluegrey) !important; }
   .axis-score-bar-fill.q4 { background: var(--q4-green) !important; }
+  .q1-text { color: var(--q1-red) !important; }
+  .q2-text { color: var(--q2-orange) !important; }
+  .q3-text { color: var(--q3-bluegrey) !important; }
+  .q4-text { color: var(--q4-green) !important; }
+
 
   /* Trap alerts */
   .trap-alert {
