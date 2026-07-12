@@ -921,27 +921,7 @@ class AssessmentManager {
                         <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}%</div></div>
                         <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}%</div></div>
                         ${rriIndex !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriIndex}%</div></div>` : ''}
-                    
-
-                <div class="detail-section" style="text-align:right;">
-                    <h4>💰 النمو المالي المقدر (EV Simulator)</h4>
-                    <div class="detail-grid">
-                        <div class="detail-item">
-                            <div class="detail-label">العائد الحالي التقديري</div>
-                            <div class="detail-value" style="color:#134e4a; font-weight:800; font-size:1.15rem;">${lead.ev_current ? '$' + parseInt(lead.ev_current).toLocaleString() + '/سنة' : '---'}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">النمو المستهدف (تحسين 20%)</div>
-                            <div class="detail-value" style="color:#2A6F5D; font-weight:800; font-size:1.15rem;">${lead.ev_potential ? '$' + parseInt(lead.ev_potential).toLocaleString() + '/سنة' : '---'}</div>
-                        </div>
-                        <div class="detail-item">
-                            <div class="detail-label">فرصة التطوير المفقودة</div>
-                            <div class="detail-value" style="color:#C67D47; font-weight:800; font-size:1.15rem;">${lead.ev_gap ? '+$' + parseInt(lead.ev_gap).toLocaleString() + '/سنة' : '---'}</div>
-                        </div>
                     </div>
-                    ${lead.specialty ? `<p style="margin-top:8px; font-size:0.8rem; color:#6b7280; text-align:center;">استناداً إلى تخصص: ${this.translateSpecialty(lead.specialty)} | سنوات الخبرة: ${this.translateStaffSize(lead.years)} | الفريق: ${this.translateStaffSize(lead.team)}</p>` : ''}
-                </div>
-</div>
                 </div>
 
                 <div class="detail-section" style="text-align:right;">
