@@ -274,10 +274,8 @@ class AssessmentEngine {
     }
 
     const normalizedScore = totalWeight > 0 ? (weightedScore / totalWeight) : 0;
-    const adjustedDeltaC = (normalizedScore / 100) * deltaCMax * 
-        (simulatorVars?.specialtyMultiplier || 1.0) * 
-        (simulatorVars?.experienceMultiplier || 1.0);
-    const EV_base = adjustedDeltaC * flow * ltv;
+    const deltaC = (normalizedScore / 100) * deltaCMax;
+    const EV_base = deltaC * flow * ltv;
 
     return {
       currentEV: Math.round(EV_base * 0.7),
