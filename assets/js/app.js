@@ -203,9 +203,6 @@ class ClinicEvaluatorApp {
       e.preventDefault();
       this.collectMetadata();
 
-      const dup = await this.checkDuplicateSubmission();
-      if (!dup.allowed) { this.showError(dup.message); return; }
-
       await this.startAssessmentFlow();
     });
   }
@@ -269,6 +266,8 @@ class ClinicEvaluatorApp {
 
       this.currentSessionId = result.session_id;
       this.currentLeadId = result.lead_id || null;
+      this.previousSessionData = result.previous_session || null;
+      this.previousScore = this.previousSessionData?.overallScore ?? null;
 
       sessionStorage.setItem(
         'assessment_access_' + this.currentAssessmentKey,
@@ -443,69 +442,6 @@ class ClinicEvaluatorApp {
   }
 
   /* ─────────────── ANTI-SPAM & BASELINE DETECTOR ─────────────── */
-
-  async checkDuplicateSubmission() {
-    if (!this.supabase || (!this.metadata.email && !this.metadata.phone && !this.metadata.name)) return { allowed: true };
-    try {
-      let lastLeads = [];
-      
-      if (this.metadata.email) {
-        lastLeads = await this.supabase.select('leads', { filter: { email: this.metadata.email } });
-      } else if (this.metadata.phone) {
-        lastLeads = await this.supabase.select('leads', { filter: { phone: this.metadata.phone } });
-      } else {
-        lastLeads = await this.supabase.select('leads', { filter: { full_name: this.metadata.name } });
-      }
-
-      if (!lastLeads || lastLeads.length === 0) return { allowed: true };
-
-      const completedLeads = lastLeads.filter(l => l.completed).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-      
-      if (completedLeads.length >= 2) {
-        const lastLead = completedLeads[completedLeads.length - 1];
-        const now = Date.now();
-        const lastCreated = new Date(lastLead.created_at).getTime();
-        const cooldownPeriod = 7 * 24 * 60 * 60 * 1000;
-        const elapsed = now - lastCreated;
-
-        if (elapsed < cooldownPeriod) {
-          const remainingMs = cooldownPeriod - elapsed;
-          const remainingDays = Math.floor(remainingMs / (24 * 60 * 60 * 1000));
-          const remainingHours = Math.floor((remainingMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-          
-          return { 
-            allowed: false, 
-            message: `عذراً دكتور، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل نظام التقييم لك تلقائياً بعد: ${remainingDays} يوم و ${remainingHours} ساعة.` 
-          };
-        }
-        
-        this.previousScore = parseFloat(lastLead.score_percentage);
-        
-        const sessions = await this.supabase.select('sessions', { 
-          filter: { lead_id: lastLead.id },
-          order: { column: 'created_at', ascending: false }
-        });
-        if (sessions && sessions[0]) {
-          const prevScores = await this.supabase.select('scores', { 
-            filter: { session_id: sessions[0].id } 
-          });
-          this.previousSessionData = {
-            overallScore: this.previousScore,
-            axisScores: {},
-            completedAt: lastLead.completed_at
-          };
-          if (prevScores) {
-            prevScores.forEach(s => {
-              this.previousSessionData.axisScores[s.axis_id] = s.percentage;
-            });
-          }
-        }
-      }
-      return { allowed: true };
-    } catch (err) {
-      return { allowed: true };
-    }
-  }
 
   /* ─────────────── LOGIN SYSTEM ─────────────── */
 
