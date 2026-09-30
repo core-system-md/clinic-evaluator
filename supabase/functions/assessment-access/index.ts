@@ -415,14 +415,21 @@ Deno.serve(async (req) => {
 
       let leadId = data.lead_id ? String(data.lead_id) : null;
       const lead = data.lead || {};
+      let history: any = { allowed: true, previousSessionData: null };
+
       if (!leadId) {
         if (!lead.assessment_type_id) lead.assessment_type_id = access.assessment_type_id || null;
 
-        const history = await findLeadHistory(access.assessment_type_id, lead);
+        history = await findLeadHistory(access.assessment_type_id, lead);
         if (!history.allowed) {
+          const remainingSeconds = Number(history.remaining_seconds || 0);
+          const days = Math.floor(remainingSeconds / 86400);
+          const hours = Math.floor((remainingSeconds % 86400) / 3600);
           return json({
-            error: history.message,
-            remaining_seconds: history.remaining_seconds
+            error: days > 0
+              ? `عذراً، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل التقييم تلقائياً بعد: ${days} يوم و${hours} ساعة.`
+              : `عذراً، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل التقييم تلقائياً بعد: ${hours} ساعة.`,
+            remaining_seconds: remainingSeconds
           }, 403);
         }
 
@@ -477,7 +484,6 @@ Deno.serve(async (req) => {
         .eq("id", access.id)
         .single()).data;
 
-      const history = !data.lead_id ? await findLeadHistory(access.assessment_type_id, lead) : { previousSessionData: null };
       return json({
         success: true,
         data: {
