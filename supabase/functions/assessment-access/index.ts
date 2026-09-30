@@ -210,6 +210,72 @@ function sessionFilter(query: any, access: any) {
     : base.eq("assessment_user_id", access.assessment_user_id);
 }
 
+async function findLeadHistory(assessmentTypeId: string, lead: any) {
+  const field = lead.email ? "email" : lead.phone ? "phone" : lead.full_name ? "full_name" : null;
+  const value = field ? String(lead[field]).trim() : "";
+  if (!field || !value) return { allowed: true, previousSessionData: null };
+
+  const { data: leads, error } = await supabase
+    .from("leads")
+    .select("id, created_at, completed, score_percentage, completed_at, assessment_type_id")
+    .eq("assessment_type_id", assessmentTypeId)
+    .eq(field, value)
+    .eq("completed", true)
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  if (error) throw error;
+  if (!leads?.length) return { allowed: true, previousSessionData: null };
+
+  const last = leads[0];
+  if (leads.length >= 2) {
+    const createdAt = new Date(last.created_at).getTime();
+    const elapsed = Date.now() - createdAt;
+    const cooldown = 7 * 24 * 60 * 60 * 1000;
+    if (elapsed < cooldown) {
+      const remaining = Math.max(0, cooldown - elapsed);
+      return {
+        allowed: false,
+        message: "عذراً، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل التقييم تلقائياً بعد الموعد المحدد.",
+        remaining_seconds: Math.ceil(remaining / 1000),
+        previousSessionData: null
+      };
+    }
+  }
+
+  const { data: previousSession, error: sessionError } = await supabase
+    .from("sessions")
+    .select("id, completed_at, created_at")
+    .eq("lead_id", last.id)
+    .eq("assessment_type_id", assessmentTypeId)
+    .eq("status", "completed")
+    .order("completed_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (sessionError) throw sessionError;
+  if (!previousSession) return { allowed: true, previousSessionData: null };
+
+  const { data: previousScores, error: scoreError } = await supabase
+    .from("scores")
+    .select("axis_id, percentage")
+    .eq("session_id", previousSession.id);
+
+  if (scoreError) throw scoreError;
+
+  const axisScores: Record<string, number> = {};
+  for (const row of previousScores || []) axisScores[row.axis_id] = Number(row.percentage) || 0;
+
+  return {
+    allowed: true,
+    previousSessionData: {
+      overallScore: Number(last.score_percentage) || 0,
+      axisScores,
+      completedAt: last.completed_at || previousSession.completed_at || previousSession.created_at
+    }
+  };
+}
+
 async function issuePublicAccess(assessmentKey: string) {
   if (!allowRate("public", assessmentKey, MAX_PUBLIC_ISSUES)) {
     throw Object.assign(new Error("Too many public access requests"), { status: 429 });
@@ -348,9 +414,18 @@ Deno.serve(async (req) => {
       if (access.session_id) return json({ success: true, data: { session_id: access.session_id, resumed: true, lead_id: null, expires_at: access.expires_at } });
 
       let leadId = data.lead_id ? String(data.lead_id) : null;
+      const lead = data.lead || {};
       if (!leadId) {
-        const lead = data.lead || {};
         if (!lead.assessment_type_id) lead.assessment_type_id = access.assessment_type_id || null;
+
+        const history = await findLeadHistory(access.assessment_type_id, lead);
+        if (!history.allowed) {
+          return json({
+            error: history.message,
+            remaining_seconds: history.remaining_seconds
+          }, 403);
+        }
+
         const { data: newLead, error: leadError } = await supabase
           .from("leads")
           .insert({
@@ -402,7 +477,17 @@ Deno.serve(async (req) => {
         .eq("id", access.id)
         .single()).data;
 
-      return json({ success: true, data: { ...(result || {}), session_id: sessionResult?.session_id, expires_at: sessionResult?.expires_at, lead_id: leadId } });
+      const history = !data.lead_id ? await findLeadHistory(access.assessment_type_id, lead) : { previousSessionData: null };
+      return json({
+        success: true,
+        data: {
+          ...(result || {}),
+          session_id: sessionResult?.session_id,
+          expires_at: sessionResult?.expires_at,
+          lead_id: leadId,
+          previous_session: history.previousSessionData
+        }
+      });
     }
 
     if (action === "get_session") {
