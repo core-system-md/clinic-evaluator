@@ -516,13 +516,17 @@ Deno.serve(async (req) => {
       if ("error" in auth) return json({ error: auth.error }, auth.status);
       const { access } = auth;
 
-      let sessionQuery = supabase.from("sessions").select("id, lead_id, assessment_type_id, assessment_user_id, status");
+      let sessionQuery = supabase.from("sessions").select("id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status");
       sessionQuery = sessionFilter(sessionQuery, access);
       const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
       if (sessionError) throw sessionError;
       if (!session) return json({ error: "Assessment session not found" }, 404);
 
       const runtime = await loadAssessment(session.assessment_type_id);
+      const runtimeVersion = Number(runtime.assessment.version ?? runtime.assessment.config_version ?? 1);
+      if (Number(session.assessment_version ?? 1) !== runtimeVersion) {
+        return json({ error: "Assessment version changed; this session must be completed with its pinned version" }, 409);
+      }
 
       const { data: dbAnswers, error: answersError } = await supabase
         .from("answers")
@@ -625,13 +629,17 @@ Deno.serve(async (req) => {
       const years = Number(data.years);
       if (!(avg > 0) || !(visits > 0) || !(years > 0)) return json({ error: "Invalid EV inputs" }, 400);
 
-      let sessionQuery = supabase.from("sessions").select("id, assessment_type_id, status");
+      let sessionQuery = supabase.from("sessions").select("id, assessment_type_id, assessment_version, status");
       sessionQuery = sessionFilter(sessionQuery, access);
       const { data: session, error } = await sessionQuery.maybeSingle();
       if (error) throw error;
       if (!session) return json({ error: "Assessment session not found" }, 404);
 
       const runtime = await loadAssessment(session.assessment_type_id);
+      const runtimeVersion = Number(runtime.assessment.version ?? runtime.assessment.config_version ?? 1);
+      if (Number(session.assessment_version ?? 1) !== runtimeVersion) {
+        return json({ error: "Assessment version changed; this session must use its pinned version" }, 409);
+      }
       const { data: storedScores, error: scoreError } = await supabase
         .from("scores")
         .select("axis_id, percentage")
