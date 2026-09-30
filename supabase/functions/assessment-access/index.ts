@@ -307,7 +307,7 @@ Deno.serve(async (req) => {
       if (user.password_hash !== hash) return json({ error: "Invalid credentials" }, 401);
       if (!user.active) return json({ error: "Account disabled" }, 403);
       if (user.expires_at && new Date(user.expires_at) <= new Date()) return json({ error: "Account expired" }, 403);
-      if (coalesce(user.used_count, 0) >= coalesce(user.max_uses, 1)) return json({ error: "Usage limit exceeded" }, 403);
+      if (Number(user.used_count ?? 0) >= Number(user.max_uses ?? 1)) return json({ error: "Usage limit exceeded" }, 403);
 
       const token = randomToken();
       const tokenHash = await sha256Hex(token);
@@ -376,36 +376,25 @@ Deno.serve(async (req) => {
         leadId = newLead.id;
       }
 
-      let result;
+      let result: any;
       if (access.assessment_user_id) {
-        result = (await supabase.rpc("start_assessment_session", {
+        const response = await supabase.rpc("start_assessment_session", {
           p_access_token_hash: access.tokenHash,
           p_assessment_user_id: access.assessment_user_id,
           p_assessment_type_id: access.assessment_type_id,
           p_lead_id: leadId,
-        })).data;
+        });
+        if (response.error) throw response.error;
+        result = response.data;
       } else {
-        result = (await supabase.rpc("start_public_assessment_session", {
-          p_access_token_hash: access.tokenHash,
-          p_assessment_type_id: access.assessment_type_id,
-          p_lead_id: leadId,
-        })).data;
-      }
-
-      const { error: rpcError } = access.assessment_user_id
-        ? await supabase.rpc("start_assessment_session", {
-          p_access_token_hash: access.tokenHash,
-          p_assessment_user_id: access.assessment_user_id,
-          p_assessment_type_id: access.assessment_type_id,
-          p_lead_id: leadId,
-        })
-        : await supabase.rpc("start_public_assessment_session", {
+        const response = await supabase.rpc("start_public_assessment_session", {
           p_access_token_hash: access.tokenHash,
           p_assessment_type_id: access.assessment_type_id,
           p_lead_id: leadId,
         });
-
-      if (rpcError) throw rpcError;
+        if (response.error) throw response.error;
+        result = response.data;
+      }
 
       const sessionResult = (await supabase
         .from("assessment_session_access")
