@@ -58,3 +58,12 @@ The Edge Function deployment itself succeeded as v3, which establishes deploymen
 - Legacy admin authentication (`admin-auth` / localStorage model) is still not replaced by ADR-004's Supabase Auth + `admin_users` authorization model.
 - The old `calculate_session_score(uuid)` function remains legacy/untrusted and should be removed or made inaccessible after dependency verification.
 - The runtime still contains legacy helper code that is no longer on the final completion path; cleanup can follow successful E2E verification.
+## Additional security progress — 2026-10-01
+
+- Added `admin_users` authorization foundation per ADR-004.
+- RLS is enabled and a unique owner constraint exists.
+- Current state: 5 Supabase Auth users exist, but `admin_users` has 0 rows.
+- The final admin-auth replacement is therefore blocked only on the explicit project-owner choice of which existing Auth user is the primary owner; this is documented in ADR-008.
+- The public assessment catalog now uses the assessment gateway instead of direct `assessment_types` reads.
+- The legacy public `assets/data/config.json` scoring bundle and client-deliverable `engine/engine.js` were removed; the legacy engine is retained only as a test reference under `tests/reference/`.
+- `assessment-access` is deployed ACTIVE v7 after version pinning and server-side eligibility/baseline migration.
