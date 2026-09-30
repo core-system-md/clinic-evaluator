@@ -106,6 +106,11 @@ export function calculateAssessment(
     kpis[code] = weight > 0 ? Math.round(weighted / weight) : 0;
   }
 
+  const defaultKPIs = ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"];
+  for (const code of defaultKPIs) {
+    if (kpis[code] === undefined) kpis[code] = 0;
+  }
+
   let ev = null;
   if (assessment.simulator?.enabled) {
     const flow = simulatorVars.flow || 50;
