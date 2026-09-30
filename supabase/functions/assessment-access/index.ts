@@ -228,19 +228,19 @@ async function findLeadHistory(assessmentTypeId: string, lead: any) {
   if (!leads?.length) return { allowed: true, previousSessionData: null };
 
   const last = leads[0];
-  if (leads.length >= 2) {
-    const createdAt = new Date(last.created_at).getTime();
-    const elapsed = Date.now() - createdAt;
-    const cooldown = 7 * 24 * 60 * 60 * 1000;
-    if (elapsed < cooldown) {
-      const remaining = Math.max(0, cooldown - elapsed);
-      return {
-        allowed: false,
-        message: "عذراً، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل التقييم تلقائياً بعد الموعد المحدد.",
-        remaining_seconds: Math.ceil(remaining / 1000),
-        previousSessionData: null
-      };
-    }
+  if (leads.length < 2) return { allowed: true, previousSessionData: null };
+
+  const createdAt = new Date(last.created_at).getTime();
+  const elapsed = Date.now() - createdAt;
+  const cooldown = 7 * 24 * 60 * 60 * 1000;
+  if (elapsed < cooldown) {
+    const remaining = Math.max(0, cooldown - elapsed);
+    return {
+      allowed: false,
+      message: "عذراً، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل التقييم تلقائياً بعد الموعد المحدد.",
+      remaining_seconds: Math.ceil(remaining / 1000),
+      previousSessionData: null
+    };
   }
 
   const { data: previousSession, error: sessionError } = await supabase
