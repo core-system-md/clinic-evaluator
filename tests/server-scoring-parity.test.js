@@ -1,16 +1,20 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const path = require('node:path');
 const vm = require('node:vm');
+const { pathToFileURL } = require('node:url');
 
 async function loadBrowserEngine() {
-  const source = fs.readFileSync(new URL('../engine/engine.js', import.meta.url), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, '../engine/engine.js'), 'utf8');
   const context = { console, Map, Set, Math, Object, Array, JSON };
   vm.createContext(context);
   vm.runInContext(source, context);
   return vm.runInContext('AssessmentEngine', context);
 }
 
-const { calculateAssessment } = await import('../supabase/functions/assessment-access/score-engine.ts');
+const { calculateAssessment } = await import(pathToFileURL(
+  path.join(__dirname, '../supabase/functions/assessment-access/score-engine.ts')
+).href);
 
 function fixture() {
   return {
