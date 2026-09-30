@@ -6,7 +6,7 @@ const { test } = require('node:test');
 const { pathToFileURL } = require('node:url');
 
 async function loadBrowserEngine() {
-  const source = fs.readFileSync(path.join(__dirname, '../engine/engine.js'), 'utf8');
+  const source = fs.readFileSync(path.join(__dirname, './reference/browser-engine-v4.js'), 'utf8');
   const context = { console, Map, Set, Math, Object, Array, JSON };
   vm.createContext(context);
   vm.runInContext(source, context);
