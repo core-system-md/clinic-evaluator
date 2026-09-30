@@ -1,40 +1,60 @@
-# P0 — Implementation Status
+# P0 Implementation Status — Protected Assessment Access + Server Scoring
 
-**Status:** IMPLEMENTED — UNVERIFIED / BLOCKED BY ARCHITECTURAL DECISION
+**Branch:** `implementation/protected-assessment-access`  
+**Status:** IMPLEMENTED — RUNTIME E2E STILL UNVERIFIED
 
-## Implemented in this iteration
+## Architectural state
 
-- Added `sessions.assessment_user_id` to bind a protected session to its assessment credential.
-- Added `sessions.usage_consumed_at` to record the exact completion at which a use was consumed.
-- Added `assessment_session_access` for server-issued opaque access tokens; anonymous/authenticated table access is revoked and the table is service-role controlled.
-- Added `answers.option_index`, `answers.option_value`, and `answers.chosen_option_label` to align the runtime write contract with the current client model.
-- Replaced the conflicting legacy `answer_value` constraint with a compatibility constraint that permits both legacy 1–5 records and current 0/40/100 scoring values during transition.
-- Added a partial unique index preventing duplicate answers for the same session/question while preserving legacy rows with null session ids.
-- Added `start_assessment_session(...)` as a service-role-only invoker function with session binding, assessment matching, expiration checks, and resume behavior.
-- Added `complete_assessment_session(...)` as a service-role-only invoker function that performs idempotent completion and atomic usage consumption with row locks.
-- Added and deployed the scoped `assessment-access` Edge Function for authentication, session start/resume, answer persistence, progress updates, and session retrieval.
+ADR-007 is accepted with **Option B — Server-authoritative scoring only**. ADR-002 has been explicitly amended; the browser-local scoring path is no longer part of the target architecture.
 
-## Verification evidence
+## Implemented
 
-- Database objects were queried after deployment and confirmed present.
-- Access table is not readable by `anon`/`authenticated`.
-- Start/complete functions are not executable by `anon`/`authenticated`; completion is executable by `service_role`.
-- A transactional database test created temporary assessment data, completed a session once, retried completion, and confirmed exactly one usage was consumed and exactly one score row remained. Test data was cleaned up.
-- The deployed Edge Function is `ACTIVE` at version 1.
+- Protected assessment access uses an opaque server-issued token.
+- Login does not consume usage.
+- Starting/resuming does not consume usage.
+- A successful completion consumes exactly one protected use.
+- Repeated completion of the same session is idempotent.
+- The existing session remains the canonical session record.
+- Public assessments now also use a server-issued access token for runtime writes.
+- Browser assessment content is fetched through `assessment-access/get_content` and excludes scoring weights, option values, impacts, trap rules, KPI mappings, EV mappings, and scoring equations.
+- Browser no longer loads `assets/data/config.json` for runtime scoring data.
+- Browser no longer invokes `AssessmentEngine.evaluate()` for final results.
+- Browser no longer directly inserts scores or marks sessions completed.
+- Answers are saved through the assessment gateway; option values are resolved server-side.
+- Final completion loads authoritative questions/options/rules from Supabase, validates stored answers, calculates the result server-side, and then persists the score atomically.
+- EV simulator calculation is routed through the same server gateway.
+- `assessment-access` is deployed as ACTIVE v3 with custom token authentication.
+- The database completion functions are callable by `service_role` only.
+- Database transaction tests passed for protected/public start, resume, completion, and idempotency, with test data cleaned afterward.
 
-## Not yet verified
+## Verification
 
-- Positive end-to-end protected login/runtime flow is not currently executable without creating production test credentials; the live `assessment_users` table currently has no issued protected users.
-- The new endpoint has not yet been integrated into the browser flow.
-- Direct public writes/reads to the legacy runtime tables have not yet been revoked because the current browser still depends on them.
-- Official server-side scoring is not yet integrated.
+### Verified in database
 
-## Current blocker
+- Session resume does not overwrite the original lead binding.
+- Protected usage count remains exactly 1 after repeated completion.
+- A repeated completion does not replace the original stored score.
+- Public completion does not use protected usage accounting.
+- `anon` and `authenticated` cannot execute the protected completion function.
+- No test data remains after verification.
 
-ADR-007 is open because ADR-002 requires an immediate browser calculation while ADR-005 requires the scoring methodology to remain private. The browser cannot calculate the private rules without receiving them.
+### Not yet verified
 
-Implementation of the final completion path must stop until ADR-007 is explicitly resolved. No silent reinterpretation of ADR-002 is permitted.
+A real browser-to-Edge-Function positive E2E test has not been executed from an external runtime in this environment. The Supabase tooling available here can deploy and inspect the Edge Function but does not expose a direct function-invocation action.
 
-## Next canonical action
+Therefore the following are **implemented but not runtime-verified**:
 
-Resolve ADR-007. Then continue implementation without reopening ADR-006 unless new evidence directly invalidates it.
+1. Protected login from the real browser.
+2. Public token issuance from the real browser.
+3. Save-answer flow through the live Edge Function.
+4. Final server scoring response rendered by the real browser.
+5. Actual completion latency.
+
+The Edge Function deployment itself succeeded as v3, which establishes deployment acceptance but not end-user E2E behavior.
+
+## Residual P0/P1 work
+
+- Legacy broad RLS/grants on public tables are still present and must be tightened before security closure.
+- Legacy admin authentication (`admin-auth` / localStorage model) is still not replaced by ADR-004's Supabase Auth + `admin_users` authorization model.
+- The old `calculate_session_score(uuid)` function remains legacy/untrusted and should be removed or made inaccessible after dependency verification.
+- The runtime still contains legacy helper code that is no longer on the final completion path; cleanup can follow successful E2E verification.
