@@ -2,6 +2,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const { test } = require('node:test');
 const { pathToFileURL } = require('node:url');
 
 async function loadBrowserEngine() {
@@ -11,10 +12,6 @@ async function loadBrowserEngine() {
   vm.runInContext(source, context);
   return vm.runInContext('AssessmentEngine', context);
 }
-
-const { calculateAssessment } = await import(pathToFileURL(
-  path.join(__dirname, '../supabase/functions/assessment-access/score-engine.ts')
-).href);
 
 function fixture() {
   return {
@@ -47,7 +44,10 @@ function toServerShape(config) {
   return {
     axes: a.axes.map((x) => ({ code: x.id, name_ar: x.name_ar, name_en: x.name_en, weight: x.weight })),
     questions: a.questions.map((x) => ({
-      code: x.id, axis_id: x.axis_id, layer: x.layer, impact: x.impact,
+      code: x.id,
+      axis_id: x.axis_id,
+      layer: x.layer,
+      impact: x.impact,
       options: x.options.map((o) => ({ value: o.value }))
     })),
     traps: a.traps,
@@ -58,14 +58,17 @@ function toServerShape(config) {
   };
 }
 
-const testCases = [
-  { name: 'all perfect', answers: { Q1: 100, Q2: 100, Q3: 100, Q4: 100 } },
-  { name: 'trap divergence', answers: { Q1: 100, Q2: 0, Q3: 40, Q4: 100 } },
-  { name: 'mixed baseline', answers: { Q1: 40, Q2: 100, Q3: 0, Q4: 40 } }
-];
-
-describe('server scoring parity', async () => {
+test('server scorer stays behaviorally equivalent to browser engine', async () => {
   const BrowserEngine = await loadBrowserEngine();
+  const { calculateAssessment } = await import(pathToFileURL(
+    path.join(__dirname, '../supabase/functions/assessment-access/score-engine.ts')
+  ).href);
+
+  const testCases = [
+    { name: 'all perfect', answers: { Q1: 100, Q2: 100, Q3: 100, Q4: 100 } },
+    { name: 'trap divergence', answers: { Q1: 100, Q2: 0, Q3: 40, Q4: 100 } },
+    { name: 'mixed baseline', answers: { Q1: 40, Q2: 100, Q3: 0, Q4: 40 } }
+  ];
 
   for (const testCase of testCases) {
     const config = fixture();
