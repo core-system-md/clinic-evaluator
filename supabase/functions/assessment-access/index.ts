@@ -343,6 +343,28 @@ Deno.serve(async (req) => {
       return json({ success: true, data: safeContent(runtime, requiresLogin) });
     }
 
+    if (action === "get_catalog") {
+      const { data: assessments, error } = await supabase
+        .from("assessment_types")
+        .select("id, slug, title_ar, description, question_count, axis_count, status")
+        .eq("status", "published")
+        .order("created_at", { ascending: true });
+
+      if (error) throw error;
+
+      return json({
+        success: true,
+        data: (assessments || []).map((a) => ({
+          id: a.id,
+          slug: a.slug,
+          title_ar: a.title_ar,
+          description: a.description,
+          question_count: a.question_count || 0,
+          axis_count: a.axis_count || 0
+        }))
+      });
+    }
+
     if (action === "issue_public_access") {
       return json({ success: true, data: await issuePublicAccess(String(data.assessment_key || "").trim()) });
     }
