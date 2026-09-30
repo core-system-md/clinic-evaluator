@@ -6,8 +6,11 @@ type Question = {
   impact?: string;
   options: Option[];
 };
-type Axis = { code: string; weight?: number };
+type Axis = { code: string; name_ar?: string; name_en?: string; weight?: number };
 type Trap = {
+  name?: string;
+  message?: string;
+  message_ar?: string;
   question_id: string;
   validates: string;
   target_axis: string;
@@ -54,7 +57,7 @@ export function calculateAssessment(
   }
 
   const penalties: Record<string, number> = {};
-  const triggeredTraps: Array<{ name: string; penaltyApplied: number }> = [];
+  const triggeredTraps: Array<{ name: string; message: string; penaltyApplied: number }> = [];
 
   for (const trap of assessment.traps || []) {
     const target = answers[trap.validates];
@@ -65,7 +68,7 @@ export function calculateAssessment(
     const axisEarned = raw[trap.target_axis]?.earned || 0;
     const penalty = axisEarned * (penaltyPercent / 100);
     penalties[trap.target_axis] = (penalties[trap.target_axis] || 0) + penalty;
-    triggeredTraps.push({ name: trap.question_id, penaltyApplied: Math.round(penaltyPercent) });
+    triggeredTraps.push({ name: trap.name || trap.question_id, message: trap.message_ar || trap.message || trap.name || trap.question_id, penaltyApplied: Math.round(penaltyPercent) });
   }
 
   const axisScores: Record<string, number> = {};
@@ -125,7 +128,8 @@ export function calculateAssessment(
     leakageIndex: Math.round(100 - overallScore),
     axisScores,
     kpis,
-    ev,
+    evSimulator: ev,
     traps: triggeredTraps,
   };
 }
+
