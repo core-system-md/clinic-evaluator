@@ -2,9 +2,9 @@
 
 **Date:** 2026-10-01  
 **Project:** `core-system-md/clinic-evaluator`  
-**Stage:** P2-A — Reality Audit → P2-B — Architecture Design  
-**Status:** **DECISION RESOLVED / DESIGN ESTABLISHED**  
-**Implementation status:** **NOT IMPLEMENTED**  
+**Stage:** P2-A — Reality Audit (historical baseline) → P2-C — Closure  
+**Status:** **HISTORICAL BASELINE — SUPERSEDED BY P2 IMPLEMENTATION / VERIFICATION**  
+**Implementation status:** **COMPLETED**  
 **Architecture status:** **APPROVED — OPTION B**
 
 ## 1. Purpose
@@ -271,3 +271,12 @@ The approved design is documented in `documentation/audit/P2-architecture-design
 **Implementation: NOT STARTED.**
 
 The next engineering step is implementation-readiness verification and migration design against the live dependency graph. No production schema change has been made as a result of this decision.
+
+
+---
+
+## Supersession notice — 2026-10-01
+
+Sections 3–12 preserve the factual pre-implementation P2 audit baseline and the architectural decision boundary that led to Option B. They intentionally describe the system as it existed before implementation. Those statements are historical and are superseded by the implemented state documented in `documentation/audit/P2-closure-2026-10-01.md` and the final project checkpoint.
+
+P2 is now CLOSED / IMPLEMENTED / EXTERNALLY VERIFIED. Do not use the historical gap statements in this baseline as a statement of current production behavior.
