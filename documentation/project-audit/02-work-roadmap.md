@@ -179,9 +179,32 @@ These are architectural/product decisions and remain subject to investigation an
 
 ## Current checkpoint
 
-**Current phase:** P2 — Assessment versioning and historical-result integrity.  
-**Current objective:** move from approved architecture into implementation-readiness verification and exact migration design.  
-**Current evidence:** P0 and P1 are closed in their respective handoff/reconciliation documents; P2 reality audit is complete and the architecture decision is resolved.  
-**P2 reality-audit record:** `documentation/audit/P2-reality-audit-2026-10-01.md`.  
-**P2 architecture record:** `documentation/audit/P2-architecture-design-2026-10-01.md`.  
-**Current gate:** P2 is **IMPLEMENTATION-READY**. The architecture, dependency graph, existing-data migration plan, runtime/admin transition, database immutability boundary, and verification plan are established. Production implementation has **NOT STARTED**. The migration-history discrepancy remains a pre-deployment operational gate.
+**Current phase:** P3 — Assessment / Scoring Engine consolidation and verification.
+
+**P0:** CLOSED with documented platform constraint(s).
+
+**P1:** CLOSED / VERIFIED. The final assessment runtime is server-authoritative and the browser no longer acts as the official scoring/persistence authority.
+
+**P2:** CLOSED / IMPLEMENTED / EXTERNALLY VERIFIED.
+
+P2 production implementation is now complete. The approved explicit assessment-family/version model is deployed; published/archived versions are immutable; sessions are pinned to concrete assessment versions; public resolution is family → current published version; and the production flow was verified through GitHub-hosted external HTTP E2E.
+
+**P2 evidence:**
+- migrations: `20261001100633_p2_assessment_family_versions.sql`, `20261001100833_p2_admin_status_guard.sql`, `20261001101014_p2_immutability_trigger_fix.sql`, `20261001104100_p2_score_weight_precision.sql` plus the reconciled P0/P1/protected-access migration history;
+- external verification: GitHub Actions run #6 (`36850588686`) for the production `assessment-access` flow;
+- verified final sequence: catalog → content → public access → session → answer persistence → completion → idempotent completion → invalid-token rejection.
+
+**P2 records:**
+- `documentation/audit/P2-reality-audit-2026-10-01.md` — historical baseline, superseded by implementation/closure evidence;
+- `documentation/audit/P2-architecture-design-2026-10-01.md` — approved architecture and final implementation status;
+- `documentation/audit/P2-closure-2026-10-01.md` — closure evidence and acceptance record.
+
+**P3 status:** INVESTIGATION / DECISION BASELINE IN PROGRESS.
+
+P3 is not yet authorized for scoring-semantic changes. The current task is to establish the authoritative scoring contract, compare the documented methodology with the deployed engine and live data, identify inconsistencies, and present architectural decisions to the project owner.
+
+**P3 primary records:**
+- `documentation/audit/P3-reality-audit-2026-10-01.md`
+- `documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md`
+
+**P3 rule:** no change to scoring semantics, KPI behavior, trap behavior, normalization, weighting, or EV formulas may be introduced solely as code cleanup. Such changes require an explicit product/architecture decision first.
