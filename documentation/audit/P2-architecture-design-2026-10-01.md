@@ -2,8 +2,8 @@
 
 **Date:** 2026-10-01
 **Project:** `core-system-md/clinic-evaluator`
-**Stage:** P2-B — Approved Architecture Design
-**Status:** DESIGN BASELINE
+**Stage:** P2-B → P2-C — Approved Architecture → Implementation / Verification
+**Status:** **IMPLEMENTED / VERIFIED / CLOSED**
 **Owner decision:** **Option B — explicit assessment-family/version model**
 **Public identity:** **stable slug/URL across versions**
 **User-facing version visibility:** **not required; versioning is internal**
@@ -294,3 +294,18 @@ P2 is complete only when all are true:
 **Implementation: NOT STARTED.**
 
 The next step is implementation-readiness verification and migration design against the live dependency graph. No production schema change is authorized merely by this document until that verification is complete.
+
+
+## 18. Final implementation and closure record — 2026-10-01
+
+The architecture in this document was implemented in production. The implementation introduced the explicit assessment-family/version model, stable public slug resolution, concrete session version pinning, database immutability enforcement, admin version creation/publishing controls, and runtime resolution through the current published family version.
+
+Key production migrations included `20261001100633_p2_assessment_family_versions.sql`, `20261001100833_p2_admin_status_guard.sql`, `20261001101014_p2_immutability_trigger_fix.sql`, and `20261001104100_p2_score_weight_precision.sql`, alongside the reconciled prerequisite migration history.
+
+External verification was completed through GitHub Actions run `36850588686` (run #6) against the production Edge Function. The verified path covered catalog, content, public access, session creation, answer persistence, completion, idempotent completion, and invalid-token rejection.
+
+The E2E process also discovered and fixed two production issues before closure: a runtime family-reference error in `loadAssessment`, and a numeric precision mismatch for `scores.weight` / `scores.weighted_score`.
+
+**Acceptance clarification:** runtime E2E is passing. Supabase Security Advisor is not completely warning-free because previously documented admin SECURITY DEFINER/RLS helper findings remain accepted operational constraints; this does not invalidate the P2 runtime/versioning closure.
+
+**Closure state:** P2 is CLOSED. The original design sections above remain the approved architectural baseline; the implementation-readiness statements that said production implementation had not started are superseded by this closure record.
