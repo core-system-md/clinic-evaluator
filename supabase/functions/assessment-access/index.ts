@@ -138,7 +138,7 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
     options: options || [],
     traps: traps || [],
     scoring: {
-      axes: (axes || []).map((a) => ({
+      slug: familyOverride?.slug || assessment.slug,\n      axes: (axes || []).map((a) => ({
         code: a.code,
         name_ar: a.title_ar || a.title,
         name_en: a.title,
@@ -681,7 +681,7 @@ Deno.serve(async (req) => {
         if (answerMap[question.code] !== undefined) {
           return json({ error: "Duplicate answer detected" }, 409);
         }
-        answerMap[question.code] = Number(option.option_value);
+        answerMap[question.code] = { optionId: option.id, optionIndex: Number(option.option_index), value: Number(option.option_value) };
       }
 
       const required = runtime.questions.filter((q) => q.is_required !== false).map((q) => q.code);
