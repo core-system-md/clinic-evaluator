@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - implementation/protected-assessment-access
+      - implementation/p3-scoring-kernel
 
 jobs:
   verify:
