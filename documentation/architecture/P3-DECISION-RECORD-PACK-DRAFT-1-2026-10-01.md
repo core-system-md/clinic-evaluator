@@ -1,7 +1,7 @@
 # P3 — Decision Record Pack — Draft 1
 
 **Date:** 2026-10-01  
-**Status:** **DECISIONS REQUIRED — NO PRODUCTION SEMANTIC CHANGES**
+**Status:** **OWNER DIRECTION UPDATED — DETAILED DRs STILL NOT FROZEN**
 
 This pack closes the remaining methodology decisions identified by:
 
@@ -275,26 +275,19 @@ The five completed sessions have:
 
 Their linked lead records contain legacy aggregate score information, but not the answer vector required for deterministic recomputation.
 
-## Recommended decision
+## Owner direction — deletion approved
 
-Treat them as **non-recomputable under current evidence**.
+The five sessions are **not useful as authoritative historical assessment results** because they have zero stored answers and zero score rows, so deterministic recomputation is impossible.
 
-Do not:
+The owner has directed that they be **deleted**. We will not preserve them merely as legacy historical records unless a concrete engineering dependency is discovered that requires their retention.
 
-- fabricate answers;
-- infer axis scores;
-- run the new scorer against incomplete data;
-- silently replace historical lead-level scores.
+Deletion must remove the session records and any dependent rows covered by the existing ON DELETE CASCADE relationships. Linked lead records are not deleted merely because the session is deleted.
 
-Retain them temporarily as legacy historical records with an explicit non-authoritative status.
-
-Then create a separate migration decision for retention/deletion after forensic review.
-
-Deletion is not automatic.
+This is a data-cleanup decision, not a scoring-methodology shortcut: no attempt will be made to fabricate or reconstruct their results.
 
 ## Owner decision
 
-**Approve / Reject**
+**DECIDED — delete the five non-recomputable sessions.**
 
 ---
 
@@ -486,13 +479,18 @@ To minimize unnecessary back-and-forth, the following can be approved as one bun
 
 Two items intentionally require a more specific choice:
 
-### DR-05
+### Important correction to the previous approval bundle
 
-Accept the proposed 50% KPI coverage baseline, or provide another threshold.
+The previous bundle must **not** be treated as approved. None of DR-01 through DR-16 was approved merely because this document was created.
 
-### DR-07
+In particular:
 
-Accept the proposed future economic-model baseline, or specify another economic methodology.
+- **DR-01 is reopened:** 0/40/100 is not frozen merely because it exists today.
+- **DR-05 is not approved:** the 50% threshold was only a proposal.
+- **DR-07 is not approved:** the economic baseline was only a proposal.
+- **DR-09 is now decided:** delete the five non-recomputable sessions, unless a concrete engineering dependency proves retention is required.
+
+The remaining methodology decisions require explicit explanation and owner approval before implementation.
 
 ---
 
