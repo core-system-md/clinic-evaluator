@@ -210,7 +210,7 @@ class AssessmentManager {
         const keyInput = document.getElementById('user-assessment-key');
         
         if (form) form.reset();
-        if (keyInput) keyInput.value = slug;
+        if (keyInput) keyInput.value = (this.familyBySlug[slug]?.slug || slug);
         if (modal) modal.classList.remove('hidden');
     }
 
@@ -392,12 +392,12 @@ class AssessmentManager {
             const allAxes = await this.supabase.select('axes') || [];
             const allQuestions = await this.supabase.select('questions') || [];
             
-            const currentAxes = allAxes.filter(x => x.assessment_type_id === id);
-            const currentQuestions = allQuestions.filter(q => q.assessment_type_id === id);
+            const currentAxes = allAxes.filter(x => x.assessment_type_id === ast.id);
+            const currentQuestions = allQuestions.filter(q => q.assessment_type_id === ast.id);
             const allOptions = await this.supabase.select('options') || [];
             this.currentOptions = allOptions.filter(o => currentQuestions.some(q => q.id === o.question_id));
 
-            this.renderModalTabs(currentAxes, currentQuestions, id);
+            this.renderModalTabs(currentAxes, currentQuestions, ast.id);
 
             document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
             document.getElementById('assessment-modal').classList.remove('hidden');
