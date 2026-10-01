@@ -1,0 +1,33 @@
+name: P2 external E2E verification
+
+on:
+  workflow_dispatch:
+    inputs:
+      assessment_slug:
+        description: "Assessment family slug to test"
+        required: false
+        default: "admin-reception-assessment"
+
+permissions:
+  contents: read
+
+jobs:
+  external-e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
+      ASSESSMENT_SLUG: ${{ inputs.assessment_slug }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run production external E2E test
+        run: node tests/external-assessment-access.mjs
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p2-external-e2e-evidence
+          path: p2-external-e2e-result.json
+          if-no-files-found: ignore
