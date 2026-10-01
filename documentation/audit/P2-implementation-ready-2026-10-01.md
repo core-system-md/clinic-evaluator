@@ -3,7 +3,7 @@
 **Project:** `core-system-md/clinic-evaluator`  
 **Architecture:** Option B — explicit assessment family/version model  
 **Public identity:** stable slug/URL  
-**Status:** **IMPLEMENTATION-READY — NO PRODUCTION P2 CHANGES APPLIED**
+**Status:** **ARCHIVED IMPLEMENTATION-READINESS BASELINE — SUPERSEDED BY P2 CLOSURE**
 
 ## 1. Owner-approved behavior
 
@@ -389,3 +389,12 @@ The verification plan is defined.
 The remaining migration-history discrepancy is explicitly identified as a **pre-deployment operational gate**, not an unresolved product or architecture decision.
 
 **No P2 production schema or runtime implementation has been applied yet.**
+
+
+---
+
+## Supersession notice — 2026-10-01
+
+This document records the approved P2 implementation-readiness baseline that existed before production implementation. It is retained for traceability and must not be used as the current implementation status.
+
+P2 was subsequently implemented, deployed, and externally verified. The authoritative closure record is `documentation/audit/P2-closure-2026-10-01.md`, and the current project checkpoint is P3 in `documentation/project-audit/02-work-roadmap.md`.
