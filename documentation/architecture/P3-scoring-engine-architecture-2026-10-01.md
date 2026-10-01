@@ -227,6 +227,10 @@ Should `calculate_session_score` and the unused `scoring.ts` adapter be retired 
 
 Five completed sessions currently have no score rows. Should these be left as historical legacy records, backfilled/recomputed under an explicitly chosen engine contract, or handled through a separate migration policy? Recomputing historic results must not happen implicitly.
 
+### D17 — Assessment configuration source of truth
+
+The repository contains assessment JSON/configuration files while production runtime reads assessment definitions from Supabase. Should the canonical assessment definition be Git-authored, Supabase-authored, or a controlled hybrid with an explicit synchronization/release process? The answer affects how future scoring configurations and P2 assessment versions are created and audited.
+
 ## 6. Non-decisions
 
 P3 investigation does not currently approve:
