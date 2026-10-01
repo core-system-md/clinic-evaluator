@@ -1,6 +1,7 @@
 import { writeFileSync } from "node:fs";
 import crypto from "node:crypto";
 
+// P2 external E2E runner trigger
 const EDGE_URL = process.env.EDGE_URL;
 const ASSESSMENT_SLUG = process.env.ASSESSMENT_SLUG || "admin-reception-assessment";
 const result = {
