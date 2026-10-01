@@ -55,3 +55,6 @@ grant execute on function public.calculate_session_score(uuid) to service_role;
 revoke all on function public.duplicate_assessment(uuid) from public, anon, authenticated, service_role;
 
 alter function public.update_updated_at_column() set search_path = public, pg_temp;
+
+alter function public.calculate_session_score(uuid) set search_path = public, pg_temp;
+alter function public.duplicate_assessment(uuid) set search_path = public, pg_temp;
