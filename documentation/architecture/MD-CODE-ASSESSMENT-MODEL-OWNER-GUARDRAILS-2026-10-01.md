@@ -101,7 +101,7 @@ For each material assessment result, the architecture should preserve, where app
 - weights and contributions;
 - consistency findings;
 - KPI derivations and availability;
-- economic model inputs/outputs;
+- economic-model inputs/outputs;
 - coverage/missingness;
 - confidence/evidence metadata;
 - classification;
@@ -153,7 +153,38 @@ The following are not authorized by this approval:
 - deleting legacy scoring paths solely because they appear unnecessary before their disposition is approved;
 - changing mathematical scoring rules only because a cleaner implementation is possible.
 
-## 11. Relationship to the engineering operating contract
+## 11. Owner decision — P3 D1–D14
+
+On 2026-10-01 the project owner approved the proposed recommendations for D1–D14:
+
+1. `raw_score` should represent actual pre-normalization earned points, separate from final percentage.
+2. Axis weights should use a canonical 0–1 representation with total 1.00; presentation may use percentages.
+3. Impact remains `1.5 / 1.0 / 0.5` as the baseline, while allowing explicit version-level configuration.
+4. Trap/Consistency becomes a dedicated rule-based consistency layer; detection is distinct from any score effect.
+5. Missing roles must not be silently invented; KPI coverage/partial/unavailable state must be explicit.
+6. KPI definitions may be global, but mappings and availability must respect substantive coverage of the assessment.
+7. Q1–Q4 are performance bands, not statistical quartiles unless later validated as such.
+8. Calculations retain full precision internally and round only at defined output boundaries.
+9. Engine identity is a technical immutable provenance identifier plus scoring-contract/config digest, not a product semantic version ladder.
+10. Economic Opportunity is separated from core scoring and implemented as explicit, extensible economic models.
+11. Assessment configuration uses a controlled hybrid: version-controlled methodology/configuration plus the published runtime representation in Supabase, with an explicit synchronization/release process.
+12. The five completed historical sessions that currently lack score rows are to be **reprocessed/recomputed under the approved scoring contract** where technically and evidentially possible. If a historical result cannot be safely reconstructed, or if retaining it would create an unreliable/conflicting record, deletion may be considered under a separately documented, verified migration policy. No deletion or historical rewrite is implicit in this approval.
+13. Comprehensive assessment must support future independent, aggregate, and hybrid composition modes; the existing comprehensive assessment must not be changed solely by this decision.
+14. Structured result/provenance snapshots are required for future AI-readiness; AI will not become the authoritative source of assessment truth.
+
+These are owner-approved methodology/architecture directions. Implementation still requires the detailed P3 contract, gap analysis, migration design, acceptance criteria, and verification plan.
+
+## 12. Historical result handling boundary
+
+The D12 historical-result decision is deliberately two-stage:
+
+**First:** investigate whether each of the five scoreless completed sessions can be deterministically reconstructed from its pinned assessment version, stored answers, option values, and the approved scoring contract.
+
+**Second:** where reconstruction is not safe or sufficiently evidenced, produce a separate deletion/retention decision record identifying the affected records, reason, dependencies, recovery considerations, and verification steps before deletion.
+
+Historical records must never be silently recalculated using a different methodology merely to fill missing score rows.
+
+## 13. Relationship to the engineering operating contract
 
 This decision record operates under `documentation/governance/AI-ENGINEERING-OPERATING-CONTRACT.md`.
 
@@ -163,21 +194,18 @@ The operating sequence remains:
 
 No implementation claim is implied by this record.
 
-## 12. Current P3 status
+## 14. Current P3 status
 
 **Model framework:** Owner Approved  
 **Owner guardrails:** Owner Approved  
+**D1–D14:** Owner Approved  
 **Five existing assessment contents:** Protected  
-**Scoring semantic contract:** Requires Decision  
-**Trap contract:** Requires Decision  
-**KPI contract:** Requires Decision  
-**Economic opportunity contract:** Requires Decision  
-**Persistence/provenance contract:** Requires Decision  
-**Assessment configuration ownership:** Requires Decision  
-**Implementation:** Not Implementation-Ready until the remaining material decisions are resolved.
+**Detailed P3 scoring contract:** Pending  
+**Historical reconciliation:** Pending investigation  
+**Implementation:** Not Implementation-Ready until the detailed contract and required migration/architecture decisions are completed.
 
-## 13. Next canonical action
+## 15. Next canonical action
 
-Produce the P3 gap analysis against the approved MD Code Assessment Model and present the remaining material architecture/scoring decisions as explicit decision records with options and consequences.
+Produce the P3 gap analysis against the approved MD Code Assessment Model and the approved D1–D14 directions, then produce the detailed scoring contract and any remaining decision records.
 
-No semantic or content mutation is authorized until those decisions are approved.
+No assessment-content mutation is authorized.
