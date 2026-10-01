@@ -1,6 +1,9 @@
 name: server-runtime-verification
 
 on:
+  pull_request:
+    branches:
+      - main
   push:
     branches:
       - implementation/protected-assessment-access
