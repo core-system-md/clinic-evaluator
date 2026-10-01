@@ -79,16 +79,11 @@ async function requireSessionAccess(token: string) {
 }
 
 async function loadAssessment(assessmentTypeId: string) {
-  const [{ data: assessment, error: assessmentError }, { data: family, error: familyError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
+  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
     supabase
       .from("assessment_types")
       .select("id, slug, family_id, title_ar, title_en, description, question_count, axis_count, has_traps, has_ev_simulator, version, config_version, axis_roles, kpi_mappings, ev_mappings")
       .eq("id", assessmentTypeId)
-      .maybeSingle(),
-    supabase
-      .from("assessment_families")
-      .select("id, slug")
-      .eq("id", (await supabase.from("assessment_types").select("family_id").eq("id", assessmentTypeId).maybeSingle()).data?.family_id || "")
       .maybeSingle(),
     supabase
       .from("axes")
@@ -137,6 +132,7 @@ async function loadAssessment(assessmentTypeId: string) {
 
   return {
     assessment,
+    family,
     axes: axes || [],
     questions: questions || [],
     options: options || [],
