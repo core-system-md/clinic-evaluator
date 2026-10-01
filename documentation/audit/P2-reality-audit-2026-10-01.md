@@ -2,10 +2,10 @@
 
 **Date:** 2026-10-01  
 **Project:** `core-system-md/clinic-evaluator`  
-**Stage:** P2-A — Reality Audit  
-**Status:** **INVESTIGATING → DECISION REQUIRED**  
+**Stage:** P2-A — Reality Audit → P2-B — Architecture Design  
+**Status:** **DECISION RESOLVED / DESIGN ESTABLISHED**  
 **Implementation status:** **NOT IMPLEMENTED**  
-**Architecture status:** **NOT APPROVED**
+**Architecture status:** **APPROVED — OPTION B**
 
 ## 1. Purpose
 
@@ -13,7 +13,7 @@ This audit follows the binding engineering contract:
 
 `TRUTH → OWNERSHIP → DECISION → DESIGN → IMPLEMENTATION-READY → IMPLEMENT → VERIFY → DOCUMENT → CLOSE`
 
-P2 is being treated as an investigation first. No versioning redesign, migration, or product behavior change is authorized by this document.
+P2 was treated as an investigation first. The owner has now approved Option B with a stable public slug/URL across versions. The detailed design is documented in `documentation/audit/P2-architecture-design-2026-10-01.md`. Production implementation has not yet started.
 
 ## 2. Authoritative scope
 
@@ -252,28 +252,22 @@ That relationship cannot safely be assumed.
 | Version lineage | **PARTIAL** | parent_id + duplication exist, but no complete invariant |
 | Migration provenance | **REQUIRES RECONCILIATION** | live and Git histories differ |
 
-## 13. P2 status
+## 13. P2 decision and status
 
 **P2-A Reality Audit: COMPLETE.**
 
-**P2 architecture: NOT APPROVED.**
+**Owner decision: RESOLVED.**
 
-**Implementation-ready: NO.**
+Approved decision:
 
-**Owner decision required: YES.**
+- **Option B — explicit assessment-family/version model.**
+- **Public slug/URL remains stable across versions.**
+- **Version changes are internal; assessment users do not need to know that a new version exists.**
 
-No production code, schema migration, versioning redesign, or historical-data rewrite was performed as part of this audit.
+The approved design is documented in `documentation/audit/P2-architecture-design-2026-10-01.md`.
 
-## 14. Required owner decision
+**P2 architecture: APPROVED.**
 
-The owner needs to approve the canonical versioning model before implementation continues.
+**Implementation: NOT STARTED.**
 
-The immediate decision is:
-
-**A. Existing assessment row = immutable concrete version**  
-**B. New explicit assessment-family/version model**  
-**C. Current model + authoritative historical snapshots**
-
-The decision should also establish whether the public assessment slug/URL must remain stable across versions. That requirement materially changes the architecture.
-
-Once that decision is made, the next engineering step is the detailed P2 design and existing-data migration plan — not direct coding.
+The next engineering step is implementation-readiness verification and migration design against the live dependency graph. No production schema change has been made as a result of this decision.
