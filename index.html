@@ -307,13 +307,25 @@
     }
 
     try {
-      const assessments = await supabase.select('assessment_types', { 
-        filter: { status: 'published' } 
-      });
+      const response = await fetch(
+        supabase.url + '/functions/v1/assessment-access',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': supabase.anonKey,
+            'Authorization': 'Bearer ' + supabase.anonKey
+          },
+          body: JSON.stringify({ action: 'get_catalog', data: {} })
+        }
+      );
+      const payload = await response.json();
+      if (!response.ok || !payload?.success) throw new Error(payload?.error || 'Catalog request failed');
+      const assessments = payload.data || [];
 
       if (loader) loader.remove();
 
-      if (!assessments || assessments.length === 0) {
+      if (assessments.length === 0) {
         grid.innerHTML = '<div class="loader-container" style="color:#6b7280;">لا توجد تقييمات منشورة حالياً.</div>';
         return;
       }

@@ -14,6 +14,8 @@ class ClinicEvaluatorApp {
     this.texts = null;
     this.engine = null;
     this.supabase = null;
+    this.assessmentAccessToken = null;
+    this.assessmentAccessUser = null;
 
     this.currentAssessmentKey = null;
     this.assessmentUuid = null; 
@@ -33,9 +35,13 @@ class ClinicEvaluatorApp {
 
   /* ─────────────── INITIALIZATION ─────────────── */
 
+
   async init() {
     try {
+      this.currentAssessmentKey = window.preSelectedAssessment;
       this.supabase = window.supabaseClient || null;
+      if (!this.supabase || !this.currentAssessmentKey) throw new Error('Assessment runtime is unavailable.');
+
       await Promise.all([this.loadConfig(), this.loadTexts()]);
 
       this.setupLeadForm();
@@ -44,159 +50,78 @@ class ClinicEvaluatorApp {
       this.setupPrint();
       this.setupKeyboardShortcuts();
 
-      this.currentAssessmentKey = window.preSelectedAssessment;
       this.assessment = this.getActiveAssessment();
-      
-      if (this.assessment) {
-        this.questions = this.assessment.questions || [];
-        
-        this.loadEVDefaultsFromConfig();
-        
-        if (this.supabase) {
-          const types = await this.supabase.select('assessment_types', { 
-            columns: 'id', 
-            filter: { slug: this.currentAssessmentKey } 
-          });
-          if (types && types[0]) {
-            this.assessmentUuid = types[0].id;
-          }
+      if (!this.assessment) throw new Error('Assessment content not found.');
 
-          const status = await this.checkAssessmentStatus();
-          if (!status.allowed) { 
-            this.showError(status.message); 
-            return; 
-          }
-          
-          if (status.requiresLogin) {
-            const hasSession = await this.checkExistingSession();
-            if (!hasSession) {
-              this.showLoginForm();
-              return; 
-            }
-          }
-        }
+      this.questions = this.assessment.questions || [];
+      this.assessmentUuid = this.assessment.id || null;
+      this.loadEVDefaultsFromConfig();
+
+      const hasSession = await this.checkExistingSession();
+      if (hasSession) {
+        this.hideView('view-lead-form');
+        this.showView('view-assessment');
+        this.renderQuestion();
+        this.updateProgress();
+        this.updateNavButtons();
+        return;
       }
-      
-      this.showView('view-lead-form');
 
+      const status = await this.checkAssessmentStatus();
+      if (!status.allowed) {
+        this.showError(status.message);
+        return;
+      }
+      if (status.requiresLogin) {
+        this.showLoginForm();
+        return;
+      }
+      this.showView('view-lead-form');
     } catch (err) {
       console.error('[app] Init failed:', err);
-      this.showFatalError('فشل تحميل التطبيق. تأكد من وجود ملفات الإعدادات والاتصال بالسحابة.');
+      this.showFatalError('فشل تحميل التطبيق. تعذر تحميل محتوى التقييم الآمن من الخادم.');
     }
   }
 
   /* ─────────────── CLOUD ADAPTER (SSOT) ─────────────── */
 
+
   async loadConfig() {
-    try {
-      const localRes = await fetch('/assets/data/config.json');
-      const localConfig = await localRes.json();
+    const data = await this.assessmentAccessRequest('get_content', {
+      assessment_key: this.currentAssessmentKey
+    });
+    this.config = {
+      version: String(data.version || 1),
+      project: 'CORE System Server Runtime',
+      assessment_types: { [data.slug]: data }
+    };
+  }
 
-      if (!this.supabase) {
-        console.warn('[CORE System] Cloud connection unavailable. Falling back to local config.');
-        this.config = localConfig;
-        return;
-      }
-
-      console.log('[CORE System] Fetching dynamic payload from cloud database...');
-
-      const [assessmentsRes, axesRes, questionsRes, optionsRes, trapsRes] = await Promise.all([
-        this.supabase.select('assessment_types', { filter: { status: 'published' } }),
-        this.supabase.select('axes'),
-        this.supabase.select('questions'), 
-        this.supabase.select('options'),
-        this.supabase.select('traps')
-      ]);
-
-      const cloudConfig = {
-        version: "2.0.0",
-        project: "CORE System Dynamic",
-        assessment_types: {}
-      };
-
-      if (assessmentsRes && assessmentsRes.length > 0) {
-        for (const ast of assessmentsRes) {
-          const astAxes = (axesRes || [])
-            .filter(a => a.assessment_type_id === ast.id)
-            .sort((a, b) => a.display_order - b.display_order)
-            .map(a => ({
-              id: a.code,
-              name_ar: a.title_ar || a.title,
-              name_en: a.title,
-              weight: parseFloat(a.weight) || 1,
-              description: a.description
-            }));
-
-          const astQuestions = (questionsRes || [])
-            .filter(q => q.assessment_type_id === ast.id)
-            .sort((a, b) => a.display_order - b.display_order)
-            .map(q => {
-              const qOptions = (optionsRes || [])
-                .filter(o => o.question_id === q.id)
-                .sort((a, b) => a.display_order - b.display_order)
-                .map(o => ({
-                  label: o.label_ar || o.label,
-                  value: parseFloat(o.option_value),
-                  is_trap: o.is_trap || false
-                }));
-
-              const parentAxis = (axesRes || []).find(a => a.id === q.axis_id);
-              const isTrapQuestion = qOptions.some(o => o.is_trap);
-
-              return {
-                id: q.code,
-                axis_id: parentAxis ? parentAxis.code : '',
-                text: q.question_text_ar || q.question_text,
-                type: q.question_type || "select",
-                layer: q.layer || (isTrapQuestion ? "B" : "A"),
-                impact: q.impact || "medium",
-                trap_for: q.trap_for || [],
-                options: qOptions
-              };
-            });
-
-          cloudConfig.assessment_types[ast.slug] = {
-            title: ast.title_ar,
-            subtitle: ast.description,
-            question_count: ast.question_count || astQuestions.length,
-            axis_count: ast.axis_count || astAxes.length,
-            has_traps: ast.has_traps,
-            has_ev_simulator: ast.has_ev_simulator,
-            simulator: { enabled: ast.has_ev_simulator },
-            traps: (trapsRes || []).filter(t => t.assessment_type_id === ast.id).map(t => ({
-              name: t.name,
-              question_id: t.question_id,
-              validates: t.validates,
-              target_axis: t.target_axis,
-              penalty_base: parseFloat(t.penalty_base) || 0,
-              penalty_max: parseFloat(t.penalty_max) || 0,
-              message: t.message,
-              message_ar: t.message_ar
-            })),
-            axes: astAxes,
-            questions: astQuestions,
-            axis_roles: ast.axis_roles || {},
-            kpi_mappings: ast.kpi_mappings || {},
-            ev_mappings: ast.ev_mappings || {}
-          };
-        }
-      }
-
-      const cloudKeys = Object.keys(cloudConfig.assessment_types || {});
-      
-      if (cloudKeys.length > 0) {
-        console.log('[CORE System] Validation passed. Engine is now running on Cloud Data.');
-        this.config = cloudConfig;
-      } else {
-        console.error('[CORE System] Cloud payload is empty. Falling back to local config.');
-        this.config = localConfig;
-      }
-
-    } catch (err) {
-      console.error('[CORE System] Failed to load config dynamically:', err);
-      const localRes = await fetch('/assets/data/config.json');
-      this.config = await localRes.json();
+  async assessmentAccessRequest(action, data = {}) {
+    if (!this.supabase?.url || !this.supabase?.anonKey) {
+      throw new Error('Supabase runtime is unavailable.');
     }
+
+    const response = await fetch(this.supabase.url + '/functions/v1/assessment-access', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': this.supabase.anonKey,
+        'Authorization': 'Bearer ' + this.supabase.anonKey
+      },
+      body: JSON.stringify({ action, data })
+    });
+
+    let payload;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = { error: 'Invalid server response' };
+    }
+    if (!response.ok || !payload?.success) {
+      throw new Error(payload?.error || 'Assessment server request failed');
+    }
+    return payload.data;
   }
 
   async loadTexts() {
@@ -205,16 +130,9 @@ class ClinicEvaluatorApp {
     this.texts = await res.json();
   }
 
+
   loadEVDefaultsFromConfig() {
-    const simVars = this.assessment?.simulator?.variables || [];
-    simVars.forEach(v => {
-      if (v.id === 'flow') this.evDefaults.flow = v.default || 50;
-      if (v.id === 'ltv') this.evDefaults.ltv = v.default || 5000;
-    });
-    this.evDefaults.visits = 3;
-    this.evDefaults.avg = 50;
-    this.evDefaults.years = 3;
-    this.evDefaults.referral = 0;
+    this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 };
   }
 
   t(path, vars = {}) {
@@ -285,9 +203,6 @@ class ClinicEvaluatorApp {
       e.preventDefault();
       this.collectMetadata();
 
-      const dup = await this.checkDuplicateSubmission();
-      if (!dup.allowed) { this.showError(dup.message); return; }
-
       await this.startAssessmentFlow();
     });
   }
@@ -308,30 +223,78 @@ class ClinicEvaluatorApp {
 
   /* ─────────────── ASSESSMENT FLOW WITH AUTO SESSION ─────────────── */
 
+
   async startAssessmentFlow() {
-    this.questions = this.assessment.questions;
+    this.questions = this.assessment.questions || [];
     this.answers = {};
     this.currentQuestionIndex = 0;
 
-    if (this.supabase && this.assessmentUuid) {
+    if (!this.assessmentUuid) {
+      this.showError('تعذر تحديد نوع التقييم.');
+      return;
+    }
+
+    try {
       this.showLoadingGlobal(true);
-      const leadId = await this.saveLead();
-      if (leadId) {
-        await this.saveSession().catch(() => {});
+
+      if (!this.assessmentAccessToken) {
+        if (this.assessment?.requires_login) {
+          throw new Error('يرجى تسجيل الدخول أولاً.');
+        }
+        const publicAccess = await this.assessmentAccessRequest('issue_public_access', {
+          assessment_key: this.currentAssessmentKey
+        });
+        this.assessmentAccessToken = publicAccess.token;
       }
+
+      const result = await this.assessmentAccessRequest('start_session', {
+        token: this.assessmentAccessToken,
+        lead: {
+          assessment_type_id: this.assessmentUuid,
+          full_name: this.metadata.name || 'طبيب غير معروف',
+          email: this.metadata.email || null,
+          phone: this.metadata.phone || null,
+          clinic_name: this.metadata.clinic || null,
+          country: this.metadata.country || null,
+          specialty: this.metadata.specialty || null,
+          years: this.metadata.years || null,
+          team: this.metadata.team || null,
+          source: window.location.pathname,
+          utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || null
+        }
+      });
+
+      this.currentSessionId = result.session_id;
+      this.currentLeadId = result.lead_id || null;
+      this.previousSessionData = result.previous_session || null;
+      this.previousScore = this.previousSessionData?.overallScore ?? null;
+
+      sessionStorage.setItem(
+        'assessment_access_' + this.currentAssessmentKey,
+        JSON.stringify({
+          token: this.assessmentAccessToken,
+          timestamp: Date.now(),
+          expires_at: result.expires_at || null
+        })
+      );
+    } catch (err) {
+      console.error('[app] startAssessmentFlow failed:', err);
+      this.showError(err.message || 'تعذر بدء جلسة التقييم.');
+      return;
+    } finally {
       this.showLoadingGlobal(false);
     }
 
     this.hideView('view-lead-form');
     this.showView('view-assessment');
     document.getElementById('view-assessment')?.classList.add('fade-in');
-
     this.renderQuestion();
     this.updateProgress();
     this.updateNavButtons();
   }
 
   /* ─────────────── RENDER QUESTIONS — INDEX-BASED ─────────────── */
+
 
   renderQuestion() {
     const container = document.getElementById('question-container');
@@ -345,10 +308,10 @@ class ClinicEvaluatorApp {
     const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
     let optsHtml = '';
-    q.options.forEach((opt, i) => {
+    (q.options || []).forEach((opt, i) => {
       const sel = (this.answers[q.id]?.index === i) ? 'sel' : '';
       const letter = letters[i] || (i + 1);
-      optsHtml += `<div class="opt ${sel}" data-index="${i}" data-value="${opt.value}"><div class="opt-letter">${letter}</div><div>${opt.label}</div></div>`;
+      optsHtml += `<div class="opt ${sel}" data-index="${i}"><div class="opt-letter">${letter}</div><div>${opt.label}</div></div>`;
     });
 
     container.innerHTML = `
@@ -362,27 +325,28 @@ class ClinicEvaluatorApp {
     document.querySelector('.question-card')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
 
+
   attachOptionHandlers(container, qid) {
     container.querySelectorAll('.opt').forEach(opt => {
-      opt.addEventListener('click', () => {
-        const idx = parseInt(opt.dataset.index);
-        const val = parseInt(opt.dataset.value);
-        
-        this.answers[qid] = { index: idx, value: val };
-        
-        const opts = container.querySelectorAll('.opt');
-        opts.forEach((o, i) => o.classList.toggle('sel', i === idx));
-        
-        this.updateProgress();
-        this.updateSessionProgress();
+      opt.addEventListener('click', async () => {
+        const idx = parseInt(opt.dataset.index, 10);
+        if (!Number.isInteger(idx)) return;
 
-        if (this.currentQuestionIndex < this.questions.length - 1) {
-          setTimeout(() => { 
-            this.currentQuestionIndex++; 
-            this.renderQuestion(); 
-            this.updateProgress(); 
-            this.updateNavButtons(); 
-          }, 400);
+        this.answers[qid] = { index: idx };
+        container.querySelectorAll('.opt').forEach((o, i) => o.classList.toggle('sel', i === idx));
+        this.updateProgress();
+
+        try {
+          await this.saveAnswerToServer(qid, idx, this.currentQuestionIndex);
+          if (this.currentQuestionIndex < this.questions.length - 1) {
+            this.currentQuestionIndex++;
+            this.renderQuestion();
+            this.updateProgress();
+            this.updateNavButtons();
+          }
+        } catch (err) {
+          console.error('[app] save answer failed:', err);
+          this.showError(err.message || 'تعذر حفظ الإجابة. يرجى المحاولة مرة أخرى.');
         }
       });
     });
@@ -391,11 +355,7 @@ class ClinicEvaluatorApp {
   /* ─────────────── ENGINE BRIDGE ─────────────── */
 
   getAnswersForEngine() {
-    const engineAnswers = {};
-    for (const [qid, ans] of Object.entries(this.answers)) {
-      engineAnswers[qid] = ans.value;
-    }
-    return engineAnswers;
+    return {};
   }
 
   /* ─────────────── NAVIGATION CONTROLS ─────────────── */
@@ -483,132 +443,82 @@ class ClinicEvaluatorApp {
 
   /* ─────────────── ANTI-SPAM & BASELINE DETECTOR ─────────────── */
 
-  async checkDuplicateSubmission() {
-    if (!this.supabase || (!this.metadata.email && !this.metadata.phone && !this.metadata.name)) return { allowed: true };
-    try {
-      let lastLeads = [];
-      
-      if (this.metadata.email) {
-        lastLeads = await this.supabase.select('leads', { filter: { email: this.metadata.email } });
-      } else if (this.metadata.phone) {
-        lastLeads = await this.supabase.select('leads', { filter: { phone: this.metadata.phone } });
-      } else {
-        lastLeads = await this.supabase.select('leads', { filter: { full_name: this.metadata.name } });
-      }
-
-      if (!lastLeads || lastLeads.length === 0) return { allowed: true };
-
-      const completedLeads = lastLeads.filter(l => l.completed).sort((a, b) => new Date(a.created_at) - new Date(b.created_at));
-      
-      if (completedLeads.length >= 2) {
-        const lastLead = completedLeads[completedLeads.length - 1];
-        const now = Date.now();
-        const lastCreated = new Date(lastLead.created_at).getTime();
-        const cooldownPeriod = 7 * 24 * 60 * 60 * 1000;
-        const elapsed = now - lastCreated;
-
-        if (elapsed < cooldownPeriod) {
-          const remainingMs = cooldownPeriod - elapsed;
-          const remainingDays = Math.floor(remainingMs / (24 * 60 * 60 * 1000));
-          const remainingHours = Math.floor((remainingMs % (24 * 60 * 60 * 1000)) / (60 * 60 * 1000));
-          
-          return { 
-            allowed: false, 
-            message: `عذراً دكتور، لقد استنفدت الحد المسموح به للمحاولات المتتالية. سيُعاد تفعيل نظام التقييم لك تلقائياً بعد: ${remainingDays} يوم و ${remainingHours} ساعة.` 
-          };
-        }
-        
-        this.previousScore = parseFloat(lastLead.score_percentage);
-        
-        const sessions = await this.supabase.select('sessions', { 
-          filter: { lead_id: lastLead.id },
-          order: { column: 'created_at', ascending: false }
-        });
-        if (sessions && sessions[0]) {
-          const prevScores = await this.supabase.select('scores', { 
-            filter: { session_id: sessions[0].id } 
-          });
-          this.previousSessionData = {
-            overallScore: this.previousScore,
-            axisScores: {},
-            completedAt: lastLead.completed_at
-          };
-          if (prevScores) {
-            prevScores.forEach(s => {
-              this.previousSessionData.axisScores[s.axis_id] = s.percentage;
-            });
-          }
-        }
-      }
-      return { allowed: true };
-    } catch (err) {
-      return { allowed: true };
-    }
-  }
-
   /* ─────────────── LOGIN SYSTEM ─────────────── */
 
+
   async checkAssessmentStatus() {
-    if (!this.supabase) return { allowed: true };
-    try {
-      const r = await this.supabase.select('assessment_settings', { 
-        filter: { assessment_key: this.currentAssessmentKey } 
-      });
-      if (!r?.[0]) return { allowed: true };
-      const s = r[0];
-      if (s.auth_enabled) return { allowed: true, requiresLogin: true };
-      return { allowed: true };
-    } catch (err) { 
-      return { allowed: true }; 
-    }
+    return {
+      allowed: Boolean(this.assessment),
+      requiresLogin: Boolean(this.assessment?.requires_login)
+    };
   }
+
 
   async verifyUser(username, password) {
-    if (!this.supabase) return false;
     try {
-      const hash = await this.simpleHash(password);
-      const r = await this.supabase.select('assessment_users', { 
-        filter: { 
-          assessment_key: this.currentAssessmentKey, 
-          username: username 
-        } 
+      const result = await this.assessmentAccessRequest('authenticate', {
+        assessment_key: this.currentAssessmentKey,
+        username,
+        password
       });
-      if (!r?.[0]) return false;
-      const u = r[0];
-      
-      if (u.password_hash !== hash) return false;
-      if (!u.active) return false;
-      if (u.expires_at && new Date() > new Date(u.expires_at)) return false;
-      if (u.used_count >= u.max_uses) return false;
-      
-      await this.supabase.update('assessment_users', { used_count: u.used_count + 1 }, { id: u.id });
+
+      this.assessmentAccessToken = result.token;
+      this.assessmentAccessUser = result.user || null;
+
+      sessionStorage.setItem(
+        'assessment_access_' + this.currentAssessmentKey,
+        JSON.stringify({
+          token: this.assessmentAccessToken,
+          timestamp: Date.now(),
+          expires_at: result.expires_at || null
+        })
+      );
+
       return true;
-    } catch (err) { 
-      return false; 
+    } catch (err) {
+      console.warn('[app] authentication failed:', err);
+      return false;
     }
   }
 
+
   async checkExistingSession() {
-    const session = sessionStorage.getItem('assessment_auth_' + this.currentAssessmentKey);
-    if (!session) return false;
+    const key = 'assessment_access_' + this.currentAssessmentKey;
+    const stored = sessionStorage.getItem(key);
+    if (!stored) return false;
+
     try {
-      const data = JSON.parse(session);
-      if (Date.now() - data.timestamp > 24 * 60 * 60 * 1000) {
-        sessionStorage.removeItem('assessment_auth_' + this.currentAssessmentKey);
+      const data = JSON.parse(stored);
+      if (!data?.token) {
+        sessionStorage.removeItem(key);
         return false;
       }
-      return true;
-    } catch {
+      if (data.expires_at && new Date(data.expires_at) <= new Date()) {
+        sessionStorage.removeItem(key);
+        return false;
+      }
+
+      const result = await this.assessmentAccessRequest('get_session', { token: data.token });
+      this.assessmentAccessToken = data.token;
+      this.currentSessionId = result.session?.id || null;
+      this.currentLeadId = result.session?.lead_id || null;
+      this.currentQuestionIndex = Number(result.session?.current_question || 0);
+
+      this.answers = {};
+      for (const answer of result.answers || []) {
+        this.answers[answer.question_id] = { index: Number(answer.option_index) };
+      }
+
+      return Boolean(this.currentSessionId);
+    } catch (err) {
+      console.warn('[app] existing assessment session invalid:', err);
+      sessionStorage.removeItem(key);
       return false;
     }
   }
 
   async simpleHash(str) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(str);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    return '';
   }
 
   showLoginForm() {
@@ -677,127 +587,31 @@ class ClinicEvaluatorApp {
 
   /* ─────────────── SUPABASE DATA LAYER ─────────────── */
 
-  updateSessionProgress() {
-    if (this.supabase && this.currentSessionId) {
-      this.supabase.update('sessions', { current_question: this.currentQuestionIndex }, { id: this.currentSessionId }).catch(() => {});
+
+  async updateSessionProgress() {
+    if (!this.assessmentAccessToken || !this.currentSessionId) return;
+    try {
+      await this.assessmentAccessRequest('update_progress', {
+        token: this.assessmentAccessToken,
+        current_question: this.currentQuestionIndex
+      });
+    } catch (err) {
+      console.warn('[app] progress sync failed:', err);
     }
   }
 
-  async saveLead() {
-    if (!this.supabase) return null;
-    try {
-      const data = {
-        assessment_type_id: this.assessmentUuid || this.currentAssessmentKey, 
-        full_name: this.metadata.name || 'طبيب غير معروف',
-        email: this.metadata.email || null,
-        phone: this.metadata.phone || null,
-        clinic_name: this.metadata.clinic || null,
-        country: this.metadata.country || null,
-        specialty: this.metadata.specialty || null,
-        years: this.metadata.years || null,
-        team: this.metadata.team || null,
-        source: window.location.pathname,
-        utm_campaign: new URLSearchParams(window.location.search).get('utm_campaign') || null,
-        completed: false, 
-        score_total: 0, 
-        score_percentage: 0
-      };
-      const r = await this.supabase.insert('leads', data);
-      if (r?.[0]) { this.currentLeadId = r[0].id; return this.currentLeadId; }
-    } catch (err) { console.error('[app] saveLead failed:', err); }
-    return null;
+  async saveAnswerToServer(questionId, optionIndex, currentQuestion) {
+    return this.assessmentAccessRequest('save_answer', {
+      token: this.assessmentAccessToken,
+      question_id: questionId,
+      option_index: optionIndex,
+      current_question: currentQuestion
+    });
   }
 
-  async saveSession() {
-    if (!this.supabase || !this.currentLeadId) return null;
-    try {
-      const data = {
-        lead_id: this.currentLeadId,
-        assessment_type_id: this.assessmentUuid || this.currentAssessmentKey,
-        status: 'in_progress',
-        current_question: this.currentQuestionIndex,
-        started_at: new Date().toISOString()
-      };
-      const r = await this.supabase.insert('sessions', data);
-      if (r?.[0]) { this.currentSessionId = r[0].id; return this.currentSessionId; }
-    } catch (err) { console.error('[app] saveSession failed:', err); }
-    return null;
-  }
-
-  /**
-   * دالة حفظ الإجابات الجماعية المحدثة لتتوافق مع معيار التطهير والفصل (Bulk Insert)
-   */
-  async saveAnswers() {
-    if (!this.supabase || !this.currentSessionId) return;
-    try {
-      const answersBulkData = [];
-      for (const [qid, ans] of Object.entries(this.answers)) {
-        const q = this.questions.find(q => q.id === qid);
-        if (q) {
-          const matchedOption = q.options?.[ans.index];
-          const optionLabel = matchedOption ? matchedOption.label : `قيمة: ${ans.value}`;
-          
-          // حماية نقاء البيانات: إرسال نص السؤال مستقلاً تماماً، وإرسال الرد المختار في حقل منفصل
-          answersBulkData.push({
-            session_id: this.currentSessionId,
-            lead_id: this.currentLeadId,
-            question_id: qid,
-            axis_id: q.axis_id || '',
-            question_text: q.text, // نص السؤال الأصلي فقط نظيف دون أي دمج
-            chosen_option_label: optionLabel, // حقن خيار الطبيب في حقل منفصل لخدمة لوحة الإدارة
-            option_index: ans.index,
-            option_value: ans.value,
-            answer_value: ans.value,
-            is_trap: q.layer === 'B',
-            trap_triggered: false,
-            answered_at: new Date().toISOString()
-          });
-        }
-      }
-      
-      if (answersBulkData.length > 0) {
-        // الاستدعاء المباشر عبر تفعيل مصفوفة الإدخال الجماعي لـ supabase-client v3.0
-        await this.supabase.insert('answers', answersBulkData);
-      }
-    } catch (err) { console.error('[app] saveAnswers failed:', err); }
-  }
-
-  async saveScores(results) {
-    if (!this.supabase || !this.currentSessionId) return;
-    try {
-      const axes = this.assessment?.axes || [];
-      for (const [aid, score] of Object.entries(results.axisScores || {})) {
-        const axis = axes.find(a => a.id === aid);
-        await this.supabase.insert('scores', {
-          session_id: this.currentSessionId,
-          lead_id: this.currentLeadId,
-          axis_id: aid,
-          axis_name_ar: axis?.name_ar || aid,
-          axis_name_en: axis?.name_en || aid,
-          raw_score: Math.round(score),
-          max_possible: 100,
-          percentage: score,
-          weight: axis?.weight || 1,
-          weighted_score: score * (axis?.weight || 1),
-          grade: score >= 75 ? 'Q4' : score >= 50 ? 'Q3' : score >= 25 ? 'Q2' : 'Q1'
-        });
-      }
-    } catch (err) { console.error('[app] saveScores failed:', err); }
-  }
-
-  async updateLeadWithResults(results) {
-    if (!this.supabase || !this.currentLeadId) return;
-    try {
-      await this.supabase.update('leads', {
-        completed: true, 
-        score_total: Math.round(results.overallScore || 0),
-        score_percentage: results.overallScore || 0,
-        completed_at: new Date().toISOString()
-      }, { id: this.currentLeadId });
-    } catch (err) { console.error('[app] updateLeadWithResults failed:', err); }
-  }
-
+  /* Browser no longer writes leads, sessions, answers, or scores directly. */
   /* ─────────────── COMPUTATION & RESULTS ─────────────── */
+
 
   async submitAssessment() {
     this.hideView('view-assessment');
@@ -807,32 +621,30 @@ class ClinicEvaluatorApp {
     const bar = document.getElementById('load-bar');
     const status = document.getElementById('load-status');
     let progress = 0;
-    const interval = setInterval(() => { progress += Math.random() * 15; if (progress > 90) progress = 90; if (bar) bar.style.width = `${progress}%`; if (status) status.textContent = `${Math.round(progress)}%`; }, 200);
+    const interval = setInterval(() => {
+      progress += Math.random() * 15;
+      if (progress > 90) progress = 90;
+      if (bar) bar.style.width = progress + '%';
+      if (status) status.textContent = Math.round(progress) + '%';
+    }, 200);
 
     try {
-      if (typeof AssessmentEngine === 'undefined') throw new Error('engine.js not loaded');
-      
-      this.engine = new AssessmentEngine(this.config, this.texts);
-      const results = this.engine.evaluate(this.getAnswersForEngine(), this.currentAssessmentKey, this.metadata);
-
-      if (this.supabase) {
-        try {
-          if (this.currentSessionId) {
-            await this.supabase.update('sessions', { status: 'completed', completed_at: new Date().toISOString() }, { id: this.currentSessionId });
-          }
-          await this.saveAnswers();
-          await this.saveScores(results);
-          await this.updateLeadWithResults(results);
-        } catch (e) { console.error('[app] Supabase completion sync error:', e); }
-      }
+      const results = await this.assessmentAccessRequest('complete', {
+        token: this.assessmentAccessToken
+      });
 
       clearInterval(interval);
       if (bar) bar.style.width = '100%';
       if (status) status.textContent = '100%';
-      setTimeout(() => { this.hideView('view-loading'); this.renderResults(results); }, 500);
+
+      setTimeout(() => {
+        this.hideView('view-loading');
+        this.renderResults(results);
+      }, 300);
     } catch (err) {
       clearInterval(interval);
-      this.showFatalError('حدث خطأ فني أثناء معالجة التقرير الاستشاري: ' + err.message);
+      this.showView('view-assessment');
+      this.showFatalError('حدث خطأ فني أثناء معالجة التقرير الخادمي: ' + (err.message || 'Unknown error'));
     }
   }
 
@@ -1053,54 +865,38 @@ class ClinicEvaluatorApp {
   /**
    * دالة محاكاة القيمة الدائمة مجمّدة لخدمة تقييم رحلة المريض (patient-journey) حالياً حسب توجيهات التجميد الحالية
    */
-  calculateEV() {
+
+  async calculateEV() {
     const avg = parseFloat(document.getElementById('ev-avg')?.value) || 0;
     const visits = parseFloat(document.getElementById('ev-visits')?.value) || 0;
     const years = parseFloat(document.getElementById('ev-years')?.value) || 0;
-    const referral = parseFloat(document.getElementById('ev-referral')?.value) || 0;
 
-    let current, opt20, opt50;
-    if (this.engine && this.assessment) {
-      try {
-        // حماية ديناميكية بالكامل تسحب درجات المحاور الفعلية المتاحة دون أي كود صلب
-        const scoreStructure = this.engine.calculateScores();
-        const axisScores = scoreStructure ? scoreStructure.axes : [];
-        
-        const evInputs = {};
-        if (Array.isArray(axisScores)) {
-          axisScores.forEach(a => {
-            if (a && a.axisId) evInputs[a.axisId] = a.percentage || 0;
-          });
-        }
-        
-        const evResult = this.engine.calculateEV(
-          evInputs,
-          { flow: visits, ltv: avg * visits * years }
-        );
-        if (evResult) { 
-          current = evResult.currentEV; 
-          opt20 = Math.round(current * 1.2); 
-          opt50 = Math.round(current * 1.5); 
-        }
-      } catch (e) { console.error('[EV System] Fallback calculation engaged.', e); }
+    try {
+      const result = await this.assessmentAccessRequest('calculate_ev', {
+        token: this.assessmentAccessToken,
+        avg,
+        visits,
+        years
+      });
+
+      const current = Number(result.current || 0);
+      const opt20 = Number(result.opt20 || 0);
+      const opt50 = Number(result.opt50 || 0);
+
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = value;
+      };
+
+      setText('ev-current', '$' + current.toLocaleString());
+      setText('ev-opt20', '$' + opt20.toLocaleString());
+      setText('ev-opt50', '$' + opt50.toLocaleString());
+      setText('ev-increase20', '+$' + (opt20 - current).toLocaleString());
+      setText('ev-increase50', '+$' + (opt50 - current).toLocaleString());
+      document.getElementById('ev-results')?.classList.remove('hidden');
+    } catch (err) {
+      this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');
     }
-
-    if (!current) {
-      const annual = visits * 12;
-      const ltv = avg * visits * years;
-      const refMult = 1 + (referral / 100);
-      current = Math.round(annual * ltv * refMult);
-      opt20 = Math.round(current * 1.2);
-      opt50 = Math.round(current * 1.5);
-    }
-
-    const setText = (id, text) => { const el = document.getElementById(id); if (el) el.textContent = text; };
-    setText('ev-current', '$' + current.toLocaleString());
-    setText('ev-opt20', '$' + opt20.toLocaleString());
-    setText('ev-opt50', '$' + opt50.toLocaleString());
-    setText('ev-increase20', '+$' + (opt20 - current).toLocaleString());
-    setText('ev-increase50', '+$' + (opt50 - current).toLocaleString());
-    document.getElementById('ev-results')?.classList.remove('hidden');
   }
 
   /* ─────────────── PRINT HANDLING ─────────────── */

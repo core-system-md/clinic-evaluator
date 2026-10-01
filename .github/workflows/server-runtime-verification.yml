@@ -1,0 +1,21 @@
+name: server-runtime-verification
+
+on:
+  push:
+    branches:
+      - implementation/protected-assessment-access
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check browser runtime syntax
+        run: node --check assets/js/app.js
+      - name: Check admin authentication runtime syntax
+        run: node --check admin/admin-session.js && node --check admin/admin.js && node --check admin/assessment-manager.js
+      - name: Run server scoring parity tests
+        run: node --experimental-strip-types --test tests/server-scoring-parity.test.js

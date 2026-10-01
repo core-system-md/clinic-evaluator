@@ -4,7 +4,7 @@
   "description": "Clinic Evaluator static web app for patient journey and clinic performance assessments",
   "main": "index.js",
   "scripts": {
-    "test": "node --test tests/app-view-toggle.test.js"
+    "test": "node --experimental-strip-types --test tests/*.test.js"
   },
   "repository": {
     "type": "git",

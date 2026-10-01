@@ -23,6 +23,14 @@ class SupabaseClient {
     };
   }
 
+  setAuthToken(accessToken) {
+    this.headers.Authorization = accessToken ? `Bearer ${accessToken}` : `Bearer ${this.key}`;
+  }
+
+  clearAuthToken() {
+    this.headers.Authorization = `Bearer ${this.key}`;
+  }
+
   async request(endpoint, options = {}) {
     const url = `${this.url}/rest/v1/${endpoint}`;
     const response = await fetch(url, {
