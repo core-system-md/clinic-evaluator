@@ -1,6 +1,12 @@
 name: P2 external E2E verification
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/p2-external-e2e.yml"
+      - "tests/external-assessment-access.mjs"
   workflow_dispatch:
     inputs:
       assessment_slug:
