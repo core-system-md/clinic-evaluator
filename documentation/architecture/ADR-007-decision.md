@@ -34,3 +34,12 @@
 ## الخطوة التالية
 
 تنفيذ محرك scoring خادمي يستقبل الإجابات الخام من الجلسة، يعيد بناء البيانات اللازمة من قاعدة البيانات، يحسب النتيجة، ثم يكمل الجلسة والمعاملة الذرية لاستهلاك الاستخدام.
+
+
+---
+
+## Current implementation correction — 2026-10-01
+
+The accepted architectural decision remains valid, but the original implementation-step wording is now historical. The server-authoritative scoring path is implemented in production: `assessment-access` invokes `calculateAssessment` from `score-engine.ts` during `complete`, and persistence is performed by the protected/public completion RPCs. The browser no longer calculates the official score.
+
+The earlier reference to `complete_assessment_with_server_scoring(...)` does not describe the final production implementation; that RPC is not present in the live database. P3 is now responsible for consolidating the active scoring implementation, removing ambiguity among legacy/reference paths, and defining deterministic engine versioning/reproducibility.
