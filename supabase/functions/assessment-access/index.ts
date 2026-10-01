@@ -79,11 +79,16 @@ async function requireSessionAccess(token: string) {
 }
 
 async function loadAssessment(assessmentTypeId: string) {
-  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
+  const [{ data: assessment, error: assessmentError }, { data: family, error: familyError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
     supabase
       .from("assessment_types")
-      .select("id, slug, title_ar, title_en, description, question_count, axis_count, has_traps, has_ev_simulator, version, config_version, axis_roles, kpi_mappings, ev_mappings")
+      .select("id, slug, family_id, title_ar, title_en, description, question_count, axis_count, has_traps, has_ev_simulator, version, config_version, axis_roles, kpi_mappings, ev_mappings")
       .eq("id", assessmentTypeId)
+      .maybeSingle(),
+    supabase
+      .from("assessment_families")
+      .select("id, slug")
+      .eq("id", (await supabase.from("assessment_types").select("family_id").eq("id", assessmentTypeId).maybeSingle()).data?.family_id || "")
       .maybeSingle(),
     supabase
       .from("axes")
@@ -105,7 +110,7 @@ async function loadAssessment(assessmentTypeId: string) {
       .eq("assessment_type_id", assessmentTypeId),
   ]);
 
-  if (assessmentError || axesError || questionsError || optionsError || trapsError) {
+  if (assessmentError || familyError || axesError || questionsError || optionsError || trapsError) {
     throw assessmentError || axesError || questionsError || optionsError || trapsError;
   }
   if (!assessment) throw new Error("Assessment not found");
@@ -159,7 +164,7 @@ async function loadAssessment(assessmentTypeId: string) {
 function safeContent(runtime: Awaited<ReturnType<typeof loadAssessment>>, requiresLogin: boolean) {
   return {
     id: runtime.assessment.id,
-    slug: runtime.assessment.slug,
+    slug: runtime.family?.slug || runtime.assessment.slug,
     title_ar: runtime.assessment.title_ar,
     title_en: runtime.assessment.title_en,
     description: runtime.assessment.description,
@@ -281,14 +286,14 @@ async function issuePublicAccess(assessmentKey: string) {
     throw Object.assign(new Error("Too many public access requests"), { status: 429 });
   }
 
-  const { data: assessment, error } = await supabase
-    .from("assessment_types")
-    .select("id, slug, status")
+  const { data: family, error } = await supabase
+    .from("assessment_families")
+    .select("id, slug, current_published_version_id")
     .eq("slug", assessmentKey)
     .maybeSingle();
 
   if (error) throw error;
-  if (!assessment || assessment.status !== "published") {
+  if (!family?.current_published_version_id) {
     throw Object.assign(new Error("Assessment unavailable"), { status: 404 });
   }
 
@@ -305,14 +310,14 @@ async function issuePublicAccess(assessmentKey: string) {
     .insert({
       session_id: null,
       assessment_user_id: null,
-      assessment_type_id: assessment.id,
+      assessment_type_id: family.current_published_version_id,
       token_hash: tokenHash,
       expires_at: expiresAt,
     });
 
   if (insertError) throw insertError;
 
-  return { token, expires_at: expiresAt, assessment_type_id: assessment.id };
+  return { token, expires_at: expiresAt, assessment_type_id: family.current_published_version_id };
 }
 
 Deno.serve(async (req) => {
@@ -329,39 +334,53 @@ Deno.serve(async (req) => {
       const assessmentKey = String(data.assessment_key || "").trim();
       if (!assessmentKey) return json({ error: "Missing assessment key" }, 400);
 
-      const { data: at, error: atError } = await supabase
-        .from("assessment_types")
-        .select("id, slug, status")
+      const { data: family, error: familyError } = await supabase
+        .from("assessment_families")
+        .select("id, slug, current_published_version_id")
         .eq("slug", assessmentKey)
         .maybeSingle();
 
-      if (atError) throw atError;
-      if (!at || at.status !== "published") return json({ error: "Assessment unavailable" }, 404);
+      if (familyError) throw familyError;
+      if (!family?.current_published_version_id) return json({ error: "Assessment unavailable" }, 404);
 
       const requiresLogin = await getRequiresLogin(assessmentKey);
-      const runtime = await loadAssessment(at.id);
+      const runtime = await loadAssessment(family.current_published_version_id);
       return json({ success: true, data: safeContent(runtime, requiresLogin) });
     }
 
     if (action === "get_catalog") {
-      const { data: assessments, error } = await supabase
-        .from("assessment_types")
-        .select("id, slug, title_ar, description, question_count, axis_count, status")
-        .eq("status", "published")
+      const { data: families, error: familyError } = await supabase
+        .from("assessment_families")
+        .select("id, slug, current_published_version_id")
+        .not("current_published_version_id", "is", null)
         .order("created_at", { ascending: true });
 
-      if (error) throw error;
+      if (familyError) throw familyError;
+
+      const versionIds = (families || []).map((f) => f.current_published_version_id).filter(Boolean);
+      const { data: versions, error: versionError } = versionIds.length
+        ? await supabase
+            .from("assessment_types")
+            .select("id, title_ar, description, question_count, axis_count")
+            .in("id", versionIds)
+        : { data: [], error: null };
+
+      if (versionError) throw versionError;
+      const byId = new Map((versions || []).map((v) => [v.id, v]));
 
       return json({
         success: true,
-        data: (assessments || []).map((a) => ({
-          id: a.id,
-          slug: a.slug,
-          title_ar: a.title_ar,
-          description: a.description,
-          question_count: a.question_count || 0,
-          axis_count: a.axis_count || 0
-        }))
+        data: (families || []).map((f) => {
+          const v = byId.get(f.current_published_version_id);
+          return {
+            id: v?.id || f.current_published_version_id,
+            slug: f.slug,
+            title_ar: v?.title_ar || null,
+            description: v?.description || null,
+            question_count: v?.question_count || 0,
+            axis_count: v?.axis_count || 0
+          };
+        })
       });
     }
 
@@ -380,6 +399,15 @@ Deno.serve(async (req) => {
       if (!(await getRequiresLogin(assessmentKey))) {
         return json({ success: true, data: { protected: false } });
       }
+
+      const { data: family, error: familyError } = await supabase
+        .from("assessment_families")
+        .select("id, slug, current_published_version_id")
+        .eq("slug", assessmentKey)
+        .maybeSingle();
+
+      if (familyError) throw familyError;
+      if (!family?.current_published_version_id) return json({ error: "Assessment unavailable" }, 404);
 
       const { data: user, error: userError } = await supabase
         .from("assessment_users")
