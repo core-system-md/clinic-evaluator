@@ -1,3 +1,6 @@
+
+> **Current-status note — 2026-10-01:** This is a historical handoff/reconciliation record. Where it names older Edge Function versions or intermediate migration names, those references describe the state at that checkpoint. The current production state is maintained by the later P2 closure record and current project roadmap.
+
 # P0 -> P1 SESSION HANDOFF
 
 Date: 2026-10-01
