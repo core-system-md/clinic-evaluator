@@ -125,7 +125,11 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
     layer: q.layer || "A",
     impact: q.impact || "medium",
     options: (optionsByQuestion.get(q.id) || []).map((o) => ({
+      id: o.id,
+      index: Number(o.option_index),
       value: Number(o.option_value),
+      label: o.label,
+      label_ar: o.label_ar,
       is_trap: Boolean(o.is_trap),
     })),
   }));
@@ -138,7 +142,8 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
     options: options || [],
     traps: traps || [],
     scoring: {
-      slug: familyOverride?.slug || assessment.slug,\n      axes: (axes || []).map((a) => ({
+      slug: familyOverride?.slug || assessment.slug,
+      axes: (axes || []).map((a) => ({
         code: a.code,
         name_ar: a.title_ar || a.title,
         name_en: a.title,
@@ -671,7 +676,7 @@ Deno.serve(async (req) => {
         .eq("session_id", session.id);
       if (answersError) throw answersError;
 
-      const answerMap: Record<string, number> = {};
+      const answerMap: Record<string, { optionId: string; optionIndex: number; value: number }> = {};
       for (const answer of dbAnswers || []) {
         const question = runtime.questions.find((q) => q.code === answer.question_id);
         const option = runtime.options.find((o) => o.question_id === question?.id && o.option_index === answer.option_index);
