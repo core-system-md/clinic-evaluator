@@ -78,7 +78,7 @@ async function requireSessionAccess(token: string) {
   return { access };
 }
 
-async function loadAssessment(assessmentTypeId: string) {
+async function loadAssessment(assessmentTypeId: string, familyOverride: any = null) {
   const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
     supabase
       .from("assessment_types")
@@ -132,7 +132,7 @@ async function loadAssessment(assessmentTypeId: string) {
 
   return {
     assessment,
-    family,
+    family: familyOverride,
     axes: axes || [],
     questions: questions || [],
     options: options || [],
@@ -340,7 +340,7 @@ Deno.serve(async (req) => {
       if (!family?.current_published_version_id) return json({ error: "Assessment unavailable" }, 404);
 
       const requiresLogin = await getRequiresLogin(assessmentKey);
-      const runtime = await loadAssessment(family.current_published_version_id);
+      const runtime = await loadAssessment(family.current_published_version_id, family);
       return json({ success: true, data: safeContent(runtime, requiresLogin) });
     }
 
