@@ -538,3 +538,15 @@ WHERE slug = 'admin-reception-assessment';
 **التاريخ:** 2026-07-11
 **الإصدار:** 2.0 — نهائي
 **الحالة:** جاهز للتنفيذ — ينتظر الموافقة النهائية
+
+
+---
+
+## Status correction — 2026-10-01
+
+This document is retained as a historical methodology/design reference from 2026-07-11. Its implementation-ready/final wording is not an owner-approved P3 scoring contract. Several rules described here (notably fallback roles, KPI universality, EV mapping, and trap expectations) are now under formal P3 investigation and require explicit confirmation before being changed or treated as canonical.
+
+Current P3 records:
+- `documentation/audit/P3-reality-audit-2026-10-01.md`
+- `documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md`
+- `documentation/audit/P3-engineering-verification-plan-2026-10-01.md`
