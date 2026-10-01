@@ -1,35 +1,55 @@
 # P3 — Scorer Rebuild Checkpoint — 2026-10-02
 
-Status: implementation checkpoint — scorer rebuilt in source, not deployed to production.
+**Status: superseded / archived — non-production implementation spike.**
 
-This closes the requested implementation stopping point: the server scorer is now structured around response interpretation and construct-aware aggregation.
+This document records an implementation experiment that was started before the P3 measurement-model gate was fully closed. It is retained for audit history and is **not** a production or final scoring contract.
 
-## Changes
+## Disposition
 
-1. Response identity: assessment-access now passes option id, option index, and historical option value to the scorer.
-2. Construct-aware interpretation: the scorer contains the P3 question-to-component map for all 93 published questions across the five published assessments.
-3. Five-option clinic questions retain their existing numeric anchors. No automatic 0/30/50/80/100 conversion was introduced.
-4. Patient Journey Q7 is semantic/contextual and does not enter a numeric average.
-5. Missing answers are excluded from the numeric denominator.
-6. Missing roles are not silently imputed from other roles.
-7. Unsupported KPI mappings return null rather than an invented zero.
-8. Legacy trap metadata cannot create an automatic numeric penalty.
-9. Consistency, criticality, and evidence are returned as separate diagnostic channels.
-10. Existing completion output fields remain available: overallScore, classification, leakageIndex, axisScores, kpis, evSimulator.
+The experimental scorer changes were intentionally reverted from `main`.
 
-## Not changed
+The experiment must not be treated as:
+- a completed P3 scorer;
+- an approved scoring methodology;
+- a production deployment;
+- a basis for changing published option values;
+- a historical score recalculation policy.
 
-- No production Edge Function deployment.
-- No published question or option text changes.
-- No production option values changed.
-- No historical scores rewritten.
-- No economic model frozen or redesigned.
+## What the experiment demonstrated
 
-## Verification
+The spike explored:
+1. preserving selected option identity in the runtime response;
+2. separating semantic interpretation from historical `option_value`;
+3. avoiding silent role imputation;
+4. separating consistency, criticality, and evidence signals from automatic numeric penalties.
 
-A dedicated P3 scoring-kernel test file was added for semantic-only denominator behavior, missing-role behavior, and option identity separation.
-The former browser-parity test was retired because parity with the old scorer is no longer the acceptance criterion for P3 re-correction.
+These are useful implementation findings, but they do not close the P3 design gates.
 
-## Production gate
+## What remains authoritative
 
-Runtime/unit verification, assessment-by-assessment synthetic cases, persistence compatibility, historical-result policy, and a separately recorded production deployment remain required before activation.
+The authoritative production path remains the pre-spike server scorer and runtime behavior. No production assessment scoring rules were activated by this experiment.
+
+The P3 design artifacts remain the source for the next implementation cycle, including:
+- `P3-ITEM-MEASUREMENT-REGISTRY-DRAFT-1-2026-10-01.md`
+- `P3-COMPONENT-AGGREGATION-PROFILE-CONSTRUCTION-DRAFT-1-2026-10-02.md`
+- `P3-RESPONSE-INTERPRETATION-CONTRACT-DRAFT-1-2026-10-02.md`
+- `P3-RESPONSE-INTERPRETATION-SCHEMA-DRAFT-1-2026-10-02.md`
+- `P3-SCALE-DISPOSITION-AND-WORKLIST-2026-10-02.md`
+
+## Correct P3 checkpoint after re-correction
+
+The project is back at the late design / implementation-preparation stage.
+
+The next implementation gate is:
+
+`assessment option → response interpretation registry → component/subcomponent aggregation → consistency specification → criticality/coverage semantics → structured result contract → scorer rebuild`
+
+No scorer rebuild is authorized until the preceding design artifacts are complete and internally consistent.
+
+## Production safety statement
+
+- No published question text was changed.
+- No published option text was changed.
+- No production option values were changed.
+- No historical scores were rewritten.
+- No production scorer deployment was made from this spike.
