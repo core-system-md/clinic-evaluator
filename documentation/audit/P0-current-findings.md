@@ -1,30 +1,38 @@
 # P0 — Current Baseline Findings
 
-**Status:** audit in progress
+**Status:** P0 CLOSED — 2026-10-01
 
-## Confirmed current state
+## Final authorization model
 
-- Supabase Auth currently has 5 users; none has a role claim in `raw_app_meta_data`.
-- `assessment_users` currently contains 0 rows, so the protected-assessment capability exists in schema/code but has no current issued users.
-- Public schema currently contains 18 tables with RLS policies present across them; policy counts range from 1 to 7 depending on table.
-- The project currently has no versioned Supabase migrations represented in the repository, so the live database remains the current operational schema until a reviewed baseline is created.
+- Supabase Auth is the administrator identity provider.
+- `public.admin_users` is the authoritative authorization source.
+- The primary owner is the active `owner` account selected in ADR-008.
+- The production dashboard has been successfully authenticated with the owner account.
+- Sensitive application tables are no longer directly accessible through the anonymous Data API.
+- Active administrators receive only the dashboard read privileges required by the current UI; privileged mutations remain behind guarded server/RPC boundaries.
+- Protected assessment session-access records are server-only.
 
-## Architectural decisions already accepted
+## Final scoring/access boundary
 
-- ADR-001: Hybrid trust boundary; one Owner + real Admin accounts; public assessments remain simple; protected assessments remain; no multi-tenancy.
-- ADR-002: Hybrid scoring; browser result is UX-only, server recalculates and owns the official result.
-- ADR-003: Git becomes the source of truth for database schema; baseline first, then versioned migrations.
-- ADR-004: Supabase Auth provides identity; `admin_users` provides authoritative admin authorization; Owner/Admin roles initially, permissions can expand later.
+- Browser assessment content is served through `assessment-access`.
+- Scoring values, impacts, traps, KPI mappings and equations are not exposed through the public Data API.
+- Answers are persisted through the assessment gateway.
+- Official scoring and completion are server-authoritative and idempotent.
+- Legacy client scoring and legacy completion paths are not production security boundaries.
 
-## Next audit target
+## Legacy paths closed
 
-Complete a table-by-table authorization matrix before creating the database baseline. For each table/function, classify:
+- Legacy browser `admin-auth` client removed.
+- Legacy `admin-auth` Edge Function retired with HTTP 410.
+- Legacy `calculate_session_score(uuid)` public/authenticated execution revoked.
+- Legacy `duplicate_assessment(uuid)` public/authenticated execution revoked.
+- Broken legacy cron schedules were removed rather than left running against placeholder/nonexistent configuration.
 
-1. public read required,
-2. public write required,
-3. authenticated admin read/write,
-4. server-only access,
-5. legacy/unused,
-6. data that must never be exposed to anonymous clients.
+## Repository source of truth
 
-No production schema change is implied by this document.
+- P0 database hardening is recorded in `supabase/migrations/20261001190000_p0_security_closure.sql`.
+- ADR-001 through ADR-008 remain the governing architecture decisions.
+
+## Remaining non-P0 hardening
+
+The project can continue with P1 work such as managed Auth password-leak protection, replacement/rebuild of any retired operational cron jobs using managed secrets, deeper function/API minimization, and final external browser E2E coverage for protected assessments.
