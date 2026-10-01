@@ -19,12 +19,20 @@ class AssessmentManager {
         this.currentPage = 1;
         this.pageSize = 10;
         this.assessmentTypesMap = {}; // مخزن ديناميكي لربط المعرفات بأسماء التقييمات
+        this.familyByVersionId = {};
+        this.familyBySlug = {};
+        this.editingAssessmentSlug = null;
     }
 
     async init() {
         // تحميل كل التقييمات للوصول إلى axis_roles و kpi_mappings
         try {
             this.allAssessments = await this.supabase.select('assessment_types') || [];
+            const families = await this.supabase.select('assessment_families') || [];
+            this.familyByVersionId = {};
+            this.familyBySlug = {};
+            families.forEach(f => { this.familyBySlug[f.slug] = f; });
+            this.allAssessments.forEach(a => { const family = families.find(f => f.id === a.family_id); if (family) this.familyByVersionId[a.id] = family; });
         } catch (e) {
             this.allAssessments = [];
         }
@@ -72,6 +80,9 @@ class AssessmentManager {
 
             // جلب حزم البيانات المتزامنة للتقييمات وإعدادات بوابات النفاذ ماليًا
             const data = await this.supabase.select('assessment_types');
+            const families = await this.supabase.select('assessment_families') || [];
+            families.forEach(f => { this.familyBySlug[f.slug] = f; });
+            (data || []).forEach(ast => { const family = families.find(f => f.id === ast.family_id); if (family) this.familyByVersionId[ast.id] = family; });
             const authSettings = await this.supabase.select('assessment_settings') || [];
 
             if (!data || data.length === 0) {
@@ -132,7 +143,9 @@ class AssessmentManager {
                 if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
 
                 // تتبع ومطابقة قفل بوابات الدفع والنفاذ المالي للتقييم
-                const lockedSetting = authSettings.find(s => s.assessment_key === ast.slug);
+                const family = this.familyByVersionId[ast.id];
+                const publicSlug = family?.slug || ast.slug;
+                const lockedSetting = authSettings.find(s => s.assessment_key === publicSlug);
                 const isLocked = lockedSetting ? !!lockedSetting.auth_enabled : false;
 
                 html += `
@@ -154,9 +167,10 @@ class AssessmentManager {
                         <td style="padding:12px 10px; text-align:center;">
                             <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
                                 <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">⚙️ هيكلة</button>
-                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخ</button>
+                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 إصدار جديد</button>
+                                ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.publishAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">🚀 نشر</button>` : ''}
                                 <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>
-                                <button onclick="window.assessmentManager.toggleAuthLock('${ast.slug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
+                                <button onclick="window.assessmentManager.toggleAuthLock('${publicSlug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
                                     ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
                                 </button>
                                 ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${ast.slug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
@@ -234,7 +248,7 @@ class AssessmentManager {
     async saveAssessment() {
         const id = document.getElementById('ast-id').value || null;
         const titleEn = document.getElementById('ast-title-en').value;
-        const generatedSlug = titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now();
+        const generatedSlug = this.editingAssessmentSlug || (titleEn ? titleEn.toLowerCase().trim().replace(/[^a-z0-9]+/g, '-') : 'assessment-' + Date.now());
         
         const rawStatusValue = document.getElementById('ast-status').value;
         const databaseStatus = rawStatusValue ? rawStatusValue.toLowerCase() : 'draft';
@@ -301,27 +315,37 @@ class AssessmentManager {
 
     // استدعاء دالة الـ RPC لتنفيذ محرك النسخ المتطابق الشامل والعميق (Deep Relational Duplication)
     async duplicateAssessment(id) {
-        if (!confirm("تأكيد هندسي: هل ترغب في مضاعفة هذا التقييم بكافة محاوره وأسئلته وخياراته علائقياً وسحابياً؟")) return;
-
+        if (!confirm("إنشاء إصدار جديد كمسودة من هذا التقييم؟ سيبقى الإصدار المنشور الحالي ثابتاً حتى يتم النشر.")) return;
         try {
-            const allAssessments = await this.supabase.select('assessment_types');
-            const original = allAssessments.find(a => a.id === id);
-            if (!original) return this.showToast("التقييم الأصلي غير موجود.", true);
-
-            const cloneSlug = `${original.slug || 'assessment'}-copy-${Date.now()}`;
-            
-            await this.supabase.request('rpc/duplicate_assessment_secure', {
+            const result = await this.supabase.request('rpc/create_assessment_version_secure', {
                 method: 'POST',
-                body: JSON.stringify({ p_id: id, p_clone_slug: cloneSlug })
+                body: JSON.stringify({ p_source_version_id: id })
             });
-
-            this.showToast("تمت عملية النسخ المتطابق الشامل لكافة الجداول بنجاح.");
+            const newId = result?.data;
+            this.showToast("تم إنشاء إصدار جديد كمسودة.");
             await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
+            this.populateFilterDropdown();
+            if (newId) await this.editAssessment(newId);
         } catch (err) {
-            this.showToast("فشل النسخ المتطابق العلائقي: " + err.message, true);
+            this.showToast("فشل إنشاء الإصدار الجديد: " + err.message, true);
         }
     }
+
+    async publishAssessment(id) {
+        if (!confirm("نشر هذه المسودة سيجعلها الإصدار الحالي، وسيتم أرشفة الإصدار المنشور السابق. متابعة؟")) return;
+        try {
+            await this.supabase.request('rpc/publish_assessment_version_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_version_id: id })
+            });
+            this.showToast("تم نشر الإصدار الجديد وتثبيت الرابط العام.");
+            await this.renderAssessmentsTable();
+            this.populateFilterDropdown();
+        } catch (err) {
+            this.showToast("فشل نشر الإصدار: " + err.message, true);
+        }
+    }
+
 
     createNewAssessment() {
         document.getElementById('assessment-form').reset();
