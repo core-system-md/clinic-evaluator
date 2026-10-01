@@ -155,23 +155,15 @@ Duplicate answers for the same session/question are invalid.
 
 ## 5.1 Current published assessments
 
-The current five assessments use option values:
+The current five assessments happen to use option values:
 
 `0, 40, 100`
 
-For the current baseline scoring profile:
+These are **existing response values, not an approved universal scoring rule**.
 
-`response_score = option_value`
+P3 must determine the appropriate response interpretation from the meaning of each assessment/item. Direct mapping (`response_score = option_value`) is only one candidate and must not be frozen merely for compatibility.
 
-No hidden transformation is applied.
-
-Therefore:
-
-- 0 means 0 scoring points;
-- 40 means 40 scoring points;
-- 100 means 100 scoring points.
-
-This preserves the current mathematical interpretation without changing the visible answer text.
+If the methodology requires a different transformation, it may be introduced while preserving the current visible question and answer text. The objective is a correct, defensible measurement model rather than preservation of an existing calculation error.
 
 ## 5.2 Future response models
 
@@ -706,17 +698,11 @@ Historical data is never silently rewritten.
 
 ## 21.1 Five completed sessions without score rows
 
-The owner-approved D12 direction is:
+The forensic state verified on 2026-10-01 is that these five completed sessions currently have **zero stored answer rows** and **zero score rows**.
 
-1. attempt deterministic reconstruction;
-2. if the stored answer/configuration evidence is sufficient, recompute under the explicitly approved contract;
-3. if evidence is insufficient, do not invent answers;
-4. create a separate retention/deletion decision;
-5. no deletion occurs implicitly.
+Deterministic recomputation is therefore impossible from the stored assessment evidence. Their linked lead-level aggregate score is not sufficient evidence for reconstructing the answer vector.
 
-The forensic state verified on 2026-10-01 is that these five completed sessions currently have **zero stored answer rows**.
-
-Their existing lead-level aggregate score is historical data, not sufficient evidence for deterministic axis-level recomputation.
+**Owner direction: delete these five sessions.** Do not preserve them as legacy assessment results unless a concrete engineering dependency is discovered that requires retention. Deletion must respect the existing cascade relationships and must not delete the linked lead records merely because their session is removed.
 
 ## 21.2 123 orphan score rows
 
@@ -981,7 +967,7 @@ The following must be frozen before production semantic changes:
 
 ### MD-D1 — Exact response model for each current assessment
 
-Confirm the five current assessments retain direct `0/40/100` response scoring with no transformation, or explicitly define another mapping.
+Determine the appropriate response interpretation for each current assessment/item. Direct `0/40/100` scoring is not pre-approved; if it is unsuitable, define the correct transformation without changing visible question/answer text.
 
 ### MD-D2 — Exact consistency rules
 
@@ -1018,7 +1004,7 @@ Determine whether `calculate_session_score` and the unused `scoring.ts` adapter 
 
 ### MD-D7 — Historical scoreless-session disposition
 
-After the verified zero-answer finding, determine retention/deletion handling for the five legacy sessions under a separate migration record.
+**Decision closed:** delete the five completed sessions with zero stored answers and zero score rows, unless a concrete engineering dependency is discovered before deletion that requires retention.
 
 ### MD-D8 — Orphan-score disposition
 
