@@ -110,6 +110,7 @@
 | Qc1373b | 0 «مغادرة بدون متابعة»؛ 40 «تعليمات شفهية»؛ 100 «خطة واضحة ومتابعة محددة» | Transition/continuity maturity | C + O + B |
 | Qd46862 | 0 «لا»؛ 40 «أحياناً»؛ 100 «نعم بشكل منتظم» | Recovery/follow-up frequency؛ trap signal منفصل | O + B + C + S |
 | Qf3c0c2 | 0 «لا»؛ 40 «بشكل تقريبي»؛ 100 «نعم بدقة» | Measurement maturity؛ CAC ليس جودة سريرية | E + B + D |
+| Q12f297 | 0 «لا»؛ 40 «نادراً»؛ 100 «نعم بشكل منهجي» | Measurement of non-starter reasons؛ يقيس نضج التسجيل والتحليل وليس معدل بدء العلاج نفسه | E + B + D + S |
 | Q3eb854 | 0 «شفهي فقط»؛ 40 «غير موحد»؛ 100 «آلية واضحة» | Information exchange maturity | O + D + E |
 | Q96e7e9 | 0 «انتظار بدون إبلاغ»؛ 40 «تقدير الموظف»؛ 100 «إبلاغ وإعادة ترتيب» | Operational response maturity؛ trap signal منفصل | O + people-centred + S |
 | Qc324ce | 0 «لا»؛ 40 «نادراً»؛ 100 «نعم بشكل منهجي» | Measurement/learning maturity؛ لا يساوي انخفاض عدم العودة نفسه | E + B |
