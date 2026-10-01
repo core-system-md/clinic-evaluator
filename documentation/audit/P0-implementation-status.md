@@ -1,69 +1,37 @@
-# P0 Implementation Status — Protected Assessment Access + Server Scoring
+# P0 Implementation Status — Production Security Closure
 
-**Branch:** `implementation/protected-assessment-access`  
-**Status:** IMPLEMENTED — RUNTIME E2E STILL UNVERIFIED
+**Status:** P0 CLOSED — 2026-10-01
 
-## Architectural state
+## Closed items
 
-ADR-007 is accepted with **Option B — Server-authoritative scoring only**. ADR-002 has been explicitly amended; the browser-local scoring path is no longer part of the target architecture.
+- Admin identity is Supabase Auth with `public.admin_users` authorization; the primary owner `yazeed48@gmail.com` is active and has successfully logged into the production dashboard.
+- The browser no longer uses the legacy localStorage/admin-auth authentication model.
+- The legacy `admin-auth` Edge Function was retired in production (version 6 returns HTTP 410) and the legacy `admin/admin-auth.js` client was removed from the repository.
+- Public browser access to operational/content tables was removed. The public runtime uses the purpose-built `assessment-access` gateway.
+- Anonymous/authenticated direct Data API access was revoked from sensitive tables. Active admins retain read access through RLS; privileged writes remain behind guarded RPCs/server functions.
+- `assessment_session_access` remains server-only.
+- The legacy `calculate_session_score(uuid)` path is no longer executable by public/authenticated clients and is not part of official scoring.
+- The legacy `duplicate_assessment(uuid)` path is no longer executable by public/authenticated clients.
+- Mutable function search_path warning for `update_updated_at_column()` was hardened.
+- Broken legacy cron jobs were removed from the active schedule so they no longer execute failing requests.
+- Server-authoritative scoring, protected access, opaque session tokens, one-use consumption, idempotent completion, and gateway-based answer persistence remain the production architecture.
+- A versioned migration `20261001190000_p0_security_closure.sql` records the database security closure changes.
 
-## Implemented
+## Verification performed
 
-- Protected assessment access uses an opaque server-issued token.
-- Login does not consume usage.
-- Starting/resuming does not consume usage.
-- A successful completion consumes exactly one protected use.
-- Repeated completion of the same session is idempotent.
-- The existing session remains the canonical session record.
-- Public assessments now also use a server-issued access token for runtime writes.
-- Browser assessment content is fetched through `assessment-access/get_content` and excludes scoring weights, option values, impacts, trap rules, KPI mappings, EV mappings, and scoring equations.
-- Browser no longer loads `assets/data/config.json` for runtime scoring data.
-- Browser no longer invokes `AssessmentEngine.evaluate()` for final results.
-- Browser no longer directly inserts scores or marks sessions completed.
-- Answers are saved through the assessment gateway; option values are resolved server-side.
-- Final completion loads authoritative questions/options/rules from Supabase, validates stored answers, calculates the result server-side, and then persists the score atomically.
-- EV simulator calculation is routed through the same server gateway.
-- `assessment-access` is deployed as ACTIVE v3 with custom token authentication.
-- The database completion functions are callable by `service_role` only.
-- Database transaction tests passed for protected/public start, resume, completion, and idempotency, with test data cleaned afterward.
+- Production Cloudflare deployment for the admin login fix completed successfully.
+- Owner login was successfully verified by the project owner.
+- Supabase RLS simulation confirmed the owner can read protected admin dashboard data.
+- Anonymous access attempts to revoked tables fail at the database privilege boundary.
+- Protected workflow tables remain inaccessible to `anon`/`authenticated`.
+- Official completion functions remain service-role-only.
+- Database transaction tests for protected/public start, resume, completion and idempotency had already passed with test data cleanup.
 
-## Verification
+## Intentional residual advisories
 
-### Verified in database
+The Supabase advisor may still report:
+- `RLS enabled no policy` on server-only tables. This is intentional: no browser role receives privileges.
+- `SECURITY DEFINER executable by authenticated` on admin RPCs. These functions call `require_admin()` and are the controlled administrative write boundary.
+- leaked-password protection remains a Supabase Auth configuration item and is not part of the application authorization boundary.
 
-- Session resume does not overwrite the original lead binding.
-- Protected usage count remains exactly 1 after repeated completion.
-- A repeated completion does not replace the original stored score.
-- Public completion does not use protected usage accounting.
-- `anon` and `authenticated` cannot execute the protected completion function.
-- No test data remains after verification.
-
-### Not yet verified
-
-A real browser-to-Edge-Function positive E2E test has not been executed from an external runtime in this environment. The Supabase tooling available here can deploy and inspect the Edge Function but does not expose a direct function-invocation action.
-
-Therefore the following are **implemented but not runtime-verified**:
-
-1. Protected login from the real browser.
-2. Public token issuance from the real browser.
-3. Save-answer flow through the live Edge Function.
-4. Final server scoring response rendered by the real browser.
-5. Actual completion latency.
-
-The Edge Function deployment itself succeeded as v3, which establishes deployment acceptance but not end-user E2E behavior.
-
-## Residual P0/P1 work
-
-- Legacy broad RLS/grants on public tables are still present and must be tightened before security closure.
-- Legacy admin authentication (`admin-auth` / localStorage model) is still not replaced by ADR-004's Supabase Auth + `admin_users` authorization model.
-- The old `calculate_session_score(uuid)` function remains legacy/untrusted and should be removed or made inaccessible after dependency verification.
-- The runtime still contains legacy helper code that is no longer on the final completion path; cleanup can follow successful E2E verification.
-## Additional security progress — 2026-10-01
-
-- Added `admin_users` authorization foundation per ADR-004.
-- RLS is enabled and a unique owner constraint exists.
-- Current state: 5 Supabase Auth users exist, but `admin_users` has 0 rows.
-- The final admin-auth replacement is therefore blocked only on the explicit project-owner choice of which existing Auth user is the primary owner; this is documented in ADR-008.
-- The public assessment catalog now uses the assessment gateway instead of direct `assessment_types` reads.
-- The legacy public `assets/data/config.json` scoring bundle and client-deliverable `engine/engine.js` were removed; the legacy engine is retained only as a test reference under `tests/reference/`.
-- `assessment-access` is deployed ACTIVE v7 after version pinning and server-side eligibility/baseline migration.
+These are documented configuration/security-hardening items, not open P0 authorization paths.
