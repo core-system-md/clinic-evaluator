@@ -49,7 +49,7 @@ try {
 
   // 2. Content: verifies stable public slug and a complete published graph.
   const content = await call("get_content", { assessment_key: ASSESSMENT_SLUG });
-  assert(content.status === 200 && content.body?.success === true, `get_content failed: HTTP ${content.status}`);
+  assert(content.status === 200 && content.body?.success === true, `get_content failed: HTTP ${content.status}; body=${JSON.stringify(content.body)}`);
   const assessment = content.body.data;
   assert(assessment.slug === ASSESSMENT_SLUG, "Public slug is not the stable family slug");
   assert(Array.isArray(assessment.questions) && assessment.questions.length > 0, "No questions returned");
@@ -94,20 +94,41 @@ try {
   assert(session.body?.data?.session?.id === sessionId, "Returned session does not match created session");
   record("get_session token binding", true, { http_status: session.status });
 
-  // 6. Save one valid answer and verify the runtime accepts the published question/option graph.
-  const firstQuestion = assessment.questions[0];
-  assert(Array.isArray(firstQuestion.options) && firstQuestion.options.length > 0, "First question has no options");
-  const firstOption = firstQuestion.options[0];
-  const answer = await call("save_answer", {
-    token,
-    question_id: firstQuestion.id,
-    option_index: Number(firstOption.index),
-    current_question: 1,
+  // 6. Answer every required question using a valid option from the published graph.
+  const requiredQuestions = assessment.questions.filter((q) => q.is_required !== false);
+  assert(requiredQuestions.length > 0, "No required questions returned");
+  for (let i = 0; i < requiredQuestions.length; i++) {
+    const question = requiredQuestions[i];
+    assert(Array.isArray(question.options) && question.options.length > 0, `Question has no options: ${question.id}`);
+    const option = question.options[0];
+    const answer = await call("save_answer", {
+      token,
+      question_id: question.id,
+      option_index: Number(option.index),
+      current_question: i + 1,
+    });
+    assert(answer.status === 200 && answer.body?.success === true, `save_answer failed for ${question.id}: HTTP ${answer.status}; body=${JSON.stringify(answer.body)}`);
+  }
+  record("save_answer for complete published graph", true, {
+    answered_required_questions: requiredQuestions.length,
   });
-  assert(answer.status === 200 && answer.body?.success === true, `save_answer failed: HTTP ${answer.status}`);
-  record("save_answer against published graph", true, { http_status: answer.status });
 
-  // 7. Negative auth boundary: a fake token must not access a session.
+  // 7. Complete the session through the production scoring path.
+  const completion = await call("complete", { token });
+  assert(completion.status === 200 && completion.body?.success === true, `complete failed: HTTP ${completion.status}; body=${JSON.stringify(completion.body)}`);
+  assert(completion.body?.data?.session_id === sessionId, "Completion returned a different session");
+  record("complete + production scoring", true, {
+    http_status: completion.status,
+    already_completed: Boolean(completion.body?.data?.already_completed),
+  });
+
+  // 8. Idempotency: completing the same session again must remain successful.
+  const repeat = await call("complete", { token });
+  assert(repeat.status === 200 && repeat.body?.success === true, `repeat complete failed: HTTP ${repeat.status}; body=${JSON.stringify(repeat.body)}`);
+  assert(repeat.body?.data?.already_completed === true, "Repeat completion was not reported as already completed");
+  record("completion idempotency", true, { http_status: repeat.status });
+
+  // 9. Negative auth boundary: a fake token must not access a session.
   const bad = await call("get_session", { token: "invalid-p2-e2e-token" });
   assert(bad.status === 401, `Invalid token returned HTTP ${bad.status}, expected 401`);
   record("invalid token rejected", true, { http_status: bad.status });
