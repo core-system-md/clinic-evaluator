@@ -209,3 +209,30 @@ No implementation claim is implied by this record.
 Produce the P3 gap analysis against the approved MD Code Assessment Model and the approved D1–D14 directions, then produce the detailed scoring contract and any remaining decision records.
 
 No assessment-content mutation is authorized.
+
+
+## 16. Owner clarification — scoring correction and five-session deletion (2026-10-01)
+
+The owner clarified two points that supersede the earlier interpretation where they conflict:
+
+### 16.1 Scoring methodology is not frozen to 0/40/100
+
+The current numerical option values are existing configuration, not an owner-approved universal scoring methodology. P3 is authorized to redesign the mathematical measurement/scoring model when the current mapping is not substantively or mathematically correct.
+
+Preserving the visible question and answer text does **not** require preserving an incorrect numerical interpretation. The correct result takes priority over backward compatibility with flawed arithmetic.
+
+### 16.2 Five scoreless completed sessions are to be deleted
+
+The five completed sessions verified to have zero answer rows and zero score rows are to be deleted. They are not to be retained merely as historical assessment records.
+
+Retention is permitted only if a concrete engineering dependency is discovered that makes deletion unsafe or materially harmful to the platform. Any such dependency must be documented before deletion.
+
+The deletion was executed and separately documented in `documentation/audit/P3-legacy-scoreless-sessions-deletion-2026-10-01.md`.
+
+### 16.3 P3 operating interpretation
+
+The project is now treated as a **re-correction of the assessment/scoring construction on sound architectural foundations**, not as a compatibility exercise or a patching exercise.
+
+The engineering rule is therefore:
+
+**KEEP sound foundations → CORRECT invalid methodology → REBUILD affected scoring layers → VERIFY the resulting measurement.**
