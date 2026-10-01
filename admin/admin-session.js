@@ -90,6 +90,22 @@
       };
     }
 
+    async requestPasswordReset(email) {
+      const response = await fetch(SUPABASE_URL + '/auth/v1/recover', {
+        method: 'POST',
+        headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          redirect_to: window.location.origin + '/admin/'
+        })
+      });
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        return { success: false, message: this.authMessage(json) };
+      }
+      return { success: true };
+    }
+
     async signOut() {
       const token = this.session?.access_token;
       if (token) {
@@ -120,6 +136,7 @@
       const message = String(json?.error_description || json?.msg || json?.message || '').toLowerCase();
       if (message.includes('invalid login credentials')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
       if (message.includes('email not confirmed')) return 'يجب تأكيد البريد الإلكتروني أولاً.';
+      if (message.includes('email rate limit exceeded')) return 'تم طلب الاسترجاع مؤخرًا. انتظر قليلًا ثم حاول مرة أخرى.';
       return 'تعذر تسجيل الدخول. تحقق من بيانات الحساب ثم حاول مرة أخرى.';
     }
   }
