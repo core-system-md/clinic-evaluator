@@ -184,4 +184,4 @@ These are architectural/product decisions and remain subject to investigation an
 **Current evidence:** P0 and P1 are closed in their respective handoff/reconciliation documents; P2 reality audit is complete and the architecture decision is resolved.  
 **P2 reality-audit record:** `documentation/audit/P2-reality-audit-2026-10-01.md`.  
 **P2 architecture record:** `documentation/audit/P2-architecture-design-2026-10-01.md`.  
-**Current gate:** P2 architecture is **APPROVED**; implementation is **NOT YET STARTED** pending implementation-readiness and migration safety verification.
+**Current gate:** P2 is **IMPLEMENTATION-READY**. The architecture, dependency graph, existing-data migration plan, runtime/admin transition, database immutability boundary, and verification plan are established. Production implementation has **NOT STARTED**. The migration-history discrepancy remains a pre-deployment operational gate.
