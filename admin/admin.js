@@ -34,6 +34,82 @@
     }
   }
 
+  function getRecoveryContext() {
+    const hash = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    const search = new URLSearchParams(window.location.search || '');
+    if ((hash.get('type') || search.get('type')) !== 'recovery') return null;
+    const accessToken = hash.get('access_token');
+    if (!accessToken) return null;
+    return {
+      accessToken,
+      refreshToken: hash.get('refresh_token'),
+      expiresIn: Number(hash.get('expires_in') || 3600)
+    };
+  }
+
+  function showPasswordRecovery() {
+    document.getElementById('login-screen')?.classList.add('hidden');
+    document.getElementById('dashboard-content')?.classList.add('hidden');
+    document.getElementById('password-recovery-screen')?.classList.remove('hidden');
+  }
+
+  async function handlePasswordRecovery() {
+    const recovery = getRecoveryContext();
+    if (!recovery) return false;
+
+    showPasswordRecovery();
+
+    const form = document.getElementById('password-recovery-form');
+    const password = document.getElementById('recovery-password');
+    const confirm = document.getElementById('recovery-password-confirm');
+    const error = document.getElementById('recovery-error');
+
+    form?.addEventListener('submit', async function (e) {
+      e.preventDefault();
+      error?.classList.add('hidden');
+
+      if (!password?.value || password.value !== confirm?.value) {
+        if (error) {
+          error.textContent = 'كلمتا المرور غير متطابقتين.';
+          error.classList.remove('hidden');
+        }
+        return;
+      }
+
+      const button = form.querySelector('button[type="submit"]');
+      if (button) {
+        button.disabled = true;
+        button.textContent = 'جاري تحديث كلمة المرور...';
+      }
+
+      const result = await window.AdminSession.completePasswordRecovery(
+        password.value,
+        recovery.accessToken,
+        recovery.refreshToken,
+        recovery.expiresIn
+      );
+
+      if (!result.success) {
+        if (error) {
+          error.textContent = result.message || 'تعذر تحديث كلمة المرور.';
+          error.classList.remove('hidden');
+        }
+        if (button) {
+          button.disabled = false;
+          button.textContent = 'تحديث كلمة المرور';
+        }
+        return;
+      }
+
+      password.value = '';
+      confirm.value = '';
+      history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      showDashboard();
+    });
+
+    return true;
+  }
+
   async function start() {
     const loginForm = document.getElementById('login-form');
     const emailInput = document.getElementById('login-email');
@@ -41,6 +117,8 @@
     const errorDiv = document.getElementById('login-error');
     const logoutBtn = document.getElementById('btn-logout');
     const forgotBtn = document.getElementById('btn-forgot-password');
+
+    if (await handlePasswordRecovery()) return;
 
     const authorizedSession = await window.AdminSession.init();
     if (authorizedSession) {
