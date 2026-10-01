@@ -151,5 +151,8 @@ These are architectural/product decisions and remain subject to investigation an
 
 ## Current checkpoint
 
-**Current phase:** P0 investigation.  
-**Current objective:** understand the existing security architecture and the reasons behind it before selecting remediation architecture.
+**Current phase:** P2 — Assessment versioning and historical-result integrity.  
+**Current objective:** complete the P2 reality audit, establish the current versioning/historical-integrity boundary, and stop at the architectural decision boundary before implementation.  
+**Current evidence:** P0 and P1 are closed in their respective handoff/reconciliation documents.  
+**P2 reality-audit record:** `documentation/audit/P2-reality-audit-2026-10-01.md`.  
+**Current gate:** P2 architecture is **NOT APPROVED / NOT IMPLEMENTATION-READY** until the canonical assessment-version model and stable assessment identity requirements are explicitly resolved.
