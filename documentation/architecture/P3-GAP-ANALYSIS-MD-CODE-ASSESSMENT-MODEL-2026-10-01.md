@@ -157,6 +157,19 @@ Verified production has:
 
 Therefore current trap outcomes cannot be represented as a proven canonical methodology across the five assessments.
 
+### 6.2b Historical-session reconstruction finding
+
+A forensic query confirmed that the five completed sessions with no score rows also have **zero stored answer rows**. Their linked lead records contain legacy aggregate score values, but those values do not provide the answer vector or calculation inputs required to deterministically reconstruct the axis-level result under the approved scoring contract.
+
+Therefore the owner-approved instruction to reprocess the five records is subject to an evidence gate:
+
+1. attempt deterministic reconstruction from complete historical inputs;
+2. if complete inputs are unavailable, do not fabricate or infer answers;
+3. produce a separate retention/deletion decision for each affected legacy record/group;
+4. any deletion must be explicit, reversible where practical, and verified.
+
+The legacy lead-level score may be retained as historical metadata only if its provenance and semantic status are explicitly labeled; it must not be presented as a newly recomputed result.
+
 ### 6.3 KPI coverage gap
 
 Current mappings request roles not measured by many assessments and the engine fills them with the mean of available axes.
@@ -176,7 +189,7 @@ These are separate integrity problems.
 
 The five completed sessions require the owner-approved historical reconstruction process.
 
-The 123 orphan rows require a separate forensic reconciliation before any deletion or reassignment. They must not be silently attached to sessions or included in new analytics.
+The 123 orphan rows require a separate forensic reconciliation before any deletion or reassignment. Current evidence shows they are session-less legacy score records with legacy axis labels and stored percentages, including multiple records sharing legacy lead identifiers. This is **strong evidence of historical/seeded data**, but it is not sufficient authorization to delete or reattach them. They must be isolated from authoritative current-session analytics until their provenance and retention policy are documented.
 
 ## 7. Reporting gap
 
