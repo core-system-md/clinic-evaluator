@@ -4,7 +4,7 @@
  */
 (function () {
   const SUPABASE_URL = 'https://oaqpzaarppccbnepffxx.supabase.co';
-  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9hcXB6YWFycHBjY2JuZXBmZnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1MTQ5NTMsImV4cCI6MjA5NjA5MDk1M30.quCL_HfvUiLYKkp5yTipdafPQ3ktRZNgDD1XDd4PHaF';
+  const ANON_KEY = 'sb_publishable_uGznu8uaqcPeG7x9TQSnlA_B6IDYMic';
   const STORAGE_KEY = 'core_admin_auth_session';
 
   class AdminSession {
@@ -21,15 +21,27 @@
     }
 
     async signIn(email, password) {
-      const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
-        method: 'POST',
-        headers: { apikey: ANON_KEY, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password })
-      });
-      const json = await response.json().catch(() => ({}));
-      if (!response.ok || !json.access_token || !json.refresh_token || !json.user?.id) {
-        return { success: false, message: this.authMessage(json) };
-      }
+      try {
+        const response = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', {
+          method: 'POST',
+          headers: {
+            apikey: ANON_KEY,
+            'Content-Type': 'application/json',
+            Accept: 'application/json'
+          },
+          cache: 'no-store',
+          body: JSON.stringify({ email, password })
+        });
+        const json = await response.json().catch(() => ({}));
+        if (!response.ok || !json.access_token || !json.refresh_token || !json.user?.id) {
+          console.error('[Admin Auth] Supabase sign-in rejected', {
+            status: response.status,
+            error: json?.error,
+            code: json?.code,
+            message: json?.error_description || json?.msg || json?.message
+          });
+          return { success: false, message: this.authMessage(json) };
+        }
 
       const session = {
         access_token: json.access_token,
@@ -43,6 +55,10 @@
         return { success: false, message: 'الحساب صحيح، لكنه غير مخول للوصول إلى لوحة الإدارة.' };
       }
       return { success: true, user: this.user, role: this.role };
+      } catch (error) {
+        console.error('[Admin Auth] Supabase sign-in request failed', error);
+        return { success: false, message: 'تعذر الاتصال بخدمة تسجيل الدخول. أعد تحميل الصفحة وحاول مرة أخرى.' };
+      }
     }
 
     async applyAndVerify(session) {
@@ -133,8 +149,8 @@
     }
 
     authMessage(json) {
-      const message = String(json?.error_description || json?.msg || json?.message || '').toLowerCase();
-      if (message.includes('invalid login credentials')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+      const message = String(json?.error_description || json?.msg || json?.message || json?.error || json?.code || '').toLowerCase();
+      if (message.includes('invalid login credentials') || message.includes('invalid_grant')) return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
       if (message.includes('email not confirmed')) return 'يجب تأكيد البريد الإلكتروني أولاً.';
       if (message.includes('email rate limit exceeded')) return 'تم طلب الاسترجاع مؤخرًا. انتظر قليلًا ثم حاول مرة أخرى.';
       return 'تعذر تسجيل الدخول. تحقق من بيانات الحساب ثم حاول مرة أخرى.';
