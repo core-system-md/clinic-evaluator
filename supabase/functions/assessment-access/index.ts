@@ -105,7 +105,7 @@ async function loadAssessment(assessmentTypeId: string) {
       .eq("assessment_type_id", assessmentTypeId),
   ]);
 
-  if (assessmentError || familyError || axesError || questionsError || optionsError || trapsError) {
+  if (assessmentError || axesError || questionsError || optionsError || trapsError) {
     throw assessmentError || axesError || questionsError || optionsError || trapsError;
   }
   if (!assessment) throw new Error("Assessment not found");
@@ -435,7 +435,7 @@ Deno.serve(async (req) => {
         .insert({
           session_id: null,
           assessment_user_id: user.id,
-          assessment_type_id: (await supabase.from("assessment_types").select("id").eq("slug", assessmentKey).single()).data?.id,
+          assessment_type_id: family.current_published_version_id,
           token_hash: tokenHash,
           expires_at: expiresAt,
         });
