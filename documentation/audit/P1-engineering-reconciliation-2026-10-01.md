@@ -1,6 +1,6 @@
 # P1 Engineering Reconciliation — 2026-10-01
 
-Status: IMPLEMENTED / VERIFIED where evidence permits. P1 remains open only for external-control Auth configuration and external browser E2E that require capabilities not available through the connected Supabase/Cloudflare APIs.
+Status: IMPLEMENTED / VERIFIED. P1 is closed with one documented platform constraint: Supabase leaked-password protection remains unavailable on the current Free plan and is intentionally not enabled.
 
 ## Owner architectural decision gate
 
@@ -19,17 +19,19 @@ Implemented:
 - Recovery remains tied to a Supabase Auth recovery token.
 - After password update, admin_users authorization is re-checked before dashboard access.
 - Browser authorization remains in sessionStorage, not localStorage.
+- Leaked-password protection was checked through Supabase Auth configuration.
 
 Verified:
 - Existing owner record is active.
 - is_active_admin(owner_user_id) returns true under authenticated-role simulation.
 - Password recovery remains non-enumerating in the UI.
 
-Open external configuration:
-- Supabase Security Advisor still reports auth_leaked_password_protection.
-- The connected Supabase toolset does not expose the Management API Auth Config read/write endpoint.
-- Current Supabase documentation exposes GET/PATCH /v1/projects/{ref}/config/auth and password_hibp_enabled; enabling it requires Management API auth_config_write/project_admin_write permission.
-- No arbitrary SQL workaround was used.
+Platform constraint:
+- Supabase Security Advisor reports auth_leaked_password_protection.
+- The owner explicitly chose to remain on the Supabase Free plan.
+- Supabase reported that HaveIBeenPwned leaked-password protection is available on Pro plans and up.
+- No arbitrary SQL workaround or unapproved custom replacement was introduced.
+- This is documented as an accepted platform constraint, not an unresolved application defect.
 
 ## P1-B SECURITY DEFINER
 
@@ -41,7 +43,7 @@ Verified:
 - legacy calculate_session_score() and duplicate_assessment() remain non-executable by anon/authenticated.
 - public.update_updated_at_column() client EXECUTE was revoked.
 
-The remaining 16 Advisor warnings are therefore intentional exposed admin/RLS helper capabilities, not unguarded generic CRUD gateways.
+The remaining 16 Advisor warnings are intentional exposed admin/RLS helper capabilities, not unguarded generic CRUD gateways.
 
 ## P1-C pg_net
 
@@ -66,15 +68,31 @@ Verified:
 
 ## P1-E External browser E2E
 
-Repository/runtime verification:
+Closed by actual owner-run production verification:
+- The production assessment was opened in a real browser.
+- Lead information was submitted successfully.
+- The first-answer failure previously observed as “Internal error” was resolved after adding the matching unique constraint for the answer upsert.
+- The user answered the second question and continued through the remaining assessment.
+- The assessment was completed successfully.
+- The result report was generated successfully.
+- No screenshot was required; the owner provided direct runtime confirmation.
+
+Root cause fixed during P1-E:
+- assessment-access saves answers with ON CONFLICT (session_id, question_id).
+- public.answers lacked the corresponding unique constraint.
+- Existing non-null session/question pairs were checked for duplicates and none were found.
+- Added answers_session_question_unique.
+- Matching repository migration:
+  20261001083200_p1_e_fix_answers_upsert_conflict.sql
+- Git commit:
+  22c1ba4d8b217c8feba74cc71da30a0d6c3e77a8
+  Fix assessment answer upsert conflict constraint
+
+Runtime:
 - assessment-access is ACTIVE v7 and verify_jwt=false by intentional custom opaque-token authentication.
 - admin-auth remains retired behavior.
 - Browser code uses assessment-access for assessment runtime.
 - Official completion functions remain server-only.
-
-External browser limitation:
-- A true end-user browser session could not be completed through the connected toolset. Cloudflare Browser Rendering was attempted for production smoke verification but its API returned rate-limit 2001 before a rendered result was obtained.
-- Therefore no false claim of browser E2E closure is made.
 
 ## P1-F Browser/API minimization
 
@@ -90,25 +108,20 @@ Verified by repository search:
 
 Live migration history was reconciled against repository state.
 
-Live contains older migrations:
-- 20260930233955 add_server_scoring_rpc
-- 20260930234340 unify_public_and_protected_assessment_access
-- 20260930234428 preserve_access_for_idempotent_completion
-- 20260930234953 pin_assessment_version_on_session
-- 20260930235404 admin_identity_foundation
-- 20261001061605 admin_dashboard_auth_hardening
-
-P1 migrations now applied and recorded live:
+P1 migrations applied and recorded:
 - 20261001080710 p1_pg_net_client_execute_revoke
 - 20261001080714 p1_revoke_client_trigger_helper
 - 20261001080806 p1_relocate_pg_net_to_extensions
+- 20261001083200 p1_e_fix_answers_upsert_conflict
 
-Those P1 migration files are now present in the repository with matching version names. The pre-existing repository P0 migration files were not replayed into production because live schema/history already contains their resulting security state and replaying them would violate migration discipline.
+Those P1 migration files are present in the repository with matching version names. The pre-existing repository P0 migration files were not replayed into production because live schema/history already contains their resulting security state and replaying them would violate migration discipline.
 
 ## Final P1 gate
 
 Closed by evidence:
 - no new architecture decision required
+- owner-run external production E2E completed successfully through result report generation
+- assessment answer persistence failure fixed and migration recorded
 - SECURITY DEFINER admin boundaries reviewed
 - pg_net posture resolved
 - broken/orphaned cron-era functions retired
@@ -119,8 +132,7 @@ Closed by evidence:
 - sensitive workflow tables have no anon SELECT privilege
 - legacy scoring/duplication functions are not callable by anon/authenticated
 
-Not yet CLOSED:
-1. Supabase Auth leaked-password protection must be enabled through the Supabase Management API/Dashboard.
-2. External real-browser E2E must be completed against production.
+Accepted platform constraint:
+1. Supabase Auth leaked-password protection remains disabled because the project intentionally remains on the Free plan. This remains visible as a Supabase Security Advisor warning and should be revisited only if the owner chooses to upgrade or changes the security requirement.
 
-These are verification/configuration gates, not unresolved product or architecture decisions.
+P1 status: CLOSED WITH DOCUMENTED PLATFORM CONSTRAINT.
