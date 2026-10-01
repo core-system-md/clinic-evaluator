@@ -1,3 +1,6 @@
+
+> **Current-status note — 2026-10-01:** This is a historical handoff/reconciliation record. Where it names older Edge Function versions or intermediate migration names, those references describe the state at that checkpoint. The current production state is maintained by the later P2 closure record and current project roadmap.
+
 # P1 Engineering Reconciliation — 2026-10-01
 
 Status: IMPLEMENTED / VERIFIED. P1 is closed with one documented platform constraint: Supabase leaked-password protection remains unavailable on the current Free plan and is intentionally not enabled.
