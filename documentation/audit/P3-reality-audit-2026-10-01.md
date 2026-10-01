@@ -199,9 +199,16 @@ Whether an additional persisted engine digest or calculation-input snapshot is r
 | P3-12 | Deterministic tests | Existing parity suite is too narrow for P3 closure | Proven |
 | P3-13 | Engine provenance | `server-score-v1` exists but reproducibility contract is incomplete | Decision required |
 | P3-14 | Completed results | 5 completed sessions have no score rows | Reconciliation required |
+| P3-15 | Configuration authority | Repository assessment JSON and live DB definitions coexist; production runtime reads DB | Decision/documentation gap |
 
 ## 17. P3 conclusion
 
 The current implementation is functional enough to serve as the production scoring path, but the investigation does not establish that every mathematical/measurement rule is an owner-approved canonical methodology.
 
 The next step is not to rewrite the scorer blindly. It is to resolve the architecture/measurement decisions below and then produce the P3 scoring contract and deterministic fixture set against those decisions.
+
+## 18. Configuration source-of-truth finding
+
+The original project audit identified two parallel representations of assessment configuration: repository JSON files under `assets/data/` and live Supabase assessment-definition tables. Current production `assessment-access` reads assessment definitions from Supabase. The repository JSON files remain present and are therefore a potential parallel configuration source, but their current relationship to the live DB is not defined by a current P3 contract.
+
+This is not evidence that the JSON files are wrong. It is evidence that the ownership boundary is incomplete. P3 should not silently update DB and JSON independently or assume that one is authoritative without an explicit recorded decision.
