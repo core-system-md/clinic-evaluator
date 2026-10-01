@@ -358,8 +358,23 @@ class AssessmentManager {
     async editAssessment(id) {
         try {
             const allAssessments = await this.supabase.select('assessment_types');
-            const ast = allAssessments.find(a => a.id === id);
+            let ast = allAssessments.find(a => a.id === id);
             if (!ast) return this.showToast("التقييم المطلوب غير موجود.", true);
+
+            if ((ast.status || '').toLowerCase() === 'published') {
+                const result = await this.supabase.request('rpc/create_assessment_version_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_source_version_id: ast.id })
+                });
+                const draftId = result?.data;
+                if (!draftId) return this.showToast("تعذر إنشاء مسودة جديدة من الإصدار المنشور.", true);
+                ast = (await this.supabase.select('assessment_types') || []).find(a => a.id === draftId);
+                if (!ast) return this.showToast("تم إنشاء المسودة ولكن تعذر تحميلها.", true);
+            } else if ((ast.status || '').toLowerCase() === 'archived') {
+                return this.showToast("الإصدار المؤرشف غير قابل للتعديل.", true);
+            }
+
+            this.editingAssessmentSlug = ast.slug || null;
 
             let mappedStatus = 'Draft';
             const rawStat = (ast.status || '').toLowerCase();
