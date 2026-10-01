@@ -1,0 +1,3 @@
+-- Historical migration marker.
+-- The corresponding production change is already present in the live database.
+-- This file preserves migration provenance and must not be replayed.
