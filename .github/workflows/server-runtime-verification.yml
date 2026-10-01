@@ -22,4 +22,4 @@ jobs:
       - name: Check admin authentication runtime syntax
         run: node --check admin/admin-session.js && node --check admin/admin.js && node --check admin/assessment-manager.js
       - name: Run server scoring parity tests
-        run: node --experimental-strip-types --test tests/p3-scoring-kernel.test.js
+        run: node --experimental-strip-types --experimental-default-type=module --test tests/p3-scoring-kernel.test.mjs
