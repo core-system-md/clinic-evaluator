@@ -122,6 +122,25 @@
       return { success: true };
     }
 
+    async completePasswordRecovery(password, accessToken, refreshToken, expiresIn = 3600) {
+      const result = await this.updatePasswordFromRecovery(password, accessToken);
+      if (!result.success) return result;
+
+      const session = {
+        access_token: accessToken,
+        refresh_token: refreshToken || null,
+        expires_at: Date.now() + (Number(expiresIn) * 1000) - 30000,
+        user: result.user
+      };
+
+      if (!(await this.applyAndVerify(session))) {
+        this.clear();
+        return { success: false, message: 'تم تغيير كلمة المرور، لكن الحساب غير مخول للوصول إلى لوحة الإدارة.' };
+      }
+
+      return { success: true };
+    }
+
     async signOut() {
       const token = this.session?.access_token;
       if (token) {
