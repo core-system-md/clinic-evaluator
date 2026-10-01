@@ -122,6 +122,31 @@
       return { success: true };
     }
 
+    async updatePasswordFromRecovery(password, accessToken) {
+      if (!password || !accessToken) {
+        return { success: false, message: 'جلسة استرجاع كلمة المرور غير صالحة أو منتهية.' };
+      }
+
+      const response = await fetch(SUPABASE_URL + '/auth/v1/user', {
+        method: 'PUT',
+        headers: {
+          apikey: ANON_KEY,
+          Authorization: 'Bearer ' + accessToken,
+          'Content-Type': 'application/json',
+          Accept: 'application/json'
+        },
+        cache: 'no-store',
+        body: JSON.stringify({ password })
+      });
+
+      const json = await response.json().catch(() => ({}));
+      if (!response.ok || !json?.id) {
+        return { success: false, message: this.authMessage(json) };
+      }
+
+      return { success: true, user: json };
+    }
+
     async completePasswordRecovery(password, accessToken, refreshToken, expiresIn = 3600) {
       const result = await this.updatePasswordFromRecovery(password, accessToken);
       if (!result.success) return result;
