@@ -90,6 +90,34 @@ Investigate and then design, subject to approval:
 - migration strategy for existing sessions/results;
 - draft/publish/retire lifecycle.
 
+### P2 approved architecture
+
+The owner has approved:
+
+- **Option B — explicit assessment-family/version model.**
+- **Stable public slug/URL across all versions.**
+- **Version changes are internal and need not be disclosed to assessment users.**
+
+Design record:
+
+`documentation/audit/P2-architecture-design-2026-10-01.md`
+
+### P2 implementation gate
+
+The architecture is approved, but implementation must still follow the contract:
+
+`APPROVED INTENT → CURRENT REALITY → RECONCILIATION → ENGINEERING DECISION → DESIGN → IMPLEMENTATION → VERIFICATION → DOCUMENTATION → CLOSURE`
+
+Before production schema changes, complete implementation-readiness verification, including:
+
+- full `assessment_types.slug` dependency inventory;
+- live assessment/family data reconciliation;
+- migration-history/provenance reconciliation sufficient for safe deployment;
+- dependency graph review for all assessment-version-owned tables;
+- exact existing-data migration plan;
+- runtime/admin transition plan;
+- test plan for old sessions, new sessions, draft editing, publishing, and stable public access.
+
 ## P3 — Scoring Engine
 
 Investigate and then consolidate, subject to approval:
@@ -152,7 +180,8 @@ These are architectural/product decisions and remain subject to investigation an
 ## Current checkpoint
 
 **Current phase:** P2 — Assessment versioning and historical-result integrity.  
-**Current objective:** complete the P2 reality audit, establish the current versioning/historical-integrity boundary, and stop at the architectural decision boundary before implementation.  
-**Current evidence:** P0 and P1 are closed in their respective handoff/reconciliation documents.  
+**Current objective:** move from approved architecture into implementation-readiness verification and exact migration design.  
+**Current evidence:** P0 and P1 are closed in their respective handoff/reconciliation documents; P2 reality audit is complete and the architecture decision is resolved.  
 **P2 reality-audit record:** `documentation/audit/P2-reality-audit-2026-10-01.md`.  
-**Current gate:** P2 architecture is **NOT APPROVED / NOT IMPLEMENTATION-READY** until the canonical assessment-version model and stable assessment identity requirements are explicitly resolved.
+**P2 architecture record:** `documentation/audit/P2-architecture-design-2026-10-01.md`.  
+**Current gate:** P2 architecture is **APPROVED**; implementation is **NOT YET STARTED** pending implementation-readiness and migration safety verification.
