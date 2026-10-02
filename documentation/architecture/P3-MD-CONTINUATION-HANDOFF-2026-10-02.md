@@ -823,3 +823,41 @@ No production DB rows, published assessment content, or historical scores were c
 
 The project is now at the **Controlled Production Cutover Gate**. Any next production change must be treated as a separate, explicitly reviewed migration/cutover operation.
 
+---
+
+## 20. Contract reconciliation correction — 2026-10-02
+
+An independent audit against `documentation/governance/AI-ENGINEERING-OPERATING-CONTRACT.md` found that the earlier NEXT-01..09 closure language was too strong.
+
+### Material open issue
+
+The implementation-authoritative registry contains one unresolved numeric semantic entry:
+
+- Medical Team / Q2c9f29 / option 2
+- `scoreMode = DIRECT_ANCHOR`
+- `anchorScore = 40`
+- `anchorScaleId = SOURCE_ANCHORS_0_40_100_PENDING_NUMERIC_FREEZE`
+- `direction = NON_MONOTONIC`
+- `sourceOptionValue = 0`
+
+The registry also still declares `numericFreezeStatus = pending P3-NEXT-02 aggregation freeze`.
+
+Therefore:
+
+- NEXT-01 is coverage-complete but numeric semantics remain open.
+- NEXT-02 aggregation module is verified, but the final numeric freeze is blocked by this unresolved item.
+- NEXT-03 consistency engine is verified in isolation; scorer integration remains open.
+- NEXT-04 criticality/coverage engine is verified in isolation; scorer integration remains open.
+- NEXT-05 Structured Result assembler is verified in isolation; scorer assembly/persistence remains open.
+- NEXT-06 isolated profile scorer is verified; it does not yet integrate consistency, criticality/coverage, or Structured Result.
+- NEXT-07 and NEXT-08 remain correctly verified at policy/shadow-replay level.
+- NEXT-09 is verified at design level only; no production migration or cutover exists.
+
+### Canonical status
+
+P3 is **not fully closed** and is **not production-ready**.
+
+The correct next technical action is to resolve the Q2c9f29 numeric semantics at the approved methodology boundary, then freeze aggregation, then integrate the isolated engines into one deterministic P3 Structured Result scorer before any production migration.
+
+No production data or runtime was changed by this reconciliation.
+
