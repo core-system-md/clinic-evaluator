@@ -19,11 +19,11 @@ Internally, KPI availability is tracked as available/partial/unavailable.
 For the user-facing final assessment report, missing roles are not discussed and a KPI that cannot be supported is not shown as a fabricated zero.
 
 ### Result shape
-The final result has a multi-dimensional profile plus one optional summary number.
+The final result keeps the existing multi-dimensional profile and the existing `overallScore` / `معدل الكفاءة العام` aggregate result.
 
-The summary number is secondary. It does not replace the detailed profile.
+`overallScore` is secondary to the detailed profile; no new “summary number” concept is being introduced.
 
-The exact equation for that summary number remains the only open scoring decision in this area.
+The open scoring work is only to define how the existing `overallScore` is constructed under P3.
 
 ### Response scales
 The previously agreed rule is confirmed:
@@ -65,13 +65,13 @@ The following are no longer open owner decisions:
 
 ## 3. Only remaining Gate B decisions
 
-### Decision A — summary number
-The system will show one optional summary number next to the detailed profile.
+### Decision A — existing overallScore
+The system already has `overallScore`, displayed to users as **معدل الكفاءة العام**.
 
-What still needs to be decided:
-Which measured parts of the profile are allowed to enter that number, and with what weights?
+What remains to be frozen for P3:
+Which measured dimensions/components participate in this existing aggregate and how the canonical weights are applied.
 
-The number must not erase dimensions that are unavailable or unsupported.
+Unavailable or unsupported dimensions must not be converted into invented values.
 
 ### Decision B — referral percentage
 The system keeps the referral percentage input.
