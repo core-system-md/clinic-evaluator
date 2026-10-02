@@ -77,7 +77,7 @@ test("KPI uses existing mapping weights and excludes missing roles", () => {
     { TRUST: 80, RECEPTION: 40 },
   );
   assert.equal(result.status, "partial");
-  assert.equal(result.value, 66.66666666666667);
+  assert.ok(Math.abs(result.value - (200 / 3)) < 1e-12);
   assert.equal(result.coverage, 0.6);
 });
 
