@@ -351,15 +351,15 @@ The structured result must prevent:
 
 **P3-NEXT-05: CLOSED for design.**
 
-The canonical result shape is now defined sufficiently to implement a typed internal contract and adapter.
+The structured result is the single handoff consumed by reports, admin views, diagnostics, roles/KPIs, economics, persistence, and future AI consumers.
 
-Still pending before final production scorer:
-- exact numeric aggregation decisions;
-- exact consistency score effects (if any);
-- critical gates;
-- KPI mapping freeze;
-- economic model freeze;
-- historical reconciliation policy;
-- deterministic fixture execution.
+The result includes the existing `overallScore` / **معدل الكفاءة العام** at the global score stage. It does not calculate it independently from the profile. Its construction is the owner-approved weighted arithmetic mean of valid measured dimensions using the approved canonical dimension weights, with unavailable dimensions excluded and no imputation.
+
+Before production activation, only integration/verification work remains:
+- consolidate the single canonical scorer path;
+- connect global `overallScore` construction after profile measurement;
+- add the approved economic projection;
+- persist provenance and structured result atomically;
+- execute deterministic, current-data, security/runtime, and migration/rollback verification.
 
 **Production impact:** documentation only.
