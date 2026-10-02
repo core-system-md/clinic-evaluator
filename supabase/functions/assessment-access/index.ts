@@ -812,7 +812,7 @@ Deno.serve(async (req) => {
       const avg = Number(data.avg);
       const years = Number(data.years);
       const visits = data.visits === undefined || data.visits === "" ? 3 : Number(data.visits);
-      const referralRaw = data.referral === undefined || data.referral === "" ? null : Number(data.referral);
+      const referralRaw = data.referral === undefined || data.referral === "" || data.referral === null ? null : Number(data.referral);
 
       if (!(avg > 0) || !(years > 0) || !(visits > 0)) {
         return json({ error: "Invalid economic inputs" }, 400);
