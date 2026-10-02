@@ -727,3 +727,37 @@ No historical rows, scores, published content, schema, or production scorer were
 
 **P3-NEXT-08 — deterministic shadow replay + legacy-vs-P3 diff for replayable sessions, followed by migration/rollback gate.**
 
+---
+
+## 18. Canonical correction — P3-NEXT-08 shadow replay closed
+
+Updated after PR #13 merge.
+
+### P3-NEXT-08 — Deterministic Shadow Replay
+
+**Status: CLOSED as audit evidence / non-production.**
+
+Implemented:
+
+- `tests/p3-shadow-replay-current-sessions.test.mjs`
+- `documentation/audit/P3-SHADOW-REPLAY-HARNESS-2026-10-02.md`
+- `documentation/audit/P3-NEXT-08-SHADOW-REPLAY-RESULTS-2026-10-02.md`
+
+Hosted verification run `36984901827` passed:
+- P3 kernel + all contract tests
+- shadow replay tests
+- full Node suite
+
+Replay evidence:
+- Admin Reception completed session: 11/11 answers; legacy 0%; P3 profile generated deterministically
+- Patient Journey completed session: 25/25 answers; legacy 44%; P3 profile generated deterministically
+- No direct legacy-vs-P3 overall delta is asserted because P3 V1 intentionally has no overall composite.
+
+### Production boundary
+
+No historical row, legacy score, schema, or production scorer was modified.
+
+### Correct next gate
+
+**P3-NEXT-09 — Production migration/rollback design + provenance persistence gate**, before any production scorer replacement.
+
