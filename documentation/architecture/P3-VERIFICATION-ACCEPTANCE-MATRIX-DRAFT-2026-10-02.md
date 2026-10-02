@@ -132,4 +132,22 @@ P3 cannot become **IMPLEMENTATION-READY** until:
 4. persistence/provenance and migration/rollback contracts are implementation-ready;
 5. no unresolved material methodology contradiction remains.
 
+
+## 10.1 Current execution status
+
+| Verification range | Evidence currently available | Status |
+|---|---|---|
+| V-01–V-10 | registry, aggregation, scorer, and coverage tests; prior hosted P3 run passed | verified in isolation |
+| V-11–V-14 | registry/scorer tests and frozen scale artifacts | verified in isolation |
+| V-15–V-17 | aggregation/scorer tests | verified in isolation |
+| V-18–V-19 | owner-approved design exists; global overallScore/economic projection is not yet wired into the P3 runtime path | execution pending |
+| V-20–V-22 | consistency, criticality, and Structured Result tests | verified in isolation |
+| V-23–V-27 | no complete P3 role/KPI projection test suite yet | execution pending |
+| V-28–V-34 | no complete P3 economic projection test suite yet | execution pending |
+| V-35–V-40 | persistence/provenance design exists; assessment_results is not yet deployed | execution pending |
+| V-41–V-45 | historical policy/classifier and shadow replay evidence; migration remains design-only | execution pending for production boundary |
+| V-46–V-50 | P2 controls exist, but P3 production-path verification has not run | execution pending |
+
+This section is evidence status, not a new methodology decision.
+
 No production implementation is authorized by this matrix.
