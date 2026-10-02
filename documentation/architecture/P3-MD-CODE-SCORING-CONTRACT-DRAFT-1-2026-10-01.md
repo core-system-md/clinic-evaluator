@@ -963,6 +963,8 @@ The following are now sufficiently defined to become engineering work without re
 
 ---
 
+> **Current reconciliation:** Sections 30–31 below are historical decision-pack snapshots. The owner-approved decisions dated 2026-10-02 supersede their pending/proposal wording. Current methodology status is governed by `P3-GATE-B-DECISION-CLOSURE-2026-10-02.md`; current stage status is governed by `P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`.
+
 # 30. Remaining methodology decisions before Implementation-Ready
 
 The following must be frozen before production semantic changes:
