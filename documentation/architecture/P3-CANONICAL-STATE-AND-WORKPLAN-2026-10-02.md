@@ -77,12 +77,12 @@ These are module/design closures, not P3 stage closure.
 1. Freeze the P3 construction of the existing `overallScore` / `معدل الكفاءة العام`: which measured dimensions participate and how their weights are applied. The concept itself is existing system behavior, not a new product decision.
 2. Freeze the exact economic calculation: the default visit input is 3 visits per year; referral percentage has no default and, when supplied by the user, must affect the resulting economic value. The exact meaning and mathematical effect of the referral percentage still need one explicit rule.
 3. Complete the component/profile aggregation detail around partial/eligible layers and the relationship between the profile and the existing `overallScore`.
-4. Reconcile current legacy data lineage:
-   - 15 completed sessions with scores but no session-linked answers;
-   - 12 answer rows without session_id;
-   - 123 score rows without session_id.
+4. Gate C historical reconciliation is complete as evidence-only disposition:
+   - 15 completed sessions with scores but no session-linked answers → preserve as legacy;
+   - 12 answer rows without session_id → preserve and exclude from authoritative P3 lineage;
+   - 123 score rows without session_id → preserve and exclude from authoritative P3 lineage.
    These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
-5. Produce the final integrated P3 design package: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded modules/paths.
+5. Complete the integrated P3 design package: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded modules/paths.
 6. Produce the pre-Implementation-Ready verification package: acceptance matrix, deterministic fixtures, current-data validation, migration/rollback design, provenance/persistence design, security/runtime checks, and documented closure evidence.
 
 ## 4. Production reality
@@ -148,6 +148,8 @@ Still active:
 **Exit:** no material product/methodology decision remains open.
 
 ### Gate C — Data and historical reconciliation
+**Status: COMPLETE — evidence/disposition only; no data mutation.**
+
 **Objective:** establish what historical data can and cannot support.
 
 Work:
@@ -157,9 +159,11 @@ Work:
 - produce a non-destructive disposition matrix;
 - apply no destructive action unless separately authorized.
 
-**Exit:** historical policy and current-data limitations are documented with evidence.
+**Exit:** historical policy and current-data limitations are documented with evidence. **Met.**
 
 ### Gate D — Integrated P3 design
+**Status: IN PROGRESS.**
+
 **Objective:** one coherent design rather than isolated modules.
 
 Work:
@@ -236,7 +240,8 @@ Gate A is complete.
 
 Gate B is now narrowed to two concrete decisions only:
 1. the exact P3 construction of the existing `overallScore`;
-2. the exact way the referral percentage changes the economic result.
+2. the exact way the referral percentage changes the economic result;
+3. complete Gate D integration and then Gate E verification.
 
 Everything else above is either already decided, documented, or can proceed as evidence/reconciliation work without inventing new rules.
 
