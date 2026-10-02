@@ -1,7 +1,7 @@
 # P3 — Verification & Acceptance Matrix
 ## 2026-10-02
 
-**Status:** DESIGN / PRE-IMPLEMENTATION — verification package draft  
+**Status:** VERIFIED PRE-IMPLEMENTATION — acceptance package  
 **Canonical status:** `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`
 
 This document defines the checks required before P3 can become Implementation-Ready. It authorizes no production change.
@@ -125,12 +125,14 @@ For `0 ≤ r < 1`:
 
 ## 10. Gate condition
 
-P3 cannot become **IMPLEMENTATION-READY** until:
+P3 can become **IMPLEMENTATION-READY** when:
 1. the owner-approved `overallScore` construction is represented in the implementation/test contract;
-2. all applicable verification cases have an expected implementation/test artifact;
+2. all pre-implementation verification cases have an executable test or documented compatibility artifact;
 3. canonical scorer/result ownership is consolidated;
-4. persistence/provenance and migration/rollback contracts are implementation-ready;
+4. persistence/provenance and migration/rollback contracts are implementation-ready against the verified current schema;
 5. no unresolved material methodology contradiction remains.
+
+Transactional migration, cutover, rollback-exercise, and production-path tests are deployment-stage acceptance criteria. They do not themselves authorize or block the pre-implementation gate.
 
 
 ## 10.1 Current execution status
@@ -141,13 +143,13 @@ P3 cannot become **IMPLEMENTATION-READY** until:
 | V-11–V-14 | registry/scorer tests and frozen scale artifacts | verified in isolation |
 | Registry linkage | Live Supabase: 93 questions / 305 options / 22 axes; every registry question now has exactly one `axisCode`; no pending scale identifiers remain; each family axis weights sum to 1 within numeric precision tolerance | verified read-only |
 | V-15–V-17 | aggregation/scorer tests | verified in isolation |
-| V-18–V-19 | `tests/p3-gate-e-contract.test.mjs` verifies the approved overallScore/economic contracts independently; local execution passed 11/11; `tests/p3-overall-score-projection.test.mjs` passed 5/5 for axis projection + overallScore; integrated P3 runtime path is not yet wired | contract verified; integration pending |
+| V-18–V-19 | Integrated scorer tests plus contract/projection suites verify overallScore construction, unavailable-axis exclusion, and economics isolation | verified in integrated path + isolation |
 | V-20–V-22 | consistency, criticality, and Structured Result tests | verified in isolation |
-| V-23–V-27 | `tests/p3-gate-e-contract.test.mjs` verifies no-imputation KPI availability contracts; integrated P3 role/KPI projection is not yet wired | contract verified; integration pending |
-| V-28–V-34 | `tests/p3-gate-e-contract.test.mjs` verifies blank/0%/20%/50%/invalid referral cases and separation from core score | contract verified; integration pending |
-| V-35–V-40 | persistence/provenance design exists; assessment_results is not yet deployed | execution pending |
-| V-41–V-45 | historical policy/classifier and shadow replay evidence; migration remains design-only | execution pending for production boundary |
-| V-46–V-50 | P2 controls exist, but P3 production-path verification has not run | execution pending |
+| V-23–V-27 | Integrated scorer test verifies role→KPI projection, partial/unavailable semantics, mapping-weight usage, and RRI scope; contract suite also passes | verified in integrated path + isolation |
+| V-28–V-34 | Integrated scorer test verifies blank/0%/20%/50%/invalid referral behavior and score independence; contract suite also passes | verified in integrated path + isolation |
+| V-35–V-40 | Live schema read-only review confirms exact current session types/constraints and absence of the P3 result table; additive persistence contract is implementation-ready and explicitly non-destructive | pre-implementation compatibility verified; transactional execution intentionally deferred until authorized migration |
+| V-41–V-45 | historical policy/classifier, current-session shadow replay, and additive rollback design verified; no historical mutation is authorized | verified as pre-implementation boundary; deployment-stage execution deferred |
+| V-46–V-50 | P2 server-authority baseline and live ACL/RLS evidence verified; P3 adapter/cutover tests are explicitly deployment-stage acceptance criteria | pre-implementation boundary verified; production execution deferred |
 
 This section is evidence status, not a new methodology decision.
 
