@@ -444,3 +444,58 @@ The canonical next step is now:
 
 Only after NEXT-02 through NEXT-05 are internally consistent should the production scorer be rebuilt.
 
+---
+
+## 12. Canonical correction — P3-NEXT-02 closed
+
+Updated after PR #7 merge.
+
+### P3-NEXT-02 — Component/Subcomponent Aggregation
+
+**Status: CLOSED at implementation-authoritative / non-production level.**
+
+Implemented:
+
+- `supabase/functions/assessment-access/p3-aggregation-engine.mts`
+- `tests/p3-aggregation-engine.test.mjs`
+- `documentation/architecture/P3-COMPONENT-AGGREGATION-V1-CLOSURE-2026-10-02.md`
+
+Frozen V1 behavior:
+
+- primary component is the aggregation boundary;
+- bucket = `componentCode + primaryConstruct + exact measurementLayer`;
+- mixed layers are not duplicated automatically;
+- one contribution per question per bucket;
+- numeric aggregation = eligible `DIRECT_ANCHOR` responses only;
+- explicit `anchorMax` is required; current registry max = 100;
+- equal item weighting;
+- no impact/trap/criticality/consistency multipliers;
+- semantic-only/evidence-only responses remain non-numeric but count as interpreted coverage;
+- missing/unsupported are not zero;
+- no component weights;
+- no axis/overall composite.
+
+### Hosted verification
+
+GitHub Actions run `36983279383` passed:
+
+- P3 isolated kernel: passed
+- P3 response interpretation registry: passed
+- Full Node suite: passed
+
+### Supabase current-data evidence
+
+Read-only verification confirmed:
+- 93 questions / 305 options across five families;
+- family counts: 11/33, 9/45, 12/44, 36/108, 25/75;
+- all 93 current question rows have `impact = medium`;
+- option values range from 0 to 100 with no null values.
+
+### Production boundary
+
+No production scorer, schema, published assessment content, or historical result was changed.
+
+### Correct next gate
+
+**P3-NEXT-03 — Consistency / Indirect-Verification Rule Registry + non-penalty detection layer.**
+
