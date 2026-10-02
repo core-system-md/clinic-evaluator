@@ -50,7 +50,7 @@ The structured result owns:
 - coverage;
 - consistency signals;
 - criticality signals;
-- existing `overallScore` when its P3 construction is frozen;
+- existing `overallScore` / `معدل الكفاءة العام`, constructed as the weighted arithmetic mean of valid measured dimensions using the approved canonical dimension weights;
 - role/KPI projections with availability semantics;
 - economics as a separate projection;
 - diagnostics/audit lineage.
@@ -73,4 +73,4 @@ Only material methodology points still block final closure:
 1. exact P3 construction of the existing `overallScore`;
 2. exact monetary effect of the already-defined referral percentage — CLOSED by owner approval: recursive downstream referral model above.
 
-With the referral rule now owner-approved, the only remaining material methodology blocker is the existing `overallScore` construction. Gate D can otherwise continue through canonical integration, persistence/provenance, and verification design without changing production.
+With both Gate B decisions now owner-approved, there is no remaining Gate B methodology blocker. Gate D can continue through canonical integration, persistence/provenance, and verification design without changing production.
