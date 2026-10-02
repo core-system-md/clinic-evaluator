@@ -181,10 +181,10 @@ P3 methodology and supporting modules have progressed substantially, but product
 ### P3 sequence to Implementation-Ready
 
 1. Documentation/contract reconciliation — **completed**
-2. Close genuinely unresolved methodology decisions — **active**
-3. Historical/current-data lineage reconciliation
-4. Integrate the P3 design into one coherent scoring/result pipeline
-5. Complete deterministic verification/acceptance package
+2. Close methodology decisions — **completed**
+3. Historical/current-data lineage reconciliation — **completed at evidence/disposition boundary**
+4. Integrate the P3 design into one coherent scoring/result pipeline — **completed at design boundary**
+5. Complete deterministic verification/acceptance package — **active**
 6. Issue **P3 — IMPLEMENTATION-READY**
 7. Stop and await explicit owner approval before implementation
 
@@ -227,9 +227,9 @@ P2 production implementation is now complete. The approved explicit assessment-f
 - `documentation/audit/P2-architecture-design-2026-10-01.md` — approved architecture and final implementation status;
 - `documentation/audit/P2-closure-2026-10-01.md` — closure evidence and acceptance record.
 
-**P3 status:** INVESTIGATION / DECISION BASELINE IN PROGRESS.
+**P3 status:** DESIGN / NOT IMPLEMENTATION-READY.
 
-P3 is not yet authorized for scoring-semantic changes. The current task is to establish the authoritative scoring contract, compare the documented methodology with the deployed engine and live data, identify inconsistencies, and present architectural decisions to the project owner.
+Gate A, Gate B, Gate C, and Gate D are complete at their defined boundaries. Gate E verification is active. No production scoring-semantic change, schema migration, historical rewrite, or cutover is authorized before the Implementation-Ready gate and explicit owner approval.
 
 **P3 primary records:**
 - `documentation/audit/P3-reality-audit-2026-10-01.md`
