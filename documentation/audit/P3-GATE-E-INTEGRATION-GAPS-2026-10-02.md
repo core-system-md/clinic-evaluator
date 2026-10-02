@@ -6,29 +6,28 @@
 
 ## A. Confirmed integration gaps
 
-### 1. Global overallScore is not yet integrated
+**Checkpoint update 2026-10-02:** runtime integration for scoring/projection has now been implemented and is under CI verification on the non-production branch. The remaining blockers are persistence/provenance and production-boundary verification.
+
+### 1. Global overallScore — CLOSED in non-production integration
 The approved global result uses existing assessment axes as dimensions and their existing weights.
-Current non-production scorer output stops at the profile and does not calculate the global `overallScore`.
+The integrated non-production path now calculates the approved global `overallScore` from measured axis scores and canonical axis weights.
 
-### 2. Structured Result does not yet carry overallScore
-The authoritative Structured Result contract requires the existing `overallScore` / `معدل الكفاءة العام` at the global-result level.
-The current `p3-structured-result-v1.mts` assembler has no such field.
-This is a code integration gap, not a new decision.
+### 2. Structured Result overallScore — CLOSED in non-production integration
+`p3-structured-result-v1.mts` now carries the approved `overallScore` and axis-score projection.
 
-### 3. Consistency and criticality are still separate modules
-Both modules are tested independently, but `p3-scorer-v1.mts` does not invoke them and does not include their findings in its returned Structured Result.
+### 3. Consistency and criticality integration — CLOSED in non-production integration
+The integrated path invokes both modules and includes their findings in Structured Result; both remain score-independent.
 
-### 4. Roles/KPIs are not projected from the P3 result yet
+### 4. Roles/KPIs projection — CLOSED in non-production integration
 Live configuration confirms:
 - `axis_roles` exists for all five published families;
 - all current KPI mappings sum to 1.00;
 - RRI is present only for Admin/Reception.
 
-P3 still needs the runtime projection:
-axis score → role score → KPI using the existing mapping weights, with missing roles represented as unavailable/partial and without legacy fallback/imputation.
+The integrated path now performs axis → role → KPI projection using the existing mapping weights, with unavailable/partial semantics and no imputation.
 
-### 5. Economics is not projected
-The current Structured Result keeps economics as `NOT_COMPUTED`.
+### 5. Economics projection — CLOSED in non-production integration
+The integrated non-production path now computes economics when valid input is supplied and keeps it separate from `overallScore`.
 P3 must apply the already-approved economic model only:
 - visits/year default = 3;
 - referral is optional, no default;
@@ -48,18 +47,16 @@ The live `sessions` table lacks:
 There is no `public.assessment_results` table.
 No migration has been applied.
 
-### 7. Input validation gap in isolated scorer
+### 7. Input validation gap — CLOSED
 `resolveP3Selections()` iterates known assessment questions and therefore silently ignores a supplied selection whose `questionCode` is not part of that assessment.
-The integrated P3 path must reject unknown question identities instead of silently discarding them.
+The integrated P3 path now rejects unknown question and option identities explicitly.
 
-## B. Existing duplicate experimental boundary
+## B. Experimental duplication — CLOSED on the integration branch
 
-Two non-production assemblies exist:
-- `p3-score-engine.mts` — older experimental structured/result kernel;
-- `p3-scorer-v1.mts` + `p3-structured-result-v1.mts` — current intended split between scorer and final assembler.
+The superseded `p3-score-engine.mts` and its dedicated test were removed from the non-production integration branch. The canonical runtime composition is now:
+`p3-scorer-v1.mts` → `p3-aggregation-engine.mts` → explicit global projections → `p3-consistency-engine.mts` / `p3-criticality-coverage-engine.mts` → `p3-structured-result-v1.mts`.
 
-The integrated design already identifies `p3-structured-result-v1.mts` as the Structured Result owner.
-The older `p3-score-engine.mts` should therefore remain explicitly superseded/non-production and should not become a second runtime path.
+The production `score-engine.ts` remains untouched.
 
 ## C. Gate E interpretation
 
@@ -67,7 +64,9 @@ These findings are implementation/integration blockers only.
 
 No owner methodology decision is reopened.
 
-Gate E remains open until the complete single path is executable and verified:
-`selected option identity → interpretation → measurement → component/profile → overallScore → consistency/criticality/coverage → Structured Result → roles/KPIs/economics → persistence`.
+Gate E remains open until the executable non-production path passes final CI evidence and persistence/provenance + production-boundary verification are completed.
+
+The current integrated path is executable through:
+`selected option identity → interpretation → measurement → component/profile → overallScore → consistency/criticality/coverage → Structured Result → roles/KPIs/economics`.
 
 No production runtime or schema has been changed by this audit.
