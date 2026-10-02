@@ -12,7 +12,7 @@
  * It never uses source option_value as a score.
  */
 
-import registry from "../../../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
+import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
 import { aggregateP3Profile, type P3ResolvedMeasurement } from "./p3-aggregation-engine.mts";
 
 type RegistryEntry = (typeof registry.entries)[number];
