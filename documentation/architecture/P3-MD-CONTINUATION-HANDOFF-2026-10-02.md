@@ -588,3 +588,48 @@ No production scorer, database schema, published content, or historical result w
 
 **P3-NEXT-05 — Structured Result internal contract + deterministic assembly.**
 
+---
+
+## 15. Canonical correction — P3-NEXT-05 closed
+
+Updated after PR #10 merge.
+
+### P3-NEXT-05 — Structured Result
+
+**Status: CLOSED at implementation-authoritative / non-production level.**
+
+Implemented:
+
+- `supabase/functions/assessment-access/p3-structured-result-v1.mts`
+- `tests/p3-structured-result-v1.test.mjs`
+- `documentation/architecture/P3-STRUCTURED-RESULT-V1-CLOSURE-2026-10-02.md`
+
+Frozen V1 behavior:
+
+- Structured Result assembles upstream outputs; it does not recalculate scores.
+- Assessment version + interpretation version + scoring engine version are pinned.
+- Raw response identity/source value is retained for audit.
+- Profile remains the primary measurement result.
+- Overall composite remains null.
+- Unavailable roles/KPIs remain unavailable rather than imputed.
+- Economics is `NOT_COMPUTED`.
+- Criticality and consistency remain structured findings.
+- Replay inputs are explicit.
+
+### Hosted verification
+
+Latest hosted gate on the NEXT-05 head completed successfully:
+
+- P3 kernel and all contract tests: passed
+- Full Node suite: passed
+
+The first run exposed a fixture mismatch in the coverage test; the fixture was corrected and a fresh hosted run passed.
+
+### Production boundary
+
+No production scorer, schema, published content, or historical result was changed.
+
+### Correct next gate
+
+**P3-NEXT-06 — isolated final scorer rebuild and deterministic verification.**
+
