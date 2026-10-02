@@ -87,3 +87,5 @@ test("P3 kernel does not apply historical trap penalties", async () => {
     count: 1,
   });
 });
+
+// GitHub Actions validation marker: execute P3 kernel on hosted runner.
