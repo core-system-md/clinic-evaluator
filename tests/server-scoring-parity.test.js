@@ -5,6 +5,8 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 const { pathToFileURL } = require('node:url');
 
+function plain(value) { return JSON.parse(JSON.stringify(value)); }
+
 async function loadBrowserEngine() {
   const source = fs.readFileSync(path.join(__dirname, './reference/browser-engine-v4.js'), 'utf8');
   const context = { console, Map, Set, Math, Object, Array, JSON };
@@ -76,11 +78,11 @@ test('server scorer stays behaviorally equivalent to browser engine', async () =
     const browserResult = browser.evaluate(testCase.answers, 'parity', { flow: 25, ltv: 1500 });
     const serverResult = calculateAssessment(toServerShape(config), testCase.answers, { flow: 25, ltv: 1500 });
 
-    assert.deepEqual(serverResult.axisScores, browserResult.axisScores, testCase.name + ' axis scores');
+    assert.deepStrictEqual(plain(serverResult.axisScores), plain(browserResult.axisScores), testCase.name + ' axis scores');
     assert.equal(serverResult.overallScore, browserResult.overallScore, testCase.name + ' overall score');
     assert.equal(serverResult.classification, browserResult.classification, testCase.name + ' classification');
-    assert.deepEqual(serverResult.kpis, browserResult.kpis, testCase.name + ' KPIs');
-    assert.deepEqual(serverResult.evSimulator, browserResult.evSimulator, testCase.name + ' EV');
-    assert.deepEqual(serverResult.traps, browserResult.traps, testCase.name + ' traps');
+    assert.deepStrictEqual(plain(serverResult.kpis), plain(browserResult.kpis), testCase.name + ' KPIs');
+    assert.deepStrictEqual(plain(serverResult.evSimulator), plain(browserResult.evSimulator), testCase.name + ' EV');
+    assert.deepStrictEqual(plain(serverResult.traps), plain(browserResult.traps), testCase.name + ' traps');
   }
 });
