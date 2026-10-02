@@ -1,3 +1,7 @@
+> **P3 DOCUMENT STATUS:** Historical methodology analysis. This document is **superseded for decision-making** by the owner-approved Gate B closure dated 2026-10-02. Decisions O1/O2 in this draft are not open decisions and must not be reopened. For current P3 state, use `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md` and `documentation/architecture/P3-GATE-B-DECISION-CLOSURE-2026-10-02.md`.
+>
+> The analysis below is retained for traceability only.
+
 # P3 — Overall Construct Definitions
 ## Draft 1 — 2026-10-01
 ## الحالة: تصميم/مادة قرار — غير معتمد
