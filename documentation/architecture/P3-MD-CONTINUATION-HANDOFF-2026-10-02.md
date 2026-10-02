@@ -544,3 +544,47 @@ No production scorer, database schema, published assessment content, or historic
 
 **P3-NEXT-04 — Criticality + Coverage semantics and deterministic signal layer.**
 
+---
+
+## 14. Canonical correction — P3-NEXT-04 closed
+
+Updated after PR #9 merge.
+
+### P3-NEXT-04 — Criticality + Coverage
+
+**Status: CLOSED at implementation-authoritative / non-production level.**
+
+Implemented:
+
+- `supabase/functions/assessment-access/p3-criticality-coverage-engine.mts`
+- `tests/p3-criticality-coverage-engine.test.mjs`
+- `documentation/architecture/P3-CRITICALITY-COVERAGE-V1-CLOSURE-2026-10-02.md`
+
+Frozen V1 behavior:
+
+- coverage is structural and does not invent 50%/80% thresholds;
+- semantic-only/evidence-only responses count as interpreted coverage but not numeric scores;
+- missing/unsupported are not zero;
+- `ADEQUATE` remains reserved for future empirical calibration;
+- criticality is independent from scoring;
+- incomplete critical-domain coverage becomes `UNVERIFIED`;
+- critical findings remain visible and require review;
+- no criticality multiplier or automatic penalty.
+
+### Hosted verification
+
+GitHub Actions run `36983634484` passed:
+
+- P3 isolated kernel: passed
+- response interpretation registry: passed
+- criticality/coverage tests: passed
+- full Node suite: passed
+
+### Production boundary
+
+No production scorer, database schema, published content, or historical result was changed.
+
+### Correct next gate
+
+**P3-NEXT-05 — Structured Result internal contract + deterministic assembly.**
+
