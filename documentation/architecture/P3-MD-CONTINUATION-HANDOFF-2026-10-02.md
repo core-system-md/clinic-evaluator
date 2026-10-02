@@ -499,3 +499,48 @@ No production scorer, schema, published assessment content, or historical result
 
 **P3-NEXT-03 — Consistency / Indirect-Verification Rule Registry + non-penalty detection layer.**
 
+---
+
+## 13. Canonical correction — P3-NEXT-03 closed
+
+Updated after PR #8 merge.
+
+### P3-NEXT-03 — Consistency / Indirect-Verification
+
+**Status: CLOSED at implementation-authoritative / non-production level.**
+
+Implemented:
+
+- `documentation/architecture/P3-CONSISTENCY-RULE-REGISTRY-V1.json`
+- `supabase/functions/assessment-access/p3-consistency-engine.mts`
+- `tests/p3-consistency-engine.test.mjs`
+- `documentation/architecture/P3-CONSISTENCY-RULE-REGISTRY-V1-CLOSURE-2026-10-02.md`
+
+Frozen V1 behavior:
+
+- relationships must be explicitly supplied;
+- no topic-similarity inference;
+- validator and target must belong to the same assessment/version;
+- missing inputs do not satisfy contradiction predicates;
+- CR-001 through CR-008 are versioned;
+- every V1 rule has `scoreEffect = NONE`;
+- critical/contextual signals remain separate from numeric scoring;
+- historical trap metadata is not a scoring authority;
+- cross-assessment comparisons are rejected.
+
+### Hosted verification
+
+GitHub Actions run `36983474446` passed:
+
+- P3 isolated kernel: passed
+- response interpretation registry: passed
+- full Node suite: passed
+
+### Production boundary
+
+No production scorer, database schema, published assessment content, or historical result was changed.
+
+### Correct next gate
+
+**P3-NEXT-04 — Criticality + Coverage semantics and deterministic signal layer.**
+
