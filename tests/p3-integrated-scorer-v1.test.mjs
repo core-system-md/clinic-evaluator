@@ -102,9 +102,10 @@ test("integrated consistency is signal-only", () => {
     interpretation:"test relationship",reviewRequired:true,scoreEffect:"NONE"
   }];
   const r=run("medical-team-assessment",{consistencyRules:rules,consistencyPairs:[{
-    relationshipType:"TEST",validatorQuestionCode:"Q2c9f29",targetQuestionCode:"Q2c9f29"
+    relationshipType:"TEST",validatorQuestionCode:"Q2c9f29",targetQuestionCode:"Q8e7ea4"
   }]});
-  assert.equal(r.consistency.findings.length,0);
+  assert.equal(r.consistency.findings.length,1);
+  assert.equal(r.consistency.findings[0].scoreEffect,"NONE");
   assert.equal(r.scores.overallScore,r.scores.overallScore);
 });
 
