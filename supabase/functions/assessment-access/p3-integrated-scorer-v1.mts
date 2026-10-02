@@ -323,6 +323,8 @@ export function scoreP3IntegratedV1(input: {
         semanticStateKey: item.semanticStateKey!,
       })),
     profile: scored.profile,
+    overallScore,
+    axisScores: axisResults,
     coverage,
     consistencyFindings,
     criticality,
@@ -333,10 +335,6 @@ export function scoreP3IntegratedV1(input: {
 
   return {
     ...structured,
-    scores: {
-      overallScore,
-      axes: axisResults,
-    },
     economics: {
       status: economics.status === "available" ? "COMPUTED" : "NOT_COMPUTED",
       modelCode: economics.modelCode,
