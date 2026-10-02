@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 async function loadKernel() {
-  return import(new URL("../supabase/functions/assessment-access/p3-score-engine.ts", import.meta.url));
+  return import(new URL("../supabase/functions/assessment-access/p3-score-engine.mts", import.meta.url));
 }
 
 test("P3 kernel keeps semantic-only and contextual states out of numeric aggregation", async () => {

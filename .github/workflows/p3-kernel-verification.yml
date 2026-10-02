@@ -6,7 +6,7 @@ on:
       - main
     paths:
       - ".github/workflows/p3-kernel-verification.yml"
-      - "supabase/functions/assessment-access/p3-score-engine.ts"
+      - "supabase/functions/assessment-access/p3-score-engine.mts"
       - "tests/p3-structured-result.test.mjs"
       - "package.json"
       - "package-lock.json"
@@ -16,7 +16,7 @@ on:
       - main
     paths:
       - ".github/workflows/p3-kernel-verification.yml"
-      - "supabase/functions/assessment-access/p3-score-engine.ts"
+      - "supabase/functions/assessment-access/p3-score-engine.mts"
       - "tests/p3-structured-result.test.mjs"
       - "package.json"
       - "package-lock.json"
@@ -48,7 +48,7 @@ jobs:
         run: node --version && npm --version
 
       - name: Run P3 kernel tests
-        run: node --experimental-default-type=module --experimental-strip-types --test tests/p3-structured-result.test.mjs
+        run: node --experimental-strip-types --test tests/p3-structured-result.test.mjs
 
   full-tests:
     name: Full Node test suite (baseline audit)
