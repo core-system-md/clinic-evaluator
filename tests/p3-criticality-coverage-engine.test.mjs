@@ -19,8 +19,8 @@ test("missing coverage is PARTIAL and never converted to zero",()=>{
 });
 
 test("semantic interpretation counts as coverage without becoming a numeric score",()=>{
- const c=buildP3Coverage([{questionCode:"Q7",answered:true,interpreted:true}]);
- assert.equal(c.coverageStatus,"FULL");assert.equal(c.scoredItems,1);
+ const c=buildP3Coverage([{questionCode:"Q7",answered:true,interpreted:true,scoreClass:"SEMANTIC_ONLY"}]);
+ assert.equal(c.coverageStatus,"FULL");assert.equal(c.scoredItems,0);assert.equal(c.semanticOnlyItems,1);
 });
 
 test("critical attention under incomplete coverage becomes UNVERIFIED",()=>{
