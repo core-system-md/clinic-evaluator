@@ -36,7 +36,7 @@ test("Q2c9f29 option 2 uses interpretation anchor 40, not source option_value 0"
 });
 
 test("missing questions create coverage gaps, not numeric zeros",()=>{
- const entry=registry.entries.find(e=>e.assessmentSlug==="patient-journey"&&e.questionCode==="Q25"&&e.optionIndex===2);
+ const entry=registry.entries.find(e=>e.assessmentSlug==="patient-journey"&&e.questionCode==="Q4"&&e.optionIndex===2);
  const r=scoreP3AssessmentV1({assessmentSlug:"patient-journey",selections:[{questionCode:"Q25",optionId:entry.optionId,optionIndex:2}]});
  const bucket=r.profile.components.find(c=>c.componentCode==="C15")?.layers.find(l=>l.measurementLayer==="E");
  assert.ok((bucket?.missing ?? 0) >= 1);
