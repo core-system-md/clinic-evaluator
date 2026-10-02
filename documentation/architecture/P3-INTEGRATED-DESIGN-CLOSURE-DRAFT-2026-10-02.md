@@ -22,6 +22,9 @@ The structured result is the single handoff. Roles/KPIs and economics consume th
 - The existing `overallScore` / **معدل الكفاءة العام** remains a secondary aggregate result; its P3 construction is still to be frozen.
 - Economics is separate from assessment score.
 - Referral input is optional, has no default, and affects economics only when supplied. Default visits are 3/year.
+- The approved referral model treats each referred patient as having the same visit frequency, visit value, relationship duration, and referral rate as the originating patient. Therefore referral value propagates through downstream referral generations as a geometric series.
+- For referral rate `r = referral_percentage / 100`, with `0 ≤ r < 1`: `BasePatientValue = average_visit_value × 3 × relationship_years`; `EconomicValue = BasePatientValue / (1 - r)`. The referral percentage is an economic-network coefficient, not a percentage increase applied once to the original patient's value.
+- Blank referral input means unavailable; explicit `0%` means no referral contribution. Referral remains isolated from `overallScore`.
 
 ## 3. Canonical implementation boundary
 
@@ -68,6 +71,6 @@ The historical reconciliation policy remains authoritative:
 Only material methodology points still block final closure:
 
 1. exact P3 construction of the existing `overallScore`;
-2. exact monetary effect of the already-defined referral percentage.
+2. exact monetary effect of the already-defined referral percentage — CLOSED by owner approval: recursive downstream referral model above.
 
-Everything else in the integrated pipeline is sufficiently defined to continue into verification design without changing production.
+With the referral rule now owner-approved, the only remaining material methodology blocker is the existing `overallScore` construction. Gate D can otherwise continue through canonical integration, persistence/provenance, and verification design without changing production.
