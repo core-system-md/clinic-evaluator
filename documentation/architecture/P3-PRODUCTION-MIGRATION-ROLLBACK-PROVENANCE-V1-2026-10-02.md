@@ -121,18 +121,37 @@ If P3 production verification fails:
 
 Schema rollback should not drop data merely to disable the runtime path. Additive schema remains until a separately approved cleanup.
 
-## 7. Required gates before production
+## 7. Pre-Implementation Readiness Verification
+
+The current live schema was reviewed read-only before this gate.
+
+Verified current boundary:
+- `public.sessions.assessment_version` is nullable `integer`.
+- `public.sessions.scoring_engine_version` is nullable `text`.
+- the planned `interpretation_version`, `scoring_contract_version`, and `assessment_config_digest` columns do not yet exist;
+- `public.assessment_results` does not yet exist;
+- current public assessment tables have RLS enabled;
+- `anon` and `public` currently have no table-level SELECT/INSERT privilege on `sessions`, `answers`, or `scores`;
+- legacy public/anon RLS policies remain on some current tables but are not effective without the corresponding table privileges;
+- `authenticated` retains SELECT on `answers` and `scores` for existing authorized administration and has no INSERT privilege;
+- the future P3 result table must be created with RLS enabled and with no `anon`, `authenticated`, or `public` table-level access unless a separately approved product access policy requires it.
+
+P3 must explicitly control table grants during migration and must not depend on a future platform default for Data API exposure.
+
+## 8. Required gates before production
 
 - all P3 contract tests green;
 - shadow replay evidence green;
 - current-data source limitations documented;
-- migration SQL reviewed against actual schema;
-- RLS/access policy verified;
-- structured-result persistence tested transactionally;
-- session provenance persistence tested;
+- generated migration SQL reviewed against the verified live schema;
+- RLS/access grants explicitly verified for the new result table;
+- structured-result persistence tested transactionally after the authorized migration;
+- session provenance persistence tested after the authorized migration;
 - rollback routing tested;
 - production adapter tested against all five assessment families;
 - owner decision on historical presentation/compatibility behavior recorded.
+
+The transactional and production-routing items above are deployment-stage acceptance criteria. They do not represent unresolved pre-Implementation-Ready design decisions.
 
 ## 8. Explicit non-goals
 
