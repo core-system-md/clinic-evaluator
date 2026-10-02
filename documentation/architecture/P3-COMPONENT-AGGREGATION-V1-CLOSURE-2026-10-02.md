@@ -18,7 +18,7 @@
 8. Coverage counts answered, interpretable responses. Semantic-only/evidence-only responses count as interpreted coverage but do not become numeric zero.
 9. Missing, unsupported, or non-numeric response states are not converted to zero.
 10. No component weights are introduced.
-11. No axis/overall composite is produced by NEXT-02; `overallComposite = null`. The owner-approved P3 result may still contain a separate optional summary score at a later global stage; that summary is not part of the component aggregator.
+11. No global `overallScore` is produced inside the component aggregator. `overallComposite = null` is an internal boundary only. The existing `overallScore` / **معدل الكفاءة العام** is constructed at the global result stage from the valid measured dimensions using the owner-approved canonical dimension weights; it is not a component-aggregator output.
 12. Performance, maturity, evidence, digital capability, consistency, criticality, and development signals remain distinct channels.
 
 ### Numeric scale boundary
