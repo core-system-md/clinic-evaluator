@@ -16,7 +16,7 @@ P3 Implementation is complete and the Gate 3 acceptance conditions are satisfied
 ### Final verified state
 
 1. Additive schema and Structured Result persistence are deployed.
-2. Production `assessment-access` is running P3 at Edge Function version 13.
+2. Production `assessment-access` is running P3 at Edge Function version 14.
 3. All five published assessment families completed successfully through the live public flow.
 4. Idempotent completion returned the same persisted result identity.
 5. Economic simulator semantics were verified live, including invalid referral handling.
