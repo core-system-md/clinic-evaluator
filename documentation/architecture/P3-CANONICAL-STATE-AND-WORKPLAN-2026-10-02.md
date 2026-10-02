@@ -72,18 +72,22 @@ The branch `documentation/audit-and-decisions` is a historical baseline for the 
 
 These are module/design closures, not P3 stage closure.
 
+### CLOSED / GATE B AND GATE C RECONCILIATION
+
+- The existing `overallScore` / `معدل الكفاءة العام` construction is CLOSED: weighted arithmetic mean of valid measured dimensions using the approved canonical dimension weights; unavailable dimensions are excluded, never zero-filled or imputed; consistency/criticality do not alter the score.
+- Referral economic calculation is CLOSED: default visits are 3/year; referral has no default; supplied referral propagates recursively under the owner-approved geometric model; blank remains unavailable.
+- Gate C historical reconciliation is CLOSED as evidence/disposition only:
+  - 15 completed sessions with scores but no session-linked answers → preserve as legacy;
+  - 12 answer rows without session_id → preserve and exclude from authoritative P3 lineage;
+  - 123 score rows without session_id → preserve and exclude from authoritative P3 lineage.
+  These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
+
 ### OPEN / REQUIRES COMPLETION
 
-1. Freeze the P3 construction of the existing `overallScore` / `معدل الكفاءة العام`: which measured dimensions participate and how their weights are applied. The concept itself is existing system behavior, not a new product decision.
-2. Referral economic calculation — CLOSED: default visits are 3/year; referral has no default; supplied referral propagates recursively under the owner-approved geometric model; blank remains unavailable.
-3. Complete the component/profile aggregation detail around partial/eligible layers and the relationship between the profile and the existing `overallScore`.
-4. Gate C historical reconciliation is complete as evidence-only disposition:
-   - 15 completed sessions with scores but no session-linked answers → preserve as legacy;
-   - 12 answer rows without session_id → preserve and exclude from authoritative P3 lineage;
-   - 123 score rows without session_id → preserve and exclude from authoritative P3 lineage.
-   These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
-5. Complete the integrated P3 design package: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded modules/paths.
-6. Produce the pre-Implementation-Ready verification package: acceptance matrix, deterministic fixtures, current-data validation, migration/rollback design, provenance/persistence design, security/runtime checks, and documented closure evidence.
+1. Complete Gate D integration: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded experimental modules/paths.
+2. Complete the persistence/provenance implementation design and its migration/rollback acceptance boundary.
+3. Complete Gate E verification: deterministic fixtures, current-data validation evidence, integrated contract tests, security/runtime checks, and acceptance evidence.
+4. Perform the final Gate F Implementation-Ready review.
 
 ## 4. Production reality
 
@@ -132,19 +136,16 @@ Actions:
 ### Gate B — Finish methodology decisions
 **Objective:** all material measurement behavior is decided before implementation.
 
-Completed within Gate B:
+**Status: COMPLETE.**
+
+Completed and frozen:
 - KPI catalog/mapping basis and no-imputation rule.
 - Response-scale selection rule and Q2c9f29 artifact correction.
 - V1 consistency behavior.
 - V1 criticality behavior.
-- Existing `overallScore` / `معدل الكفاءة العام` remains a secondary aggregate result; P3 must reconcile its construction with the new profile.
-- Economic input defaults and referral-input behavior at the business level.
-- Referral economic equation is now owner-approved: referral percentage is recursive across downstream patient generations; each referred patient uses the same visits/year (3), visit value, relationship years, and referral percentage. For `r = referral_percentage/100`, `0 ≤ r < 1`: `BasePatientValue = average_visit_value × 3 × relationship_years`; `EconomicValue = BasePatientValue / (1-r)`. Blank referral is unavailable; explicit 0% contributes no referral value. This affects economics only, never `overallScore`.
-
-Still active:
-- exact P3 construction of the existing `overallScore`;
-- exact referral-percentage economic equation — CLOSED by owner approval;
-- final component/profile aggregation detail needed to connect the profile to the existing `overallScore`.
+- Existing `overallScore` / `معدل الكفاءة العام` and its weighted-arithmetic-mean construction.
+- Economic input defaults and referral-input behavior.
+- Recursive referral economic equation.
 
 **Exit:** no material product/methodology decision remains open.
 
@@ -238,9 +239,9 @@ Never restart P3 discovery merely because an older draft uses a different filena
 ## 9. Immediate next action
 
 Gate A is complete.
+Gate B is complete.
+Gate C is complete.
 
-Gate B now has one remaining methodology decision: the exact P3 construction of the existing `overallScore` / `معدل الكفاءة العام`. The referral economic equation is closed by owner approval. Continue Gate D integration and then Gate E verification.
+Continue Gate D integration, then Gate E verification, then Gate F final Implementation-Ready review.
 
-Everything else above is either already decided, documented, or can proceed as evidence/reconciliation work without inventing new rules.
-
-After these two points are closed, the work continues through the remaining aggregation/data/integration/verification gates.
+No owner-level methodology decision is currently open.
