@@ -15,7 +15,8 @@ on:
       - main
     paths:
       - ".github/workflows/p3-kernel-verification.yml"
-      - "supabase/functions/assessment-access/p3-score-engine.mts"
+      - "supabase/functions/assessment-access/**"
+      - "supabase/migrations/**"
       - "package.json"
       - "package-lock.json"
       - "tests/**"
