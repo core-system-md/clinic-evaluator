@@ -162,6 +162,34 @@ Investigate and then design, subject to approval:
 - reporting/operations;
 - module boundaries and maintainability.
 
+## P3 — Canonical continuation (2026-10-02)
+
+The canonical P3 state is now maintained in:
+
+`documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`
+
+**Canonical branch:** `main`
+
+The branch `documentation/audit-and-decisions` is a historical baseline and is not an active P3 source of truth. It remains preserved for traceability.
+
+### P3 status
+
+**DESIGN / NOT IMPLEMENTATION-READY**
+
+P3 methodology and supporting modules have progressed substantially, but production implementation is not authorized until the remaining methodology, data-lineage, integration, and verification gates are closed and the Implementation-Ready record is issued.
+
+### P3 sequence to Implementation-Ready
+
+1. Documentation/contract reconciliation — **completed**
+2. Close genuinely unresolved methodology decisions — **active**
+3. Historical/current-data lineage reconciliation
+4. Integrate the P3 design into one coherent scoring/result pipeline
+5. Complete deterministic verification/acceptance package
+6. Issue **P3 — IMPLEMENTATION-READY**
+7. Stop and await explicit owner approval before implementation
+
+This roadmap does not authorize implementation by itself.
+
 ## Explicit non-goals at this stage
 
 Until the corresponding architecture is approved, do not assume that the project will:
