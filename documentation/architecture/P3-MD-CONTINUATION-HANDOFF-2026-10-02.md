@@ -22,8 +22,8 @@ As verified on 2026-10-02:
 - The experimental scorer checkpoint is archived as superseded in:
   `documentation/architecture/P3-SCORER-REBUILD-CHECKPOINT-2026-10-02.md`
 - Current `main` head at this handoff is:
-  `25a7f21a8eeec976bf490df8b06a0137e28d2406`
-  (`docs(p3): mark scorer spike superseded and restore implementation gate`)
+  `eb9da06e524e3f170c259f1cd1f39f8fe8eabab0`
+  (`test: normalize vm realm values before parity assertions`)
 
 ### Important branch hygiene
 
@@ -347,8 +347,48 @@ Production `score-engine.ts` remains unchanged.
 
 At the moment of this handoff:
 
-**P3 status:** Measurement Model + Structured Result design complete; isolated non-production kernel implemented  
-**Implementation status:** P3 kernel draft implemented in isolation; production scorer unchanged  
+**P3 status:** Measurement Model + Structured Result design complete; isolated non-production kernel verified on GitHub Actions
+**Implementation status:** P3 kernel draft implemented and tested in isolation; production `score-engine.ts` unchanged  
 **Production status:** unchanged from pre-P3 scorer baseline  
 **Immediate task:** **P3-NEXT-06 — Validate isolated P3 kernel, then finalize numeric aggregation decisions before scorer replacement**  
 **Do not replace the production scorer until deterministic, synthetic, and current-data validation gates pass.**
+
+## 10. Hosted validation evidence — 2026-10-02
+
+The validation was executed on a real GitHub-hosted Ubuntu runner, not the local container.
+
+Latest verified commit:
+`eb9da06e524e3f170c259f1cd1f39f8fe8eabab0`
+
+Runner environment:
+- Ubuntu hosted runner
+- Node `v22.23.3`
+- npm `10.9.9`
+- `npm ci` completed successfully
+
+P3 isolated kernel:
+- 4 tests executed
+- 4 passed
+- 0 failed
+- Verified semantic-only/contextual exclusion from numeric aggregation
+- Verified historical trap penalties are not applied by the P3 kernel
+- Verified unanswered applicable questions are counted as missing
+- Verified numeric aggregation uses explicit per-anchor maximums
+
+Full Node test suite:
+- 2 tests executed
+- 2 passed
+- 0 failed
+- `server-scoring-parity.test.js` passed after normalizing cross-VM-realm values in assertions
+- Browser view test passed
+
+Deployment check:
+- Cloudflare Pages check succeeded for the validation commits.
+- Supabase Preview was skipped/handled by the integration and was not used as evidence for the P3 unit test result.
+
+Production safety:
+- `supabase/functions/assessment-access/score-engine.ts` remains unchanged as the production scorer.
+- P3 kernel remains isolated and non-production.
+- No production scoring values, published question text, or visible answer text were changed by the validation work.
+
+Temporary validation PRs #4 and #5 were closed without merge after obtaining execution evidence.
