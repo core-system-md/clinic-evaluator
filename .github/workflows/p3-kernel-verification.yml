@@ -51,6 +51,9 @@ jobs:
       - name: Run P3 kernel tests
         run: node --experimental-strip-types --test tests/p3-structured-result.test.mjs
 
+      - name: Verify P3 response interpretation registry
+        run: node --test tests/p3-response-interpretation-registry.test.mjs
+
   full-tests:
     name: Full Node test suite (baseline audit)
     runs-on: ubuntu-latest
