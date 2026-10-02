@@ -347,6 +347,20 @@ The structured result must prevent:
 - digital capability becoming clinical outcome;
 - report recalculation.
 
+## 21.5 Existing overallScore in Structured Result
+
+The Structured Result must carry the existing `overallScore` / **معدل الكفاءة العام** explicitly at the global-result level.
+
+For the current five assessment families, its dimension boundary is the existing assessment axis. The stored axis weights are the approved dimension weights; their representation is normalized to canonical 0–1 without changing proportions.
+
+`overallScore = Σ(valid_dimension_score × canonical_dimension_weight) / Σ(valid_dimension_weight)`
+
+Only valid measured dimensions participate. Unavailable dimensions are excluded from both numerator and denominator. No missing dimension is filled with zero, and component aggregation does not introduce a second weight system.
+
+Consistency and criticality remain separate signals and do not alter `overallScore`.
+
+This section clarifies the already-approved result construction and introduces no new product decision.
+
 ## 22. Gate result
 
 **P3-NEXT-05: CLOSED for design.**
