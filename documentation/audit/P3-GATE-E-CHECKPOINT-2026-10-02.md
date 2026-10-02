@@ -1,7 +1,7 @@
 # P3 — Gate E Verification Checkpoint
 ## 2026-10-02
 
-**Status:** IN PROGRESS — pre-Implementation-Ready  
+**Status:** COMPLETE — pre-Implementation-Ready verification closed  
 **Canonical status:** `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`
 
 ## Verified
@@ -43,7 +43,7 @@ The live `axis_roles` mappings are also present for all five families. Missing r
 The live `ev_mappings` field is legacy configuration from the previous EV implementation. P3 economics does **not** consume it: the approved P3 economic projection is driven by the existing economic inputs (visit value, relationship years, optional referral percentage) and the approved recursive referral model.
 
 ### Exact integration blocker found
-The current non-production `p3-structured-result-v1.mts` assembler does not yet expose `overallScore` in its returned object, although the authoritative Structured Result contract requires the existing `overallScore` / `معدل الكفاءة العام` at the global-result level. This is an implementation integration gap, not a methodology decision.
+The non-production Structured Result assembler now carries the approved `overallScore` and the integrated scorer passes it explicitly into the result. This integration gap is closed on the verification branch.
 
 ### Current production schema boundary
 Read-only schema verification confirmed that `public.sessions` currently contains `assessment_version` and `scoring_engine_version`, but not the P3 interpretation/contract/config-digest fields. No `public.assessment_results` table was created.
@@ -53,21 +53,22 @@ The current completion functions are:
 - `complete_public_assessment_session(uuid, jsonb, numeric, text)`
 - `calculate_session_score(uuid)`
 
-They are not `SECURITY DEFINER` and their current ACL is limited to `postgres` and `service_role`. This confirms the existing server-authority baseline without changing it.
+They are not `SECURITY DEFINER`. Read-only ACL verification confirms `anon/public` have no table-level SELECT/INSERT privilege on `sessions`, `answers`, or `scores`; `authenticated` retains SELECT access to existing answer/score surfaces for authorized administration. Legacy public/anon RLS policies remain on some tables but are ineffective without table privileges. No production access policy was changed by this checkpoint.
 
-## Pending
+## Remaining deployment-stage work
 
-1. Integrated P3 runtime scorer/result path is not yet in production.
-2. Roles/KPIs/economics are not yet integrated into that single runtime path.
-3. Additive provenance/result persistence migration has not been applied.
-4. Transactional persistence tests cannot be completed before the authorized migration exists.
-5. Production cutover, rollback, and post-cutover verification have not occurred.
-6. CI execution of the two newly added Gate E tests is configured but its run status is not currently exposed by the available GitHub connector.
+1. Production migration has not been applied.
+2. Transactional persistence tests await the authorized additive migration.
+3. Production cutover and rollback execution have not occurred.
+4. Historical data has not been rewritten.
+
+These are deployment-stage acceptance actions, not unresolved P3 methodology/design decisions.
 
 ## Gate E conclusion
 
-Gate E is **partially verified** but **not closed**.
+Gate E is **CLOSED for pre-implementation verification**.
 
-No Implementation-Ready status is issued yet.
+The project is eligible for the final Gate F Implementation-Ready record.
+No production scorer, schema migration, historical result, or published assessment content was changed by this checkpoint.
 
 No production scorer, schema migration, historical result, or published assessment content was changed by this checkpoint.
