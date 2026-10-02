@@ -6,6 +6,8 @@
 
 The machine-readable registry is now the implementation-facing authority for P3-NEXT-01, verified against current Supabase option identities for all five assessment families.
 
+> **Current reconciliation:** Numeric scale selection is now closed by the owner-approved question-meaning rule. Q2c9f29 option 2 is frozen at design anchor 40 with `ANCHOR_0_40_100_V1`. The deferred wording below is historical and does not reopen the decision.
+
 ### Closure evidence
 - 5 families / 93 questions / 305 options
 - live option UUID captured for every entry
@@ -15,7 +17,7 @@ The machine-readable registry is now the implementation-facing authority for P3-
 - contextual/semantic-only states have no numeric anchor
 - Q2c9f29 option 2: design anchor 40, source value 0 preserved
 - Patient Journey Q7: semantic-only
-- numeric scale freeze explicitly deferred to P3-NEXT-02
+- numeric scale freeze is closed; the machine-readable registry uses the owner-approved scale rule
 
 ### Production boundary
 No production table, published assessment content, historical result, or production scorer was changed.
