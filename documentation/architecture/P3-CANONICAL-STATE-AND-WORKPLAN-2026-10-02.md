@@ -1,7 +1,7 @@
 # P3 — Canonical State, Reconciliation & Work Plan
 ## 2026-10-02
 
-**Status:** GOVERNING P3 WORKING STATE — IMPLEMENTATION EXECUTED / GATE 3 OPEN  
+**Status:** GOVERNING P3 WORKING STATE — GATE 3 CLOSED  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Canonical branch:** `main`  
 **Canonical source:** the current `main` branch (this document moves with it).
@@ -94,7 +94,18 @@ These are module/design closures, not P3 stage closure.
   - 123 score rows without session_id → preserve and exclude from authoritative P3 lineage.
   These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
 
-### IMPLEMENTATION-READY — READY TO EXECUTE AFTER OWNER APPROVAL
+### IMPLEMENTATION / GATE 3 — CLOSED
+
+- Owner-approved implementation was executed.
+- Additive persistence/provenance schema was applied.
+- Production `assessment-access` now runs P3 at Edge Function version 14.
+- All five published families passed live public completion E2E, including idempotent retry.
+- Live economics validation now matches the frozen model, including blank referral = unavailable.
+- Public/protected transactional completion RPCs were verified.
+- Historical populations remained unchanged and synthetic test data was fully cleaned.
+- Legacy scorer remains preserved for runtime rollback.
+- Gate 3 closure evidence is recorded in `documentation/audit/P3-GATE-3-CLOSURE-2026-10-02.md`.
+
 
 1. The canonical non-production integrated P3 path is complete and verified by hosted CI.
 2. Persistence/provenance and migration/rollback contracts are implementation-ready against the verified current schema.
@@ -258,6 +269,5 @@ Never restart P3 discovery merely because an older draft uses a different filena
 
 ## 10. Immediate next action
 
-P3 Implementation has been executed. The current state is **GATE 3 ACCEPTANCE OPEN**.
+P3 **Gate 3 is CLOSED**. No historical rewrite/deletion is authorized or required by the closed P3 scope.
 
-Remaining work is evidence-based post-cutover acceptance: production runtime/E2E verification, final security/runtime confirmation, rollback-readiness evidence, and the Gate 3 closure record. Historical rewrite/deletion remains outside this execution.
