@@ -861,3 +861,53 @@ The correct next technical action is to resolve the Q2c9f29 numeric semantics at
 
 No production data or runtime was changed by this reconciliation.
 
+
+
+---
+
+# Canonical Reconciliation Addendum — 2026-10-02
+
+**This section supersedes any earlier checkpoint/status statements in this handoff that conflict with the canonical P3 state.**
+
+The single active P3 continuation reference is:
+
+`documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`
+
+Canonical branch:
+
+`main`
+
+The branch `documentation/audit-and-decisions` is historical and is not an active P3 continuation branch.
+
+## Correct P3 state
+
+**P3 = DESIGN / NOT IMPLEMENTATION-READY**
+
+The isolated P3 modules and shadow evidence are supporting engineering artifacts. They do not mean the production scorer has been replaced or that the stage is closed.
+
+## Closed items that must not be reopened
+
+- owner-approved P3 methodology decisions already recorded in project history;
+- 93-question semantic analysis as a whole;
+- the five legacy scoreless sessions already deleted and verified absent;
+- production boundary: no P3 scorer cutover has occurred.
+
+## Remaining work
+
+1. Reconcile/synchronize the response interpretation artifacts with recorded owner decisions; do not restart the 93-question analysis.
+2. Close genuinely unresolved numeric/aggregation decisions.
+3. Define KPI methodology.
+4. Define the separate economic model.
+5. Reconcile the currently observed legacy data lineage.
+6. Consolidate the P3 design into one coherent integrated pipeline.
+7. Complete the pre-Implementation-Ready acceptance and verification package.
+8. Issue the final P3 Implementation-Ready record.
+9. Stop and wait for explicit owner approval before implementation.
+
+## Data clarification
+
+The current live database contains a separate set of completed sessions with scores but no linked answers. These are **not** the five sessions previously deleted. They are a separate historical/data-lineage issue and must not be deleted or reconstructed by assumption.
+
+## Implementation boundary
+
+No production scorer replacement, P3 schema migration, historical rewrite, or destructive data cleanup is authorized before the Implementation-Ready gate and the owner's explicit approval.
