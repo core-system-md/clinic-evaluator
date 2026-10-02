@@ -40,7 +40,8 @@
       "evidenceRole": "EVIDENCE_GAP",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -65,7 +66,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -90,7 +92,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -115,7 +118,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -140,7 +144,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -165,7 +170,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -190,7 +196,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -215,7 +222,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -240,7 +248,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -265,7 +274,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -290,7 +300,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -315,7 +326,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -340,7 +352,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -365,7 +378,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -390,7 +404,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -415,7 +430,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -465,7 +481,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -490,7 +507,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -515,7 +533,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -540,7 +559,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -565,7 +585,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -590,7 +611,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -615,7 +637,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -640,7 +663,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -665,7 +689,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -690,7 +715,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -715,7 +741,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -740,7 +767,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -765,7 +793,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -790,7 +819,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -815,7 +845,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "admin-reception-assessment",
@@ -840,7 +871,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -865,7 +897,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -890,7 +923,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -915,7 +949,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -940,7 +975,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -965,7 +1001,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -990,7 +1027,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1015,7 +1053,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1040,7 +1079,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1065,7 +1105,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1090,7 +1131,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1115,7 +1157,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1140,7 +1183,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1165,7 +1209,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1190,7 +1235,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1215,7 +1261,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1240,7 +1287,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1265,7 +1313,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1290,7 +1339,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1315,7 +1365,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1340,7 +1391,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1365,7 +1417,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1390,7 +1443,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1415,7 +1469,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1440,7 +1495,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1465,7 +1521,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1490,7 +1547,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1515,7 +1573,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1540,7 +1599,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1565,7 +1625,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1590,7 +1651,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1615,7 +1677,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1640,7 +1703,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1665,7 +1729,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1690,7 +1755,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1715,7 +1781,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1740,7 +1807,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1765,7 +1833,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1790,7 +1859,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1815,7 +1885,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1840,7 +1911,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1865,7 +1937,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1890,7 +1963,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1915,7 +1989,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1940,7 +2015,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "clinic-performance",
@@ -1965,7 +2041,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -1990,7 +2067,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2015,7 +2093,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2040,7 +2119,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2065,7 +2145,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2090,7 +2171,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2115,7 +2197,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2140,7 +2223,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2165,7 +2249,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2190,7 +2275,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2215,7 +2301,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2240,7 +2327,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2265,7 +2353,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2290,7 +2379,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2315,7 +2405,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2340,7 +2431,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2365,7 +2457,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2390,7 +2483,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2415,7 +2509,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2440,7 +2535,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2465,7 +2561,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2490,7 +2587,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2515,7 +2613,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2540,7 +2639,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2565,7 +2665,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2590,7 +2691,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2615,7 +2717,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2640,7 +2743,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2665,7 +2769,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2690,7 +2795,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2715,7 +2821,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2740,7 +2847,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2765,7 +2873,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2790,7 +2899,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2815,7 +2925,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2840,7 +2951,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2865,7 +2977,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2890,7 +3003,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2915,7 +3029,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2940,7 +3055,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2965,7 +3081,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -2990,7 +3107,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3015,7 +3133,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3040,7 +3159,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3065,7 +3185,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3090,7 +3211,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3115,7 +3237,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3140,7 +3263,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3165,7 +3289,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3190,7 +3315,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3215,7 +3341,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3240,7 +3367,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3265,7 +3393,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3290,7 +3419,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3315,7 +3445,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3340,7 +3471,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3365,7 +3497,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3390,7 +3523,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3415,7 +3549,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3440,7 +3575,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3465,7 +3601,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3490,7 +3627,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3515,7 +3653,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3540,7 +3679,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3565,7 +3705,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3590,7 +3731,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3615,7 +3757,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3640,7 +3783,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3665,7 +3809,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3690,7 +3835,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3715,7 +3861,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3740,7 +3887,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3765,7 +3913,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3790,7 +3939,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3815,7 +3965,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3840,7 +3991,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3865,7 +4017,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3890,7 +4043,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3915,7 +4069,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3940,7 +4095,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3965,7 +4121,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -3990,7 +4147,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4015,7 +4173,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4040,7 +4199,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4065,7 +4225,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4090,7 +4251,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4115,7 +4277,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4140,7 +4303,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4165,7 +4329,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4190,7 +4355,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4215,7 +4381,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4240,7 +4407,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4265,7 +4433,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4290,7 +4459,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4315,7 +4485,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4340,7 +4511,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4365,7 +4537,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4390,7 +4563,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4415,7 +4589,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4440,7 +4615,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4465,7 +4641,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4490,7 +4667,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4515,7 +4693,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4540,7 +4719,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4565,7 +4745,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4590,7 +4771,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4615,7 +4797,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4640,7 +4823,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "comprehensive-clinic-assessment",
@@ -4665,7 +4849,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4690,7 +4875,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4715,7 +4901,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4740,7 +4927,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4790,7 +4978,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4815,7 +5004,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4840,7 +5030,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4890,7 +5081,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4915,7 +5107,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4940,7 +5133,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -4990,7 +5184,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5015,7 +5210,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5040,7 +5236,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5065,7 +5262,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5090,7 +5288,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5115,7 +5314,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5165,7 +5365,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5190,7 +5391,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5215,7 +5417,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5240,7 +5443,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5265,7 +5469,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5290,7 +5495,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5340,7 +5546,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5365,7 +5572,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5390,7 +5598,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5440,7 +5649,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5465,7 +5675,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5490,7 +5701,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5640,7 +5852,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5690,7 +5903,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5715,7 +5929,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5740,7 +5955,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "medical-team-assessment",
@@ -5765,7 +5981,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5790,7 +6007,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5815,7 +6033,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5840,7 +6059,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5865,7 +6085,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5890,7 +6111,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5915,7 +6137,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5940,7 +6163,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5965,7 +6189,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -5990,7 +6215,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6015,7 +6241,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6040,7 +6267,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6065,7 +6293,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6090,7 +6319,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6115,7 +6345,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6140,7 +6371,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6165,7 +6397,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6190,7 +6423,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6215,7 +6449,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6240,7 +6475,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6265,7 +6501,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6290,7 +6527,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6315,7 +6553,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6340,7 +6579,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6365,7 +6605,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6390,7 +6631,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6415,7 +6657,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6440,7 +6683,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6465,7 +6709,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6490,7 +6735,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6515,7 +6761,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6540,7 +6787,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6565,7 +6813,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6590,7 +6839,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6615,7 +6865,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6640,7 +6891,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6665,7 +6917,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6690,7 +6943,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6715,7 +6969,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6740,7 +6995,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6765,7 +7021,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6790,7 +7047,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6815,7 +7073,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6840,7 +7099,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6865,7 +7125,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6890,7 +7151,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6915,7 +7177,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6940,7 +7203,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6965,7 +7229,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -6990,7 +7255,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7015,7 +7281,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7040,7 +7307,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7065,7 +7333,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7090,7 +7359,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7115,7 +7385,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7140,7 +7411,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7165,7 +7437,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7190,7 +7463,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7215,7 +7489,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7240,7 +7515,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7265,7 +7541,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7290,7 +7567,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7315,7 +7593,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7340,7 +7619,8 @@
       "evidenceRole": "MEASUREMENT_CLAIM",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7365,7 +7645,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7390,7 +7671,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7415,7 +7697,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7515,7 +7798,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7540,7 +7824,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7565,7 +7850,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7590,7 +7876,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7615,7 +7902,8 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     },
     {
       "assessmentSlug": "patient-journey",
@@ -7640,7 +7928,19 @@
       "evidenceRole": "NONE",
       "contextRequired": false,
       "scoringRationale": "Derived from the reviewed P3 option interpretation registry; source option_value is preserved for audit and is not authoritative scoring semantics.",
-      "interpretationVersion": 1
+      "interpretationVersion": 1,
+      "anchorMax": 100
     }
-  ]
+  ],
+  "aggregationPolicy": {
+    "version": "P3_AGGREGATION_V1",
+    "itemWeighting": "EQUAL",
+    "numericEligibleModes": [
+      "DIRECT_ANCHOR"
+    ],
+    "anchorMaxRequired": true,
+    "anchorMaxForCurrentRegistry": 100,
+    "mixedLayerHandling": "NON_DUPLICATING_EXACT_LAYER_BUCKET",
+    "overallComposite": "DISABLED"
+  }
 }
