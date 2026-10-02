@@ -48,7 +48,7 @@ jobs:
         run: node --version && npm --version
 
       - name: Run P3 kernel tests
-        run: node --experimental-strip-types --test tests/p3-structured-result.test.mjs
+        run: node --experimental-default-type=module --experimental-strip-types --test tests/p3-structured-result.test.mjs
 
   full-tests:
     name: Full Node test suite (baseline audit)
