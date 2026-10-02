@@ -42,7 +42,7 @@ Reason: indirect verification/claim-vs-practice behavior. A sophisticated claim 
 - Q8 — performance measurement tools
 - Q9 — return/referral mechanism
 
-These remain on the current encoding while the response interpretation layer determines whether the five states are genuinely monotonic maturity states or mixed capability/measurement/context states. No automatic 0/30/50/80/100 conversion is authorized.
+The five-option rule is closed: use 0/30/50/80/100 only when the five actual states form a coherent maturity/capability progression. Otherwise retain the existing semantic handling. No automatic global conversion is authorized.
 
 ## Four-option disposition
 
@@ -57,8 +57,8 @@ These remain on the current encoding while the response interpretation layer det
 
 Reason: the fourth state may represent variability/context rather than a fourth ordinal level.
 
-### Specific semantic correction pending owner confirmation
-- Q2c9f29: `100/40/0/0` → proposed `100/40/40/0`
+### Specific semantic correction — CLOSED BY OWNER DECISION
+- Q2c9f29: `100/40/0/0` → design correction `100/40/40/0`
 
 Reason: the third state indicates weak/repeated misunderstanding, but is not equivalent to total absence of measurement/practice. The fourth state is an evidence gap.
 
