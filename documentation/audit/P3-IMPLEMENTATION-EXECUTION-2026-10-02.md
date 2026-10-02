@@ -1,7 +1,7 @@
 # P3 — Implementation Execution Record
 ## 2026-10-02
 
-**Status:** IMPLEMENTATION EXECUTED — GATE 3 ACCEPTANCE OPEN
+**Status:** IMPLEMENTATION EXECUTED — GATE 3 CLOSED
 
 ## 1. Authorization
 
@@ -43,12 +43,8 @@ The active production `assessment-access` function is version 12 and no longer i
 
 The legacy scorer remains present in source history and in the rollback-capable prior deployment path; historical results were not rewritten.
 
-## 6. Remaining Gate 3 acceptance
+## 6. Gate 3 closure
 
-Gate 3 is not closed by this record. Remaining evidence is limited to:
-- post-cutover production request/E2E verification of the complete public/protected assessment flow;
-- final runtime/security observation against the live endpoint;
-- final rollback-readiness evidence;
-- final Gate 3 closure record.
+Live external E2E verification passed for all five published families. Transactional public/protected persistence and idempotency passed. Post-cutover security/error checks passed, historical counts remained unchanged, synthetic test data was fully cleaned, and rollback readiness was documented.
 
-No historical rewrite, deletion, or unapproved methodology change is part of this remaining work.
+**Gate 3 — CLOSED.**
