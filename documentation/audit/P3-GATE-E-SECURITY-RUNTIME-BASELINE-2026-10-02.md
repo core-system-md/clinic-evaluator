@@ -45,7 +45,19 @@ These findings are real configuration/hardening issues, but they are distinct fr
 
 The existing SECURITY DEFINER administrative RPCs must retain their intended authorization boundary (for example `require_admin()`) and should be reviewed individually before any permission changes are made.
 
-## 4. P3 cutover requirement
+## 4. Completion RPC and persistence baseline
+
+A live database check confirms these functions are executable only by `service_role`:
+
+- `complete_assessment_session(...)`
+- `complete_public_assessment_session(...)`
+- `calculate_session_score(...)`
+
+The current `sessions` table has only the existing provenance fields `assessment_version` and `scoring_engine_version`. It does not yet contain the planned `interpretation_version`, `scoring_contract_version`, or `assessment_config_digest`.
+
+The planned `public.assessment_results` table does not yet exist.
+
+## 5. P3 cutover requirement
 
 Before P3 production cutover:
 - preserve server-side scoring authority;
@@ -54,7 +66,7 @@ Before P3 production cutover:
 - verify that no client role can create or mutate an official calculated result;
 - review and clean redundant permissive policies where safe, without changing the approved application behavior.
 
-## 5. Current conclusion
+## 6. Current conclusion
 
 **Server-authority baseline:** structurally satisfied by current application path and current table privilege checks.
 
