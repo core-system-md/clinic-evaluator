@@ -34,6 +34,17 @@ Gate C remains closed:
 - sessionless answer/score rows remain outside authoritative P3 lineage;
 - no historical rewrite is occurring.
 
+
+### Current KPI configuration validation
+A live read-only query verified that the current published `kpi_mappings` are present for all five families and every declared KPI mapping sums to **1.00**. `RRI` is present only for Admin/Reception, matching the existing product model.
+
+The live `axis_roles` mappings are also present for all five families. Missing roles are therefore a coverage/availability condition, not a reason to reintroduce the legacy fallback-role behavior documented in the historical KPI guide.
+
+The live `ev_mappings` field is legacy configuration from the previous EV implementation. P3 economics does **not** consume it: the approved P3 economic projection is driven by the existing economic inputs (visit value, relationship years, optional referral percentage) and the approved recursive referral model.
+
+### Exact integration blocker found
+The current non-production `p3-structured-result-v1.mts` assembler does not yet expose `overallScore` in its returned object, although the authoritative Structured Result contract requires the existing `overallScore` / `معدل الكفاءة العام` at the global-result level. This is an implementation integration gap, not a methodology decision.
+
 ## Pending
 
 1. Integrated P3 runtime scorer/result path is not yet in production.
