@@ -263,6 +263,7 @@ function buildSelections(
 
     if (
       !option ||
+      answer.option_value === null ||
       Number(answer.option_value) !== Number(option.option_value)
     ) {
       throw new Error("Answer integrity check failed");
@@ -319,13 +320,15 @@ export async function calculateP3Production(
 
   if (answersError) throw answersError;
 
-  const required = runtime.questions
+  const requiredQuestionIds = runtime.questions
     .filter((question) => question.is_required !== false)
-    .map((question) => question.code);
-  const answerCodes = new Set(
+    .map((question) => question.id);
+  const answerQuestionIds = new Set(
     (dbAnswers || []).map((answer) => answer.question_id),
   );
-  const missing = required.filter((code) => !answerCodes.has(code));
+  const missing = requiredQuestionIds.filter(
+    (questionId) => !answerQuestionIds.has(questionId),
+  );
   if (missing.length) {
     throw new Error(
       "Assessment incomplete",
