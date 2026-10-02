@@ -45,6 +45,16 @@ The live `ev_mappings` field is legacy configuration from the previous EV implem
 ### Exact integration blocker found
 The current non-production `p3-structured-result-v1.mts` assembler does not yet expose `overallScore` in its returned object, although the authoritative Structured Result contract requires the existing `overallScore` / `معدل الكفاءة العام` at the global-result level. This is an implementation integration gap, not a methodology decision.
 
+### Current production schema boundary
+Read-only schema verification confirmed that `public.sessions` currently contains `assessment_version` and `scoring_engine_version`, but not the P3 interpretation/contract/config-digest fields. No `public.assessment_results` table was created.
+
+The current completion functions are:
+- `complete_assessment_session(uuid, uuid, numeric, text, jsonb)`
+- `complete_public_assessment_session(uuid, jsonb, numeric, text)`
+- `calculate_session_score(uuid)`
+
+They are not `SECURITY DEFINER` and their current ACL is limited to `postgres` and `service_role`. This confirms the existing server-authority baseline without changing it.
+
 ## Pending
 
 1. Integrated P3 runtime scorer/result path is not yet in production.
