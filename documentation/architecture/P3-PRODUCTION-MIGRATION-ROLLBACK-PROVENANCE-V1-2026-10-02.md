@@ -167,3 +167,13 @@ This document does not:
 
 When schema work is authorized, generate the migration through the Supabase CLI migration workflow rather than inventing a migration filename here. Review the generated diff, run security/performance advisors, verify migration history, then execute the controlled deployment.
 
+
+
+## 11. Implementation execution evidence — 2026-10-02
+
+- Migration `20261002000000_p3_production_implementation` is applied in Supabase project `oaqpzaarppccbnepffxx`.
+- Follow-up migration preserving idempotent completion access is applied as `20261002161455_p3_preserve_completion_access`.
+- `assessment_results` has explicit RLS with no policies and no table grants to `anon`, `authenticated`, or `public`; only `service_role` retains table privileges.
+- Transactional completion tests for public and protected RPCs verified result persistence, score-row persistence, provenance propagation, idempotent retry, single protected usage consumption, and rollback cleanup.
+- Edge Function `assessment-access` is ACTIVE at version 12 with the P3 production adapter deployed.
+- Production cutover is therefore executed; Gate 3 remains open until post-cutover runtime acceptance is completed and recorded.
