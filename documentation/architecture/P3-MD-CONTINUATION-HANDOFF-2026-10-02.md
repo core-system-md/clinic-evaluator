@@ -761,3 +761,65 @@ No historical row, legacy score, schema, or production scorer was modified.
 
 **P3-NEXT-09 — Production migration/rollback design + provenance persistence gate**, before any production scorer replacement.
 
+---
+
+## 19. Canonical correction — P3-NEXT-09 closed
+
+Updated after PR #14 merge.
+
+### P3-NEXT-09 — Production Migration / Rollback / Provenance Design
+
+**Status: CLOSED at design-gate level; no production migration applied.**
+
+Implemented:
+
+- `documentation/architecture/P3-PRODUCTION-MIGRATION-ROLLBACK-PROVENANCE-V1-2026-10-02.md`
+- `documentation/audit/P3-PRODUCTION-MIGRATION-SAFETY-CONTRACT-2026-10-02.md`
+
+Frozen requirements:
+
+- legacy interpretation provenance is not fabricated;
+- new P3 provenance must include interpretation/scoring contract/config digest;
+- P3 Structured Result persists separately from legacy score compatibility data;
+- shadow/dual calculation precedes production cutover;
+- rollback is runtime routing rollback, not destructive schema rollback;
+- historical results are never overwritten automatically;
+- production schema migration must be generated through the Supabase migration workflow when authorized.
+
+### P3 core status
+
+The following gates are now closed:
+- NEXT-01 Response Interpretation Registry
+- NEXT-02 Component/Subcomponent Aggregation
+- NEXT-03 Consistency Rules
+- NEXT-04 Criticality + Coverage
+- NEXT-05 Structured Result
+- NEXT-06 Isolated Scorer V1
+- NEXT-07 Historical Reconciliation Policy
+- NEXT-08 Deterministic Shadow Replay
+- NEXT-09 Production Migration/Rollback/Provenance Design
+
+### Production blockers that remain intentionally open
+
+1. **Production schema/provenance migration** — not applied.
+2. **Production adapter/cutover implementation** — `index.ts` still calls legacy `calculateAssessment`.
+3. **Historical display/compatibility decision** — not invented; legacy remains authoritative for historical display until an explicit decision.
+4. **Transactional persistence of P3 Structured Result** — not deployed.
+5. **Production-path verification after cutover** — not executed.
+6. **Interpretation version persistence for new production completions** — not yet deployed.
+
+### Data limitation already established
+
+Only Admin Reception and one Patient Journey completed session currently have complete stored answer-level source for shadow replay. Clinic Performance and Medical Team completed sessions have no persisted answer rows and therefore remain legacy-preserved.
+
+### Final safety statement
+
+The production `score-engine.ts` remains unchanged at SHA:
+`ee85209197316f7d7fd2766a3125a2084105be45`
+
+No production DB rows, published assessment content, or historical scores were changed by P3 implementation work.
+
+### Correct next action
+
+The project is now at the **Controlled Production Cutover Gate**. Any next production change must be treated as a separate, explicitly reviewed migration/cutover operation.
+
