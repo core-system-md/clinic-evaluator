@@ -182,18 +182,21 @@ Work:
 **Status: IN PROGRESS.**
 **Objective:** prove the design is testable before implementation.
 
-Work:
-- deterministic fixtures for all agreed edge cases;
-- all five assessment families;
-- missing/partial/semantic-only/contextual cases;
-- criticality and consistency signals;
-- KPI availability semantics;
-- economics inputs/invalid cases;
-- provenance/replay;
-- legacy compatibility boundaries;
-- migration/rollback acceptance criteria.
+Verified so far:
+- prior hosted P3 kernel + full Node baseline run passed (GitHub Actions run 36984901827);
+- 11 new deterministic contract cases for `overallScore`, KPI availability/no-imputation, and recursive economics pass independently;
+- live assessment-family configuration and canonical weight sums were checked read-only;
+- live server-authority baseline checked: browser uses `assessment-access`; completion RPCs are service-role-only; anonymous/public table privileges for answers/scores/sessions are false;
+- current security/performance advisor findings were recorded without mutation;
+- persistence gap is confirmed: planned `assessment_results` table and new provenance fields are not deployed.
 
-**Exit:** acceptance matrix is complete and every test case has an expected contract outcome.
+Remaining Gate E execution:
+- integrate `overallScore`, consistency, criticality/coverage, roles/KPIs, and economics into the single P3 runtime path;
+- add executable integrated tests against that path;
+- execute persistence/provenance transaction tests after the authorized additive migration exists;
+- execute production-boundary security/runtime checks and rollback verification after the authorized cutover adapter exists.
+
+**Exit:** every applicable verification case has an executable test or documented production verification artifact, with no unresolved material contradiction.
 
 ### Gate F — Implementation-Ready review
 Create the final P3 Implementation-Ready record containing:
