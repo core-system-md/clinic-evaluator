@@ -1,3 +1,7 @@
+> **P3 DOCUMENT STATUS:** Historical reconciliation snapshot. Its OPEN findings reflect the state before the 2026-10-02 owner closures and are **not current blockers**. Do not reopen them. Current status is governed by `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`.
+>
+> Current corrections: Q2c9f29 numeric semantics are closed by the scale rule and design registry correction; Gate B `overallScore` construction is closed; Gate C historical reconciliation is complete; remaining work is Gate D integration and Gate E verification.
+
 # P3 — Contract vs Implementation Reconciliation
 ## 2026-10-02
 
