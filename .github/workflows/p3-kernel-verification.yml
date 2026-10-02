@@ -6,8 +6,6 @@ on:
       - main
     paths:
       - ".github/workflows/p3-kernel-verification.yml"
-      - "supabase/functions/assessment-access/p3-score-engine.mts"
-      - "tests/p3-structured-result.test.mjs"
       - "package.json"
       - "package-lock.json"
       - "tests/**"
@@ -18,7 +16,6 @@ on:
     paths:
       - ".github/workflows/p3-kernel-verification.yml"
       - "supabase/functions/assessment-access/p3-score-engine.mts"
-      - "tests/p3-structured-result.test.mjs"
       - "package.json"
       - "package-lock.json"
       - "tests/**"
@@ -49,7 +46,7 @@ jobs:
         run: node --version && npm --version
 
       - name: Run P3 kernel and contract tests
-        run: node --experimental-strip-types --test tests/p3-structured-result.test.mjs tests/p3-response-interpretation-registry.test.mjs tests/p3-aggregation-engine.test.mjs tests/p3-consistency-engine.test.mjs tests/p3-criticality-coverage-engine.test.mjs tests/p3-structured-result-v1.test.mjs tests/p3-scorer-v1.test.mjs tests/p3-integrated-scorer-v1.test.mjs tests/p3-historical-reconciliation.test.mjs tests/p3-shadow-replay-current-sessions.test.mjs tests/p3-gate-e-contract.test.mjs tests/p3-overall-score-projection.test.mjs
+        run: node --experimental-strip-types --test tests/p3-response-interpretation-registry.test.mjs tests/p3-aggregation-engine.test.mjs tests/p3-consistency-engine.test.mjs tests/p3-criticality-coverage-engine.test.mjs tests/p3-structured-result-v1.test.mjs tests/p3-scorer-v1.test.mjs tests/p3-integrated-scorer-v1.test.mjs tests/p3-historical-reconciliation.test.mjs tests/p3-shadow-replay-current-sessions.test.mjs tests/p3-gate-e-contract.test.mjs tests/p3-overall-score-projection.test.mjs
 
   full-tests:
     name: Full Node test suite (baseline audit)
