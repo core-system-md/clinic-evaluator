@@ -320,14 +320,14 @@ export async function calculateP3Production(
 
   if (answersError) throw answersError;
 
-  const requiredQuestionIds = runtime.questions
+  const requiredQuestionCodes = runtime.questions
     .filter((question) => question.is_required !== false)
-    .map((question) => question.id);
-  const answerQuestionIds = new Set(
+    .map((question) => question.code);
+  const answerQuestionCodes = new Set(
     (dbAnswers || []).map((answer) => answer.question_id),
   );
-  const missing = requiredQuestionIds.filter(
-    (questionId) => !answerQuestionIds.has(questionId),
+  const missing = requiredQuestionCodes.filter(
+    (questionCode) => !answerQuestionCodes.has(questionCode),
   );
   if (missing.length) {
     throw new Error(
