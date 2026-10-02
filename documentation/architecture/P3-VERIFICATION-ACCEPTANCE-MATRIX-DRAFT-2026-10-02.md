@@ -1,7 +1,7 @@
 # P3 — Verification & Acceptance Matrix
 ## 2026-10-02
 
-**Status:** VERIFIED PRE-IMPLEMENTATION — acceptance package  
+**Status:** VERIFIED — POST-IMPLEMENTATION ACCEPTANCE PACKAGE  
 **Canonical status:** `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`
 
 This document defines the checks required before P3 can become Implementation-Ready. It authorizes no production change.
@@ -147,10 +147,10 @@ Transactional migration, cutover, rollback-exercise, and production-path tests a
 | V-20–V-22 | consistency, criticality, and Structured Result tests | verified in isolation |
 | V-23–V-27 | Integrated scorer test verifies role→KPI projection, partial/unavailable semantics, mapping-weight usage, and RRI scope; contract suite also passes | verified in integrated path + isolation |
 | V-28–V-34 | Integrated scorer test verifies blank/0%/20%/50%/invalid referral behavior and score independence; contract suite also passes | verified in integrated path + isolation |
-| V-35–V-40 | Live schema read-only review confirms exact current session types/constraints and absence of the P3 result table; additive persistence contract is implementation-ready and explicitly non-destructive | pre-implementation compatibility verified; transactional execution intentionally deferred until authorized migration |
-| V-41–V-45 | historical policy/classifier, current-session shadow replay, and additive rollback design verified; no historical mutation is authorized | verified as pre-implementation boundary; deployment-stage execution deferred |
-| V-46–V-50 | P2 server-authority baseline and live ACL/RLS evidence verified; P3 adapter/cutover tests are explicitly deployment-stage acceptance criteria | pre-implementation boundary verified; production execution deferred |
+| V-35–V-40 | Live completion E2E + transactional RPC verification confirm raw/max/percentage/weight semantics and recoverable provenance/result lineage | verified in production acceptance |
+| V-41–V-45 | historical counts unchanged, synthetic E2E data cleaned, rollback readiness recorded; legacy results preserved | verified post-implementation acceptance |
+| V-46–V-50 | all five live completion paths passed, invalid token rejection passed, P3 result persistence/provenance passed, idempotent completion passed, RLS/grants verified | verified post-cutover acceptance |
 
 This section is evidence status, not a new methodology decision.
 
-No production implementation is authorized by this matrix.
+P3 production implementation is complete and Gate 3 is closed by the recorded acceptance evidence.
