@@ -633,3 +633,54 @@ No production scorer, schema, published content, or historical result was change
 
 **P3-NEXT-06 — isolated final scorer rebuild and deterministic verification.**
 
+---
+
+## 16. Canonical correction — P3-NEXT-06 isolated scorer closed
+
+Updated after PR #11 merge.
+
+### P3-NEXT-06 — Isolated Scorer V1
+
+**Status: CLOSED as isolated/non-production implementation.**
+
+Implemented:
+
+- `supabase/functions/assessment-access/p3-scorer-v1.mts`
+- extended hosted P3 contract test gate
+- `documentation/audit/P3-NEXT-06-CURRENT-DATA-VALIDATION-2026-10-02.md`
+
+Frozen isolated path:
+
+`selected option identity → response interpretation → resolved measurement → component/layer aggregation → profile`
+
+The isolated scorer:
+- uses option identity and interpretation, not source `option_value`;
+- does not score from option index;
+- preserves semantic-only states as non-numeric;
+- keeps missing as missing;
+- has no trap penalties;
+- has no impact multipliers;
+- does not impute roles/KPIs;
+- does not generate an overall composite.
+
+### Hosted verification
+
+Latest NEXT-06 hosted run passed:
+- all P3 kernel/contract tests: passed
+- full Node suite: passed
+- all five assessment families executable through the isolated scorer
+
+### Current-data limitation
+
+Current Supabase storage contains answer rows for only two families (Admin Reception and Patient Journey). All 48 stored answer rows resolve to current option identities with matching source values. Clinic Performance and Medical Team have completed sessions but no persisted answer rows, so answer-level current-data recalculation for those families is not available.
+
+This is a data-retention limitation, not a reason to invent replacement historical values.
+
+### Production boundary
+
+Production `score-engine.ts` remains untouched.
+
+### Correct next gate
+
+**P3-NEXT-07 — Historical reconciliation policy + migration/rollback gate.**
+
