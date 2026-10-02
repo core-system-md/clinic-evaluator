@@ -6,7 +6,7 @@
     "questions": 93,
     "options": 305
   },
-  "numericFreezeStatus": "pending P3-NEXT-02 aggregation freeze",
+  "numericFreezeStatus": "frozen-by-owner-scale-rule; no-global-remap",
   "invariants": [
     "option_index_is_never_a_score",
     "option_value_is_not_universal_score",
