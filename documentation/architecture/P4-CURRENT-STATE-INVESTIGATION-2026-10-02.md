@@ -1,7 +1,7 @@
 # P4 — Current-State Investigation Record
 ## 2026-10-02
 
-**Status:** INVESTIGATING — no P4 architecture approved; no P4 production change authorized  
+**Status:** INVESTIGATION COMPLETE / OWNER APPROVAL REQUESTED — no P4 architecture approved; no P4 production change authorized  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Baseline:** `main` at `f50aadc42c25eb0e0d2198bc9c6b20c9f7180ed5`  
 **Supabase:** `oaqpzaarppccbnepffxx`
@@ -42,6 +42,13 @@ Observed flow:
 **Not equivalent to end-to-end submission atomicity:** lead creation, session creation, and answer persistence occur before that completion transaction and in separate calls.
 
 Therefore the system can still represent intermediate/partial states if a later request fails, times out, is abandoned, or is replayed.
+
+Two additional runtime-level consistency risks were confirmed during the investigation:
+
+- `save_answer` checks `session.status = in_progress` and writes the answer in a separate operation from `complete`; there is no shared session-row lock around the answer write. This leaves a race in which a late answer can compete with finalization.
+- The keyboard-input path in `assets/js/app.js` updates local `this.answers` and advances without calling `save_answerToServer`, so local answer state can diverge from server-persisted answers before completion.
+
+These are target-design/implementation issues for P4, not production changes made during this investigation.
 
 Examples requiring P4 treatment:
 
@@ -99,7 +106,22 @@ The completion RPCs are not SECURITY DEFINER and are not executable by anon/auth
 
 The database currently has several historical/duplicate RLS policies and Supabase advisor findings. These are relevant constraints for any future P4 design but are not being changed by this record.
 
-## 8. Open P4 questions
+## 8. Reconciled P4 decision boundary
+
+The investigation establishes the following:
+
+- A long-lived assessment cannot be one database transaction from first screen to final result. Draft persistence and finalization must be separate boundaries.
+- `sessions` is already the canonical lifecycle identity approved by ADR-006/P0, but the product meaning of one business submission is not yet explicitly defined across access-token reissuance, multiple tabs, and repeated attempts.
+- Same-session completion is already technically idempotent; a separate submission/idempotency entity is not technically required unless the product needs business identity beyond `session_id`.
+- Finalization must serialize against answer writes and must score the exact answer set that becomes final. The current split does not yet prove that invariant.
+- Required-answer completeness is described in prior implementation-ready design material, but is not currently enforced by the live completion RPC; this remains a product/contract confirmation point.
+- Historical completed-without-result rows are mostly from July/August 2026 and are not being rewritten by P4.
+
+Architectural alternatives are recorded in:
+
+`documentation/architecture/P4-ARCHITECTURAL-DECISION-PACKAGE-OWNER-APPROVAL-2026-10-02.md`
+
+## 9. Owner approval required
 
 1. What exactly constitutes one business submission?
 2. Should lead creation be part of the same atomic unit as session creation?
@@ -112,16 +134,16 @@ The database currently has several historical/duplicate RLS policies and Supabas
 9. Which records must be immutable after completion?
 10. Which historical behavior must remain compatible?
 
-## 9. Required next P4 work
+## 10. Required next action
 
-Before architecture selection:
+Owner approval is now required for the architectural/product decisions documented in the decision package.
 
-- reconstruct the complete state machine;
-- enumerate all failure points and observable states;
-- inspect constraints/foreign keys/RLS/function privileges for every transition;
-- inspect Git history for why the current split boundaries exist;
-- derive duplicate/retry semantics from existing product behavior;
-- produce architectural alternatives and trade-offs;
-- stop at the owner architectural decision boundary.
+Until approval is recorded:
 
-**No implementation or migration is part of this record.**
+- no P4 schema migration;
+- no production Edge Function change;
+- no frontend behavior change;
+- no RLS/grant redesign;
+- no historical data rewrite.
+
+**P4 investigation is complete. The next canonical action is Owner Approval, followed only by implementation of the approved architecture.**
