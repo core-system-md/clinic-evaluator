@@ -12,7 +12,7 @@ The structured-result builder now assembles the outputs of interpretation, aggre
 - assessment version and interpretation/scoring versions are pinned;
 - raw response identity and source option value are retained for audit;
 - profile is the primary measurement output;
-- overall composite remains null;
+- component-level `overallComposite` remains null because the component aggregator does not own the global result; the existing `overallScore` / **معدل الكفاءة العام** is a separate global result-stage field and is not yet wired into the non-production assembler;
 - unavailable roles/KPIs remain unavailable with null values;
 - economics remains `NOT_COMPUTED`;
 - criticality is emitted as structured diagnostics and never subtracts score;
