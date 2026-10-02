@@ -82,11 +82,11 @@ These are module/design closures, not P3 stage closure.
   - 123 score rows without session_id → preserve and exclude from authoritative P3 lineage.
   These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
 
-### OPEN / REQUIRES COMPLETION
+### OPEN / REQUIRES COMPLETION — IMPLEMENTATION / VERIFICATION ONLY
 
-1. Complete Gate D integration: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded experimental modules/paths.
-2. Complete the persistence/provenance implementation design and its migration/rollback acceptance boundary.
-3. Complete Gate E verification: deterministic fixtures, current-data validation evidence, integrated contract tests, security/runtime checks, and acceptance evidence.
+1. Integrate the approved `overallScore` / `معدل الكفاءة العام` construction into the canonical P3 runtime path using the existing axis/dimension weights normalized to canonical 0–1 representation.
+2. Complete the component/profile-to-axis result projection without introducing component weights.
+3. Complete Gate E executable verification: integrated scorer/result tests, KPI/economic projection tests, persistence/provenance tests after the authorized additive migration, and production-boundary security/runtime/rollback checks.
 4. Perform the final Gate F Implementation-Ready review.
 
 ## 4. Production reality
