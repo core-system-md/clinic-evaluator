@@ -1,7 +1,7 @@
 # P3 — Integrated Design Closure Draft
 ## 2026-10-02
 
-**Status:** DESIGN / IN PROGRESS — non-production  
+**Status:** DESIGN COMPLETE — non-production  
 **Canonical status:** `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`
 
 ## 1. Single conceptual pipeline
@@ -66,15 +66,56 @@ The historical reconciliation policy remains authoritative:
 - sessionless legacy answers/scores are not attached by inference;
 - no historical rewrite or deletion is part of this design stage.
 
-## 6. Gate D completion boundary
+## 6. Gate D closure
 
-Gate B methodology is fully closed. Gate D now concerns integration/design consistency only.
+Gate B methodology is fully closed. Gate C historical/data reconciliation is complete. Gate D is now closed at the design boundary.
 
-Remaining Gate D work:
-1. one canonical scorer/orchestrator path;
-2. one structured-result assembler path, with `overallScore` produced at the global result stage rather than inside component aggregation;
-3. explicit module disposition: `p3-score-engine.mts` is duplicate experimental assembly and must be superseded; `p3-scorer-v1.mts`, `p3-aggregation-engine.mts`, `p3-consistency-engine.mts`, `p3-criticality-coverage-engine.mts`, and `p3-structured-result-v1.mts` have one responsibility each;
-4. persistence/provenance adapter boundary;
-5. final Gate E verification evidence.
+### 6.1 Canonical ownership
+
+Each P3 rule has one canonical design source:
+
+| Concern | Canonical source |
+|---|---|
+| Response interpretation / item semantics | `P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json` |
+| Component/profile aggregation | `P3-COMPONENT-AGGREGATION-V1-CLOSURE-2026-10-02.md` |
+| `overallScore` / معدل الكفاءة العام | `P3-GATE-B-DECISION-CLOSURE-2026-10-02.md` |
+| Consistency | `P3-CONSISTENCY-RULE-REGISTRY-V1.json` + closure record |
+| Criticality / coverage | `P3-CRITICALITY-COVERAGE-V1-CLOSURE-2026-10-02.md` |
+| Structured Result shape | `P3-STRUCTURED-RESULT-CONTRACT-DRAFT-1-2026-10-02.md` |
+| Historical reconciliation | `P3-HISTORICAL-RECONCILIATION-POLICY-V1-CLOSURE-2026-10-02.md` |
+| Production migration / provenance / rollback | `P3-PRODUCTION-MIGRATION-ROLLBACK-PROVENANCE-V1-2026-10-02.md` |
+| Current P3 status / gate sequence | `P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md` |
+
+### 6.2 Single-result path
+
+The implementation target is one deterministic server-side path:
+
+`selected option identity → interpretation → measurement → component/profile aggregation → global overallScore → consistency + criticality/coverage → Structured Result → roles/KPIs/economics → persistence/report projections`
+
+`overallScore` is not calculated inside the component aggregator. It is a global result-stage projection over valid measured dimensions using the approved canonical weights.
+
+### 6.3 Experimental module disposition
+
+These existing `p3-*` files remain non-production artifacts until implementation is explicitly authorized:
+
+- `p3-score-engine.mts`: superseded duplicate structured-result/score assembly; not a production source.
+- `p3-scorer-v1.mts`: integration/orchestration starting point; it must become the single scorer entry path rather than a competing kernel.
+- `p3-aggregation-engine.mts`: owns component/layer aggregation only.
+- `p3-consistency-engine.mts`: owns consistency findings only.
+- `p3-criticality-coverage-engine.mts`: owns coverage/criticality only.
+- `p3-structured-result-v1.mts`: owns final Structured Result assembly only.
+
+No duplicate module is deleted or merged into production during design.
+
+### 6.4 Persistence and security boundary
+
+The approved production design is additive:
+- session provenance fields for interpretation/version/contract/config digest;
+- one dedicated Structured Result row per session;
+- atomic result + provenance persistence;
+- no direct client authority over calculated scores;
+- new result persistence must not be directly writable/readable through public application table privileges; access is through the server-authoritative path.
+
+Gate D exit is therefore met: the system has one coherent implementable design without introducing a new scoring rule at implementation time.
 
 No production implementation is authorized by this document.
