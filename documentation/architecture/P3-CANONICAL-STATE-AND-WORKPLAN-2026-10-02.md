@@ -51,7 +51,7 @@ The branch `documentation/audit-and-decisions` is a historical baseline for the 
 - KPI calculation uses only roles actually measured by the assessment.
 - Missing roles are never filled by an overall/axis average or any other invented value.
 - User-facing final reports do not discuss missing-role substitution. A KPI that cannot be supported by the available measured roles is omitted rather than shown as a fabricated zero.
-- The result is a multi-dimensional profile plus an optional single summary score. The summary score is not the sole result and does not replace the profile.
+- The result is a multi-dimensional profile and retains the existing `overallScore` / `معدل الكفاءة العام` concept as a secondary aggregate result. No new “summary score” concept is introduced.
 - The response-scale rule is closed: scale selection follows question meaning; there is no global remapping by option count.
 - The Medical Team Q2c9f29 correction is recorded in the response registry as the design correction 100/40/40/0; this remains design-only and is not a production value change.
 - V1 consistency remains signal-only (scoreEffect = NONE).
@@ -74,9 +74,9 @@ These are module/design closures, not P3 stage closure.
 
 ### OPEN / REQUIRES COMPLETION
 
-1. Freeze the exact construction of the optional summary score: which measured dimensions participate and how their weights are applied. The existence of the summary score is approved; its exact equation is not yet frozen.
+1. Freeze the P3 construction of the existing `overallScore` / `معدل الكفاءة العام`: which measured dimensions participate and how their weights are applied. The concept itself is existing system behavior, not a new product decision.
 2. Freeze the exact economic calculation: the default visit input is 3 visits per year; referral percentage has no default and, when supplied by the user, must affect the resulting economic value. The exact meaning and mathematical effect of the referral percentage still need one explicit rule.
-3. Complete the component/profile aggregation detail around partial/eligible layers and the relationship between the profile and the approved optional summary score.
+3. Complete the component/profile aggregation detail around partial/eligible layers and the relationship between the profile and the existing `overallScore`.
 4. Reconcile current legacy data lineage:
    - 15 completed sessions with scores but no session-linked answers;
    - 12 answer rows without session_id;
@@ -137,13 +137,13 @@ Completed within Gate B:
 - Response-scale selection rule and Q2c9f29 artifact correction.
 - V1 consistency behavior.
 - V1 criticality behavior.
-- Multi-dimensional profile plus optional summary score direction.
+- Existing `overallScore` / `معدل الكفاءة العام` remains a secondary aggregate result; P3 must reconcile its construction with the new profile.
 - Economic input defaults and referral-input behavior at the business level.
 
 Still active:
-- exact optional summary-score equation;
+- exact P3 construction of the existing `overallScore`;
 - exact referral-percentage economic equation;
-- final component/profile aggregation detail needed to connect the profile to the optional summary score.
+- final component/profile aggregation detail needed to connect the profile to the existing `overallScore`.
 
 **Exit:** no material product/methodology decision remains open.
 
@@ -235,7 +235,7 @@ Never restart P3 discovery merely because an older draft uses a different filena
 Gate A is complete.
 
 Gate B is now narrowed to two concrete decisions only:
-1. the exact equation of the optional summary score;
+1. the exact P3 construction of the existing `overallScore`;
 2. the exact way the referral percentage changes the economic result.
 
 Everything else above is either already decided, documented, or can proceed as evidence/reconciliation work without inventing new rules.
