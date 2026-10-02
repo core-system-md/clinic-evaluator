@@ -911,3 +911,132 @@ The current live database contains a separate set of completed sessions with sco
 ## Implementation boundary
 
 No production scorer replacement, P3 schema migration, historical rewrite, or destructive data cleanup is authorized before the Implementation-Ready gate and the owner's explicit approval.
+
+
+---
+
+# P4 Continuation Handoff — 2026-10-02
+
+**This addendum is the active continuation instruction for the next conversation. It supersedes the older P3 continuation trigger/instruction for purposes of resuming work after P3.**
+
+## Activation keyword
+
+When the owner starts a new conversation and writes exactly **MD**, treat **MD** as the activation keyword for this project continuation.
+
+Do not interpret MD as a request to restart P0/P1/P2/P3 discovery. Load this handoff, verify the current repository state, and continue directly with the P4 investigation defined below.
+
+## Current phase
+
+**P4 — Atomic assessment submission and persistence architecture**
+
+P4 is a roadmap phase. **P4 is not “Gate 4”, P4 must not be renamed or interpreted as Gate 4, and no Gate 4 definition should be invented from P4.**
+
+The canonical roadmap defines P4 as:
+
+- atomic submission;
+- idempotency;
+- retries;
+- partial-failure recovery;
+- answer/score/session consistency;
+- lead association;
+- duplicate-submission rules;
+- server-side calculation boundaries.
+
+Source of truth:
+`documentation/project-audit/02-work-roadmap.md`
+
+## What P4 means
+
+P4 exists because the initial audit found that the public submission flow performs multiple persistence operations around **lead/session/answers/scores**. The audit identified a potential partial-persistence state if a later operation fails and explicitly requires investigation of the intended failure/retry/idempotency model before choosing an RPC, Edge Function transaction, or another architecture.
+
+Source:
+`documentation/project-audit/01-initial-audit-findings.md` — section 3.4, Submission atomicity / data integrity.
+
+## What to do immediately after MD
+
+1. Verify current `main` and read this handoff.
+2. Verify the current live Supabase production schema/runtime relevant to submission and persistence.
+3. Trace the actual production submission flow end-to-end in the current code, including:
+   - lead creation/association;
+   - session creation/update;
+   - answer persistence;
+   - score/result persistence;
+   - completion/finalization;
+   - duplicate-submission checks;
+   - current server-side calculation boundary;
+   - relevant Edge Functions/RPCs/database functions/triggers/RLS policies.
+4. Reconstruct the current transaction boundaries and identify every possible partial-failure point.
+5. Inspect the existing retry/idempotency behavior from code, database constraints, runtime behavior, and history rather than assuming it.
+6. Determine the legitimate product requirements for duplicate submission, retry after timeout, client refresh/replay, concurrent requests, and already-completed sessions.
+7. Map lead/session/answer/result relationships and identify which records are authoritative at each stage.
+8. Document evidence, dependencies, constraints, and failure scenarios.
+9. Only after the investigation, present the legitimate architectural alternatives and trade-offs to the owner.
+10. **Do not implement or migrate a P4 architecture until the owner explicitly approves the architecture.**
+
+## P4 investigation deliverable
+
+The first P4 work product should be an evidence-based current-state/investigation record, not implementation code.
+
+It should establish at minimum:
+
+- current submission sequence;
+- current persistence operations and transaction boundaries;
+- current database constraints/indexes/RLS relevant to submission;
+- current idempotency/duplicate behavior;
+- retry behavior and failure modes;
+- partial-failure scenarios and recovery options;
+- lead/session/answer/result consistency rules currently enforced;
+- server/client calculation boundaries;
+- historical compatibility constraints;
+- open architectural questions;
+- alternatives with trade-offs;
+- explicit owner decisions required before implementation.
+
+## Architectural governance
+
+The project roadmap is **not** implementation authorization.
+
+The required process remains:
+
+`INVESTIGATE → DOCUMENT EVIDENCE → OPTIONS / TRADE-OFFS → OWNER ARCHITECTURAL APPROVAL → DESIGN → IMPLEMENTATION → VERIFICATION → DOCUMENTATION → CLOSURE`
+
+Do not select RPC, Edge Function transaction, database trigger, schema change, queue, locking strategy, idempotency key design, or any other architectural mechanism merely because it appears technically convenient.
+
+## P4 safety boundaries
+
+Do not:
+
+- assume P4 already has an approved architecture;
+- equate P4 with Gate 4;
+- invent a Gate 4 definition;
+- change production schema before architectural approval;
+- alter production submission behavior before the approved design exists;
+- delete or reconstruct historical submission data by assumption;
+- assume retries are safe merely because an operation is currently repeatable;
+- treat duplicate submission as synonymous with idempotency without defining the business semantics;
+- move scoring/calculation boundaries without explicit architectural reasoning;
+- infer transactional guarantees from frontend behavior alone.
+
+## Known prior foundations to preserve during P4
+
+P2 established the assessment family/version architecture, including stable public identity, version resolution, immutable published versions, and session pinning to concrete assessment versions.
+
+P3 established the scoring/measurement work and production-safety boundaries documented in the canonical P3 records. P4 must build on the verified current state rather than reopening completed P2/P3 decisions unless the investigation demonstrates a direct dependency or contradiction.
+
+## Exact continuation instruction for the next conversation
+
+When the owner writes **MD**:
+
+> Resume the clinic-evaluator project at **P4 — Atomic assessment submission and persistence architecture**.
+>
+> First verify `main`, this handoff, the current Supabase production state, and the actual submission/persistence code path. Then perform P4 investigation only: reconstruct the current transaction/persistence boundaries, failure modes, retry/idempotency behavior, duplicate-submission semantics, lead/session/answer/result consistency, and server-side calculation boundaries.
+>
+> Do not treat P4 as Gate 4. Do not invent a Gate 4. Do not assume an approved P4 architecture. Do not implement schema/runtime changes yet.
+>
+> Produce the evidence-based P4 current-state/investigation record first, then present architectural alternatives and trade-offs for owner approval before any implementation.
+
+## Handoff status
+
+**P4 investigation: NOT STARTED in this new continuation.**
+
+The next conversation must begin with the investigation above when **MD** is written.
