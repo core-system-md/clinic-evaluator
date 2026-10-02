@@ -19,7 +19,7 @@ The structured result is the single handoff. Roles/KPIs and economics consume th
 - Consistency is a signal in V1; no automatic score penalty.
 - Criticality is separate from score in V1.
 - KPI basis is the existing catalog/mapping weights, with no role imputation.
-- The existing `overallScore` / **معدل الكفاءة العام** remains a secondary aggregate result; its P3 construction is still to be frozen.
+- The existing `overallScore` / **معدل الكفاءة العام** remains a secondary aggregate result. Its P3 construction is closed: weighted arithmetic mean of valid measured dimensions using the approved canonical dimension weights; unavailable dimensions are excluded, not zero-filled or imputed; consistency/criticality do not alter the score.
 - Economics is separate from assessment score.
 - Referral input is optional, has no default, and affects economics only when supplied. Default visits are 3/year.
 - The approved referral model treats each referred patient as having the same visit frequency, visit value, relationship duration, and referral rate as the originating patient. Therefore referral value propagates through downstream referral generations as a geometric series.
@@ -66,11 +66,15 @@ The historical reconciliation policy remains authoritative:
 - sessionless legacy answers/scores are not attached by inference;
 - no historical rewrite or deletion is part of this design stage.
 
-## 6. Remaining blockers to Gate D closure
+## 6. Gate D completion boundary
 
-Only material methodology points still block final closure:
+Gate B methodology is fully closed. Gate D now concerns integration/design consistency only.
 
-1. exact P3 construction of the existing `overallScore`;
-2. exact monetary effect of the already-defined referral percentage — CLOSED by owner approval: recursive downstream referral model above.
+Remaining Gate D work:
+1. one canonical scorer/orchestrator path;
+2. one structured-result assembler path, with `overallScore` produced at the global result stage rather than inside component aggregation;
+3. explicit module disposition: `p3-score-engine.mts` is duplicate experimental assembly and must be superseded; `p3-scorer-v1.mts`, `p3-aggregation-engine.mts`, `p3-consistency-engine.mts`, `p3-criticality-coverage-engine.mts`, and `p3-structured-result-v1.mts` have one responsibility each;
+4. persistence/provenance adapter boundary;
+5. final Gate E verification evidence.
 
-With both Gate B decisions now owner-approved, there is no remaining Gate B methodology blocker. Gate D can continue through canonical integration, persistence/provenance, and verification design without changing production.
+No production implementation is authorized by this document.
