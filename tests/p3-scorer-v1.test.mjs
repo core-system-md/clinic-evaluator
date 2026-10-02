@@ -65,4 +65,12 @@ test("duplicate question selections are rejected",()=>{
  ]}),/Duplicate selection/);
 });
 
+test("P3 scorer configuration is executable for all five assessment families",()=>{
+ for(const slug of ["admin-reception-assessment","clinic-performance","medical-team-assessment","comprehensive-clinic-assessment","patient-journey"]){
+  const r=scoreP3AssessmentV1({assessmentSlug:slug,selections:firstSelection(slug)});
+  assert.equal(r.assessmentSlug,slug);
+  assert.ok(r.profile.components.length>0);
+  assert.equal(r.profile.overallComposite,null);
+ }
+});
 console.log("P3 scorer V1: option identity -> interpretation -> profile path verified.");
