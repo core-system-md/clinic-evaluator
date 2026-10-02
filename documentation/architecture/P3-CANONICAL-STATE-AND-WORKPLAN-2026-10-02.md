@@ -4,7 +4,7 @@
 **Status:** GOVERNING P3 WORKING STATE — DESIGN / NOT IMPLEMENTATION-READY  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Canonical branch:** `main`  
-**Current canonical main head:** `66ebdbff3e88aa5b6c100b8756d021ac87a53d9c`
+**Canonical source:** the current `main` branch (this document moves with it).
 
 ## 1. Purpose
 
