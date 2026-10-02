@@ -191,8 +191,8 @@ function buildConsistencyFindings(
     const finding = evaluateP3Consistency(rules, {
       assessmentSlug,
       assessmentVersion,
-      validator,
-      target,
+      validator: { ...validator, assessmentSlug, assessmentVersion },
+      target: { ...target, assessmentSlug, assessmentVersion },
       relationshipType: pair.relationshipType,
     });
     if (finding) findings.push(finding);
