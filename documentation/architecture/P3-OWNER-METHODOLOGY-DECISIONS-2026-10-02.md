@@ -4,7 +4,7 @@
 
 Owner-confirmed methodology decisions following the P3 conceptual clarification round.
 
-These decisions supersede ambiguity in earlier drafts where the relevant point was explicitly left open. They do not freeze the final scoring equations; the item registry, semantic validation, component aggregation, and empirical checks must still be completed before implementation.
+These decisions supersede ambiguity in earlier drafts where the relevant point was explicitly left open. Gate B is now complete at the methodology level; implementation, integration, and empirical verification remain before production.
 
 ## 1. Result shape
 
