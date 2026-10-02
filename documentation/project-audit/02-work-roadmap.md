@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-30  
 **Repository:** `core-system-md/clinic-evaluator`  
-**Roadmap branch:** `documentation/audit-and-decisions`
+**Canonical roadmap branch:** `main`
 
 ## Governance rule
 
