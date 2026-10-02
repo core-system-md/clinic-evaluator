@@ -1,7 +1,7 @@
 # P3 — Canonical State, Reconciliation & Work Plan
 ## 2026-10-02
 
-**Status:** GOVERNING P3 WORKING STATE — IMPLEMENTATION-READY (pre-production)  
+**Status:** GOVERNING P3 WORKING STATE — IMPLEMENTATION EXECUTED / GATE 3 OPEN  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Canonical branch:** `main`  
 **Canonical source:** the current `main` branch (this document moves with it).
@@ -26,6 +26,18 @@ For P3 continuation:
 The branch `documentation/audit-and-decisions` is a historical baseline for the project up to 2026-09-30/early P2 work. It is not the canonical P3 continuation branch. It remains preserved for traceability and must not be treated as a second active source of truth.
 
 ## 3. Reconciled P3 state
+
+### IMPLEMENTATION EXECUTION STATUS — 2026-10-02
+
+- Owner authorization to implement P3 was received.
+- Additive production migration `20261002000000_p3_production_implementation` was applied.
+- Follow-up idempotent-completion migration `p3_preserve_completion_access_v2` was applied to match the existing P0 completion contract.
+- `assessment-access` is ACTIVE at Edge Function version 12 and routes completion through the P3 production adapter.
+- Production persistence now stores P3 Structured Result plus provenance in `public.assessment_results`.
+- Transactional public/protected completion verification passed, including idempotent retry behavior and rollback-cleanup checks.
+- Historical rows were not rewritten or deleted.
+- Gate 3 remains OPEN pending final post-cutover/runtime acceptance evidence and closure record.
+
 
 ### CLOSED / ALREADY AGREED
 
@@ -246,6 +258,6 @@ Never restart P3 discovery merely because an older draft uses a different filena
 
 ## 10. Immediate next action
 
-P3 is **IMPLEMENTATION-READY**.
+P3 Implementation has been executed. The current state is **GATE 3 ACCEPTANCE OPEN**.
 
-The next state requires explicit owner approval before Implementation. No production scorer, schema migration, historical rewrite, or public cutover is authorized by the readiness record.
+Remaining work is evidence-based post-cutover acceptance: production runtime/E2E verification, final security/runtime confirmation, rollback-readiness evidence, and the Gate 3 closure record. Historical rewrite/deletion remains outside this execution.
