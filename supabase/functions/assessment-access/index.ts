@@ -808,69 +808,41 @@ Deno.serve(async (req) => {
     if (action === "calculate_ev") {
       const auth = await requireSessionAccess(String(data.token || ""));
       if ("error" in auth) return json({ error: auth.error }, auth.status);
-      const { access } = auth;
 
       const avg = Number(data.avg);
-      const visits = Number(data.visits);
       const years = Number(data.years);
-      if (!(avg > 0) || !(visits > 0) || !(years > 0)) return json({ error: "Invalid EV inputs" }, 400);
+      const visits = data.visits === undefined || data.visits === "" ? 3 : Number(data.visits);
+      const referralRaw = data.referral === undefined || data.referral === "" ? null : Number(data.referral);
 
-      let sessionQuery = supabase.from("sessions").select("id, assessment_type_id, assessment_version, status");
-      sessionQuery = sessionFilter(sessionQuery, access);
-      const { data: session, error } = await sessionQuery.maybeSingle();
-      if (error) throw error;
-      if (!session) return json({ error: "Assessment session not found" }, 404);
-
-      const runtime = await loadAssessment(session.assessment_type_id);
-      const runtimeVersion = Number(runtime.assessment.version ?? runtime.assessment.config_version ?? 1);
-      if (Number(session.assessment_version ?? 1) !== runtimeVersion) {
-        return json({ error: "Assessment version changed; this session must use its pinned version" }, 409);
+      if (!(avg > 0) || !(years > 0) || !(visits > 0)) {
+        return json({ error: "Invalid economic inputs" }, 400);
       }
-      const { data: storedScores, error: scoreError } = await supabase
-        .from("scores")
-        .select("axis_id, percentage")
-        .eq("session_id", session.id);
-      if (scoreError) throw scoreError;
 
-      const axisScores: Record<string, number> = {};
-      for (const row of storedScores || []) axisScores[row.axis_id] = Number(row.percentage) || 0;
+      if (
+        referralRaw !== null &&
+        (!Number.isFinite(referralRaw) || referralRaw < 0 || referralRaw >= 100)
+      ) {
+        return json({ error: "Invalid referral percentage" }, 400);
+      }
 
-      const result = calculateAssessment(runtime.scoring, Object.fromEntries(runtime.questions.map((q) => [q.code, 0])), {
-        flow: visits,
-        ltv: avg * visits * years,
+      const base = avg * 3 * years;
+      const valueAt = (referral: number) => base / (1 - referral / 100);
+      const current = referralRaw === null ? null : valueAt(referralRaw);
+
+      return json({
+        success: true,
+        data: {
+          status: referralRaw === null ? "NOT_COMPUTED" : "COMPUTED",
+          modelCode: "P3_RECURSIVE_REFERRAL_V1",
+          basePatientValue: base,
+          referralPercentage: referralRaw,
+          visitsPerYear: 3,
+          relationshipYears: years,
+          current,
+          opt20: valueAt(20),
+          opt50: valueAt(50),
+        },
       });
-
-      const ev = calculateAssessment(
-        { ...runtime.scoring, simulator: { ...runtime.scoring.simulator, enabled: true } },
-        Object.fromEntries(runtime.questions.map((q) => [q.code, 0])),
-        { flow: visits, ltv: avg * visits * years },
-      ).evSimulator;
-
-      // Recalculate EV using the stored authoritative axis scores, without exposing mappings.
-      if (!ev) return json({ success: true, data: { current: 0, opt20: 0, opt50: 0 } });
-
-      // calculateAssessment's EV is based on its own axisScores, so derive the same value with a tiny private adapter.
-      const roleScores: Record<string, number> = {};
-      const available = Object.values(axisScores);
-      const average = available.length ? available.reduce((a, b) => a + b, 0) / available.length : 50;
-      for (const [axisId, score] of Object.entries(axisScores)) {
-        const role = runtime.assessment.axis_roles?.[axisId];
-        if (role) roleScores[role] = roleScores[role] === undefined ? score : (roleScores[role] + score) / 2;
-      }
-      for (const role of ["TRUST","COMMUNICATION","CONVERSION","RETENTION","LOYALTY","SCHEDULING","RECEPTION","ADMIN","COORDINATION","JOURNEY","OPERATIONS","TEAM","GROWTH","PROFESSIONALISM","TEAMWORK"]) {
-        if (roleScores[role] === undefined) roleScores[role] = average;
-      }
-
-      let weighted = 0, totalWeight = 0;
-      for (const [role, weight] of Object.entries(runtime.assessment.ev_mappings || {})) {
-        weighted += (roleScores[role] || 0) * Number(weight);
-        totalWeight += Number(weight);
-      }
-      const normalized = totalWeight > 0 ? weighted / totalWeight : 0;
-      const deltaMax = 0.35;
-      const base = (normalized / 100) * deltaMax * visits * (avg * visits * years);
-      const current = Math.round(base * 0.7);
-      return json({ success: true, data: { current, opt20: Math.round(current * 1.2), opt50: Math.round(current * 1.5) } });
     }
 
     return json({ error: "Unknown action" }, 400);
