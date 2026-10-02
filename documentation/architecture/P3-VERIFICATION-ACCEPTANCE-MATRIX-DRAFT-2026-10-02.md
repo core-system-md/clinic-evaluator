@@ -37,7 +37,7 @@ This document defines the checks required before P3 can become Implementation-Re
 | V-15 | component aggregation | each applicable question contributes once to its declared component/layer |
 | V-16 | mixed layers | layers remain distinct; no accidental duplication |
 | V-17 | unavailable component | unavailable is not converted to zero |
-| V-18 | existing overallScore | P3 implementation must use the owner-frozen construction of the existing `overallScore` / **معدل الكفاءة العام**; this remains the only material methodology item still open |
+| V-18 | existing overallScore | P3 implementation uses the owner-approved construction of the existing `overallScore` / **معدل الكفاءة العام**: weighted arithmetic mean of valid measured dimensions using the approved canonical dimension weights; unavailable dimensions are excluded, not zero-filled or imputed; consistency/criticality do not alter the score |
 | V-19 | economic input | economic calculation cannot modify overallScore or any core assessment score |
 
 ## 4. Consistency and criticality
@@ -126,7 +126,7 @@ For `0 ≤ r < 1`:
 ## 10. Gate condition
 
 P3 cannot become **IMPLEMENTATION-READY** until:
-1. the existing `overallScore` construction is frozen;
+1. the owner-approved `overallScore` construction is represented in the implementation/test contract;
 2. all applicable verification cases have an expected implementation/test artifact;
 3. canonical scorer/result ownership is consolidated;
 4. persistence/provenance and migration/rollback contracts are implementation-ready;
