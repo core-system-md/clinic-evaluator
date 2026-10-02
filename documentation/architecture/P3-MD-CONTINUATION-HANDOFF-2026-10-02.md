@@ -836,11 +836,11 @@ The implementation-authoritative registry contains one unresolved numeric semant
 - Medical Team / Q2c9f29 / option 2
 - `scoreMode = DIRECT_ANCHOR`
 - `anchorScore = 40`
-- `anchorScaleId = SOURCE_ANCHORS_0_40_100_PENDING_NUMERIC_FREEZE`
+- `anchorScaleId = ANCHOR_0_40_100_V1`
 - `direction = NON_MONOTONIC`
 - `sourceOptionValue = 0`
 
-The registry also still declares `numericFreezeStatus = pending P3-NEXT-02 aggregation freeze`.
+The registry also still declares `numericFreezeStatus = frozen-by-owner-scale-rule; no-global-remap`.
 
 Therefore:
 
