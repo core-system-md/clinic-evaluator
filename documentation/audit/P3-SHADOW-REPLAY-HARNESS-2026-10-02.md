@@ -14,7 +14,7 @@ The harness:
 - records the legacy overall score as a separate reference;
 - does not overwrite or update any historical row.
 
-The legacy overall is intentionally **not delta-compared to P3 profile percentages** because the P3 contract does not define a single overall composite and the new dimensions are construct-specific.
+The shadow harness is intentionally not yet delta-comparing the legacy overall to the isolated P3 profile because this harness predates integration of the approved global `overallScore`. The component/profile percentages are construct-specific; the eventual global `overallScore` will use the approved existing axis/dimension weights at the global result stage.
 
 The resulting layer-level values are emitted by the hosted test logs and become the input to the final migration decision.
 
