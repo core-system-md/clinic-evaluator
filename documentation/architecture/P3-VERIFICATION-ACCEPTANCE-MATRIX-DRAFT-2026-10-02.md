@@ -139,8 +139,9 @@ P3 cannot become **IMPLEMENTATION-READY** until:
 |---|---|---|
 | V-01–V-10 | registry, aggregation, scorer, and coverage tests; prior hosted P3 run passed | verified in isolation |
 | V-11–V-14 | registry/scorer tests and frozen scale artifacts | verified in isolation |
+| Registry linkage | Live Supabase: 93 questions / 305 options / 22 axes; every registry question now has exactly one `axisCode`; no pending scale identifiers remain; each family axis weights sum to 1 within numeric precision tolerance | verified read-only |
 | V-15–V-17 | aggregation/scorer tests | verified in isolation |
-| V-18–V-19 | `tests/p3-gate-e-contract.test.mjs` verifies the approved overallScore/economic contracts independently; local execution passed 11/11; integrated P3 runtime path is not yet wired | contract verified; integration pending |
+| V-18–V-19 | `tests/p3-gate-e-contract.test.mjs` verifies the approved overallScore/economic contracts independently; local execution passed 11/11; `tests/p3-overall-score-projection.test.mjs` passed 5/5 for axis projection + overallScore; integrated P3 runtime path is not yet wired | contract verified; integration pending |
 | V-20–V-22 | consistency, criticality, and Structured Result tests | verified in isolation |
 | V-23–V-27 | `tests/p3-gate-e-contract.test.mjs` verifies no-imputation KPI availability contracts; integrated P3 role/KPI projection is not yet wired | contract verified; integration pending |
 | V-28–V-34 | `tests/p3-gate-e-contract.test.mjs` verifies blank/0%/20%/50%/invalid referral cases and separation from core score | contract verified; integration pending |
