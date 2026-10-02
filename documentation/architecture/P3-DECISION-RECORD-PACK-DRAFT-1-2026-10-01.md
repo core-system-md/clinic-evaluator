@@ -1,3 +1,5 @@
+> **P3 DOCUMENT STATUS:** Historical decision-pack snapshot. The owner-approved D1–D14 decisions recorded later on 2026-10-02 supersede the unresolved/proposal language in this draft. Do not reopen those decisions from this document. Current P3 status is governed by `documentation/architecture/P3-CANONICAL-STATE-AND-WORKPLAN-2026-10-02.md`.
+
 # P3 — Decision Record Pack — Draft 1
 
 **Date:** 2026-10-01  
