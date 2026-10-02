@@ -73,6 +73,18 @@ The existing `overallScore` / **معدل الكفاءة العام** constructio
 - unavailable dimensions excluded, not zero-filled or imputed;
 - consistency and criticality do not modify the score.
 
+### overallScore weight boundary — CLOSED
+The approved `overallScore` formula uses the existing assessment **axis/dimension weights** as its dimension weights. The implementation normalizes their stored representation to the canonical 0–1 form without changing their intended proportions.
+Rules:
+- an assessment axis is the global `overallScore` dimension boundary for the current five published families;
+- its existing approved weight is the weight used in the arithmetic mean;
+- P3 component aggregation does not introduce component weights;
+- an unavailable axis/dimension is excluded from the numerator and denominator;
+- no imputation or reweighting beyond excluding unavailable dimensions;
+- no new weight values are introduced by P3.
+
+This is a clarification of the already-approved weighted-arithmetic-mean decision, not a new methodology decision.
+
 ### Referral percentage — CLOSED
 The system keeps the referral percentage input.
 
