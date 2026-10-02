@@ -38,7 +38,7 @@ export type P3EconomicInput = {
   referralPercentage: number | null;
 };
 
-export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & {
+export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & {\n  axisPersistenceRows: Array<Record<string, unknown>>;\n  resolvedSelections: P3ResolvedSelection[];
   scores: {
     overallScore: number | null;
     axes: Array<{ axisCode: string; score: number | null; weight: number; status: "measured" | "unavailable" }>;
@@ -217,7 +217,7 @@ export function scoreP3IntegratedV1(input: {
   consistencyRules?: P3ConsistencyRule[];
   consistencyPairs?: P3ConsistencyPair[];
   economicInput?: P3EconomicInput;
-  developmentSignals?: Array<{
+  resultStatus?: P3StructuredResultV1["status"];
     signalId: string;
     domain: string;
     sourceItems: string[];
