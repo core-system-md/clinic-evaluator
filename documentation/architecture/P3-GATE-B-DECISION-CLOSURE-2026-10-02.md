@@ -23,7 +23,7 @@ The final result keeps the existing multi-dimensional profile and the existing `
 
 `overallScore` is secondary to the detailed profile; no new “summary number” concept is being introduced.
 
-The open scoring work is only to define how the existing `overallScore` is constructed under P3.
+The scoring construction is now closed: existing `overallScore` is the weighted arithmetic mean of valid measured dimensions under the approved weights.
 
 ### Response scales
 The previously agreed rule is confirmed:
@@ -57,7 +57,7 @@ The following are no longer open owner decisions:
 - KPI catalog and mapping basis;
 - removal of fallback/imputation;
 - user-report treatment of missing roles;
-- existing `overallScore` / `معدل الكفاءة العام` retained as the secondary aggregate result; exact P3 construction remains open;
+- existing `overallScore` / `معدل الكفاءة العام` retained as the secondary aggregate result, with its P3 weighted-arithmetic-mean construction closed;
 - question-count-independent scale selection;
 - the previously recorded Q2c9f29 correction;
 - economic visit default and referral-input behavior at the business level;
