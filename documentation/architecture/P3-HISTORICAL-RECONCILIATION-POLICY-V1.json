@@ -1,0 +1,66 @@
+{
+  "schemaVersion": "P3_HISTORICAL_RECONCILIATION_POLICY_V1",
+  "status": "implementation-authoritative-non-production",
+  "defaultAction": "PRESERVE_LEGACY",
+  "classifications": {
+    "REPLAYABLE": {
+      "definition": "Stored answers cover all applicable questions; option identities resolve; assessment version is pinned; legacy result may be recomputed for comparison only.",
+      "action": "COMPUTE_P3_SHADOW_AND_COMPARE",
+      "overwriteLegacy": false
+    },
+    "LEGACY_PRESERVE": {
+      "definition": "A legacy result exists but answer-level source is incomplete or absent.",
+      "action": "PRESERVE_LEGACY_ONLY",
+      "overwriteLegacy": false
+    },
+    "UNRECONSTRUCTABLE": {
+      "definition": "Required historical identity/score lineage is absent or inconsistent.",
+      "action": "PRESERVE_AUDIT_RECORD_ONLY",
+      "overwriteLegacy": false
+    }
+  },
+  "gates": [
+    "Never overwrite legacy scores automatically.",
+    "Never replace historical visible results without an explicit versioned migration.",
+    "P3 shadow results must retain legacy result independently.",
+    "Assessment version and legacy scoring engine version must remain attributable.",
+    "A missing answer source is a data-retention limitation, not evidence for a zero or inferred response.",
+    "Historical trap penalties are not reintroduced during reconciliation.",
+    "Any numerical difference between legacy and P3 is a comparison artifact until migration approval."
+  ],
+  "currentDataDisposition": {
+    "admin-reception-assessment": {
+      "completedSessions": 1,
+      "fullyAnswered": 1,
+      "classification": "REPLAYABLE"
+    },
+    "clinic-performance": {
+      "completedSessions": 5,
+      "fullyAnswered": 0,
+      "classification": "LEGACY_PRESERVE"
+    },
+    "medical-team-assessment": {
+      "completedSessions": 4,
+      "fullyAnswered": 0,
+      "classification": "LEGACY_PRESERVE"
+    },
+    "comprehensive-clinic-assessment": {
+      "completedSessions": 0,
+      "fullyAnswered": 0,
+      "classification": "UNRECONSTRUCTABLE"
+    },
+    "patient-journey": {
+      "completedSessions": 7,
+      "fullyAnswered": 1,
+      "classification": "REPLAYABLE"
+    }
+  },
+  "requiredBeforeProductionMigration": [
+    "shadow-replay evidence for every replayable session",
+    "legacy-vs-P3 diff report",
+    "owner decision on historical display policy",
+    "rollback path",
+    "versioned migration artifact",
+    "post-migration verification"
+  ]
+}
