@@ -42,7 +42,7 @@ The economic section keeps the referral-percentage input.
 - The default visit count is 3 visits per year.
 - The visit unit in the new contract is annual, not monthly.
 
-The exact mathematical effect of the referral percentage is still open and must not be invented in code.
+The mathematical effect is now owner-approved: each referred patient is assumed to have the same annual visits (3), visit value, relationship years, and referral percentage as the originating patient. Referral value therefore propagates recursively across downstream generations. For `r = referral_percentage / 100`, `0 ≤ r < 1`: `BasePatientValue = average_visit_value × 3 × relationship_years`; `EconomicValue = BasePatientValue / (1 - r)`. Blank referral remains unavailable; explicit 0% produces no referral contribution. This is an Economic Opportunity calculation only and never changes `overallScore`.
 
 ### Consistency and criticality
 The current V1 rule is confirmed:
@@ -73,12 +73,12 @@ Which measured dimensions/components participate in this existing aggregate and 
 
 Unavailable or unsupported dimensions must not be converted into invented values.
 
-### Decision B — referral percentage
+### Decision B — referral percentage — CLOSED
 The system keeps the referral percentage input.
 
 Business meaning is fixed: it represents the expected number of new patients attributable to one patient's recommendation, expressed as a percentage of one patient. There is no default; blank means unavailable, while an entered 0% means explicit zero. When supplied, it affects economic value only and does not change the assessment score.
 
-The remaining Gate B work is only the monetary equation that converts this expected referral yield into economic value. It must use the existing economic model as its starting point and must not be invented as a production change.
+The approved monetary model is recursive: every referred patient is assumed to carry the same visits/year, visit value, relationship years, and referral percentage. Therefore the economic value is a geometric series. For `r = referral_percentage / 100`, `0 ≤ r < 1`: `EconomicValue = BasePatientValue / (1-r)`, where `BasePatientValue = average_visit_value × 3 × relationship_years`.
 
 ## 4. Non-production boundary
 This record changes documentation only.
@@ -92,7 +92,7 @@ It does not:
 - delete legacy records.
 
 ## 5. Next work
-After Decisions A and B are closed:
+After Decision A is closed:
 1. finalize component/profile aggregation;
 2. complete historical-data reconciliation;
 3. integrate the single P3 result path;
