@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment } from "./score-engine.ts";
+import { calculateP3Production } from "./p3-production-adapter.mts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -653,105 +653,154 @@ Deno.serve(async (req) => {
       if ("error" in auth) return json({ error: auth.error }, auth.status);
       const { access } = auth;
 
-      let sessionQuery = supabase.from("sessions").select("id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status");
-      sessionQuery = sessionFilter(sessionQuery, access);
+      const sessionQuery = sessionFilter(
+        supabase
+          .from("sessions")
+          .select("id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status"),
+        access,
+      );
       const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
       if (sessionError) throw sessionError;
       if (!session) return json({ error: "Assessment session not found" }, 404);
 
-      const runtime = await loadAssessment(session.assessment_type_id);
-      const runtimeVersion = Number(runtime.assessment.version ?? runtime.assessment.config_version ?? 1);
-      if (Number(session.assessment_version ?? 1) !== runtimeVersion) {
-        return json({ error: "Assessment version changed; this session must be completed with its pinned version" }, 409);
-      }
+      if (session.status === "completed") {
+        const { data: storedResult, error: resultError } = await supabase
+          .from("assessment_results")
+          .select("id, result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at, result_status")
+          .eq("session_id", session.id)
+          .maybeSingle();
+        if (resultError) throw resultError;
 
-      const { data: dbAnswers, error: answersError } = await supabase
-        .from("answers")
-        .select("question_id, option_index, option_value")
-        .eq("session_id", session.id);
-      if (answersError) throw answersError;
-
-      const answerMap: Record<string, number> = {};
-      for (const answer of dbAnswers || []) {
-        const question = runtime.questions.find((q) => q.code === answer.question_id);
-        const option = runtime.options.find((o) => o.question_id === question?.id && o.option_index === answer.option_index);
-        if (!question || !option || Number(answer.option_value) !== Number(option.option_value)) {
-          return json({ error: "Answer integrity check failed" }, 409);
+        if (storedResult?.result) {
+          const structured = storedResult.result as any;
+          const axisScores: Record<string, number> = {};
+          for (const axis of structured?.scores?.axes || []) {
+            if (Number.isFinite(axis?.score)) axisScores[String(axis.axisCode)] = Number(axis.score);
+          }
+          const kpis: Record<string, number> = {};
+          for (const kpi of structured?.kpis || []) {
+            if (kpi?.status !== "unavailable" && Number.isFinite(kpi?.value)) {
+              kpis[String(kpi.kpiCode)] = Number(kpi.value);
+            }
+          }
+          return json({
+            success: true,
+            data: {
+              overallScore: Number.isFinite(structured?.scores?.overallScore) ? Number(structured.scores.overallScore) : null,
+              classification: structured?.classification?.bandCode ?? null,
+              axisScores,
+              kpis,
+              evSimulator: null,
+              traps: [],
+              structuredResult: structured,
+              provenance: {
+                assessmentVersion: storedResult.assessment_version,
+                interpretationVersion: storedResult.interpretation_version,
+                scoringEngineVersion: storedResult.scoring_engine_version,
+                scoringContractVersion: storedResult.scoring_contract_version,
+                assessmentConfigDigest: storedResult.assessment_config_digest,
+                calculatedAt: storedResult.calculated_at,
+              },
+              already_completed: true,
+              session_id: session.id,
+              assessment_version: session.assessment_version,
+            },
+          });
         }
-        if (answerMap[question.code] !== undefined) {
-          return json({ error: "Duplicate answer detected" }, 409);
-        }
-        answerMap[question.code] = Number(option.option_value);
-      }
 
-      const required = runtime.questions.filter((q) => q.is_required !== false).map((q) => q.code);
-      const missing = required.filter((code) => answerMap[code] === undefined);
-      if (missing.length) return json({ error: "Assessment incomplete", missing_count: missing.length }, 409);
+        const { data: lead } = await supabase
+          .from("leads")
+          .select("score_percentage")
+          .eq("id", session.lead_id)
+          .maybeSingle();
 
-      const result = calculateAssessment(runtime.scoring, answerMap);
-
-      const scoreRows = runtime.axes.map((axis) => ({
-        axis_id: axis.code,
-        axis_name_ar: axis.title_ar || axis.title,
-        axis_name_en: axis.title,
-        raw_score: Math.round(result.axisScores[axis.code] || 0),
-        max_possible: 100,
-        percentage: result.axisScores[axis.code] || 0,
-        weight: Number(axis.weight) || 1,
-        weighted_score: (result.axisScores[axis.code] || 0) * (Number(axis.weight) || 1),
-        grade: result.axisScores[axis.code] >= 75 ? "Q4" : result.axisScores[axis.code] >= 50 ? "Q3" : result.axisScores[axis.code] >= 25 ? "Q2" : "Q1",
-      }));
-
-      const rpcName = access.assessment_user_id
-        ? "complete_assessment_session"
-        : "complete_public_assessment_session";
-
-      const rpcPayload = access.assessment_user_id
-        ? {
-          p_session_id: session.id,
-          p_assessment_user_id: access.assessment_user_id,
-          p_overall_score: result.overallScore,
-          p_classification: result.classification,
-          p_score_rows: scoreRows,
-        }
-        : {
-          p_session_id: session.id,
-          p_score_rows: scoreRows,
-          p_overall_score: result.overallScore,
-          p_classification: result.classification,
-        };
-
-      const { data: completed, error: completionError } = await supabase.rpc(rpcName, rpcPayload);
-      if (completionError) throw completionError;
-
-      if (completed?.already_completed) {
-        const { data: storedScores } = await supabase
-          .from("scores")
-          .select("axis_id, percentage")
-          .eq("session_id", session.id);
-
-        const axisScores: Record<string, number> = {};
-        for (const row of storedScores || []) axisScores[row.axis_id] = Number(row.percentage) || 0;
-        const overallScore = Number(completed.overall_score) || 0;
         return json({
           success: true,
           data: {
-            ...result,
-            overallScore,
-            classification: result.classification,
-            axisScores,
+            overallScore: lead?.score_percentage ?? null,
+            classification: null,
+            axisScores: {},
+            kpis: {},
+            evSimulator: null,
+            traps: [],
+            structuredResult: null,
+            provenance: null,
             already_completed: true,
+            session_id: session.id,
+            assessment_version: session.assessment_version,
           },
         });
       }
 
+      const economicInput = data.economic_input && typeof data.economic_input === "object"
+        ? {
+            averageVisitValue: data.economic_input.averageVisitValue ?? null,
+            relationshipYears: data.economic_input.relationshipYears ?? null,
+            referralPercentage: data.economic_input.referralPercentage ?? null,
+          }
+        : undefined;
+
+      const computed = await calculateP3Production(supabase, {
+        sessionId: session.id,
+        economicInput,
+      });
+
+      const {
+        resolvedSelections: _resolvedSelections,
+        axisPersistenceRows: _axisPersistenceRows,
+        ...structuredResult
+      } = computed.result;
+
+      const rpcName = access.assessment_user_id
+        ? "complete_p3_assessment_session"
+        : "complete_p3_public_assessment_session";
+
+      const rpcPayload = access.assessment_user_id
+        ? {
+            p_session_id: session.id,
+            p_access_token_hash: access.tokenHash,
+            p_assessment_user_id: access.assessment_user_id,
+            p_overall_score: computed.provenance ? computed.result.scores.overallScore : null,
+            p_classification: computed.result.classification.bandCode ?? "",
+            p_score_rows: computed.scoreRows,
+            p_assessment_version: computed.provenance.assessmentVersion,
+            p_interpretation_version: computed.provenance.interpretationVersion,
+            p_scoring_engine_version: computed.provenance.scoringEngineVersion,
+            p_scoring_contract_version: computed.provenance.scoringContractVersion,
+            p_assessment_config_digest: computed.provenance.assessmentConfigDigest,
+            p_result: structuredResult,
+          }
+        : {
+            p_session_id: session.id,
+            p_access_token_hash: access.tokenHash,
+            p_overall_score: computed.result.scores.overallScore,
+            p_classification: computed.result.classification.bandCode ?? "",
+            p_score_rows: computed.scoreRows,
+            p_assessment_version: computed.provenance.assessmentVersion,
+            p_interpretation_version: computed.provenance.interpretationVersion,
+            p_scoring_engine_version: computed.provenance.scoringEngineVersion,
+            p_scoring_contract_version: computed.provenance.scoringContractVersion,
+            p_assessment_config_digest: computed.provenance.assessmentConfigDigest,
+            p_result: structuredResult,
+          };
+
+      const { data: completed, error: completionError } = await supabase.rpc(rpcName, rpcPayload);
+      if (completionError) throw completionError;
+
+      const storedStructured = (completed?.result || structuredResult) as any;
+
       return json({
         success: true,
         data: {
-          ...result,
-          already_completed: false,
+          ...computed.legacyProjection,
+          structuredResult: storedStructured,
+          provenance: {
+            ...computed.provenance,
+            calculatedAt: storedStructured?.identity?.calculatedAt ?? null,
+          },
+          already_completed: Boolean(completed?.already_completed),
           session_id: session.id,
-          assessment_version: runtime.assessment.version ?? runtime.assessment.config_version ?? 1,
+          assessment_version: computed.provenance.assessmentVersion,
         },
       });
     }
