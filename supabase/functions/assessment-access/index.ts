@@ -760,7 +760,7 @@ Deno.serve(async (req) => {
             p_session_id: session.id,
             p_access_token_hash: access.tokenHash,
             p_assessment_user_id: access.assessment_user_id,
-            p_overall_score: computed.provenance ? computed.result.scores.overallScore : null,
+            p_overall_score: computed.result.scores.overallScore,
             p_classification: computed.result.classification.bandCode ?? "",
             p_score_rows: computed.scoreRows,
             p_assessment_version: computed.provenance.assessmentVersion,
