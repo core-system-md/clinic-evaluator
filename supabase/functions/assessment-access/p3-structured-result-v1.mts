@@ -30,7 +30,7 @@ export type P3StructuredKPI = {
 
 export type P3StructuredResultV1 = {
   schemaVersion: "P3_STRUCTURED_RESULT_V1";
-  status: "NON_PRODUCTION";
+  status: "NON_PRODUCTION" | "PRODUCTION";
   identity: {
     sessionId: string;
     assessmentFamilyId: string;
@@ -161,7 +161,7 @@ export function buildP3StructuredResultV1(input: {
 
   return {
     schemaVersion: "P3_STRUCTURED_RESULT_V1",
-    status: "NON_PRODUCTION",
+    status: input.resultStatus ?? "NON_PRODUCTION",
     identity: {
       sessionId: input.sessionId,
       assessmentFamilyId: input.assessmentFamilyId,
