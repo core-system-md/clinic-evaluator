@@ -235,8 +235,7 @@ begin
     'completed_at', v_completed_at
   );
 end;
-$function$
-
+$function$;
 
 CREATE OR REPLACE FUNCTION public.complete_p3_public_assessment_session(p_session_id uuid, p_access_token_hash text, p_overall_score numeric, p_classification text, p_score_rows jsonb, p_assessment_version integer, p_interpretation_version integer, p_scoring_engine_version text, p_scoring_contract_version text, p_assessment_config_digest text, p_result jsonb)
  RETURNS jsonb
@@ -450,5 +449,5 @@ begin
     'completed_at', v_completed_at
   );
 end;
-$function$
+$function$;
 
