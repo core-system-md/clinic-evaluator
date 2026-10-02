@@ -63,17 +63,17 @@ The following are no longer open owner decisions:
 - economic visit default and referral-input behavior at the business level;
 - V1 consistency and criticality behavior.
 
-## 3. Only remaining Gate B decisions
+## 3. Gate B decision status
 
-### Decision A — existing overallScore
-The system already has `overallScore`, displayed to users as **معدل الكفاءة العام**.
+**No remaining Gate B owner decision is open.**
 
-What remains to be frozen for P3:
-Which measured dimensions/components participate in this existing aggregate and how the canonical weights are applied.
+The existing `overallScore` / **معدل الكفاءة العام** construction is closed as:
+- weighted arithmetic mean of valid measured dimensions;
+- approved canonical dimension weights;
+- unavailable dimensions excluded, not zero-filled or imputed;
+- consistency and criticality do not modify the score.
 
-Unavailable or unsupported dimensions must not be converted into invented values.
-
-### Decision B — referral percentage — CLOSED
+### Referral percentage — CLOSED
 The system keeps the referral percentage input.
 
 Business meaning is fixed: it represents the expected number of new patients attributable to one patient's recommendation, expressed as a percentage of one patient. There is no default; blank means unavailable, while an entered 0% means explicit zero. When supplied, it affects economic value only and does not change the assessment score.
@@ -92,11 +92,8 @@ It does not:
 - delete legacy records.
 
 ## 5. Next work
-After Decision A is closed:
-1. finalize component/profile aggregation;
-2. complete historical-data reconciliation;
-3. integrate the single P3 result path;
-4. complete the pre-Implementation-Ready verification package;
-5. issue the Implementation-Ready record.
+1. Complete Gate D integration and canonical path consolidation.
+2. Complete Gate E verification evidence.
+3. Issue the final Gate F Implementation-Ready record when its exit conditions are met.
 
 No production implementation is authorized by this document.
