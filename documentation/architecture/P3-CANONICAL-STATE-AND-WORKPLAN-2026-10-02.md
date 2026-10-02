@@ -242,7 +242,8 @@ Never restart P3 discovery merely because an older draft uses a different filena
 Gate A is complete.
 Gate B is complete.
 Gate C is complete.
+Gate D is complete at the design boundary.
 
-Continue Gate D integration, then Gate E verification, then Gate F final Implementation-Ready review.
+Continue Gate E verification, then Gate F final Implementation-Ready review.
 
 No owner-level methodology decision is currently open.
