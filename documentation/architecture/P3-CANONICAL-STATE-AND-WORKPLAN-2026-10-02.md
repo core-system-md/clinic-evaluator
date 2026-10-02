@@ -45,11 +45,24 @@ The branch `documentation/audit-and-decisions` is a historical baseline for the 
 - Production scoring has not been switched to the P3 scorer.
 - No P3 production migration/schema activation has been performed.
 
+### CLOSED / METHODOLOGY DECISIONS NOW FROZEN
+
+- KPI basis is the existing KPI catalog and existing mapping weights: TFI, TAP, PRP, PLI, PSI, NPI, EVI, TCI, with RRI for Admin/Reception.
+- KPI calculation uses only roles actually measured by the assessment.
+- Missing roles are never filled by an overall/axis average or any other invented value.
+- User-facing final reports do not discuss missing-role substitution. A KPI that cannot be supported by the available measured roles is omitted rather than shown as a fabricated zero.
+- The result is a multi-dimensional profile plus an optional single summary score. The summary score is not the sole result and does not replace the profile.
+- The response-scale rule is closed: scale selection follows question meaning; there is no global remapping by option count.
+- The Medical Team Q2c9f29 correction is recorded in the response registry as the design correction 100/40/40/0; this remains design-only and is not a production value change.
+- V1 consistency remains signal-only (scoreEffect = NONE).
+- V1 criticality remains separate from score; critical findings require review and are not converted into an automatic penalty or gate.
+- Component aggregation remains the primary measurement boundary, with mixed measurement layers preserved and missing values never converted to zero.
+
 ### DESIGN-COMPLETE / VERIFIED IN ISOLATION
 
 - Option-level registry coverage: 93 questions / 305 options.
 - Component/profile aggregation module.
-- Consistency rule engine with V1 default `scoreEffect = NONE`.
+- Consistency rule engine with V1 default scoreEffect = NONE.
 - Criticality/coverage module.
 - Structured Result assembler.
 - Isolated P3 profile scorer.
@@ -61,18 +74,16 @@ These are module/design closures, not P3 stage closure.
 
 ### OPEN / REQUIRES COMPLETION
 
-1. Synchronize the response-interpretation registry with the already-recorded owner semantic correction for Medical Team Q2c9f29. This is an artifact-consistency task; do not reopen the 93-question analysis unless new evidence contradicts the recorded decision.
-2. Freeze the exact numeric scale selection where still undecided, including whether the proposed five-state maturity anchors are activated for the affected items. No global remapping is allowed.
-3. Freeze component/profile numeric aggregation as a complete methodology, including treatment of eligible layers, missingness, and any secondary composite. V1 currently keeps the overall composite null unless a separate owner-approved decision changes that.
-4. Define the KPI model: KPI catalog, role/component inputs, availability/partial/unavailable semantics, and prohibition of unsupported-role imputation.
-5. Define the economic model separately: inputs, units/flow semantics, formula/scenarios, and explicit non-interaction with the core assessment score.
-6. Reconcile current legacy data lineage:
+1. Freeze the exact construction of the optional summary score: which measured dimensions participate and how their weights are applied. The existence of the summary score is approved; its exact equation is not yet frozen.
+2. Freeze the exact economic calculation: the default visit input is 3 visits per year; referral percentage has no default and, when supplied by the user, must affect the resulting economic value. The exact meaning and mathematical effect of the referral percentage still need one explicit rule.
+3. Complete the component/profile aggregation detail around partial/eligible layers and the relationship between the profile and the approved optional summary score.
+4. Reconcile current legacy data lineage:
    - 15 completed sessions with scores but no session-linked answers;
    - 12 answer rows without session_id;
    - 123 score rows without session_id.
    These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
-7. Produce the final integrated P3 design package: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded modules/paths.
-8. Produce the pre-Implementation-Ready verification package: acceptance matrix, deterministic fixtures, current-data validation, migration/rollback design, provenance/persistence design, security/runtime checks, and documented closure evidence.
+5. Produce the final integrated P3 design package: one scorer pipeline, one structured-result path, one canonical source for each rule, and explicit disposition of superseded modules/paths.
+6. Produce the pre-Implementation-Ready verification package: acceptance matrix, deterministic fixtures, current-data validation, migration/rollback design, provenance/persistence design, security/runtime checks, and documented closure evidence.
 
 ## 4. Production reality
 
@@ -121,13 +132,18 @@ Actions:
 ### Gate B — Finish methodology decisions
 **Objective:** all material measurement behavior is decided before implementation.
 
-Work:
-- close registry synchronization;
-- close any remaining numeric-scale decisions;
-- confirm complete component/profile aggregation behavior;
-- define KPIs;
-- define economics;
-- confirm criticality/consistency effects remain non-automatic unless explicitly versioned.
+Completed within Gate B:
+- KPI catalog/mapping basis and no-imputation rule.
+- Response-scale selection rule and Q2c9f29 artifact correction.
+- V1 consistency behavior.
+- V1 criticality behavior.
+- Multi-dimensional profile plus optional summary score direction.
+- Economic input defaults and referral-input behavior at the business level.
+
+Still active:
+- exact optional summary-score equation;
+- exact referral-percentage economic equation;
+- final component/profile aggregation detail needed to connect the profile to the optional summary score.
 
 **Exit:** no material product/methodology decision remains open.
 
@@ -216,6 +232,12 @@ Never restart P3 discovery merely because an older draft uses a different filena
 
 ## 9. Immediate next action
 
-**Gate A is now the active action: documentation reconciliation is complete with this canonical record.**
+Gate A is complete.
 
-Next active work is **Gate B — finish only the genuinely unresolved methodology decisions**, starting with KPI design and the remaining numeric/aggregation closure.
+Gate B is now narrowed to two concrete decisions only:
+1. the exact equation of the optional summary score;
+2. the exact way the referral percentage changes the economic result.
+
+Everything else above is either already decided, documented, or can proceed as evidence/reconciliation work without inventing new rules.
+
+After these two points are closed, the work continues through the remaining aggregation/data/integration/verification gates.
