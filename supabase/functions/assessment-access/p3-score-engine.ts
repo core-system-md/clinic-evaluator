@@ -37,6 +37,7 @@ export type P3ItemInterpretation = {
   direction: "POSITIVE" | "NEGATIVE" | "CONTEXTUAL" | "NON_MONOTONIC";
   scoreMode: P3ScoreMode;
   anchorScore?: number;
+  anchorMax?: number;
   scoreEligible: boolean;
   criticality: P3Criticality;
   consistencyRole?: string;
@@ -113,15 +114,24 @@ function coverageStatus(c: Omit<P3Coverage, "coverageRatio" | "coverageStatus">)
   return "ADEQUATE";
 }
 
-function buildCoverage(items: P3ItemResult[]): P3Coverage {
-  const expectedApplicable = items.length;
+function buildCoverage(items: P3ItemResult[], expectedApplicable = items.length): P3Coverage {
   const answered = items.filter((x) => x.answered).length;
-  const scored = items.filter((x) => x.answered && x.scoreEligible && x.scoreMode === "DIRECT_ANCHOR").length;
-  const missing = expectedApplicable - answered;
+  const scored = items.filter(
+    (x) => x.answered && x.scoreEligible && x.scoreMode === "DIRECT_ANCHOR"
+      && Number.isFinite(x.anchorScore) && Number.isFinite(x.anchorMax) && Number(x.anchorMax) > 0,
+  ).length;
+  const missing = Math.max(expectedApplicable - answered, 0);
   const semanticOnly = items.filter((x) => x.answered && x.scoreMode === "SEMANTIC_ONLY").length;
   const evidenceOnly = items.filter((x) => x.answered && x.scoreMode === "EVIDENCE_ONLY").length;
   const signalOnly = items.filter((x) => x.answered && x.scoreMode === "SIGNAL_ONLY").length;
-  const unsupported = items.filter((x) => x.answered && !x.scoreEligible && x.scoreMode === "DIRECT_ANCHOR").length;
+  const unsupported = items.filter(
+    (x) => x.answered && x.scoreMode === "DIRECT_ANCHOR" && (
+      !x.scoreEligible
+      || !Number.isFinite(x.anchorScore)
+      || !Number.isFinite(x.anchorMax)
+      || Number(x.anchorMax) <= 0
+    ),
+  ).length;
   const notApplicable = 0;
   const base = { expectedApplicable, answered, scored, missing, semanticOnly, evidenceOnly, signalOnly, unsupported, notApplicable };
   return {
@@ -139,6 +149,7 @@ export function buildP3StructuredResult(input: {
   scoringEngineVersion: string;
   answers: P3Answer[];
   interpretations: P3ItemInterpretation[];
+  applicableQuestionCodes?: string[];
 }): P3StructuredResult {
   const answersByQuestion = new Map(input.answers.map((a) => [a.questionCode, a]));
 
@@ -177,7 +188,8 @@ export function buildP3StructuredResult(input: {
     componentMap.set(item.componentCode, component);
   }
 
-  const coverage = buildCoverage(selected);
+  const expectedApplicable = input.applicableQuestionCodes?.length ?? selected.length;
+  const coverage = buildCoverage(selected, expectedApplicable);
   return {
     identity: {
       assessmentFamilyId: input.assessmentFamilyId,
@@ -198,16 +210,23 @@ export function buildP3StructuredResult(input: {
 /**
  * Numeric aggregation is deliberately explicit.
  * This helper only aggregates eligible direct-anchor items in one component/layer.
+ * Every numeric anchor must carry its own explicit maximum scale.
  * It does not apply weights, traps, penalties, or overall composites.
  */
 export function aggregateDirectAnchors(items: P3ItemResult[]) {
   const eligible = items.filter(
-    (i) => i.selected && i.answered && i.scoreEligible && i.scoreMode === "DIRECT_ANCHOR" && Number.isFinite(i.anchorScore),
+    (i) => i.selected
+      && i.answered
+      && i.scoreEligible
+      && i.scoreMode === "DIRECT_ANCHOR"
+      && Number.isFinite(i.anchorScore)
+      && Number.isFinite(i.anchorMax)
+      && Number(i.anchorMax) > 0,
   );
   if (!eligible.length) return { rawScore: null, maxPossible: null, percentage: null, count: 0 };
 
   const rawScore = eligible.reduce((sum, i) => sum + Number(i.anchorScore), 0);
-  const maxPossible = eligible.length * 100;
+  const maxPossible = eligible.reduce((sum, i) => sum + Number(i.anchorMax), 0);
   return {
     rawScore,
     maxPossible,
