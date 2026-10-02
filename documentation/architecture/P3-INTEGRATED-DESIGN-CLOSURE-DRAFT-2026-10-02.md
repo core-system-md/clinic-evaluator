@@ -32,7 +32,6 @@ The future implementation must have one canonical scorer path. The currently exi
 
 The duplicate experimental responsibilities currently present are:
 
-- `p3-score-engine.mts`
 - `p3-scorer-v1.mts`
 - `p3-aggregation-engine.mts`
 - `p3-structured-result-v1.mts`
@@ -98,14 +97,15 @@ The implementation target is one deterministic server-side path:
 
 These existing `p3-*` files remain non-production artifacts until implementation is explicitly authorized:
 
-- `p3-score-engine.mts`: superseded duplicate structured-result/score assembly; not a production source.
-- `p3-scorer-v1.mts`: integration/orchestration starting point; it must become the single scorer entry path rather than a competing kernel.
+- `p3-scorer-v1.mts`: canonical response interpretation entry.
+- `p3-integrated-scorer-v1.mts`: canonical non-production integration entry.
+
 - `p3-aggregation-engine.mts`: owns component/layer aggregation only.
 - `p3-consistency-engine.mts`: owns consistency findings only.
 - `p3-criticality-coverage-engine.mts`: owns coverage/criticality only.
 - `p3-structured-result-v1.mts`: owns final Structured Result assembly only.
 
-No duplicate module is deleted or merged into production during design.
+The superseded `p3-score-engine.mts` duplicate was removed from the non-production integration branch. This is an internal artifact cleanup only; no production path was changed.
 
 ### 6.4 Persistence and security boundary
 
