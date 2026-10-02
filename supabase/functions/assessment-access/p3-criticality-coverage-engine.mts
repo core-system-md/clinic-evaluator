@@ -30,7 +30,7 @@ export type P3CoverageItem = {
   questionCode: string;
   answered: boolean;
   interpreted: boolean;
-  numericUnsupported?: boolean;
+  scoreClass?: "NUMERIC" | "SEMANTIC_ONLY" | "EVIDENCE_ONLY" | "SIGNAL_ONLY" | "UNSUPPORTED";
 };
 
 export type P3CoverageResult = {
@@ -71,10 +71,19 @@ export function buildP3Coverage(
     (item) => item.answered && item.interpreted,
   ).length;
   const scoredItems = items.filter(
-    (item) => item.answered && item.interpreted && !item.numericUnsupported,
+    (item) => item.answered && item.interpreted && item.scoreClass === "NUMERIC",
+  ).length;
+  const semanticOnlyItems = items.filter(
+    (item) => item.answered && item.interpreted && item.scoreClass === "SEMANTIC_ONLY",
+  ).length;
+  const evidenceOnlyItems = items.filter(
+    (item) => item.answered && item.interpreted && item.scoreClass === "EVIDENCE_ONLY",
+  ).length;
+  const signalOnlyItems = items.filter(
+    (item) => item.answered && item.interpreted && item.scoreClass === "SIGNAL_ONLY",
   ).length;
   const unsupportedItems = items.filter(
-    (item) => item.answered && item.numericUnsupported,
+    (item) => item.answered && item.scoreClass === "UNSUPPORTED",
   ).length;
   const missingItems = Math.max(expectedApplicableItems - answeredItems, 0);
   const coverageRatio = expectedApplicableItems
@@ -100,9 +109,9 @@ export function buildP3Coverage(
     interpretedItems,
     scoredItems,
     missingItems,
-    semanticOnlyItems: 0,
-    evidenceOnlyItems: 0,
-    signalOnlyItems: 0,
+    semanticOnlyItems,
+    evidenceOnlyItems,
+    signalOnlyItems,
     unsupportedItems,
     notApplicableItems: 0,
     coverageRatio,
