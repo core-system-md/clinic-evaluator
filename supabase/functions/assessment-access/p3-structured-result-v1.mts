@@ -59,6 +59,10 @@ export type P3StructuredResultV1 = {
   measurement: {
     profile: P3ProfileAggregation;
   };
+  scores: {
+    overallScore: number | null;
+    axes: Array<{ axisCode: string; score: number | null; weight: number; status: "measured" | "unavailable" }>;
+  };
   coverage: P3CoverageResult;
   consistency: {
     findings: P3ConsistencyFinding[];
@@ -111,6 +115,8 @@ export function buildP3StructuredResultV1(input: {
   inputLineage: string[];
   responses: P3StructuredResultV1["inputs"]["responses"];
   profile: P3ProfileAggregation;
+  overallScore: number | null;
+  axisScores: P3StructuredResultV1["scores"]["axes"];
   coverage: P3CoverageResult;
   consistencyFindings: P3ConsistencyFinding[];
   criticality: P3CriticalityResult;
@@ -174,6 +180,7 @@ export function buildP3StructuredResultV1(input: {
     },
     inputs: { responses: input.responses.map((response) => ({ ...response })) },
     measurement: { profile: input.profile },
+    scores: { overallScore: input.overallScore, axes: input.axisScores },
     coverage: input.coverage,
     consistency: { findings: input.consistencyFindings },
     criticality: input.criticality,
