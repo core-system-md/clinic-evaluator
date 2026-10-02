@@ -75,7 +75,7 @@ These are module/design closures, not P3 stage closure.
 ### OPEN / REQUIRES COMPLETION
 
 1. Freeze the P3 construction of the existing `overallScore` / `معدل الكفاءة العام`: which measured dimensions participate and how their weights are applied. The concept itself is existing system behavior, not a new product decision.
-2. Freeze the exact economic calculation: the default visit input is 3 visits per year; referral percentage has no default and, when supplied by the user, must affect the resulting economic value. The exact meaning and mathematical effect of the referral percentage still need one explicit rule.
+2. Referral economic calculation — CLOSED: default visits are 3/year; referral has no default; supplied referral propagates recursively under the owner-approved geometric model; blank remains unavailable.
 3. Complete the component/profile aggregation detail around partial/eligible layers and the relationship between the profile and the existing `overallScore`.
 4. Gate C historical reconciliation is complete as evidence-only disposition:
    - 15 completed sessions with scores but no session-linked answers → preserve as legacy;
@@ -139,10 +139,11 @@ Completed within Gate B:
 - V1 criticality behavior.
 - Existing `overallScore` / `معدل الكفاءة العام` remains a secondary aggregate result; P3 must reconcile its construction with the new profile.
 - Economic input defaults and referral-input behavior at the business level.
+- Referral economic equation is now owner-approved: referral percentage is recursive across downstream patient generations; each referred patient uses the same visits/year (3), visit value, relationship years, and referral percentage. For `r = referral_percentage/100`, `0 ≤ r < 1`: `BasePatientValue = average_visit_value × 3 × relationship_years`; `EconomicValue = BasePatientValue / (1-r)`. Blank referral is unavailable; explicit 0% contributes no referral value. This affects economics only, never `overallScore`.
 
 Still active:
 - exact P3 construction of the existing `overallScore`;
-- exact referral-percentage economic equation;
+- exact referral-percentage economic equation — CLOSED by owner approval;
 - final component/profile aggregation detail needed to connect the profile to the existing `overallScore`.
 
 **Exit:** no material product/methodology decision remains open.
@@ -238,10 +239,7 @@ Never restart P3 discovery merely because an older draft uses a different filena
 
 Gate A is complete.
 
-Gate B is now narrowed to two concrete decisions only:
-1. the exact P3 construction of the existing `overallScore`;
-2. the exact way the referral percentage changes the economic result;
-3. complete Gate D integration and then Gate E verification.
+Gate B now has one remaining methodology decision: the exact P3 construction of the existing `overallScore` / `معدل الكفاءة العام`. The referral economic equation is closed by owner approval. Continue Gate D integration and then Gate E verification.
 
 Everything else above is either already decided, documented, or can proceed as evidence/reconciliation work without inventing new rules.
 
