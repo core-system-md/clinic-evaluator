@@ -1,0 +1,71 @@
+name: P3 kernel verification
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/p3-kernel-verification.yml"
+      - "supabase/functions/assessment-access/p3-score-engine.ts"
+      - "tests/p3-structured-result.test.js"
+      - "package.json"
+      - "package-lock.json"
+      - "tests/**"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/p3-kernel-verification.yml"
+      - "supabase/functions/assessment-access/p3-score-engine.ts"
+      - "tests/p3-structured-result.test.js"
+      - "package.json"
+      - "package-lock.json"
+      - "tests/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  p3-kernel:
+    name: P3 isolated kernel
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Verify package metadata
+        run: node --version && npm --version
+
+      - name: Run P3 kernel tests
+        run: node --experimental-strip-types --test tests/p3-structured-result.test.js
+
+  full-tests:
+    name: Full Node test suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install locked dependencies
+        run: npm ci
+
+      - name: Run full test suite
+        run: npm test
