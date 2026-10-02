@@ -4,7 +4,7 @@
 **Status:** GOVERNING P3 WORKING STATE — DESIGN / NOT IMPLEMENTATION-READY  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Canonical branch:** `main`  
-**Canonical main commit at reconciliation:** `d7a622a8c6bc3b0d84648a9a53bbda0006618b95`
+**Current canonical main head:** `66ebdbff3e88aa5b6c100b8756d021ac87a53d9c`
 
 ## 1. Purpose
 
@@ -17,7 +17,7 @@ It does not authorize production implementation.
 For P3 continuation:
 
 1. Explicit owner decisions recorded in project history/conversation.
-2. This canonical P3 state and work-plan document on `main).
+2. This canonical P3 state and work-plan document on `main`.
 3. Approved project architecture and governance documents.
 4. Verified live runtime/database evidence.
 5. P3 design/supporting documents.
