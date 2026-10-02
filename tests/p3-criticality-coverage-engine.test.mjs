@@ -39,7 +39,7 @@ test("critical finding remains visible when coverage is full",()=>{
 });
 
 test("unsupported numeric response is not treated as safe full coverage",()=>{
- const c=buildP3Coverage([{questionCode:"Q1",answered:true,interpreted:true,numericUnsupported:true}]);
+ const c=buildP3Coverage([{questionCode:"Q1",answered:true,interpreted:true,scoreClass:"UNSUPPORTED"}]);
  assert.equal(c.coverageStatus,"UNSUPPORTED");
  assert.equal(c.coverageRatio,1);
 });
