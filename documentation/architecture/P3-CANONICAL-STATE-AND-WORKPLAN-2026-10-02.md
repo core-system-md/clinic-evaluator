@@ -164,7 +164,7 @@ Work:
 **Exit:** historical policy and current-data limitations are documented with evidence. **Met.**
 
 ### Gate D — Integrated P3 design
-**Status: IN PROGRESS.**
+**Status: COMPLETE — design boundary; no production implementation.**
 
 **Objective:** one coherent design rather than isolated modules.
 
@@ -179,6 +179,7 @@ Work:
 **Exit:** one internally consistent P3 design can be implemented without inventing rules.
 
 ### Gate E — Verification package
+**Status: IN PROGRESS.**
 **Objective:** prove the design is testable before implementation.
 
 Work:
