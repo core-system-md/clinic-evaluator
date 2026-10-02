@@ -78,7 +78,7 @@ test("KPI uses existing mapping weights and excludes missing roles", () => {
   );
   assert.equal(result.status, "partial");
   assert.ok(Math.abs(result.value - (200 / 3)) < 1e-12);
-  assert.equal(result.coverage, 0.6);
+  assert.ok(Math.abs(result.coverage - 0.6) < 1e-12);
 });
 
 test("KPI is unavailable when no mapped role is measured", () => {
