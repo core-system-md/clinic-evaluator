@@ -60,11 +60,11 @@ The production `score-engine.ts` remains untouched.
 
 ## C. Gate E interpretation
 
-These findings are implementation/integration blockers only.
+These findings are implementation/integration evidence only.
 
 No owner methodology decision is reopened.
 
-Gate E remains open until the executable non-production path passes final CI evidence and persistence/provenance + production-boundary verification are completed.
+The executable non-production path now passes hosted CI, and the current-schema persistence/security boundary has been verified read-only. Gate E is closed for pre-implementation verification. Transactional persistence, production cutover, rollback exercise, and post-cutover checks remain deployment-stage acceptance work after explicit authorization.
 
 The current integrated path is executable through:
 `selected option identity → interpretation → measurement → component/profile → overallScore → consistency/criticality/coverage → Structured Result → roles/KPIs/economics`.
