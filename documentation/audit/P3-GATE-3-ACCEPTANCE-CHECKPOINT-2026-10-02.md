@@ -1,7 +1,7 @@
 # P3 — Gate 3 Acceptance Checkpoint
 ## 2026-10-02
 
-**Status:** CLOSED
+**Status:** CLOSED — final evidence reconciled
 
 ### Implementation
 - Owner authorization received.
@@ -27,7 +27,7 @@ Observed live overall-score outputs included the expected zero baseline for all-
 
 ### Economics
 The live economic simulator was verified with:
-- blank referral → treated as 0% for the legacy simulator response path;
+- blank referral → NOT_COMPUTED / unavailable;
 - 0% → base value;
 - 20% → 1.25× base;
 - 50% → 2× base;
