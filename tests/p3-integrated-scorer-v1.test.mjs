@@ -60,13 +60,17 @@ test("all five published families execute through the single integrated path", (
 
 test("axis and overall projection exclude unavailable dimensions rather than zero-fill", () => {
   const all = run("patient-journey");
+  const axisQuestions = new Set(
+    registry.entries
+      .filter((entry) => entry.assessmentSlug === "patient-journey" && entry.axisCode === "A1")
+      .map((entry) => entry.questionCode),
+  );
   const missingAxis = run("patient-journey", {
-    selections: firstSelection("patient-journey").filter((selection) => selection.questionCode !== registry.entries.find((entry) => entry.assessmentSlug === "patient-journey" && entry.axisCode === "A1").questionCode),
+    selections: firstSelection("patient-journey").filter((selection) => !axisQuestions.has(selection.questionCode)),
   });
 
-  const firstAxisQuestion = registry.entries.find((entry) => entry.assessmentSlug === "patient-journey" && entry.axisCode === "A1").questionCode;
   const axis = missingAxis.scores.axes.find((item) => item.axisCode === "A1");
-  assert.ok(firstAxisQuestion);
+  assert.ok(axisQuestions.size > 0);
   assert.equal(axis.status, "unavailable");
 
   const expected = missingAxis.scores.axes
