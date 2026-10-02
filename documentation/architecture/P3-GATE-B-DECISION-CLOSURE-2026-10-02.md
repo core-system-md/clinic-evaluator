@@ -57,7 +57,7 @@ The following are no longer open owner decisions:
 - KPI catalog and mapping basis;
 - removal of fallback/imputation;
 - user-report treatment of missing roles;
-- profile + optional summary direction;
+- existing `overallScore` / `معدل الكفاءة العام` retained as the secondary aggregate result; exact P3 construction remains open;
 - question-count-independent scale selection;
 - the previously recorded Q2c9f29 correction;
 - economic visit default and referral-input behavior at the business level;
@@ -76,10 +76,9 @@ Unavailable or unsupported dimensions must not be converted into invented values
 ### Decision B — referral percentage
 The system keeps the referral percentage input.
 
-What still needs to be decided:
-What exactly does the percentage describe, and how should it change the resulting monetary value?
+Business meaning is fixed: it represents the expected number of new patients attributable to one patient's recommendation, expressed as a percentage of one patient. There is no default; blank means unavailable, while an entered 0% means explicit zero. When supplied, it affects economic value only and does not change the assessment score.
 
-Until this is fixed, the system must not create a made-up monetary effect.
+The remaining Gate B work is only the monetary equation that converts this expected referral yield into economic value. It must use the existing economic model as its starting point and must not be invented as a production change.
 
 ## 4. Non-production boundary
 This record changes documentation only.
