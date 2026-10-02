@@ -654,7 +654,7 @@ class ClinicEvaluatorApp {
 
     const q = res.classification || 'Q2';
     const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
-    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
+    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
 
     let trendHtml = "";
     if (this.previousSessionData) {
@@ -742,7 +742,7 @@ class ClinicEvaluatorApp {
     if (evSection) evSection.classList.toggle('hidden', !evEnabled);
 
     const leakageEl = document.getElementById('leakage-index');
-    if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
+    if (leakageEl && Number.isFinite(res.overallScore)) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
@@ -872,14 +872,16 @@ class ClinicEvaluatorApp {
     const years = parseFloat(document.getElementById('ev-years')?.value) || 0;
 
     try {
+      const referral = document.getElementById('ev-referral')?.value === '' ? null : parseFloat(document.getElementById('ev-referral')?.value);
       const result = await this.assessmentAccessRequest('calculate_ev', {
         token: this.assessmentAccessToken,
         avg,
         visits,
-        years
+        years,
+        referral
       });
 
-      const current = Number(result.current || 0);
+      const current = result.current === null ? null : Number(result.current);
       const opt20 = Number(result.opt20 || 0);
       const opt50 = Number(result.opt50 || 0);
 
@@ -888,11 +890,166 @@ class ClinicEvaluatorApp {
         if (el) el.textContent = value;
       };
 
-      setText('ev-current', '$' + current.toLocaleString());
-      setText('ev-opt20', '$' + opt20.toLocaleString());
-      setText('ev-opt50', '$' + opt50.toLocaleString());
-      setText('ev-increase20', '+$' + (opt20 - current).toLocaleString());
-      setText('ev-increase50', '+$' + (opt50 - current).toLocaleString());
+      setText('ev-current', current === null ? 'غير متاح' : '
+      document.getElementById('ev-results')?.classList.remove('hidden');
+    } catch (err) {
+      this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');
+    }
+  }
+
+  /* ─────────────── PRINT HANDLING ─────────────── */
+
+  setupPrint() {
+    document.getElementById('btn-print-report')?.addEventListener('click', () => window.print());
+  }
+
+  showLoadingGlobal(show) {
+    let overlay = document.getElementById('global-sync-loader');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-sync-loader';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:11000;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      overlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid #334155;border-top-color:#e8b923;border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+}
+
+/* ─────────────── INITIALIZE APPLICATION ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new ClinicEvaluatorApp();
+  window.app.init();
+});
+ + current.toLocaleString());
+      setText('ev-opt20', '
+      document.getElementById('ev-results')?.classList.remove('hidden');
+    } catch (err) {
+      this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');
+    }
+  }
+
+  /* ─────────────── PRINT HANDLING ─────────────── */
+
+  setupPrint() {
+    document.getElementById('btn-print-report')?.addEventListener('click', () => window.print());
+  }
+
+  showLoadingGlobal(show) {
+    let overlay = document.getElementById('global-sync-loader');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-sync-loader';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:11000;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      overlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid #334155;border-top-color:#e8b923;border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+}
+
+/* ─────────────── INITIALIZE APPLICATION ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new ClinicEvaluatorApp();
+  window.app.init();
+});
+ + opt20.toLocaleString());
+      setText('ev-opt50', '
+      document.getElementById('ev-results')?.classList.remove('hidden');
+    } catch (err) {
+      this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');
+    }
+  }
+
+  /* ─────────────── PRINT HANDLING ─────────────── */
+
+  setupPrint() {
+    document.getElementById('btn-print-report')?.addEventListener('click', () => window.print());
+  }
+
+  showLoadingGlobal(show) {
+    let overlay = document.getElementById('global-sync-loader');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-sync-loader';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:11000;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      overlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid #334155;border-top-color:#e8b923;border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+}
+
+/* ─────────────── INITIALIZE APPLICATION ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new ClinicEvaluatorApp();
+  window.app.init();
+});
+ + opt50.toLocaleString());
+      setText('ev-increase20', current === null ? 'غير متاح' : '+
+      document.getElementById('ev-results')?.classList.remove('hidden');
+    } catch (err) {
+      this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');
+    }
+  }
+
+  /* ─────────────── PRINT HANDLING ─────────────── */
+
+  setupPrint() {
+    document.getElementById('btn-print-report')?.addEventListener('click', () => window.print());
+  }
+
+  showLoadingGlobal(show) {
+    let overlay = document.getElementById('global-sync-loader');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-sync-loader';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:11000;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      overlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid #334155;border-top-color:#e8b923;border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+}
+
+/* ─────────────── INITIALIZE APPLICATION ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new ClinicEvaluatorApp();
+  window.app.init();
+});
+ + (opt20 - current).toLocaleString());
+      setText('ev-increase50', current === null ? 'غير متاح' : '+
+      document.getElementById('ev-results')?.classList.remove('hidden');
+    } catch (err) {
+      this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');
+    }
+  }
+
+  /* ─────────────── PRINT HANDLING ─────────────── */
+
+  setupPrint() {
+    document.getElementById('btn-print-report')?.addEventListener('click', () => window.print());
+  }
+
+  showLoadingGlobal(show) {
+    let overlay = document.getElementById('global-sync-loader');
+    if (!overlay) {
+      overlay = document.createElement('div');
+      overlay.id = 'global-sync-loader';
+      overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,23,42,0.6);z-index:11000;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      overlay.innerHTML = '<div style="width:40px;height:40px;border:4px solid #334155;border-top-color:#e8b923;border-radius:50%;animation:spin 1s linear infinite;"></div><style>@keyframes spin { to { transform: rotate(360deg); } }</style>';
+      document.body.appendChild(overlay);
+    }
+    overlay.style.display = show ? 'flex' : 'none';
+  }
+}
+
+/* ─────────────── INITIALIZE APPLICATION ─────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new ClinicEvaluatorApp();
+  window.app.init();
+});
+ + (opt50 - current).toLocaleString());
       document.getElementById('ev-results')?.classList.remove('hidden');
     } catch (err) {
       this.showError(err.message || 'تعذر حساب القيمة الاقتصادية حالياً.');

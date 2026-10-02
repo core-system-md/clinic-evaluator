@@ -12,7 +12,7 @@
  * It never uses source option_value as a score.
  */
 
-import registry from "../../../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
+import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
 import { aggregateP3Profile, type P3ResolvedMeasurement } from "./p3-aggregation-engine.mts";
 
 type RegistryEntry = (typeof registry.entries)[number];
@@ -28,6 +28,13 @@ export type P3ResolvedSelection = P3ResolvedMeasurement & {
   optionIndex?: number | null;
   sourceOptionValue?: number | null;
   semanticStateKey?: string;
+  measurementType?: string;
+  direction?: string;
+  criticality?: "NORMAL" | "ATTENTION" | "CRITICAL_FINDING" | "UNVERIFIED";
+  consistencyRole?: string;
+  evidenceRole?: string;
+  contextRequired?: boolean;
+  axisCode?: string;
 };
 
 export type P3ScorerV1Result = {
@@ -86,6 +93,13 @@ export function resolveP3Selections(
     selectionByQuestion.set(selection.questionCode, selection);
   }
 
+  const knownQuestionCodes = new Set(questions.map((entries) => stableQuestionMeta(entries).questionCode));
+  for (const selection of selections) {
+    if (!knownQuestionCodes.has(selection.questionCode)) {
+      throw new Error(`Unknown question identity for ${selection.questionCode}`);
+    }
+  }
+
   const resolved: P3ResolvedSelection[] = [];
 
   for (const entries of questions) {
@@ -107,6 +121,13 @@ export function resolveP3Selections(
         optionIndex: null,
         sourceOptionValue: null,
         semanticStateKey: undefined,
+        measurementType: meta.measurementType,
+        direction: meta.direction,
+        criticality: meta.criticality as P3ResolvedSelection["criticality"],
+        consistencyRole: meta.consistencyRole,
+        evidenceRole: meta.evidenceRole,
+        contextRequired: meta.contextRequired,
+        axisCode: meta.axisCode,
       });
       continue;
     }
@@ -137,6 +158,13 @@ export function resolveP3Selections(
       optionIndex: entry.optionIndex,
       sourceOptionValue: entry.sourceOptionValue,
       semanticStateKey: entry.semanticStateKey,
+      measurementType: entry.measurementType,
+      direction: entry.direction,
+      criticality: entry.criticality as P3ResolvedSelection["criticality"],
+      consistencyRole: entry.consistencyRole,
+      evidenceRole: entry.evidenceRole,
+      contextRequired: entry.contextRequired,
+      axisCode: entry.axisCode,
     });
   }
 

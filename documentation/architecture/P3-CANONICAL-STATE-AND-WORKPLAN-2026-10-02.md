@@ -1,7 +1,7 @@
 # P3 — Canonical State, Reconciliation & Work Plan
 ## 2026-10-02
 
-**Status:** GOVERNING P3 WORKING STATE — DESIGN / NOT IMPLEMENTATION-READY  
+**Status:** GOVERNING P3 WORKING STATE — IMPLEMENTATION EXECUTED / GATE 3 OPEN  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Canonical branch:** `main`  
 **Canonical source:** the current `main` branch (this document moves with it).
@@ -26,6 +26,18 @@ For P3 continuation:
 The branch `documentation/audit-and-decisions` is a historical baseline for the project up to 2026-09-30/early P2 work. It is not the canonical P3 continuation branch. It remains preserved for traceability and must not be treated as a second active source of truth.
 
 ## 3. Reconciled P3 state
+
+### IMPLEMENTATION EXECUTION STATUS — 2026-10-02
+
+- Owner authorization to implement P3 was received.
+- Additive production migration `20261002000000_p3_production_implementation` was applied.
+- Follow-up idempotent-completion migration `p3_preserve_completion_access_v2` was applied to match the existing P0 completion contract.
+- `assessment-access` is ACTIVE at Edge Function version 12 and routes completion through the P3 production adapter.
+- Production persistence now stores P3 Structured Result plus provenance in `public.assessment_results`.
+- Transactional public/protected completion verification passed, including idempotent retry behavior and rollback-cleanup checks.
+- Historical rows were not rewritten or deleted.
+- Gate 3 remains OPEN pending final post-cutover/runtime acceptance evidence and closure record.
+
 
 ### CLOSED / ALREADY AGREED
 
@@ -82,12 +94,12 @@ These are module/design closures, not P3 stage closure.
   - 123 score rows without session_id → preserve and exclude from authoritative P3 lineage.
   These are not the five deleted sessions. No deletion, repair, or guessed linkage is authorized by this document.
 
-### OPEN / REQUIRES COMPLETION — IMPLEMENTATION / VERIFICATION ONLY
+### IMPLEMENTATION-READY — READY TO EXECUTE AFTER OWNER APPROVAL
 
-1. Integrate the approved `overallScore` / `معدل الكفاءة العام` construction into the canonical P3 runtime path using the existing axis/dimension weights normalized to canonical 0–1 representation.
-2. Complete the component/profile-to-axis result projection without introducing component weights.
-3. Complete Gate E executable verification: integrated scorer/result tests, KPI/economic projection tests, persistence/provenance tests after the authorized additive migration, and production-boundary security/runtime/rollback checks.
-4. Perform the final Gate F Implementation-Ready review.
+1. The canonical non-production integrated P3 path is complete and verified by hosted CI.
+2. Persistence/provenance and migration/rollback contracts are implementation-ready against the verified current schema.
+3. Deployment-stage transactional persistence, cutover, rollback-exercise, and post-cutover checks remain acceptance work after explicit authorization.
+4. No owner methodology decision remains open.
 
 ## 4. Production reality
 
@@ -179,7 +191,7 @@ Work:
 **Exit:** one internally consistent P3 design can be implemented without inventing rules.
 
 ### Gate E — Verification package
-**Status: IN PROGRESS.**
+**Status: COMPLETE.**
 **Objective:** prove the design is testable before implementation.
 
 Verified so far:
@@ -232,7 +244,11 @@ Then and only then is the process paused for owner approval before Implementatio
 - Do not merge experimental P3 kernels into production.
 - Do not treat unit-test success as production verification.
 
-## 8. Canonical working rule
+## 8. Owner-approval boundary
+
+Implementation-Ready is a readiness state, not production authorization. Until explicit owner approval is recorded, the production scorer, production schema, and public completion path remain unchanged.
+
+## 9. Canonical working rule
 
 For any new P3 finding:
 
@@ -240,13 +256,8 @@ For any new P3 finding:
 
 Never restart P3 discovery merely because an older draft uses a different filename or status.
 
-## 9. Immediate next action
+## 10. Immediate next action
 
-Gate A is complete.
-Gate B is complete.
-Gate C is complete.
-Gate D is complete at the design boundary.
+P3 Implementation has been executed. The current state is **GATE 3 ACCEPTANCE OPEN**.
 
-Continue Gate E verification, then Gate F final Implementation-Ready review.
-
-No owner-level methodology decision is currently open.
+Remaining work is evidence-based post-cutover acceptance: production runtime/E2E verification, final security/runtime confirmation, rollback-readiness evidence, and the Gate 3 closure record. Historical rewrite/deletion remains outside this execution.

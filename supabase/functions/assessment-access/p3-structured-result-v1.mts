@@ -1,12 +1,14 @@
 /**
- * P3 Structured Result V1 — NON-PRODUCTION.
+ * P3 Structured Result V1.
  *
  * This module assembles already-computed measurement outputs.
- * It does not recalculate scores, infer roles/KPIs, or derive economics.
+ * It does not recalculate scores or infer unavailable source data.
  */
-
 import type { P3ProfileAggregation } from "./p3-aggregation-engine.mts";
-import type { P3CoverageResult, P3CriticalityResult } from "./p3-criticality-coverage-engine.mts";
+import type {
+  P3CoverageResult,
+  P3CriticalityResult,
+} from "./p3-criticality-coverage-engine.mts";
 import type { P3ConsistencyFinding } from "./p3-consistency-engine.mts";
 
 export type P3StructuredRole = {
@@ -30,7 +32,7 @@ export type P3StructuredKPI = {
 
 export type P3StructuredResultV1 = {
   schemaVersion: "P3_STRUCTURED_RESULT_V1";
-  status: "NON_PRODUCTION";
+  status: "NON_PRODUCTION" | "PRODUCTION";
   identity: {
     sessionId: string;
     assessmentFamilyId: string;
@@ -59,6 +61,15 @@ export type P3StructuredResultV1 = {
   measurement: {
     profile: P3ProfileAggregation;
   };
+  scores: {
+    overallScore: number | null;
+    axes: Array<{
+      axisCode: string;
+      score: number | null;
+      weight: number;
+      status: "measured" | "unavailable";
+    }>;
+  };
   coverage: P3CoverageResult;
   consistency: {
     findings: P3ConsistencyFinding[];
@@ -78,9 +89,22 @@ export type P3StructuredResultV1 = {
   roles: P3StructuredRole[];
   kpis: P3StructuredKPI[];
   economics: {
-    status: "NOT_COMPUTED";
-    modelCode: null;
-    output: null;
+    status: "NOT_COMPUTED" | "COMPUTED";
+    modelCode: string | null;
+    output: {
+      value: number;
+      unit: "currency";
+      assumptions: {
+        visitsPerYear: number;
+        referralPercentage: number;
+      };
+    } | null;
+  };
+  classification: {
+    bandCode: "Q1" | "Q2" | "Q3" | "Q4" | null;
+    numericBasis: number | null;
+    bandDefinitionVersion: "P3_BANDS_V1";
+    provenance: string;
   };
   diagnostics: {
     findings: Array<{
@@ -111,12 +135,17 @@ export function buildP3StructuredResultV1(input: {
   inputLineage: string[];
   responses: P3StructuredResultV1["inputs"]["responses"];
   profile: P3ProfileAggregation;
+  overallScore: number | null;
+  axisScores: P3StructuredResultV1["scores"]["axes"];
   coverage: P3CoverageResult;
   consistencyFindings: P3ConsistencyFinding[];
   criticality: P3CriticalityResult;
   developmentSignals?: P3StructuredResultV1["development"]["signals"];
   roles?: P3StructuredRole[];
   kpis?: P3StructuredKPI[];
+  resultStatus?: P3StructuredResultV1["status"];
+  classification?: P3StructuredResultV1["classification"];
+  economics?: P3StructuredResultV1["economics"];
 }): P3StructuredResultV1 {
   const requiredStrings = [
     input.sessionId,
@@ -131,6 +160,7 @@ export function buildP3StructuredResultV1(input: {
     input.interpretationVersion,
     input.scoringEngineVersion,
   ];
+
   if (requiredStrings.some((value) => !value.trim())) {
     throw new Error("Structured result provenance/identity is incomplete");
   }
@@ -149,13 +179,14 @@ export function buildP3StructuredResultV1(input: {
       sourceType: "CRITICALITY" as const,
       sourceId: input.criticality.sourceItems.join(","),
       severity: input.criticality.status,
-      explanation: `Criticality status ${input.criticality.status} is preserved as a structured finding; it does not alter numeric scores.`,
+      explanation:
+        `Criticality status ${input.criticality.status} is preserved as a structured finding; it does not alter numeric scores.`,
     });
   }
 
   return {
     schemaVersion: "P3_STRUCTURED_RESULT_V1",
-    status: "NON_PRODUCTION",
+    status: input.resultStatus ?? "NON_PRODUCTION",
     identity: {
       sessionId: input.sessionId,
       assessmentFamilyId: input.assessmentFamilyId,
@@ -172,16 +203,43 @@ export function buildP3StructuredResultV1(input: {
       scoringEngineVersion: input.scoringEngineVersion,
       inputLineage: [...input.inputLineage],
     },
-    inputs: { responses: input.responses.map((response) => ({ ...response })) },
-    measurement: { profile: input.profile },
+    inputs: {
+      responses: input.responses.map((response) => ({ ...response })),
+    },
+    measurement: {
+      profile: input.profile,
+    },
+    scores: {
+      overallScore: input.overallScore,
+      axes: input.axisScores,
+    },
     coverage: input.coverage,
-    consistency: { findings: input.consistencyFindings },
+    consistency: {
+      findings: input.consistencyFindings,
+    },
     criticality: input.criticality,
-    development: { signals: input.developmentSignals ?? [] },
+    development: {
+      signals: input.developmentSignals ?? [],
+    },
     roles: input.roles ?? [],
     kpis: input.kpis ?? [],
-    economics: { status: "NOT_COMPUTED", modelCode: null, output: null },
-    diagnostics: { findings },
+    economics:
+      input.economics ?? {
+        status: "NOT_COMPUTED",
+        modelCode: null,
+        output: null,
+      },
+    classification:
+      input.classification ?? {
+        bandCode: null,
+        numericBasis: null,
+        bandDefinitionVersion: "P3_BANDS_V1",
+        provenance:
+          "Classification not computed by Structured Result assembler.",
+      },
+    diagnostics: {
+      findings,
+    },
     audit: {
       replayableFrom: [
         "pinned assessment version",

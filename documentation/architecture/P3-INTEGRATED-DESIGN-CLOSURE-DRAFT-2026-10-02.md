@@ -28,16 +28,14 @@ The structured result is the single handoff. Roles/KPIs and economics consume th
 
 ## 3. Canonical implementation boundary
 
-The future implementation must have one canonical scorer path. The currently existing isolated P3 modules are design/verification artifacts, not production paths.
+The non-production integration branch now has one canonical scorer path:
+`p3-integrated-scorer-v1.mts`.
 
-The duplicate experimental responsibilities currently present are:
+Its dependency chain is:
 
-- `p3-score-engine.mts`
-- `p3-scorer-v1.mts`
-- `p3-aggregation-engine.mts`
-- `p3-structured-result-v1.mts`
+`p3-scorer-v1.mts` → `p3-aggregation-engine.mts` → global axis/overall projection → `p3-consistency-engine.mts` + `p3-criticality-coverage-engine.mts` → `p3-structured-result-v1.mts`.
 
-Before implementation, their responsibilities must be consolidated so that scoring, aggregation and structured-result assembly are not maintained as competing kernels.
+These modules are composed dependencies, not competing kernels. The superseded `p3-score-engine.mts` duplicate was removed from the integration branch. Production remains on the legacy scorer until implementation is explicitly authorized.
 
 ## 4. Result projections
 
@@ -98,14 +96,15 @@ The implementation target is one deterministic server-side path:
 
 These existing `p3-*` files remain non-production artifacts until implementation is explicitly authorized:
 
-- `p3-score-engine.mts`: superseded duplicate structured-result/score assembly; not a production source.
-- `p3-scorer-v1.mts`: integration/orchestration starting point; it must become the single scorer entry path rather than a competing kernel.
-- `p3-aggregation-engine.mts`: owns component/layer aggregation only.
-- `p3-consistency-engine.mts`: owns consistency findings only.
-- `p3-criticality-coverage-engine.mts`: owns coverage/criticality only.
-- `p3-structured-result-v1.mts`: owns final Structured Result assembly only.
+- `p3-integrated-scorer-v1.mts`: canonical non-production integration entry.
+- `p3-scorer-v1.mts`: response interpretation/profile entry used by the integrated scorer.
+- `p3-aggregation-engine.mts`: component/layer aggregation only.
+- `p3-consistency-engine.mts`: consistency findings only.
+- `p3-criticality-coverage-engine.mts`: coverage/criticality only.
+- `p3-structured-result-v1.mts`: final Structured Result assembly only.
 
-No duplicate module is deleted or merged into production during design.
+
+The superseded `p3-score-engine.mts` duplicate was removed from the non-production integration branch. This is an internal artifact cleanup only; no production path was changed.
 
 ### 6.4 Persistence and security boundary
 

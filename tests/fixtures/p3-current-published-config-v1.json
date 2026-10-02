@@ -1,0 +1,204 @@
+{
+  "version": 1,
+  "source": "Supabase published assessment configuration verified 2026-10-02",
+  "families": {
+    "admin-reception-assessment": {
+      "version": 1,
+      "axes": [
+        [
+          "AX85a6e9",
+          0.35
+        ],
+        [
+          "AX765ca8",
+          0.25
+        ],
+        [
+          "AXa23fa3",
+          0.25
+        ],
+        [
+          "AXc39190",
+          0.15
+        ]
+      ],
+      "axisRoles": {
+        "AX85a6e9": "SCHEDULING",
+        "AX765ca8": "RECEPTION",
+        "AXa23fa3": "ADMIN",
+        "AXc39190": "COORDINATION"
+      }
+    },
+    "clinic-performance": {
+      "version": 1,
+      "axes": [
+        [
+          "A1",
+          0.5
+        ],
+        [
+          "A2",
+          0.3
+        ],
+        [
+          "A3",
+          0.2
+        ]
+      ],
+      "axisRoles": {
+        "A1": "TRUST",
+        "A2": "COMMUNICATION",
+        "A3": "RETENTION"
+      }
+    },
+    "comprehensive-clinic-assessment": {
+      "version": 1,
+      "axes": [
+        [
+          "AX6f5aa5",
+          0.2
+        ],
+        [
+          "AX80c09a",
+          0.2
+        ],
+        [
+          "AXaadfb4",
+          0.2
+        ],
+        [
+          "AX2572cc",
+          0.15
+        ],
+        [
+          "AX6a52b4",
+          0.15
+        ],
+        [
+          "AX15afd8",
+          0.1
+        ]
+      ],
+      "axisRoles": {
+        "AX15afd8": "GROWTH",
+        "AX2572cc": "TEAM",
+        "AX6a52b4": "RETENTION",
+        "AX6f5aa5": "JOURNEY",
+        "AX80c09a": "CONVERSION",
+        "AXaadfb4": "OPERATIONS"
+      }
+    },
+    "medical-team-assessment": {
+      "version": 1,
+      "axes": [
+        [
+          "A1",
+          0.35
+        ],
+        [
+          "A2",
+          0.3
+        ],
+        [
+          "A3",
+          0.2
+        ],
+        [
+          "A4",
+          0.15
+        ]
+      ],
+      "axisRoles": {
+        "A1": "TRUST",
+        "A2": "COMMUNICATION",
+        "A3": "CONVERSION",
+        "A4": "TEAMWORK"
+      }
+    },
+    "patient-journey": {
+      "version": 1,
+      "axes": [
+        [
+          "A1",
+          0.2
+        ],
+        [
+          "A2",
+          0.15
+        ],
+        [
+          "A3",
+          0.25
+        ],
+        [
+          "A4",
+          0.25
+        ],
+        [
+          "A5",
+          0.15
+        ]
+      ],
+      "axisRoles": {
+        "A1": "TRUST",
+        "A2": "COMMUNICATION",
+        "A3": "CONVERSION",
+        "A4": "RETENTION",
+        "A5": "LOYALTY"
+      }
+    }
+  },
+  "kpiMappings": {
+    "EVI": {
+      "ADMIN": 0.3,
+      "SCHEDULING": 0.3,
+      "COORDINATION": 0.2,
+      "COMMUNICATION": 0.2
+    },
+    "NPI": {
+      "TRUST": 0.1,
+      "LOYALTY": 0.4,
+      "RECEPTION": 0.5
+    },
+    "PLI": {
+      "LOYALTY": 0.5,
+      "RECEPTION": 0.5
+    },
+    "PRP": {
+      "RETENTION": 0.6,
+      "SCHEDULING": 0.4
+    },
+    "PSI": {
+      "ADMIN": 0.3,
+      "RECEPTION": 0.3,
+      "COORDINATION": 0.2,
+      "COMMUNICATION": 0.2
+    },
+    "TAP": {
+      "RETENTION": 0.3,
+      "CONVERSION": 0.5,
+      "SCHEDULING": 0.2
+    },
+    "TCI": {
+      "ADMIN": 0.3,
+      "CONVERSION": 0.3,
+      "SCHEDULING": 0.4
+    },
+    "TFI": {
+      "TRUST": 0.4,
+      "RECEPTION": 0.2,
+      "COMMUNICATION": 0.4
+    },
+    "RRI": {
+      "ADMIN": 0.2,
+      "RECEPTION": 0.4,
+      "SCHEDULING": 0.3,
+      "COORDINATION": 0.1
+    }
+  },
+  "kpiScope": {
+    "RRI": [
+      "admin-reception-assessment"
+    ]
+  }
+}
