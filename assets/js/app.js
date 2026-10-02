@@ -654,7 +654,7 @@ class ClinicEvaluatorApp {
 
     const q = res.classification || 'Q2';
     const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
-    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '0.0';
+    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
 
     let trendHtml = "";
     if (this.previousSessionData) {
@@ -742,7 +742,7 @@ class ClinicEvaluatorApp {
     if (evSection) evSection.classList.toggle('hidden', !evEnabled);
 
     const leakageEl = document.getElementById('leakage-index');
-    if (leakageEl && res.overallScore !== undefined) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
+    if (leakageEl && Number.isFinite(res.overallScore)) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
