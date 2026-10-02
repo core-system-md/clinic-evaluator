@@ -684,3 +684,46 @@ Production `score-engine.ts` remains untouched.
 
 **P3-NEXT-07 — Historical reconciliation policy + migration/rollback gate.**
 
+---
+
+## 17. Canonical correction — P3-NEXT-07 closed
+
+Updated after PR #12 merge.
+
+### P3-NEXT-07 — Historical Reconciliation Policy
+
+**Status: CLOSED at policy/classifier level; historical data remains untouched.**
+
+Implemented:
+
+- `documentation/architecture/P3-HISTORICAL-RECONCILIATION-POLICY-V1.json`
+- `supabase/functions/assessment-access/p3-historical-reconciliation.mts`
+- `tests/p3-historical-reconciliation.test.mjs`
+- `documentation/architecture/P3-HISTORICAL-RECONCILIATION-POLICY-V1-CLOSURE-2026-10-02.md`
+
+Frozen behavior:
+
+- legacy results are never overwritten automatically;
+- replayable sessions are shadow-replayed first;
+- incomplete/missing answer source preserves legacy;
+- missing historical answers are never inferred as zero;
+- trap penalties are not reactivated;
+- numerical deltas remain comparison artifacts until explicit migration approval;
+- assessment/scoring version lineage remains attributable.
+
+### Current data disposition
+
+- Admin Reception: 1 completed + fully answered → replayable candidate
+- Patient Journey: 1 of 7 completed sessions has full answers → replayable candidate
+- Clinic Performance: 5 completed, no persisted answers → legacy preserve
+- Medical Team: 4 completed, no persisted answers → legacy preserve
+- Comprehensive Clinic: no completed sessions → no session-level historical replay
+
+### Production boundary
+
+No historical rows, scores, published content, schema, or production scorer were changed.
+
+### Correct next gate
+
+**P3-NEXT-08 — deterministic shadow replay + legacy-vs-P3 diff for replayable sessions, followed by migration/rollback gate.**
+
