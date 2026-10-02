@@ -58,15 +58,46 @@ test("all five published families execute through the single integrated path", (
   }
 });
 
+function selectionsWithAxisAnchor(slug, axisCode, anchorScore) {
+  const selections = firstSelection(slug);
+  const questions = new Set(
+    registry.entries
+      .filter((entry) => entry.assessmentSlug === slug && entry.axisCode === axisCode)
+      .map((entry) => entry.questionCode),
+  );
+  for (const questionCode of questions) {
+    const anchored = registry.entries.find((entry) =>
+      entry.assessmentSlug === slug &&
+      entry.axisCode === axisCode &&
+      entry.questionCode === questionCode &&
+      entry.scoreEligible &&
+      entry.anchorScore === anchorScore,
+    );
+    if (!anchored) continue;
+    const index = selections.findIndex((selection) => selection.questionCode === questionCode);
+    if (index >= 0) {
+      selections[index] = {
+        questionCode: anchored.questionCode,
+        optionId: anchored.optionId,
+        optionIndex: anchored.optionIndex,
+      };
+    }
+  }
+  return selections;
+}
+
 test("axis and overall projection exclude unavailable dimensions rather than zero-fill", () => {
-  const all = run("patient-journey");
+  const all = run("patient-journey", {
+    selections: selectionsWithAxisAnchor("patient-journey", "A1", 100),
+  });
   const axisQuestions = new Set(
     registry.entries
       .filter((entry) => entry.assessmentSlug === "patient-journey" && entry.axisCode === "A1")
       .map((entry) => entry.questionCode),
   );
   const missingAxis = run("patient-journey", {
-    selections: firstSelection("patient-journey").filter((selection) => !axisQuestions.has(selection.questionCode)),
+    selections: selectionsWithAxisAnchor("patient-journey", "A1", 100)
+      .filter((selection) => !axisQuestions.has(selection.questionCode)),
   });
 
   const axis = missingAxis.scores.axes.find((item) => item.axisCode === "A1");
