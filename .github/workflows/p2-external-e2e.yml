@@ -7,6 +7,8 @@ on:
     paths:
       - ".github/workflows/p2-external-e2e.yml"
       - "tests/external-assessment-access.mjs"
+      - "tests/p3-production-external-e2e.mjs"
+      - "supabase/functions/assessment-access/**"
   pull_request:
     branches:
       - main
@@ -42,4 +44,34 @@ jobs:
         with:
           name: p2-external-e2e-evidence
           path: p2-external-e2e-result.json
+          if-no-files-found: ignore
+
+  p3-production-e2e:
+    name: P3 production E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        assessment_slug:
+          - admin-reception-assessment
+          - clinic-performance
+          - comprehensive-clinic-assessment
+          - medical-team-assessment
+          - patient-journey
+    env:
+      EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
+      ASSESSMENT_SLUG: ${{ matrix.assessment_slug }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run P3 live completion E2E
+        run: node tests/p3-production-external-e2e.mjs
+
+      - name: Upload P3 E2E evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: p3-production-e2e-${{ matrix.assessment_slug }}
+          path: p3-production-e2e-result.json
           if-no-files-found: ignore
