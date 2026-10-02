@@ -392,3 +392,55 @@ Production safety:
 - No production scoring values, published question text, or visible answer text were changed by the validation work.
 
 Temporary validation PRs #4 and #5 were closed without merge after obtaining execution evidence.
+
+---
+
+## 11. Canonical correction — P3-NEXT-01 closed
+
+Updated after PR #6 was merged to `main`.
+
+### P3-NEXT-01 — Option-Level Response Interpretation Registry
+
+**Status: CLOSED at implementation-authoritative / non-production level.**
+
+The repository now contains:
+
+- `documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json`
+- `documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1-CLOSURE-2026-10-02.md`
+- `tests/p3-response-interpretation-registry.test.mjs`
+
+The registry is verified against the current Supabase option identities:
+
+- 5 assessment families
+- 93 questions
+- 305 options
+- unique live option UUID per entry
+- required interpretation fields populated
+- semantic-only/contextual responses explicitly excluded from numeric anchors
+- source `option_value` retained for audit, not treated as universal score
+- trap metadata retained without automatic penalty
+- Q2c9f29 option 2 represented as design anchor 40 while source value 0 remains preserved
+- Patient Journey Q7 remains semantic-only
+
+### Hosted verification
+
+GitHub Actions run `36982422974` completed successfully:
+
+- P3 isolated kernel: passed
+- Response Interpretation Registry verification: passed
+- Full Node test suite: passed
+
+The first registry run exposed a real parsing gap for Q2c9f29 option 2; the registry was corrected and the hosted gate was rerun successfully. This finding is recorded as part of the verification history rather than hidden.
+
+### Production boundary
+
+No production scorer, production database, published assessment content, or historical result was changed.
+
+### Correct next gate
+
+The canonical next step is now:
+
+**P3-NEXT-02 — Component/Subcomponent Aggregation + numeric aggregation freeze**
+
+Only after NEXT-02 through NEXT-05 are internally consistent should the production scorer be rebuilt.
+
