@@ -3,7 +3,7 @@
 
 **Repository:** `core-system-md/clinic-evaluator`  
 **Branch:** `p4/investigation-2026-10-02`  
-**Current branch head:** `977ad3151563c5f9fd4a6144e415858c052524d2`  
+**Current branch head:** `b9a81e70808849aba8e7ec1d218e7d6a98ee8395`  
 **Production Edge Function:** `assessment-access` v18  
 **Supabase project:** `oaqpzaarppccbnepffxx`
 
@@ -72,24 +72,23 @@ Synthetic E2E data was removed after each run. Final live counts returned to:
 
 No recent synthetic Leads remain. Two orphan access rows produced by failed/partial test setup were explicitly removed; the final `assessment_session_access` count is 13, with no remaining null-session test access rows.
 
-## Remaining unverified item
+## Protected completion runtime verification
 
-**Protected usage increment has NOT been runtime-tested with a newly created synthetic protected assessment user.**
+The protected completion boundary is now runtime-tested on a disposable PostgreSQL service in GitHub Actions using the exact P4 migration SQL and a synthetic fixture isolated from production.
 
-The P4 protected finalizer was inspected and verified structurally:
+Verified in CI:
 
-1. locks the session;
-2. returns the stored result when the session is already completed;
-3. locks the protected assessment user before usage check/increment;
-4. increments `used_count` inside the same transaction that completes the session;
-5. sets `usage_consumed_at` as part of session completion.
+1. `prepare_assessment_submission` freezes the protected submission snapshot, fingerprint, and economic input;
+2. two concurrent `complete_p4_assessment_session` calls serialize on the same session;
+3. exactly one completion consumes the protected usage (`used_count = 1`);
+4. exactly one `assessment_results` row is persisted;
+5. `usage_consumed_at` is set on the completed session;
+6. a later completion retry returns the stored result as `already_completed` and does not increment usage again.
 
-The available production SQL safety boundary blocked creation of a synthetic security-sensitive test fixture, so no claim of runtime proof is made for this item.
+This is a database/runtime transaction test of the protected completion boundary, not a hosted production protected-browser authentication test. Production protected-user data remains empty and was not modified.
 
 ## Closure status
 
-P4 is **implementation-complete and broadly runtime-verified, but NOT CLOSED**.
+P4 implementation and required runtime verification are now **complete**.
 
-The remaining closure condition is one controlled runtime test of protected usage idempotency/concurrency, followed by final Owner/engineering closure review.
-
-No production merge to `main` is claimed by this record. The PR remains draft while that final evidence is outstanding.
+The PR remains draft and has **not** been merged to `main`. Merge/owner closure remains a separate repository action; no production merge is claimed by this record.
