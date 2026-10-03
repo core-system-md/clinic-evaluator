@@ -762,8 +762,10 @@ class AssessmentManager {
     focusResults({ status = '', sort = 'newest' } = {}) {
         const statusSelect = document.getElementById('filter-status');
         const sortSelect = document.getElementById('filter-sort');
+        const typeSelect = document.getElementById('filter-type');
         if (statusSelect) statusSelect.value = status;
         if (sortSelect) sortSelect.value = sort;
+        if (typeSelect) typeSelect.value = '';
         this.applyDashboardFilters();
         document.getElementById('leads-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -1172,10 +1174,13 @@ class AssessmentManager {
                 || (sessions || [])[0]
                 || null;
 
-            const canonicalRows = completedSession
-                ? await this.supabase.select('assessment_results', { filter: { session_id: completedSession.id } })
-                : [];
-            const officialResult = canonicalRows?.[0]?.result || null;
+            const officialPayload = completedSession
+                ? await this.supabase.request('rpc/get_admin_assessment_result_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_session_id: completedSession.id })
+                })
+                : null;
+            const officialResult = officialPayload?.result || null;
             const isOfficialResult = !!officialResult;
 
             const axisNameByCode = {};
