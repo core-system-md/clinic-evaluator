@@ -476,6 +476,24 @@ Deno.serve(async (req) => {
       const lead = data.lead || {};
       let history: any = { allowed: true, previousSessionData: null };
 
+      if (!leadId && !access.assessment_user_id) {
+        const { data: activeAttempt, error: activeAttemptError } = await supabase
+          .from("sessions")
+          .select("id, lead_id, status, submission_state, last_activity_at")
+          .eq("assessment_type_id", access.assessment_type_id)
+          .eq("attempt_key_hash", attemptKeyHash)
+          .eq("status", "in_progress")
+          .eq("submission_state", "draft")
+          .gte("last_activity_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .order("last_activity_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (activeAttemptError) throw activeAttemptError;
+        if (activeAttempt) {
+          leadId = activeAttempt.lead_id;
+        }
+      }
+
       if (!leadId) {
         if (!lead.assessment_type_id) lead.assessment_type_id = access.assessment_type_id || null;
 
@@ -743,9 +761,18 @@ Deno.serve(async (req) => {
         });
       }
 
+      const requestedEconomicInput = data.economic_input && typeof data.economic_input === "object"
+        ? {
+            averageVisitValue: data.economic_input.averageVisitValue ?? null,
+            relationshipYears: data.economic_input.relationshipYears ?? null,
+            referralPercentage: data.economic_input.referralPercentage ?? null,
+          }
+        : {};
+
       const preparation = await supabase.rpc("prepare_assessment_submission", {
         p_session_id: session.id,
         p_access_token_hash: access.tokenHash,
+        p_economic_input: requestedEconomicInput,
       });
       if (preparation.error) {
         throw Object.assign(
@@ -808,17 +835,18 @@ Deno.serve(async (req) => {
         return json({ error: "Submission snapshot is unavailable" }, 409);
       }
 
-      const economicInput = data.economic_input && typeof data.economic_input === "object"
+      const frozenEconomicInput = preparation.data?.submission_economic_input
+        && typeof preparation.data.submission_economic_input === "object"
         ? {
-            averageVisitValue: data.economic_input.averageVisitValue ?? null,
-            relationshipYears: data.economic_input.relationshipYears ?? null,
-            referralPercentage: data.economic_input.referralPercentage ?? null,
+            averageVisitValue: preparation.data.submission_economic_input.averageVisitValue ?? null,
+            relationshipYears: preparation.data.submission_economic_input.relationshipYears ?? null,
+            referralPercentage: preparation.data.submission_economic_input.referralPercentage ?? null,
           }
         : undefined;
 
       const computed = await calculateP3Production(supabase, {
         sessionId: session.id,
-        economicInput,
+        economicInput: frozenEconomicInput,
         answerSnapshot,
       });
 
