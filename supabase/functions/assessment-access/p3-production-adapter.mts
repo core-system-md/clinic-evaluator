@@ -284,6 +284,7 @@ export async function calculateP3Production(
   input: {
     sessionId: string;
     economicInput?: P3EconomicInput;
+    answerSnapshot?: StoredAnswer[];
   },
 ): Promise<P3ProductionComputation> {
   const { data: session, error: sessionError } = await client
@@ -313,18 +314,24 @@ export async function calculateP3Production(
     );
   }
 
-  const { data: dbAnswers, error: answersError } = await client
-    .from("answers")
-    .select("question_id, option_index, option_value")
-    .eq("session_id", session.id);
+  let answerRows: StoredAnswer[];
+  if (input.answerSnapshot !== undefined) {
+    answerRows = input.answerSnapshot;
+  } else {
+    const { data: dbAnswers, error: answersError } = await client
+      .from("answers")
+      .select("question_id, option_index, option_value")
+      .eq("session_id", session.id);
 
-  if (answersError) throw answersError;
+    if (answersError) throw answersError;
+    answerRows = (dbAnswers || []) as StoredAnswer[];
+  }
 
   const requiredQuestionCodes = runtime.questions
     .filter((question) => question.is_required !== false)
     .map((question) => question.code);
   const answerQuestionCodes = new Set(
-    (dbAnswers || []).map((answer) => answer.question_id),
+    answerRows.map((answer) => answer.question_id),
   );
   const missing = requiredQuestionCodes.filter(
     (questionCode) => !answerQuestionCodes.has(questionCode),
@@ -335,10 +342,7 @@ export async function calculateP3Production(
     );
   }
 
-  const selections = buildSelections(
-    runtime,
-    (dbAnswers || []) as StoredAnswer[],
-  );
+  const selections = buildSelections(runtime, answerRows);
 
   const versionedConfig = {
     assessment: {
