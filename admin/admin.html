@@ -462,7 +462,7 @@
           <div class="stat-icon">👥</div>
           <div class="stat-info">
             <div class="stat-value" id="stat-leads">0</div>
-            <div class="stat-label">إجمالي التقييمات</div>
+            <div class="stat-label">سجلات العملاء</div>
           </div>
         </div>
         <div class="stat-card">
@@ -565,7 +565,7 @@
     <div class="modal-content" style="max-width: 450px; width: 90%;">
       <div class="modal-header">
         <h3>🔑 توليد كود نفاذ (تقييم مدفوع)</h3>
-        <button class="btn-close" onclick="document.getElementById('user-modal').classList.add('hidden')">✕</button>
+        <button class="btn-close" id="btn-close-user-modal" type="button">✕</button>
       </div>
       <div class="modal-body">
         <form id="user-form" onsubmit="event.preventDefault(); window.assessmentManager.generateAccessCode();">
@@ -588,6 +588,7 @@
           </div>
           <div class="form-actions" style="margin-top:15px;">
             <button type="submit" class="btn-primary" style="width:100%;">توليد وحقن الكود سحابياً 🚀</button>
+            <button type="button" id="btn-cancel-user" class="btn-secondary" style="width:100%;">إلغاء</button>
           </div>
         </form>
       </div>
