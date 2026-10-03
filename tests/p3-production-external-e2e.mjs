@@ -109,13 +109,11 @@ async function main() {
   const sessionId = sessionIdA;
   record("concurrent active-attempt creation collapse", true, { same_session_id: true });
 
-  const tokenForWork = token;
   record("start_session", true, { session_id: sessionId });
 
   const thirdAccessResponse = await call("issue_public_access", {
     assessment_key: ASSESSMENT_SLUG,
   });
-  assert(secondAccessResponse.status === 200 && secondAccessResponse.body?.success === true, "Second public access issuance failed");
   assert(thirdAccessResponse.status === 200 && thirdAccessResponse.body?.success === true, "Third public access issuance failed");
   const thirdToken = thirdAccessResponse.body?.data?.token;
   assert(typeof thirdToken === "string" && thirdToken.length >= 20, "Invalid third access token");
@@ -153,7 +151,6 @@ async function main() {
   }
   record("all required answers saved", true, { answered_questions: assessment.questions.length });
 
-  const token = tokenForWork;
   const frozenEconomicInput = {
     averageVisitValue: 250,
     relationshipYears: 5,
