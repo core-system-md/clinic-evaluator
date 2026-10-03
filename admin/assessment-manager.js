@@ -49,8 +49,8 @@ class AssessmentManager {
         // تشغيل الجزء الثاني: مزامنة لوحة التحكم وجدول التقييمات التي نفذها المستخدمون
         await this.loadUserSubmissionsDashboard();
         this.setupDashboardFilterEvents();
+        this.setupOwnerManagementButton();
         this.setupOwnerAuditEvents();
-        if (window.AdminSession?.role === 'owner') this.loadOwnerAudit(true);
     }
 
     auditActionLabel(action) {
@@ -1152,7 +1152,49 @@ class AssessmentManager {
             await this.saveAssistant();
         });
         this.setupStatCardActions();
-        if (window.AdminSession?.role === 'owner') this.loadAssistants();
+    }
+
+    setupOwnerManagementButton() {
+        const button = document.getElementById('btn-owner-management');
+        const modal = document.getElementById('owner-management-modal');
+        const assistantsSection = document.getElementById('assistant-management-section');
+        const auditSection = document.getElementById('owner-audit-section');
+        const assistantsPanel = document.getElementById('owner-management-assistants-panel');
+        const auditPanel = document.getElementById('owner-management-audit-panel');
+        if (!button || !modal || !assistantsSection || !auditSection || !assistantsPanel || !auditPanel) return;
+
+        const isOwner = window.AdminSession?.role === 'owner';
+        if (!isOwner) {
+            button.classList.add('hidden');
+            return;
+        }
+        button.classList.remove('hidden');
+
+        const showTab = (tab) => {
+            const assistants = tab === 'assistants';
+            assistantsPanel.classList.toggle('hidden', !assistants);
+            auditPanel.classList.toggle('hidden', assistants);
+            document.getElementById('owner-management-tab-assistants').className = assistants ? 'btn-primary' : 'btn-secondary';
+            document.getElementById('owner-management-tab-audit').className = assistants ? 'btn-secondary' : 'btn-primary';
+            if (assistants) this.loadAssistants();
+            else this.loadOwnerAudit(true);
+        };
+
+        button.addEventListener('click', () => {
+            if (!assistantsSection.parentElement.isSameNode(assistantsPanel)) assistantsPanel.appendChild(assistantsSection);
+            if (!auditSection.parentElement.isSameNode(auditPanel)) auditPanel.appendChild(auditSection);
+            assistantsSection.classList.remove('hidden');
+            auditSection.classList.remove('hidden');
+            modal.classList.remove('hidden');
+            showTab('assistants');
+        });
+
+        document.getElementById('btn-close-owner-management')?.addEventListener('click', () => modal.classList.add('hidden'));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) modal.classList.add('hidden');
+        });
+        document.getElementById('owner-management-tab-assistants')?.addEventListener('click', () => showTab('assistants'));
+        document.getElementById('owner-management-tab-audit')?.addEventListener('click', () => showTab('audit'));
     }
 
     applyDashboardFilters() {
