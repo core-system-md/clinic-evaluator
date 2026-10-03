@@ -1,4 +1,6 @@
 import crypto from "node:crypto";
+
+// P4 live verification: resume, concurrency, retry and post-completion immutability.
 import { writeFileSync } from "node:fs";
 
 const EDGE_URL = process.env.EDGE_URL;
