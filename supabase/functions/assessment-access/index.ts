@@ -732,6 +732,29 @@ Deno.serve(async (req) => {
         });
       }
 
+      const preparation = await supabase.rpc("prepare_assessment_submission", {
+        p_session_id: session.id,
+        p_access_token_hash: access.tokenHash,
+      });
+      if (preparation.error) {
+        throw Object.assign(
+          new Error(preparation.error.message || "Unable to prepare submission"),
+          { status: pgErrorStatus(preparation.error) },
+        );
+      }
+
+      if (preparation.data?.already_completed) {
+        return json({ success: true, data: await loadStoredCompletedResult() });
+      }
+
+      const answerSnapshot = Array.isArray(preparation.data?.submission_snapshot)
+        ? preparation.data.submission_snapshot
+        : [];
+      const submissionFingerprint = String(preparation.data?.submission_fingerprint || "");
+      if (!submissionFingerprint) {
+        return json({ error: "Submission snapshot is unavailable" }, 409);
+      }
+
       const economicInput = data.economic_input && typeof data.economic_input === "object"
         ? {
             averageVisitValue: data.economic_input.averageVisitValue ?? null,
@@ -743,6 +766,7 @@ Deno.serve(async (req) => {
       const computed = await calculateP3Production(supabase, {
         sessionId: session.id,
         economicInput,
+        answerSnapshot,
       });
 
       const {
@@ -752,14 +776,15 @@ Deno.serve(async (req) => {
       } = computed.result;
 
       const rpcName = access.assessment_user_id
-        ? "complete_p3_assessment_session"
-        : "complete_p3_public_assessment_session";
+        ? "complete_p4_assessment_session"
+        : "complete_p4_public_assessment_session";
 
       const rpcPayload = access.assessment_user_id
         ? {
             p_session_id: session.id,
             p_access_token_hash: access.tokenHash,
             p_assessment_user_id: access.assessment_user_id,
+            p_submission_fingerprint: submissionFingerprint,
             p_overall_score: computed.result.scores.overallScore,
             p_classification: computed.result.classification.bandCode ?? "",
             p_score_rows: computed.scoreRows,
@@ -773,6 +798,7 @@ Deno.serve(async (req) => {
         : {
             p_session_id: session.id,
             p_access_token_hash: access.tokenHash,
+            p_submission_fingerprint: submissionFingerprint,
             p_overall_score: computed.result.scores.overallScore,
             p_classification: computed.result.classification.bandCode ?? "",
             p_score_rows: computed.scoreRows,
@@ -785,7 +811,12 @@ Deno.serve(async (req) => {
           };
 
       const { data: completed, error: completionError } = await supabase.rpc(rpcName, rpcPayload);
-      if (completionError) throw completionError;
+      if (completionError) {
+        throw Object.assign(
+          new Error(completionError.message || "Assessment completion failed"),
+          { status: pgErrorStatus(completionError) },
+        );
+      }
 
       const storedStructured = (completed?.result || structuredResult) as any;
 
