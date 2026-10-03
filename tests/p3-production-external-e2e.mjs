@@ -127,9 +127,15 @@ async function main() {
   }
   record("all required answers saved", true, { answered_questions: assessment.questions.length });
 
+  const frozenEconomicInput = {
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: 20,
+  };
+
   const [completionA, completionB] = await Promise.all([
-    call("complete", { token }),
-    call("complete", { token: secondToken }),
+    call("complete", { token, economic_input: frozenEconomicInput }),
+    call("complete", { token: secondToken, economic_input: frozenEconomicInput }),
   ]);
 
   const completedResponses = [completionA, completionB];
@@ -158,7 +164,14 @@ async function main() {
     response_count: data.structuredResult.inputs.responses.length,
   });
 
-  const retry = await call("complete", { token });
+  const retry = await call("complete", {
+    token,
+    economic_input: {
+      averageVisitValue: 9999,
+      relationshipYears: 99,
+      referralPercentage: 99,
+    },
+  });
   assert(
     retry.status === 200 && retry.body?.success === true,
     `idempotent complete retry failed: HTTP ${retry.status}`,
@@ -167,6 +180,10 @@ async function main() {
   assert(
     retry.body?.data?.structuredResult?.identity?.resultId === data.structuredResult.identity.resultId,
     "Retry returned a different result identity",
+  );
+  assert(
+    JSON.stringify(retry.body?.data?.structuredResult) === JSON.stringify(data.structuredResult),
+    "Retry returned a different Structured Result after changing economic input",
   );
   record("idempotent completion retry", true, {
     same_result_id: true,
