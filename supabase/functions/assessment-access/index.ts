@@ -558,7 +558,7 @@ Deno.serve(async (req) => {
 
       let query = supabase
         .from("sessions")
-        .select("id, lead_id, assessment_type_id, assessment_user_id, status, current_question, started_at, completed_at, duration_seconds, usage_consumed_at");
+        .select("id, lead_id, assessment_type_id, assessment_user_id, status, submission_state, current_question, started_at, completed_at, duration_seconds, usage_consumed_at, last_activity_at, submission_started_at, submission_fingerprint");
       query = sessionFilter(query, access);
       const { data: session, error: sessionError } = await query.maybeSingle();
       if (sessionError) throw sessionError;
@@ -609,14 +609,32 @@ Deno.serve(async (req) => {
       if ("error" in auth) return json({ error: auth.error }, auth.status);
       const { access } = auth;
       const currentQuestion = Number(data.current_question);
-      if (!Number.isInteger(currentQuestion) || currentQuestion < 0) return json({ error: "Invalid progress" }, 400);
+      if (!Number.isInteger(currentQuestion) || currentQuestion < 0) {
+        return json({ error: "Invalid progress" }, 400);
+      }
 
-      let query = supabase.from("sessions").update({ current_question: currentQuestion });
-      query = sessionFilter(query, access).eq("status", "in_progress");
-      const { data: session, error } = await query.select("id, current_question, status").single();
-      if (error) throw error;
+      let query = supabase.from("sessions").update({
+        current_question: currentQuestion,
+        last_activity_at: new Date().toISOString(),
+      });
+      query = sessionFilter(query, access)
+        .eq("status", "in_progress")
+        .eq("submission_state", "draft");
 
-      await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
+      const { data: session, error } = await query
+        .select("id, current_question, status, submission_state")
+        .single();
+      if (error) {
+        throw Object.assign(
+          new Error(error.message || "Progress update failed"),
+          { status: pgErrorStatus(error) === 500 ? 409 : pgErrorStatus(error) },
+        );
+      }
+
+      await supabase
+        .from("assessment_session_access")
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq("id", access.id);
 
       return json({ success: true, data: session });
     }
