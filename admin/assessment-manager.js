@@ -52,7 +52,11 @@ class AssessmentManager {
         const assistantSection = document.getElementById('assistant-management-section');
         const auditSection = document.getElementById('owner-audit-section');
         const button = document.getElementById('btn-owner-management');
-        if (!assistantSection || !auditSection || !button || window.AdminSession?.role !== 'owner') return;
+        if (!assistantSection || !auditSection || !button) return;
+        if (window.AdminSession?.role !== 'owner') {
+            button.classList.add('hidden');
+            return;
+        }
 
         let modal = document.getElementById('owner-management-modal');
         if (!modal) {
