@@ -78,86 +78,77 @@ jobs:
 
 
   p4-protected-local:
-    name: P4 protected completion (local Supabase)
+    name: P4 protected completion (disposable PostgreSQL)
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Supabase CLI
-        uses: supabase/setup-cli@v1
-        with:
-          version: latest
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
-      - name: Add CI-only legacy migration compatibility shim
+      - name: Load P4 SQL and protected fixture
         run: |
-          printf '%s\n' \
-            'create extension if not exists pg_net;' \
-            'create or replace function public.update_updated_at_column()' \
-            'returns trigger' \
-            'language plpgsql' \
-            'set search_path = public' \
-            'as $func$' \
-            'BEGIN NEW.updated_at = now(); RETURN NEW; END;' \
-            '$func$;' \
-            > supabase/migrations/20261001000000_ci_local_compat.sql
-
-      - name: Start disposable local Supabase
-        run: supabase start
-
-      - name: Reset local database from repository migrations
-        run: supabase db reset
-
-      - name: Prepare protected submission fixture
-        run: |
-          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" \
             -v ON_ERROR_STOP=1 \
-            -f tests/p4-protected-local-fixture.sql
+            -f tests/p4-protected-function-harness.sql
 
       - name: Run two concurrent protected finalizations
         shell: bash
         run: |
           set -euo pipefail
-          DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
-          completion_sql='
-            select public.complete_p4_assessment_session(
-              ''22222222-2222-4222-8222-222222222222''::uuid,
-              ''p4-fixture-token-hash'',
-              ''33333333-3333-4333-8333-333333333333''::uuid,
-              (select submission_fingerprint from public.sessions where id=''22222222-2222-4222-8222-222222222222''::uuid),
-              88.5, ''P4'', ''[]''::jsonb, 1, 1,
-              ''P3_SCORER_V1'', ''P3_AGGREGATION_V1'', ''p4-fixture-digest'',
-              jsonb_build_object(
-                ''schemaVersion'',''P3_STRUCTURED_RESULT_V1'',
-                ''status'',''PRODUCTION'',
-                ''identity'',jsonb_build_object(
-                  ''resultId'',''55555555-5555-4555-8555-555555555555'',
-                  ''sessionId'',''22222222-2222-4222-8222-222222222222'',
-                  ''assessmentTypeId'',''44444444-4444-4444-8444-444444444444'',
-                  ''assessmentVersion'',''1''
-                ),
-                ''provenance'',jsonb_build_object(
-                  ''interpretationVersion'',''1'',
-                  ''scoringEngineVersion'',''P3_SCORER_V1'',
-                  ''scoringContractVersion'',''P3_AGGREGATION_V1'',
-                  ''assessmentConfigDigest'',''p4-fixture-digest''
-                )
+          DB_URL="postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+          cat > /tmp/p4-complete.sql <<'SQL'
+          select public.complete_p4_assessment_session(
+            '22222222-2222-4222-8222-222222222222'::uuid,
+            'p4-fixture-token-hash',
+            '33333333-3333-4333-8333-333333333333'::uuid,
+            (select submission_fingerprint from public.sessions where id='22222222-2222-4222-8222-222222222222'::uuid),
+            88.5, 'P4', '[]'::jsonb, 1, 1,
+            'P3_SCORER_V1', 'P3_AGGREGATION_V1', 'p4-fixture-digest',
+            jsonb_build_object(
+              'schemaVersion','P3_STRUCTURED_RESULT_V1',
+              'status','PRODUCTION',
+              'identity',jsonb_build_object(
+                'resultId','55555555-5555-4555-8555-555555555555',
+                'sessionId','22222222-2222-4222-8222-222222222222',
+                'assessmentTypeId','44444444-4444-4444-8444-444444444444',
+                'assessmentVersion','1'
+              ),
+              'provenance',jsonb_build_object(
+                'interpretationVersion','1',
+                'scoringEngineVersion','P3_SCORER_V1',
+                'scoringContractVersion','P3_AGGREGATION_V1',
+                'assessmentConfigDigest','p4-fixture-digest'
               )
-            );
-          '
-          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "$completion_sql" > /tmp/p4-completion-a.log &
+            )
+          );
+          SQL
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f /tmp/p4-complete.sql > /tmp/p4-a.log &
           A=$!
-          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "$completion_sql" > /tmp/p4-completion-b.log &
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -f /tmp/p4-complete.sql > /tmp/p4-b.log &
           B=$!
           wait "$A"
           wait "$B"
-          cat /tmp/p4-completion-a.log
-          cat /tmp/p4-completion-b.log
+          cat /tmp/p4-a.log
+          cat /tmp/p4-b.log
 
-      - name: Assert exactly-once protected usage and result persistence
+      - name: Assert exactly-once protected usage and idempotent retry
         run: |
-          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 <<'SQL'
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 <<'SQL'
           do $test$
           declare
             v_used integer;
@@ -194,7 +185,3 @@ jobs:
               then raise exception 'Retry changed used_count'; end if;
           end $test$;
           SQL
-
-      - name: Stop disposable local Supabase
-        if: always()
-        run: supabase stop
