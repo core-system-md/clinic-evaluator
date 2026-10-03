@@ -104,7 +104,7 @@
         if (isPublished) {
           html += '<input type="text" value="' + safe(this, axis.title_ar || axis.title || '') + '" onblur="window.assessmentManager.updatePublishedAxisContent(\'' + axis.id + '\', this.value)" style="flex:1;min-width:180px;padding:5px 7px;border:1px solid #cbd5e1;border-radius:5px;font-family:Cairo;font-size:0.75rem;font-weight:700;color:#134e4a;">';
         } else {
-          html += '<span>📌 محور: ' + safe(this, axis.title_ar || axis.title || 'بدون اسم') + ' (' + safe(this, axis.code || '') + ')</span>';
+          html += '<input type="text" value="' + safe(this, axis.title_ar || axis.title || '') + '" onblur="window.assessmentManager.updateDraftAxisContent(\'' + axis.id + '\', this.value)" style="flex:1;min-width:180px;padding:5px 7px;border:1px solid #e5e7eb;border-radius:5px;font-family:Cairo;font-size:0.75rem;font-weight:700;color:#134e4a;">';
         }
         html += '<span style="font-size:0.75rem;color:#6b7280;margin-right:auto;margin-left:10px;">الوزن: %' + (axis.weight || 0) + '</span>';
         if (!isPublished) html += '<button type="button" onclick="window.assessmentManager.addQuestionInline(\'' + assessmentId + '\',\'' + axis.id + '\')" style="padding:2px 6px;font-size:0.7rem;background:#10b981;color:white;border:none;border-radius:4px;cursor:pointer;font-family:Cairo;font-weight:600;">+ إضافة سؤال</button>';
