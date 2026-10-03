@@ -48,9 +48,67 @@ class AssessmentManager {
 
         // تشغيل الجزء الثاني: مزامنة لوحة التحكم وجدول التقييمات التي نفذها المستخدمون
         await this.loadUserSubmissionsDashboard();
+    setupOwnerManagementUI() {
+        const assistantSection = document.getElementById('assistant-management-section');
+        const auditSection = document.getElementById('owner-audit-section');
+        const button = document.getElementById('btn-owner-management');
+        if (!assistantSection || !auditSection || !button || window.AdminSession?.role !== 'owner') return;
+
+        let modal = document.getElementById('owner-management-modal');
+        if (!modal) {
+            modal = document.createElement('div');
+            modal.id = 'owner-management-modal';
+            modal.className = 'modal-overlay hidden';
+            modal.innerHTML = `
+                <div class="modal-content" style="max-width:1100px; width:94%; max-height:90vh; overflow:auto;">
+                    <div class="modal-header">
+                        <div>
+                            <h3 style="margin:0;">⚙️ إدارة المساعدين والمراقبة</h3>
+                            <p style="margin:4px 0 0; color:#64748b; font-size:.82rem;">إعداد المساعدين الإداريين ومراجعة جميع الحركات الإدارية.</p>
+                        </div>
+                        <button class="btn-close" type="button" id="btn-close-owner-management">✕</button>
+                    </div>
+                    <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+                        <button type="button" id="owner-tab-assistants" class="btn-primary">👤 المساعدون والصلاحيات</button>
+                        <button type="button" id="owner-tab-audit" class="btn-secondary">🧾 سجل حركات الإدارة</button>
+                    </div>
+                    <div id="owner-tab-assistants-panel"></div>
+                    <div id="owner-tab-audit-panel" class="hidden"></div>
+                </div>`;
+            document.body.appendChild(modal);
+        }
+
+        document.getElementById('owner-tab-assistants-panel').appendChild(assistantSection);
+        document.getElementById('owner-tab-audit-panel').appendChild(auditSection);
+
+        const assistantsPanel = document.getElementById('owner-tab-assistants-panel');
+        const auditPanel = document.getElementById('owner-tab-audit-panel');
+        const showTab = (tab) => {
+            const assistants = tab === 'assistants';
+            assistantsPanel.classList.toggle('hidden', !assistants);
+            auditPanel.classList.toggle('hidden', assistants);
+            document.getElementById('owner-tab-assistants').className = assistants ? 'btn-primary' : 'btn-secondary';
+            document.getElementById('owner-tab-audit').className = assistants ? 'btn-secondary' : 'btn-primary';
+            if (!assistants && window.AdminSession?.role === 'owner') this.loadOwnerAudit(false);
+        };
+
+        button.addEventListener('click', () => {
+            modal.classList.remove('hidden');
+            showTab('assistants');
+            this.loadAssistants();
+        });
+        document.getElementById('btn-close-owner-management')?.addEventListener('click', () => modal.classList.add('hidden'));
+        modal.addEventListener('click', (event) => {
+            if (event.target === modal) modal.classList.add('hidden');
+        });
+        document.getElementById('owner-tab-assistants')?.addEventListener('click', () => showTab('assistants'));
+        document.getElementById('owner-tab-audit')?.addEventListener('click', () => showTab('audit'));
+        showTab('assistants');
+    }
+
         this.setupDashboardFilterEvents();
+        this.setupOwnerManagementUI();
         this.setupOwnerAuditEvents();
-        if (window.AdminSession?.role === 'owner') this.loadOwnerAudit(true);
     }
 
     auditActionLabel(action) {
