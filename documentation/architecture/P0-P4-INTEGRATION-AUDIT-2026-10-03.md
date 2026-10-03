@@ -52,3 +52,16 @@ P0-P4 integration is now CLOSED.
 PR #19 was merged into main as commit `ca125cc3363ba01ffd9c7595356289cbcb0913fd`. Cloudflare production deployment `a7ef21bc-4098-48ac-b772-6fb3e56f0d9b` completed successfully from that exact main commit at 2026-10-03T11:35:54Z.
 
 The post-P4 compatibility defect is therefore closed as an integration regression fix. No P0-P4 architecture, scoring contract, or database submission state machine was reopened.
+
+## Final verification addendum — 2026-10-03
+
+The PR #19 runtime fix was deployed to production in Cloudflare deployment `a7ef21bc-4098-48ac-b772-6fb3e56f0d9b`, sourced from main commit `ca125cc3363ba01ffd9c7595356289cbcb0913fd`.
+
+The first PR #19 full-suite run (`37120155624`) was not green because the newly added start-flow regression test omitted `URLSearchParams` from its VM harness. P3 kernel and P4 disposable-PostgreSQL jobs were green in that run; the failure was isolated to the test harness.
+
+PR #21 supplies `URLSearchParams` in that harness. Final verification run `37126149335` completed successfully with:
+- P3 isolated kernel: SUCCESS
+- Full Node test suite: SUCCESS
+- P4 protected completion on disposable PostgreSQL: SUCCESS
+
+Therefore the P0–P4 integration checkpoint is supported by a green repository verification run after the production runtime regression fix. No production runtime code or database state was changed by PR #21.
