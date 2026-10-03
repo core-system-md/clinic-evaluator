@@ -32,6 +32,7 @@ function createAppContext(cryptoApi = { randomUUID: () => 'generated-attempt-key
     clearInterval: global.clearInterval,
     fetch: async () => ({ ok: true, json: async () => ({}) }),
     location: dom.window.location,
+    URLSearchParams: global.URLSearchParams,
     crypto: cryptoApi,
   });
 
