@@ -218,6 +218,14 @@ begin
     raise exception using errcode = '28000', message = 'Invalid or expired public assessment access';
   end if;
 
+  update public.sessions
+  set status = 'abandoned',
+      last_activity_at = now()
+  where assessment_type_id = p_assessment_type_id
+    and attempt_key_hash = p_attempt_key_hash
+    and status = 'in_progress'
+    and last_activity_at < now() - interval '7 days';
+
   select *
     into v_existing_session
   from public.sessions
@@ -315,6 +323,7 @@ declare
   v_access public.assessment_session_access%rowtype;
   v_user public.assessment_users%rowtype;
   v_session public.sessions%rowtype;
+  v_assessment_version integer;
   v_expiry timestamptz;
 begin
   select *
@@ -332,7 +341,7 @@ begin
   end if;
 
   select at.version
-    into v_session.assessment_version
+    into v_assessment_version
   from public.assessment_types at
   where at.id = p_assessment_type_id
     and at.status = 'published';
