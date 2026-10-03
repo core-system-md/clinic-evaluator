@@ -61,6 +61,38 @@ class AssessmentManager {
         }[char]));
     }
 
+    rpcScalar(result) {
+        if (result === null || result === undefined) return null;
+        if (typeof result === 'string') return result;
+        if (typeof result === 'object') {
+            if (typeof result.data === 'string') return result.data;
+            if (typeof result.id === 'string') return result.id;
+        }
+        return null;
+    }
+
+    async invokeAdminManagement(payload) {
+        const token = window.AdminSession?.session?.access_token;
+        if (!token) throw new Error('جلسة الإدارة غير صالحة.');
+        const baseUrl = this.supabase?.url || 'https://oaqpzaarppccbnepffxx.supabase.co';
+        const anonKey = this.supabase?.anonKey || this.supabase?.key;
+        const response = await fetch(baseUrl + '/functions/v1/admin-management', {
+            method: 'POST',
+            headers: {
+                apikey: anonKey,
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.success === false) {
+            throw new Error(data?.message || ('فشل اتصال إدارة المساعدين: ' + response.status));
+        }
+        return data;
+    }
+
     showToast(message, isError = false) {
         const toast = document.getElementById('toast');
         if (!toast) return alert(message);
@@ -179,12 +211,16 @@ class AssessmentManager {
                                 <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">⚙️ هيكلة</button>
                                 <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 إصدار جديد</button>
                                 ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.publishAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">🚀 نشر</button>` : ''}
-                                <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>
+                                ${currentStatusClean === 'published'
+                                    ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">⏹ إيقاف الظهور</button>` : '')
+                                    : currentStatusClean === 'draft'
+                                        ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'draft')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>`
+                                        : `<button onclick="window.assessmentManager.restorePublicAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">↩️ استعادة للعرض</button>`}
                                 <button onclick="window.assessmentManager.toggleAuthLock('${publicSlug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
                                     ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
                                 </button>
                                 ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${ast.slug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
-                                <button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>
+                                ${currentStatusClean !== 'published' ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -292,18 +328,45 @@ class AssessmentManager {
     // استدعاء دالة الـ RPC للتبديل السريع للحالات (مسودة / مؤرشف)
     async archiveAssessment(id, currentStatus) {
         const currentClean = (currentStatus || '').toLowerCase();
-        const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
-        
         try {
-            await this.supabase.request('rpc/update_assessment_status_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_id: id, p_status: nextStatus, p_is_active: true })
-            });
-            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus}`);
+            if (currentClean === 'published') {
+                const family = this.familyByVersionId[id];
+                if (!family?.id) throw new Error('تعذر تحديد عائلة التقييم المنشور.');
+                if (!confirm('سيتم إيقاف ظهور هذا التقييم للعامة مع إبقاء بياناته ونتائجه التاريخية داخل الإدارة. متابعة؟')) return;
+                await this.supabase.request('rpc/stop_public_assessment_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_family_id: family.id })
+                });
+                this.showToast('تم إيقاف الظهور العام مع حفظ التاريخ.');
+            } else if (currentClean === 'draft') {
+                await this.supabase.request('rpc/update_assessment_status_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_id: id, p_status: 'archived', p_is_active: true })
+                });
+                this.showToast('تمت أرشفة نسخة العمل.');
+            } else {
+                this.showToast('النسخة المؤرشفة غير قابلة للتعديل.', true);
+                return;
+            }
             await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
+            this.populateFilterDropdown();
         } catch (err) {
-            this.showToast("فشل تعديل الحالة: " + err.message, true);
+            this.showToast("فشل تغيير الحالة: " + err.message, true);
+        }
+    }
+
+    async restorePublicAssessment(id) {
+        if (!confirm('إعادة هذه النسخة السابقة للظهور العام؟')) return;
+        try {
+            await this.supabase.request('rpc/restore_public_assessment_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_version_id: id })
+            });
+            this.showToast('تمت استعادة التقييم للظهور العام.');
+            await this.renderAssessmentsTable();
+            this.populateFilterDropdown();
+        } catch (err) {
+            this.showToast('فشل استعادة الظهور العام: ' + err.message, true);
         }
     }
 
@@ -331,7 +394,7 @@ class AssessmentManager {
                 method: 'POST',
                 body: JSON.stringify({ p_source_version_id: id })
             });
-            const newId = result?.data;
+            const newId = this.rpcScalar(result);
             this.showToast("تم إنشاء إصدار جديد كمسودة.");
             await this.renderAssessmentsTable();
             this.populateFilterDropdown();
@@ -376,7 +439,7 @@ class AssessmentManager {
                     method: 'POST',
                     body: JSON.stringify({ p_source_version_id: ast.id })
                 });
-                const draftId = result?.data;
+                const draftId = this.rpcScalar(result);
                 if (!draftId) return this.showToast("تعذر إنشاء مسودة جديدة من الإصدار المنشور.", true);
                 ast = (await this.supabase.select('assessment_types') || []).find(a => a.id === draftId);
                 if (!ast) return this.showToast("تم إنشاء المسودة ولكن تعذر تحميلها.", true);
@@ -680,11 +743,18 @@ class AssessmentManager {
         // الاحتفاظ بخيار "كل التقييمات" فقط وإزالة الباقي
         select.innerHTML = '<option value="">كل التقييمات</option>';
 
-        // إضافة التقييمات الحقيقية من الخارطة الديناميكية
-        Object.entries(this.assessmentTypesMap).forEach(([id, title]) => {
+        // القائمة العامة للنتائج تعتمد على Families التي لها نسخة منشورة حالياً فقط.
+        const seenFamilies = new Set();
+        (this.allAssessments || []).forEach(ast => {
+            const family = this.familyByVersionId[ast.id];
+            if (!family?.id || family.current_published_version_id !== ast.id) return;
+            if ((ast.status || '').toLowerCase() !== 'published' || ast.is_active === false) return;
+            if (seenFamilies.has(family.id)) return;
+            seenFamilies.add(family.id);
+
             const option = document.createElement('option');
-            option.value = id;
-            option.textContent = title;
+            option.value = family.id;
+            option.textContent = ast.title_ar || ast.title_en || family.slug;
             select.appendChild(option);
         });
     }
@@ -726,7 +796,8 @@ class AssessmentManager {
                 (lead.email || '').toLowerCase().includes(query) ||
                 (lead.phone || '').toLowerCase().includes(query);
 
-            const matchesType = !type || lead.assessment_type_id === type;
+            const leadFamilyId = this.familyByVersionId[lead.assessment_type_id]?.id || null;
+            const matchesType = !type || leadFamilyId === type;
             const matchesStatus = !status || (status === 'completed' ? lead.completed : !lead.completed);
 
             return matchesQuery && matchesType && matchesStatus;
