@@ -5,7 +5,7 @@ const path = require('path');
 const vm = require('vm');
 const { JSDOM } = require('jsdom');
 
-function createAppContext() {
+function createAppContext(cryptoApi = { randomUUID: () => 'generated-attempt-key' }) {
   const dom = new JSDOM(`<!doctype html><html><body>
     <div id="view-assessment"></div>
     <div id="view-loading"></div>
@@ -32,9 +32,7 @@ function createAppContext() {
     clearInterval: global.clearInterval,
     fetch: async () => ({ ok: true, json: async () => ({}) }),
     location: dom.window.location,
-    crypto: {
-      randomUUID: () => 'generated-attempt-key',
-    },
+    crypto: cryptoApi,
   });
 
   context.window.window = context.window;
@@ -71,6 +69,63 @@ test('P4 shared attempt key is stable across app instances and can be cleared', 
 
   first.clearSharedAttemptKey();
   assert.equal(localStorage.getItem('assessment_attempt_key_patient-journey'), null);
+});
+
+test('P4 start flow works when crypto.randomUUID is unavailable', async () => {
+  const bytes = new Uint8Array(16);
+  bytes.fill(7);
+  const cryptoApi = {
+    getRandomValues: (target) => {
+      target.set(bytes);
+      return target;
+    },
+  };
+  const { ClinicEvaluatorApp, localStorage } = createAppContext(cryptoApi);
+  const app = new ClinicEvaluatorApp();
+
+  app.currentAssessmentKey = 'patient-journey';
+  app.assessment = {
+    id: 'assessment-version-1',
+    requires_login: false,
+    questions: [{ id: 'Q1', options: [{ label: 'A' }] }],
+  };
+  app.assessmentUuid = 'assessment-version-1';
+  app.metadata = {
+    name: 'Test User',
+    email: 'test@example.invalid',
+    phone: '000',
+    clinic: 'Test Clinic',
+    country: 'JO',
+    specialty: 'general',
+    years: '1',
+    team: '1',
+  };
+  app.showLoadingGlobal = () => {};
+  app.renderQuestion = () => {};
+  app.updateProgress = () => {};
+  app.updateNavButtons = () => {};
+
+  const calls = [];
+  app.assessmentAccessRequest = async (action, data) => {
+    calls.push({ action, data });
+    if (action === 'issue_public_access') return { token: 'opaque-token' };
+    if (action === 'start_session') {
+      assert.match(data.attempt_key, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+      return {
+        session_id: 'session-1',
+        lead_id: 'lead-1',
+        expires_at: new Date(Date.now() + 600000).toISOString(),
+      };
+    }
+    throw new Error('Unexpected action: ' + action);
+  };
+
+  await app.startAssessmentFlow();
+
+  assert.equal(app.currentSessionId, 'session-1');
+  assert.equal(app.currentLeadId, 'lead-1');
+  assert.equal(calls.map((call) => call.action).join(','), 'issue_public_access,start_session');
+  assert.match(localStorage.getItem('assessment_attempt_key_patient-journey'), /^[0-9a-f-]{36}$/);
 });
 
 test('P4 keyboard answer waits for server persistence before advancing', async () => {

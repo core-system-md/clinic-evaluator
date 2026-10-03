@@ -186,7 +186,7 @@ The branch `documentation/audit-and-decisions` is a historical baseline and is n
 
 ### P3 status
 
-**DESIGN / NOT IMPLEMENTATION-READY**
+**SUPERSEDED HISTORICAL STATUS — P3 CLOSED**
 
 P3 methodology and supporting modules have progressed substantially, but production implementation is not authorized until the remaining methodology, data-lineage, integration, and verification gates are closed and the Implementation-Ready record is issued.
 
@@ -219,7 +219,7 @@ These are architectural/product decisions and remain subject to investigation an
 
 ## Current checkpoint
 
-**Current phase:** P3 — Assessment / Scoring Engine consolidation and verification.
+**Current phase:** P0–P4 integration/reconciliation before P5.
 
 **P0:** CLOSED with documented platform constraint(s).
 
@@ -239,7 +239,7 @@ P2 production implementation is now complete. The approved explicit assessment-f
 - `documentation/audit/P2-architecture-design-2026-10-01.md` — approved architecture and final implementation status;
 - `documentation/audit/P2-closure-2026-10-01.md` — closure evidence and acceptance record.
 
-**P3 status:** DESIGN / NOT IMPLEMENTATION-READY.
+**P3 status:** CLOSED / IMPLEMENTED / RUNTIME VERIFIED. See the final Gate 3 closure record dated 2026-10-02.
 
 Gate A, Gate B, Gate C, and Gate D are complete at their defined boundaries. Gate E verification is active. No production scoring-semantic change, schema migration, historical rewrite, or cutover is authorized before the Implementation-Ready gate and explicit owner approval.
 
