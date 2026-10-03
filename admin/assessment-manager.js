@@ -208,8 +208,8 @@ class AssessmentManager {
                         </td>
                         <td style="padding:12px 10px; text-align:center;">
                             <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
-                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">⚙️ هيكلة</button>
-                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 إصدار جديد</button>
+                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">✏️ تعديل</button>
+                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخة عمل جديدة</button>
                                 ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.publishAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">🚀 نشر</button>` : ''}
                                 ${currentStatusClean === 'published'
                                     ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">⏹ إيقاف الظهور</button>` : '')
@@ -219,7 +219,7 @@ class AssessmentManager {
                                 <button onclick="window.assessmentManager.toggleAuthLock('${publicSlug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
                                     ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
                                 </button>
-                                ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${ast.slug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
+                                ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${publicSlug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
                                 ${currentStatusClean !== 'published' ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>` : ''}
                             </div>
                         </td>
@@ -311,15 +311,20 @@ class AssessmentManager {
         };
 
         try {
-            await this.supabase.request('rpc/save_assessment_secure', {
+            const result = await this.supabase.request('rpc/save_assessment_secure', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            
-            this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
+
+            const savedId = id || this.rpcScalar(result);
+            this.showToast("تم حفظ التقييم كنسخة عمل.");
             document.getElementById('assessment-modal').classList.add('hidden');
             await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
+            this.populateFilterDropdown();
+
+            if (!id && savedId) {
+                await this.editAssessment(savedId);
+            }
         } catch (err) {
             this.showToast("فشل حفظ التعديلات: " + err.message, true);
         }
@@ -1065,7 +1070,7 @@ class AssessmentManager {
         else if (sortOrder === 'name') this.filteredLeads.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
 
         this.currentPage = 1;
-        document.getElementById('results-count').textContent = `${this.filteredLeads.length} نتيجة`;
+        document.getElementById('results-count').textContent = `${this.filteredLeads.length} سجل`;
         this.renderLeadsTable();
     }
 
