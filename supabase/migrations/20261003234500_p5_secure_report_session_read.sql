@@ -14,11 +14,11 @@ begin
       jsonb_build_object(
         'id',s.id,
         'status',s.status,
-        'created_at',s.created_at,
+        'started_at',s.started_at,
         'completed_at',s.completed_at,
         'assessment_type_id',s.assessment_type_id
       )
-      order by coalesce(s.completed_at,s.created_at) desc
+      order by coalesce(s.completed_at,s.started_at) desc
     ),
     '[]'::jsonb
   )
