@@ -280,8 +280,9 @@ begin
     raise exception 'Only draft or published versions can be used as a source' using errcode='55000';
   end if;
 
+  perform 1 from public.assessment_families where id=v_source.family_id for update;
   select coalesce(max(version),0)+1 into v_next_version
-  from public.assessment_types where family_id=v_source.family_id for update;
+  from public.assessment_types where family_id=v_source.family_id;
 
   v_new_slug := v_source.slug || '--v' || v_next_version;
 
