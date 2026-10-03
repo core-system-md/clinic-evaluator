@@ -542,4 +542,109 @@ grant execute on function public.update_published_question_text_secure(uuid,text
 revoke all on function public.update_published_option_text_secure(uuid,text,text,text,text) from public,anon;
 grant execute on function public.update_published_option_text_secure(uuid,text,text,text,text) to authenticated;
 
+
+ 
+create or replace function public.update_draft_axis_secure(
+  p_axis_id uuid,
+  p_title text,
+  p_title_ar text,
+  p_description text,
+  p_weight numeric,
+  p_display_order integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $function$
+declare
+  v_before jsonb;
+  v_family uuid;
+  v_status text;
+begin
+  perform public.require_admin_capability('assessment.edit');
+  select to_jsonb(a),at.family_id,at.status
+    into v_before,v_family,v_status
+  from public.axes a join public.assessment_types at on at.id=a.assessment_type_id
+  where a.id=p_axis_id for update;
+  if not found then raise exception 'Axis not found' using errcode='P0002'; end if;
+  if v_status<>'draft' then raise exception 'Structural axis edits require a working copy' using errcode='55000'; end if;
+
+  update public.axes
+     set title=coalesce(nullif(trim(p_title),''),title),
+         title_ar=coalesce(nullif(trim(p_title_ar),''),title_ar),
+         description=coalesce(p_description,description),
+         weight=coalesce(p_weight,weight),
+         display_order=coalesce(p_display_order,display_order),
+         updated_at=now()
+   where id=p_axis_id;
+
+  perform public.write_admin_audit(
+    'assessment.axis.edit','axes',p_axis_id,v_family,v_before,
+    (select to_jsonb(a) from public.axes a where a.id=p_axis_id)
+  );
+  return jsonb_build_object('success',true,'id',p_axis_id);
+end;
+$function$;
+
+create or replace function public.update_draft_question_secure(
+  p_question_id uuid,
+  p_question_text text,
+  p_question_text_ar text,
+  p_axis_id uuid,
+  p_display_order integer,
+  p_is_required boolean,
+  p_trap_index integer
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $function$
+declare
+  v_before jsonb;
+  v_family uuid;
+  v_status text;
+  v_assessment uuid;
+  v_axis_assessment uuid;
+begin
+  perform public.require_admin_capability('assessment.edit');
+
+  select to_jsonb(q),at.family_id,at.status,at.id
+    into v_before,v_family,v_status,v_assessment
+  from public.questions q join public.assessment_types at on at.id=q.assessment_type_id
+  where q.id=p_question_id for update;
+
+  if not found then raise exception 'Question not found' using errcode='P0002'; end if;
+  if v_status<>'draft' then raise exception 'Structural question edits require a working copy' using errcode='55000'; end if;
+
+  if p_axis_id is not null then
+    select assessment_type_id into v_axis_assessment from public.axes where id=p_axis_id;
+    if v_axis_assessment is null then raise exception 'Axis not found' using errcode='P0002'; end if;
+    if v_axis_assessment<>v_assessment then raise exception 'Axis belongs to another assessment' using errcode='23514'; end if;
+  end if;
+
+  update public.questions
+     set question_text=coalesce(nullif(trim(p_question_text),''),question_text),
+         question_text_ar=coalesce(nullif(trim(p_question_text_ar),''),question_text_ar),
+         axis_id=coalesce(p_axis_id,axis_id),
+         display_order=coalesce(p_display_order,display_order),
+         is_required=coalesce(p_is_required,is_required),
+         trap_index=p_trap_index,
+         updated_at=now()
+   where id=p_question_id;
+
+  perform public.write_admin_audit(
+    'assessment.question.edit','questions',p_question_id,v_family,v_before,
+    (select to_jsonb(q) from public.questions q where q.id=p_question_id)
+  );
+  return jsonb_build_object('success',true,'id',p_question_id);
+end;
+$function$;
+
+revoke all on function public.update_draft_axis_secure(uuid,text,text,text,numeric,integer) from public,anon;
+grant execute on function public.update_draft_axis_secure(uuid,text,text,text,numeric,integer) to authenticated;
+revoke all on function public.update_draft_question_secure(uuid,text,text,uuid,integer,boolean,integer) from public,anon;
+grant execute on function public.update_draft_question_secure(uuid,text,text,uuid,integer,boolean,integer) to authenticated;
+
 commit;
