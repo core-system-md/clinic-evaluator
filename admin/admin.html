@@ -454,6 +454,7 @@
       <header class="admin-header">
         <div class="logo">لوحة الإدارة</div>
         <div class="header-actions">
+          <button id="btn-owner-management" class="btn-icon hidden" title="إدارة المساعدين والمراقبة" aria-label="إدارة المساعدين والمراقبة">⚙️</button>
           <button id="btn-refresh" class="btn-icon" title="تحديث">🔄</button>
           <button id="btn-logout" class="btn-icon" title="خروج">🚪</button>
           <span id="last-updated">--:--</span>
@@ -590,6 +591,21 @@
         </div>
         <div class="pagination" id="pagination"></div>
       </section>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="owner-management-modal">
+    <div class="modal-content" style="max-width:1100px; width:94%; max-height:90vh; overflow:auto;">
+      <div class="modal-header">
+        <h3>⚙️ إدارة المساعدين والمراقبة</h3>
+        <button class="btn-close" type="button" id="btn-close-owner-management">✕</button>
+      </div>
+      <div style="display:flex; gap:8px; margin-bottom:14px; border-bottom:1px solid #e5e7eb; padding-bottom:10px;">
+        <button type="button" id="owner-management-tab-assistants" class="btn-primary">👤 المساعدون والصلاحيات</button>
+        <button type="button" id="owner-management-tab-audit" class="btn-secondary">🧾 سجل حركات الإدارة</button>
+      </div>
+      <div id="owner-management-assistants-panel"></div>
+      <div id="owner-management-audit-panel" class="hidden"></div>
     </div>
   </div>
 
