@@ -903,116 +903,112 @@ class AssessmentManager {
             const lead = this.allLeads.find(l => l.id === leadId);
             if (!lead) return;
 
-            // جلب درجات المحاور والإجابات المصلحة من قاعدة البيانات
-            const [scores, answers] = await Promise.all([
+            // النتيجة الرسمية تأتي من assessment_results عند توفرها.
+            // البيانات القديمة تبقى معروضة كتاريخية، دون إعادة احتساب KPI في المتصفح.
+            const [sessions, legacyScores, answers, axesForAssessment] = await Promise.all([
+                this.supabase.select('sessions', { filter: { lead_id: leadId } }),
                 this.supabase.select('scores', { filter: { lead_id: leadId } }),
-                this.supabase.select('answers', { filter: { lead_id: leadId } })
+                this.supabase.select('answers', { filter: { lead_id: leadId } }),
+                this.supabase.select('axes', { filter: { assessment_type_id: lead.assessment_type_id } })
             ]);
+
+            const completedSession = (sessions || [])
+                .slice()
+                .sort((a, b) => new Date(b.completed_at || b.created_at || 0) - new Date(a.completed_at || a.created_at || 0))
+                .find(s => (s.status || '').toLowerCase() === 'completed')
+                || (sessions || [])[0]
+                || null;
+
+            const canonicalRows = completedSession
+                ? await this.supabase.select('assessment_results', { filter: { session_id: completedSession.id } })
+                : [];
+            const officialResult = canonicalRows?.[0]?.result || null;
+            const isOfficialResult = !!officialResult;
+
+            const axisNameByCode = {};
+            (axesForAssessment || []).forEach(axis => {
+                axisNameByCode[axis.code] = axis.title_ar || axis.title || axis.code;
+            });
+
+            const reportScores = isOfficialResult
+                ? (officialResult?.scores?.axes || []).map(s => ({
+                    name: axisNameByCode[s.axisCode] || s.axisCode || 'محور',
+                    score: Number.isFinite(Number(s.score)) ? Number(s.score) : null,
+                    status: s.status
+                }))
+                : (legacyScores || []).map(s => ({
+                    name: s.axis_name_ar || s.axis_id || 'محور',
+                    score: Number.isFinite(parseFloat(s.percentage)) ? parseFloat(s.percentage) : null,
+                    status: 'historical'
+                }));
 
             let axisGridHtml = '';
             let weakestAxis = { name: 'المحاور قيد المعالجة', score: 101 };
             let strongestAxis = { name: 'المحاور قيد المعالجة', score: -1 };
 
-            if (scores && scores.length > 0) {
-                scores.forEach(s => {
-                    const pct = parseFloat(s.percentage) || 0;
-                    const name = s.axis_name_ar || s.axis_id;
-                    
-                    if (pct < weakestAxis.score) { weakestAxis = { name: name, score: pct }; }
-                    if (pct > strongestAxis.score) { strongestAxis = { name: name, score: pct }; }
+            reportScores.forEach(s => {
+                if (!Number.isFinite(s.score)) return;
+                if (s.score < weakestAxis.score) weakestAxis = { name: s.name, score: s.score };
+                if (s.score > strongestAxis.score) strongestAxis = { name: s.name, score: s.score };
 
-                    axisGridHtml += `
-                        <div class="score-card">
-                            <div class="score-name">${name}</div>
-                            <div class="score-value">${pct.toFixed(1)}%</div>
-                        </div>
-                    `;
-                });
-            }
+                axisGridHtml += `
+                    <div class="score-card">
+                        <div class="score-name">${this.escapeHtml(s.name)}</div>
+                        <div class="score-value">${s.score.toFixed(1)}%</div>
+                    </div>
+                `;
+            });
 
-            // فحص ومعالجة فخاخ التناقض السلوكي نصياً بالعربية
             let behaviorTrapsHtml = '';
-            // قراءة الحقول الحقيقية المعتمدة سحابياً وهي answers.is_trap و trap_triggered
             const triggeredTraps = answers ? answers.filter(a => a.trap_triggered === true || a.is_trap === true) : [];
-            
+
             if (triggeredTraps.length > 0) {
                 triggeredTraps.forEach((trap, idx) => {
                     behaviorTrapsHtml += `
                         <div class="answer-item" style="background:#fff5f5; border-right:3px solid #ef4444; padding:12px; margin-bottom:8px; border-radius:6px; text-align:right;">
                             <div class="answer-question" style="font-weight:700; color:#991b1b;">🚨 فجوة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
                             <div style="font-size:0.85rem; color:#7f1d1d; line-height:1.6; margin-top:4px;">
-                                <strong>المعيار المفحوص:</strong> ${trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.'} <br>
-                                <span style="color:#b91c1c; font-weight:700;">📌 واقع رد الفريق المطبق في المحادثات (قيمة: ${trap.answer_value || 1}):</span>
+                                <strong>المعيار المفحوص:</strong> ${this.escapeHtml(trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.')} <br>
+                                <span style="color:#b91c1c; font-weight:700;">📌 واقع الرد (قيمة: ${this.escapeHtml(trap.answer_value ?? '—')}):</span>
                             </div>
                         </div>
                     `;
                 });
             } else {
-                behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">✅ أداء العيادة متطابق ومتزن بالكامل مع الرد السلوكي المعلن، ولم يتم رصد فخاخ تسريب حادة.</p>';
+                behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">لا توجد فخاخ مسجلة لهذا السجل.</p>';
             }
 
-            // احتساب مؤشرات الأداء الحيوية (KPIs Dashboard) ديناميكياً باستخدام Axis Roles
-            const calculateKPIsFromRoles = () => {
-                // جلب axis_roles و kpi_mappings من التقييم
-                const assessment = this.allAssessments?.find(a => a.id === lead.assessment_type_id);
-                const axisRoles = assessment?.axis_roles || {};
-                const kpiMappings = assessment?.kpi_mappings || {};
-
-                // ترجمة درجات المحاور إلى درجات الأدوار
-                const roleScores = {};
-                const availableScores = [];
-
-                if (scores && scores.length > 0) {
-                    scores.forEach(s => {
-                        const pct = parseFloat(s.percentage) || 0;
-                        availableScores.push(pct);
-                        const role = axisRoles[s.axis_id];
-                        if (role) {
-                            if (roleScores[role] !== undefined) {
-                                roleScores[role] = (roleScores[role] + pct) / 2;
-                            } else {
-                                roleScores[role] = pct;
-                            }
-                        }
-                    });
-                }
-
-                // Fallback: أدوار غير موجودة = متوسط الأدوار المتاحة
-                const avgScore = availableScores.length > 0
-                    ? availableScores.reduce((a, b) => a + b, 0) / availableScores.length
-                    : 50;
-
-                const allRoles = ['TRUST','COMMUNICATION','CONVERSION','RETENTION','LOYALTY',
-                    'SCHEDULING','RECEPTION','ADMIN','COORDINATION','JOURNEY','OPERATIONS','TEAM','GROWTH'];
-                allRoles.forEach(role => {
-                    if (roleScores[role] === undefined) roleScores[role] = avgScore;
-                });
-
-                // حساب كل KPI
-                const kpis = {};
-                for (const [kpiCode, mapping] of Object.entries(kpiMappings)) {
-                    let weightedSum = 0;
-                    let totalWeight = 0;
-                    for (const [role, weight] of Object.entries(mapping)) {
-                        weightedSum += (roleScores[role] || 0) * weight;
-                        totalWeight += weight;
-                    }
-                    kpis[kpiCode] = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
-                }
-
-                return kpis;
+            const kpiMap = Object.fromEntries(
+                (Array.isArray(officialResult?.kpis) ? officialResult.kpis : [])
+                    .map(k => [k.kpiCode, k])
+            );
+            const kpiValue = (code) => {
+                const item = kpiMap[code];
+                if (!item || item.value === null || item.value === undefined || item.status === 'unavailable') return 'غير متاح';
+                return Number(item.value).toFixed(1).replace(/\\.0$/, '') + '%';
             };
 
-            const kpis = calculateKPIsFromRoles();
-            const tfiIndex = kpis.TFI || 0;
-            const tapIndex = kpis.TAP || 0;
-            const prpIndex = kpis.PRP || 0;
-            const pliIndex = kpis.PLI || 0;
-            const psiIndex = kpis.PSI || 0;
-            const npiIndex = kpis.NPI || 0;
-            const eviIndex = kpis.EVI || 0;
-            const tciIndex = kpis.TCI || 0;
-            const rriIndex = kpis.RRI || null; // خاص بالاستقبال
+            const overallScore = officialResult?.scores?.overallScore ?? (
+                lead.score_percentage !== null && lead.score_percentage !== undefined
+                    ? parseFloat(lead.score_percentage)
+                    : null
+            );
+
+            const tfiIndex = kpiValue('TFI');
+            const tapIndex = kpiValue('TAP');
+            const prpIndex = kpiValue('PRP');
+            const pliIndex = kpiValue('PLI');
+            const psiIndex = kpiValue('PSI');
+            const npiIndex = kpiValue('NPI');
+            const eviIndex = kpiValue('EVI');
+            const tciIndex = kpiValue('TCI');
+            const rriValue = kpiMap.RRI?.value !== null && kpiMap.RRI?.value !== undefined && kpiMap.RRI?.status !== 'unavailable'
+                ? Number(kpiMap.RRI.value).toFixed(1).replace(/\\.0$/, '') + '%'
+                : null;
+
+            const resultSourceLabel = isOfficialResult
+                ? '✅ النتيجة الرسمية P3'
+                : '🕘 نتيجة تاريخية (البيانات القديمة)';
 
             // جلب اسم التقييم الفعلي من الخارطة التي قمنا ببنائها ديناميكياً
             const currentAssessmentName = this.assessmentTypesMap[lead.assessment_type_id] || 'نموذج تقييم استشاري';
@@ -1022,13 +1018,14 @@ class AssessmentManager {
                 <div class="detail-section" style="text-align:right;">
                     <h4>📋 البيانات الاستشارية والتعريفية للمنشأة الطبية</h4>
                     <div class="detail-grid">
-                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${currentAssessmentName}</div></div>
+                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${this.escapeHtml(currentAssessmentName)}</div>
+                        <div class="detail-item"><div class="detail-label">مصدر النتيجة</div><div class="detail-value">${resultSourceLabel}</div></div></div>
                         <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${this.escapeHtml(lead.full_name)}</div></div>
                         <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${this.escapeHtml(lead.clinic_name || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${this.escapeHtml(lead.phone || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">البريد الإلكتروني التجاري</div><div class="detail-value">${this.escapeHtml(lead.email || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">التخصص السريري والبلد</div><div class="detail-value">${this.translateSpecialty(lead.specialty)} • ${lead.country === 'JO' ? 'الأردن 🇯🇴' : lead.country === 'SA' ? 'السعودية 🇸🇦' : lead.country || '🌍 أخرى'}</div></div>
-                        <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${lead.score_percentage ? parseFloat(lead.score_percentage).toFixed(1) + '%' : '---'}</div></div>
+                        <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${overallScore !== null && Number.isFinite(Number(overallScore)) ? Number(overallScore).toFixed(1) + '%' : '---'}</div></div>
                     </div>
                 </div>
 
@@ -1043,7 +1040,7 @@ class AssessmentManager {
                         <div class="score-card"><div class="score-name">التوصية (NPI)</div><div class="score-value">${npiIndex}%</div></div>
                         <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}%</div></div>
                         <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}%</div></div>
-                        ${rriIndex !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriIndex}%</div></div>` : ''}
+                        ${rriValue !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriValue}</div></div>` : ''}
                     </div>
                 </div>
 
