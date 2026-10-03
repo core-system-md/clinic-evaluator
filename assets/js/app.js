@@ -143,7 +143,9 @@ class ClinicEvaluatorApp {
       payload = { error: 'Invalid server response' };
     }
     if (!response.ok || !payload?.success) {
-      throw new Error(payload?.error || 'Assessment server request failed');
+      const error = new Error(payload?.error || 'Assessment server request failed');
+      error.status = response.status;
+      throw error;
     }
     return payload.data;
   }
@@ -682,6 +684,15 @@ class ClinicEvaluatorApp {
     } catch (err) {
       clearInterval(interval);
       this.showView('view-assessment');
+
+      if (Number(err?.status) === 409) {
+        this.showError(err.message || 'لا يمكن إرسال التقييم بهذه الحالة. يرجى مراجعة الإجابات ثم إعادة الإرسال.');
+        this.renderQuestion();
+        this.updateProgress();
+        this.updateNavButtons();
+        return;
+      }
+
       this.showFatalError('حدث خطأ فني أثناء معالجة التقرير الخادمي: ' + (err.message || 'Unknown error'));
     }
   }
