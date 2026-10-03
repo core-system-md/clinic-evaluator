@@ -76,3 +76,37 @@ Remaining closure work:
 3. Verify assistant capability grant/revoke behavior with a real delegated Admin account.
 4. Complete controlled retirement of legacy management paths after consumer verification.
 5. Produce the final P5 closure record.
+
+
+## Owner Acceptance Bug Verification — 2026-10-03
+
+The following issues were reproduced from the deployed Admin behavior and traced to concrete implementation causes:
+
+- Published assessment edit/create-working-copy and duplicate-working-copy flows returned UUID RPC scalars, while the browser expected `result.data`. The UI now accepts scalar UUID responses and opens the created working copy.
+- Published archival was routed through a generic status operation that correctly rejected published content. The UI now uses the dedicated public-stop lifecycle; draft archival remains separate.
+- Publication lifecycle conflicted with P2 metadata immutability. P2 now permits only the approved archival/restoration state transitions while preserving assessment content immutability.
+- The result statistic cards had no click actions. They now drill into the results list; the clinic statistic opens a clinic summary.
+- The assessment filter previously enumerated every assessment version. It now lists only the current published Family once.
+- Admin reporting previously contained browser-side KPI recomputation with role fallback. Reporting now reads the official structured result through a server-side report-authorized operation and labels legacy records as historical.
+- Owner-only assistant management is now available, including server-side Auth account provisioning, assistant naming, permission assignment/revocation, and activation/deactivation.
+- Working-copy duplication again includes traps, insights, and assets and derives the internal working-copy slug from the stable Family key.
+
+## Verification Results After Fix
+
+- Deep working-copy copy test passed inside a transaction and was rolled back.
+- Draft archive + publish + stop-public + restore-public lifecycle test passed inside a transaction and was rolled back.
+- Canonical result-read RPC test passed for an existing official result.
+- Filter-source database check returns exactly 5 current public Family records for the 5 published Families.
+- GitHub P5 verification CI passed before merge: P3 isolated kernel, P4 protected completion, and full Node suite.
+- Production Cloudflare deployment from merge commit `79dfc6c5fe0ccbe9b8de7b241e809f6aa652fdf7` completed successfully.
+
+## Remaining Owner Acceptance
+
+The implementation is deployed, but P5 is not marked closed until the Owner performs the final browser-level acceptance, especially:
+- Open a published assessment through "تعديل" and confirm the working copy opens.
+- Create "نسخة عمل جديدة" and confirm it opens directly.
+- Verify stop-public and restore-public through the UI.
+- Use the four statistic cards and confirm each opens its corresponding view.
+- Create one real assistant using Owner-supplied credentials and assign/revoke capabilities.
+- Confirm an assistant with a denied capability is rejected by the server-side operation.
+- Confirm the assessment filter contains one current published entry per Family.
