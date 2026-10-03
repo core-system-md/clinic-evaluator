@@ -16,6 +16,6 @@ jobs:
       - name: Check browser runtime syntax
         run: node --check assets/js/app.js
       - name: Check admin authentication runtime syntax
-        run: node --check admin/admin-session.js && node --check admin/admin.js && node --check admin/assessment-manager.js
+        run: node --check admin/admin-session.js && node --check admin/admin.js && node --check admin/assessment-manager.js && node --check admin/assessment-lifecycle.js
       - name: Run server scoring parity tests
         run: node --experimental-strip-types --test tests/server-scoring-parity.test.js
