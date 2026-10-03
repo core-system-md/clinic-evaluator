@@ -19,6 +19,21 @@ jobs:
         with:
           version: latest
 
+      - name: Add CI-only legacy migration compatibility shim
+        run: |
+          cat > supabase/migrations/20261001000000_ci_local_compat.sql <<'SQL'
+          create or replace function public.update_updated_at_column()
+          returns trigger
+          language plpgsql
+          set search_path = public
+          as $
+          begin
+            new.updated_at = now();
+            return new;
+          end;
+          $;
+          SQL
+
       - name: Start disposable local Supabase
         run: supabase start
 
