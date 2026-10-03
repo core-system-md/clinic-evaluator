@@ -51,6 +51,16 @@ class AssessmentManager {
         this.setupDashboardFilterEvents();
     }
 
+    escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>"']/g, (char) => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#39;'
+        }[char]));
+    }
+
     showToast(message, isError = false) {
         const toast = document.getElementById('toast');
         if (!toast) return alert(message);
@@ -429,7 +439,7 @@ class AssessmentManager {
                 html += `
                     <div style="background:#f8fafc; padding:12px; border-radius:8px; border-right:4px solid #0f766e; border-top:1px solid #e5e7eb; border-left:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb;">
                         <div style="display:flex; justify-content:space-between; align-items:center; font-weight:700; color:#134e4a; font-size:0.85rem; margin-bottom:8px; flex-wrap:wrap; gap:5px;">
-                            <span>📌 محور: ${axis.title_ar || axis.title || 'بدون اسم'} (${axis.code || ''})</span>
+                            <span>📌 محور: ${this.escapeHtml(axis.title_ar || axis.title || 'بدون اسم')} (${this.escapeHtml(axis.code || '')})</span>
                             <span style="font-size:0.75rem; color:#6b7280; margin-right:auto; margin-left:10px;">الوزن: %${axis.weight || 0}</span>
                             <button type="button" onclick="window.assessmentManager.addQuestionInline('${assessmentId}', '${axis.id}')" style="padding:2px 6px; font-size:0.7rem; background:#10b981; color:white; border:none; border-radius:4px; cursor:pointer; font-family:'Cairo'; font-weight:600;">+ إضافة سؤال</button>
                         </div>
@@ -446,8 +456,8 @@ class AssessmentManager {
                         html += `
                             <div style="font-size:0.75rem; color:#334155; background:white; padding:6px 8px; border-radius:4px; border:1px solid #f1f5f9; margin-bottom:4px;">
                                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                                    <span style="font-weight:600;">❓ ${q.question_text_ar || q.question_text}</span>
-                                    <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${q.code || ''})</span>
+                                    <span style="font-weight:600;">❓ ${this.escapeHtml(q.question_text_ar || q.question_text)}</span>
+                                    <span style="color:#0f766e; font-weight:600; font-size:0.7rem;">(${this.escapeHtml(q.code || '')})</span>
                                 </div>
                                 <div style="padding-right:12px; border-right:2px solid #e5e7eb; margin-right:4px;">
                                     <div style="font-size:0.7rem; color:#6b7280; margin-bottom:4px; font-weight:600;">خيارات الإجابة:</div>
@@ -461,7 +471,7 @@ class AssessmentManager {
                                     <div style="display:flex; gap:6px; align-items:center; margin-bottom:4px; flex-wrap:wrap;">
                                         <span style="font-size:0.7rem; color:#6b7280; min-width:20px;">${idx + 1}.</span>
                                         <input type="text" 
-                                            value="${(opt.label_ar || opt.label || '').replace(/"/g, '&quot;')}" 
+                                            value="${this.escapeHtml(opt.label_ar || opt.label || '')}" 
                                             onblur="window.assessmentManager.updateOption('${opt.id}', 'label_ar', this.value)"
                                             placeholder="نص الخيار بالعربية"
                                             style="flex:1; min-width:120px; padding:4px 6px; border:1px solid #e5e7eb; border-radius:4px; font-family:'Cairo'; font-size:0.7rem;"
@@ -756,12 +766,12 @@ class AssessmentManager {
             htmlRows += `
                 <tr>
                     <td>${dateStr}</td>
-                    <td style="font-weight:700; color:#111827;">${lead.full_name || 'طبيب غير معروف'}</td>
-                    <td>${lead.clinic_name || '---'}</td>
+                    <td style="font-weight:700; color:#111827;">${this.escapeHtml(lead.full_name || 'طبيب غير معروف')}</td>
+                    <td>${this.escapeHtml(lead.clinic_name || '---')}</td>
                     <td>${this.translateSpecialty(lead.specialty)}</td>
                     <td>${this.translateStaffSize(lead.team)}</td>
                     <td>${lead.years || '---'}</td>
-                    <td>${lead.country === 'JO' ? '🇯🇴 الأردن' : lead.country === 'SA' ? '🇸🇦 السعودية' : lead.country || '🌍 أخرى'}</td>
+                    <td>${this.escapeHtml(lead.country === 'JO' ? '🇯🇴 الأردن' : lead.country === 'SA' ? '🇸🇦 السعودية' : lead.country || '🌍 أخرى')}</td>
                     <td style="font-weight:800; color:#0f766e; font-size:1rem;">${scoreDisplay}</td>
                     <td>${stateBadge}</td>
                     <td>
@@ -942,10 +952,10 @@ class AssessmentManager {
                     <h4>📋 البيانات الاستشارية والتعريفية للمنشأة الطبية</h4>
                     <div class="detail-grid">
                         <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${currentAssessmentName}</div></div>
-                        <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${lead.full_name}</div></div>
-                        <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${lead.clinic_name || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${lead.phone || '---'}</div></div>
-                        <div class="detail-item"><div class="detail-label">البريد الإلكتروني التجاري</div><div class="detail-value">${lead.email || '---'}</div></div>
+                        <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${this.escapeHtml(lead.full_name)}</div></div>
+                        <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${this.escapeHtml(lead.clinic_name || '---')}</div></div>
+                        <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${this.escapeHtml(lead.phone || '---')}</div></div>
+                        <div class="detail-item"><div class="detail-label">البريد الإلكتروني التجاري</div><div class="detail-value">${this.escapeHtml(lead.email || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">التخصص السريري والبلد</div><div class="detail-value">${this.translateSpecialty(lead.specialty)} • ${lead.country === 'JO' ? 'الأردن 🇯🇴' : lead.country === 'SA' ? 'السعودية 🇸🇦' : lead.country || '🌍 أخرى'}</div></div>
                         <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${lead.score_percentage ? parseFloat(lead.score_percentage).toFixed(1) + '%' : '---'}</div></div>
                     </div>
