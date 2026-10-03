@@ -180,9 +180,9 @@
     const textValue = String(value || '').trim();
     if (!textValue) return this.showToast('لا يمكن أن يكون نص السؤال فارغاً.', true);
     try {
-      await this.supabase.request('rpc/update_draft_question_secure', {
+      await this.supabase.request('rpc/update_draft_question_text_secure', {
         method: 'POST',
-        body: JSON.stringify({ p_question_id: questionId, p_question_text: textValue, p_question_text_ar: textValue, p_axis_id: null, p_display_order: null, p_is_required: null, p_trap_index: null })
+        body: JSON.stringify({ p_question_id: questionId, p_question_text: textValue, p_question_text_ar: textValue })
       });
       this.showToast('تم تحديث نص السؤال.');
     } catch (err) { this.showToast('فشل تحديث نص السؤال: ' + err.message, true); }
