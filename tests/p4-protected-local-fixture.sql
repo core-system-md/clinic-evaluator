@@ -62,14 +62,18 @@ select public.prepare_assessment_submission(
   '{}'::jsonb
 );
 
-select ok(
-  (select submission_state = 'processing'
-     and submission_snapshot = '[]'::jsonb
-     and submission_economic_input = '{}'::jsonb
-     and submission_fingerprint is not null
-   from public.sessions
-   where id = '22222222-2222-4222-8222-222222222222'::uuid),
-  'prepare freezes the protected submission context'
-);
+do $
+begin
+  if not exists (
+    select 1 from public.sessions
+    where id = '22222222-2222-4222-8222-222222222222'::uuid
+      and submission_state = 'processing'
+      and submission_snapshot = '[]'::jsonb
+      and submission_economic_input = '{}'::jsonb
+      and submission_fingerprint is not null
+  ) then
+    raise exception 'prepare did not freeze the protected submission context';
+  end if;
+end $;
 
 commit;
