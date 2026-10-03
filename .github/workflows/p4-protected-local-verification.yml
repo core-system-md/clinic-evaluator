@@ -1,0 +1,163 @@
+name: p4-protected-local-verification
+
+on:
+  push:
+    branches:
+      - p4/investigation-2026-10-02
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Start disposable local Supabase
+        run: supabase start
+
+      - name: Reset local database from repository migrations
+        run: supabase db reset
+
+      - name: Prepare protected submission fixture
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f tests/p4-protected-local-fixture.sql
+
+      - name: Run two concurrent protected finalizations
+        shell: bash
+        run: |
+          set -euo pipefail
+          DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "
+            select public.complete_p4_assessment_session(
+              '22222222-2222-4222-8222-222222222222'::uuid,
+              'p4-fixture-token-hash',
+              '33333333-3333-4333-8333-333333333333'::uuid,
+              (select submission_fingerprint from public.sessions where id='22222222-2222-4222-8222-222222222222'::uuid),
+              88.5,
+              'P4',
+              '[]'::jsonb,
+              1,
+              1,
+              'P3_SCORER_V1',
+              'P3_AGGREGATION_V1',
+              'p4-fixture-digest',
+              jsonb_build_object(
+                'schemaVersion','P3_STRUCTURED_RESULT_V1',
+                'status','PRODUCTION',
+                'identity',jsonb_build_object(
+                  'resultId','55555555-5555-4555-8555-555555555555',
+                  'sessionId','22222222-2222-4222-8222-222222222222',
+                  'assessmentTypeId','44444444-4444-4444-8444-444444444444',
+                  'assessmentVersion','1'
+                ),
+                'provenance',jsonb_build_object(
+                  'interpretationVersion','1',
+                  'scoringEngineVersion','P3_SCORER_V1',
+                  'scoringContractVersion','P3_AGGREGATION_V1',
+                  'assessmentConfigDigest','p4-fixture-digest'
+                )
+              )
+            );
+          " > /tmp/p4-completion-a.log &
+          A=$!
+
+          psql "$DB_URL" -v ON_ERROR_STOP=1 -c "
+            select public.complete_p4_assessment_session(
+              '22222222-2222-4222-8222-222222222222'::uuid,
+              'p4-fixture-token-hash',
+              '33333333-3333-4333-8333-333333333333'::uuid,
+              (select submission_fingerprint from public.sessions where id='22222222-2222-4222-8222-222222222222'::uuid),
+              88.5,
+              'P4',
+              '[]'::jsonb,
+              1,
+              1,
+              'P3_SCORER_V1',
+              'P3_AGGREGATION_V1',
+              'p4-fixture-digest',
+              jsonb_build_object(
+                'schemaVersion','P3_STRUCTURED_RESULT_V1',
+                'status','PRODUCTION',
+                'identity',jsonb_build_object(
+                  'resultId','55555555-5555-4555-8555-555555555555',
+                  'sessionId','22222222-2222-4222-8222-222222222222',
+                  'assessmentTypeId','44444444-4444-4444-8444-444444444444',
+                  'assessmentVersion','1'
+                ),
+                'provenance',jsonb_build_object(
+                  'interpretationVersion','1',
+                  'scoringEngineVersion','P3_SCORER_V1',
+                  'scoringContractVersion','P3_AGGREGATION_V1',
+                  'assessmentConfigDigest','p4-fixture-digest'
+                )
+              )
+            );
+          " > /tmp/p4-completion-b.log &
+          B=$!
+
+          wait "$A"
+          wait "$B"
+
+          cat /tmp/p4-completion-a.log
+          cat /tmp/p4-completion-b.log
+
+      - name: Assert exactly-once protected usage and result persistence
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -v ON_ERROR_STOP=1 <<'SQL'
+          do $$
+          declare
+            v_used integer;
+            v_results integer;
+            v_state text;
+            v_consumed timestamptz;
+            v_retry jsonb;
+          begin
+            select used_count into v_used
+              from public.assessment_users
+             where id='33333333-3333-4333-8333-333333333333'::uuid;
+
+            select count(*) into v_results
+              from public.assessment_results
+             where session_id='22222222-2222-4222-8222-222222222222'::uuid;
+
+            select submission_state, usage_consumed_at
+              into v_state, v_consumed
+              from public.sessions
+             where id='22222222-2222-4222-8222-222222222222'::uuid;
+
+            if v_used <> 1 then raise exception 'Expected used_count=1, got %', v_used; end if;
+            if v_results <> 1 then raise exception 'Expected exactly one result, got %', v_results; end if;
+            if v_state <> 'completed' then raise exception 'Expected completed session, got %', v_state; end if;
+            if v_consumed is null then raise exception 'usage_consumed_at was not set'; end if;
+
+            select public.complete_p4_assessment_session(
+              '22222222-2222-4222-8222-222222222222'::uuid,
+              'p4-fixture-token-hash',
+              '33333333-3333-4333-8333-333333333333'::uuid,
+              (select submission_fingerprint from public.sessions where id='22222222-2222-4222-8222-222222222222'::uuid),
+              88.5, 'P4', '[]'::jsonb, 1, 1,
+              'P3_SCORER_V1', 'P3_AGGREGATION_V1', 'p4-fixture-digest',
+              (select result from public.assessment_results where session_id='22222222-2222-4222-8222-222222222222'::uuid)
+            ) into v_retry;
+
+            if coalesce((v_retry->>'already_completed')::boolean, false) is not true
+               then raise exception 'Retry was not idempotent: %', v_retry; end if;
+
+            if (select used_count from public.assessment_users where id='33333333-3333-4333-8333-333333333333'::uuid) <> 1
+               then raise exception 'Retry changed used_count'; end if;
+          end $$;
+          SQL
+
+      - name: Stop disposable local Supabase
+        if: always()
+        run: supabase stop
