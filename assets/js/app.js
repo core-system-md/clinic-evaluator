@@ -60,6 +60,12 @@ class ClinicEvaluatorApp {
       const hasSession = await this.checkExistingSession();
       if (hasSession) {
         this.hideView('view-lead-form');
+
+        if (this.completedResult) {
+          this.renderResults(this.completedResult);
+          return;
+        }
+
         this.showView('view-assessment');
         this.renderQuestion();
         this.updateProgress();
@@ -521,6 +527,50 @@ class ClinicEvaluatorApp {
   }
 
 
+  projectStoredResult(row) {
+    const structured = row?.result;
+    if (!structured) return null;
+
+    const axisScores = {};
+    for (const axis of structured?.scores?.axes || []) {
+      if (Number.isFinite(axis?.score)) {
+        axisScores[String(axis.axisCode)] = Number(axis.score);
+      }
+    }
+
+    const kpis = {};
+    for (const kpi of structured?.kpis || []) {
+      if (kpi?.status !== 'unavailable' && Number.isFinite(kpi?.value)) {
+        kpis[String(kpi.kpiCode)] = Number(kpi.value);
+      }
+    }
+
+    return {
+      overallScore: Number.isFinite(structured?.scores?.overallScore)
+        ? Number(structured.scores.overallScore)
+        : null,
+      classification: structured?.classification?.bandCode || null,
+      axisScores,
+      kpis,
+      evSimulator: null,
+      traps: [],
+      structuredResult: structured,
+      provenance: row
+        ? {
+            assessmentVersion: row.assessment_version,
+            interpretationVersion: row.interpretation_version,
+            scoringEngineVersion: row.scoring_engine_version,
+            scoringContractVersion: row.scoring_contract_version,
+            assessmentConfigDigest: row.assessment_config_digest,
+            calculatedAt: row.calculated_at,
+          }
+        : null,
+      already_completed: true,
+      session_id: this.currentSessionId,
+      assessment_version: this.assessment?.version || structured?.identity?.assessmentVersion || null,
+    };
+  }
+
   async checkExistingSession() {
     const key = 'assessment_access_' + this.currentAssessmentKey;
     const stored = sessionStorage.getItem(key);
@@ -546,6 +596,11 @@ class ClinicEvaluatorApp {
       this.answers = {};
       for (const answer of result.answers || []) {
         this.answers[answer.question_id] = { index: Number(answer.option_index) };
+      }
+
+      this.completedResult = null;
+      if (result.session?.status === 'completed' && result.result?.result) {
+        this.completedResult = this.projectStoredResult(result.result);
       }
 
       return Boolean(this.currentSessionId);
