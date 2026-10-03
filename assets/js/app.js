@@ -97,6 +97,30 @@ class ClinicEvaluatorApp {
     };
   }
 
+  getSharedAttemptKey() {
+    const keyName = 'assessment_attempt_key_' + this.currentAssessmentKey;
+    try {
+      let key = localStorage.getItem(keyName);
+      if (!key) {
+        key = crypto.randomUUID();
+        localStorage.setItem(keyName, key);
+      }
+      return key;
+    } catch (err) {
+      console.warn('[app] shared attempt key unavailable:', err);
+      return 'tab-' + crypto.randomUUID();
+    }
+  }
+
+  clearSharedAttemptKey() {
+    const keyName = 'assessment_attempt_key_' + this.currentAssessmentKey;
+    try {
+      localStorage.removeItem(keyName);
+    } catch (err) {
+      console.warn('[app] shared attempt key cleanup failed:', err);
+    }
+  }
+
   async assessmentAccessRequest(action, data = {}) {
     if (!this.supabase?.url || !this.supabase?.anonKey) {
       throw new Error('Supabase runtime is unavailable.');
@@ -249,6 +273,7 @@ class ClinicEvaluatorApp {
 
       const result = await this.assessmentAccessRequest('start_session', {
         token: this.assessmentAccessToken,
+        attempt_key: this.getSharedAttemptKey(),
         lead: {
           assessment_type_id: this.assessmentUuid,
           full_name: this.metadata.name || 'طبيب غير معروف',
@@ -413,7 +438,19 @@ class ClinicEvaluatorApp {
           const opts = document.querySelectorAll('#question-container .opt');
           opts.forEach((o, i) => o.classList.toggle('sel', i === idx));
           this.updateProgress();
-          setTimeout(() => this.goNext(), 300);
+
+          const questionId = q.id;
+          const questionIndex = this.currentQuestionIndex;
+          this.saveAnswerToServer(questionId, idx, questionIndex)
+            .then(() => {
+              if (this.questions[this.currentQuestionIndex]?.id === questionId) {
+                this.goNext();
+              }
+            })
+            .catch((err) => {
+              console.error('[app] keyboard save answer failed:', err);
+              this.showError(err.message || 'تعذر حفظ الإجابة. يرجى المحاولة مرة أخرى.');
+            });
         }
       }
     });
@@ -637,6 +674,7 @@ class ClinicEvaluatorApp {
       if (bar) bar.style.width = '100%';
       if (status) status.textContent = '100%';
 
+      this.clearSharedAttemptKey();
       setTimeout(() => {
         this.hideView('view-loading');
         this.renderResults(results);
