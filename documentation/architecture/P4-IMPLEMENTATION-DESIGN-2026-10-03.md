@@ -5,7 +5,7 @@
 **Status:** APPROVED DESIGN / READY FOR IMPLEMENTATION  
 **Owner approval record:** `documentation/architecture/P4-OWNER-APPROVAL-2026-10-03.md`  
 **Branch:** `p4/investigation-2026-10-02`  
-**Production baseline:** `assessment-access` v14
+**Production baseline:** `assessment-access` v16
 
 ## 1. Objective
 
@@ -162,7 +162,7 @@ Within the same transaction it then:
 - updates lead completion fields;
 - increments protected usage exactly once;
 - marks the session completed;
-- clears processing metadata only after successful persistence.
+- retains the final submission snapshot and fingerprint as immutable provenance after successful persistence.
 
 All writes commit or roll back together.
 
