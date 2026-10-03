@@ -582,7 +582,18 @@ Deno.serve(async (req) => {
 
       await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
 
-      return json({ success: true, data: { session, answers } });
+      let storedResult: any = null;
+      if (session.status === "completed") {
+        const { data: resultRow, error: resultError } = await supabase
+          .from("assessment_results")
+          .select("result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at, result_status")
+          .eq("session_id", session.id)
+          .maybeSingle();
+        if (resultError) throw resultError;
+        storedResult = resultRow;
+      }
+
+      return json({ success: true, data: { session, answers, result: storedResult } });
     }
 
     if (action === "save_answer") {
