@@ -61,6 +61,38 @@ class AssessmentManager {
         }[char]));
     }
 
+    rpcScalar(result) {
+        if (result === null || result === undefined) return null;
+        if (typeof result === 'string') return result;
+        if (typeof result === 'object') {
+            if (typeof result.data === 'string') return result.data;
+            if (typeof result.id === 'string') return result.id;
+        }
+        return null;
+    }
+
+    async invokeAdminManagement(payload) {
+        const token = window.AdminSession?.session?.access_token;
+        if (!token) throw new Error('جلسة الإدارة غير صالحة.');
+        const baseUrl = this.supabase?.url || 'https://oaqpzaarppccbnepffxx.supabase.co';
+        const anonKey = this.supabase?.anonKey || this.supabase?.key;
+        const response = await fetch(baseUrl + '/functions/v1/admin-management', {
+            method: 'POST',
+            headers: {
+                apikey: anonKey,
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.success === false) {
+            throw new Error(data?.message || ('فشل اتصال إدارة المساعدين: ' + response.status));
+        }
+        return data;
+    }
+
     showToast(message, isError = false) {
         const toast = document.getElementById('toast');
         if (!toast) return alert(message);
@@ -103,6 +135,9 @@ class AssessmentManager {
                     </div>`;
                 return;
             }
+
+            // تحديث مخزن التقييمات نفسه بعد كل refresh حتى لا تبقى الفلاتر على بيانات قديمة.
+            this.allAssessments = data || [];
 
             // بناء خارطة الأسماء محلياً لحل مشكلة غياب اسم التقييم في لوحة العرض
             data.forEach(ast => {
@@ -176,15 +211,19 @@ class AssessmentManager {
                         </td>
                         <td style="padding:12px 10px; text-align:center;">
                             <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
-                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">⚙️ هيكلة</button>
-                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 إصدار جديد</button>
+                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">✏️ تعديل</button>
+                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخة عمل جديدة</button>
                                 ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.publishAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">🚀 نشر</button>` : ''}
-                                <button onclick="window.assessmentManager.archiveAssessment('${ast.id}', '${ast.status || 'draft'}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>
+                                ${currentStatusClean === 'published'
+                                    ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">⏹ إيقاف الظهور</button>` : '')
+                                    : currentStatusClean === 'draft'
+                                        ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'draft')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>`
+                                        : `<button onclick="window.assessmentManager.restorePublicAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">↩️ استعادة للعرض</button>`}
                                 <button onclick="window.assessmentManager.toggleAuthLock('${publicSlug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
                                     ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
                                 </button>
-                                ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${ast.slug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
-                                <button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>
+                                ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${publicSlug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
+                                ${currentStatusClean !== 'published' ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ شطب</button>` : ''}
                             </div>
                         </td>
                     </tr>
@@ -275,15 +314,20 @@ class AssessmentManager {
         };
 
         try {
-            await this.supabase.request('rpc/save_assessment_secure', {
+            const result = await this.supabase.request('rpc/save_assessment_secure', {
                 method: 'POST',
                 body: JSON.stringify(payload)
             });
-            
-            this.showToast("تمت معالجة وحفظ البيانات الهيكلية سحابياً بأمان.");
+
+            const savedId = id || this.rpcScalar(result);
+            this.showToast("تم حفظ التقييم كنسخة عمل.");
             document.getElementById('assessment-modal').classList.add('hidden');
             await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
+            this.populateFilterDropdown();
+
+            if (!id && savedId) {
+                await this.editAssessment(savedId);
+            }
         } catch (err) {
             this.showToast("فشل حفظ التعديلات: " + err.message, true);
         }
@@ -292,18 +336,45 @@ class AssessmentManager {
     // استدعاء دالة الـ RPC للتبديل السريع للحالات (مسودة / مؤرشف)
     async archiveAssessment(id, currentStatus) {
         const currentClean = (currentStatus || '').toLowerCase();
-        const nextStatus = currentClean === 'archived' ? 'draft' : 'archived';
-        
         try {
-            await this.supabase.request('rpc/update_assessment_status_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_id: id, p_status: nextStatus, p_is_active: true })
-            });
-            this.showToast(`تم تغيير حالة التقييم بنجاح إلى: ${nextStatus}`);
+            if (currentClean === 'published') {
+                const family = this.familyByVersionId[id];
+                if (!family?.id) throw new Error('تعذر تحديد عائلة التقييم المنشور.');
+                if (!confirm('سيتم إيقاف ظهور هذا التقييم للعامة مع إبقاء بياناته ونتائجه التاريخية داخل الإدارة. متابعة؟')) return;
+                await this.supabase.request('rpc/stop_public_assessment_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_family_id: family.id })
+                });
+                this.showToast('تم إيقاف الظهور العام مع حفظ التاريخ.');
+            } else if (currentClean === 'draft') {
+                await this.supabase.request('rpc/update_assessment_status_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_id: id, p_status: 'archived', p_is_active: true })
+                });
+                this.showToast('تمت أرشفة نسخة العمل.');
+            } else {
+                this.showToast('النسخة المؤرشفة غير قابلة للتعديل.', true);
+                return;
+            }
             await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
+            this.populateFilterDropdown();
         } catch (err) {
-            this.showToast("فشل تعديل الحالة: " + err.message, true);
+            this.showToast("فشل تغيير الحالة: " + err.message, true);
+        }
+    }
+
+    async restorePublicAssessment(id) {
+        if (!confirm('إعادة هذه النسخة السابقة للظهور العام؟')) return;
+        try {
+            await this.supabase.request('rpc/restore_public_assessment_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_version_id: id })
+            });
+            this.showToast('تمت استعادة التقييم للظهور العام.');
+            await this.renderAssessmentsTable();
+            this.populateFilterDropdown();
+        } catch (err) {
+            this.showToast('فشل استعادة الظهور العام: ' + err.message, true);
         }
     }
 
@@ -331,7 +402,7 @@ class AssessmentManager {
                 method: 'POST',
                 body: JSON.stringify({ p_source_version_id: id })
             });
-            const newId = result?.data;
+            const newId = this.rpcScalar(result);
             this.showToast("تم إنشاء إصدار جديد كمسودة.");
             await this.renderAssessmentsTable();
             this.populateFilterDropdown();
@@ -376,7 +447,7 @@ class AssessmentManager {
                     method: 'POST',
                     body: JSON.stringify({ p_source_version_id: ast.id })
                 });
-                const draftId = result?.data;
+                const draftId = this.rpcScalar(result);
                 if (!draftId) return this.showToast("تعذر إنشاء مسودة جديدة من الإصدار المنشور.", true);
                 ast = (await this.supabase.select('assessment_types') || []).find(a => a.id === draftId);
                 if (!ast) return this.showToast("تم إنشاء المسودة ولكن تعذر تحميلها.", true);
@@ -680,19 +751,272 @@ class AssessmentManager {
         // الاحتفاظ بخيار "كل التقييمات" فقط وإزالة الباقي
         select.innerHTML = '<option value="">كل التقييمات</option>';
 
-        // إضافة التقييمات الحقيقية من الخارطة الديناميكية
-        Object.entries(this.assessmentTypesMap).forEach(([id, title]) => {
+        // القائمة العامة للنتائج تعتمد على Families التي لها نسخة منشورة حالياً فقط.
+        const seenFamilies = new Set();
+        (this.allAssessments || []).forEach(ast => {
+            const family = this.familyByVersionId[ast.id];
+            if (!family?.id || family.current_published_version_id !== ast.id) return;
+            if ((ast.status || '').toLowerCase() !== 'published' || ast.is_active === false) return;
+            if (seenFamilies.has(family.id)) return;
+            seenFamilies.add(family.id);
+
             const option = document.createElement('option');
-            option.value = id;
-            option.textContent = title;
+            option.value = family.id;
+            option.textContent = ast.title_ar || ast.title_en || family.slug;
             select.appendChild(option);
         });
+    }
+
+    focusResults({ status = '', sort = 'newest' } = {}) {
+        const statusSelect = document.getElementById('filter-status');
+        const sortSelect = document.getElementById('filter-sort');
+        const typeSelect = document.getElementById('filter-type');
+        if (statusSelect) statusSelect.value = status;
+        if (sortSelect) sortSelect.value = sort;
+        if (typeSelect) typeSelect.value = '';
+        this.applyDashboardFilters();
+        document.getElementById('leads-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    showClinicSummary() {
+        const modal = document.getElementById('detail-modal');
+        const body = document.getElementById('modal-body');
+        if (!modal || !body) return;
+
+        const groups = new Map();
+        (this.allLeads || []).forEach(lead => {
+            const name = (lead.clinic_name || 'غير مسجل').trim();
+            const item = groups.get(name) || { name, total: 0, completed: 0, incomplete: 0 };
+            item.total++;
+            if (lead.completed) item.completed++; else item.incomplete++;
+            groups.set(name, item);
+        });
+
+        const rows = [...groups.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'ar'));
+        body.innerHTML = `
+            <div class="detail-section" style="text-align:right;">
+                <h4>🏥 قائمة العيادات</h4>
+                <p style="color:#64748b; margin-top:0;">إجمالي العيادات الفريدة: ${rows.length}</p>
+                <div style="overflow:auto; max-height:60vh;">
+                    <table class="data-table" style="width:100%;">
+                        <thead><tr><th>العيادة</th><th>السجلات</th><th>مكتمل</th><th>غير مكتمل</th></tr></thead>
+                        <tbody>
+                            ${rows.map(row => `
+                                <tr>
+                                    <td>${this.escapeHtml(row.name)}</td>
+                                    <td>${row.total}</td>
+                                    <td>${row.completed}</td>
+                                    <td>${row.incomplete}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+        modal.classList.remove('hidden');
+    }
+
+    setupStatCardActions() {
+        const bind = (id, handler) => {
+            const el = document.getElementById(id);
+            if (!el || el.dataset.drilldownBound === 'true') return;
+            el.dataset.drilldownBound = 'true';
+            el.setAttribute('role', 'button');
+            el.setAttribute('tabindex', '0');
+            el.classList.add('stat-card-clickable');
+            el.addEventListener('click', handler);
+            el.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handler();
+                }
+            });
+        };
+
+        bind('stat-card-leads', () => this.focusResults({ status: '', sort: 'newest' }));
+        bind('stat-card-completed', () => this.focusResults({ status: 'completed', sort: 'newest' }));
+        bind('stat-card-average', () => this.focusResults({ status: 'completed', sort: 'score-high' }));
+        bind('stat-card-clinics', () => this.showClinicSummary());
+    }
+
+    assistantCapabilities() {
+        return [
+            ['assessment.view', 'عرض التقييمات'],
+            ['assessment.edit', 'تعديل نسخ العمل'],
+            ['assessment.import', 'استيراد تقييم جديد'],
+            ['results.view', 'عرض النتائج'],
+            ['reports.view', 'عرض التقارير'],
+            ['reports.export', 'تصدير التقارير'],
+            ['access.view', 'عرض إدارة النفاذ'],
+            ['access.manage', 'إدارة أكواد النفاذ']
+        ];
+    }
+
+    renderAssistantCapabilityInputs(selected = []) {
+        const container = document.getElementById('assistant-capabilities');
+        if (!container) return;
+        const selectedSet = new Set(selected || []);
+        container.innerHTML = this.assistantCapabilities().map(([code, label]) => `
+            <label style="display:flex; gap:8px; align-items:center; padding:7px 0; cursor:pointer;">
+                <input type="checkbox" value="${code}" ${selectedSet.has(code) ? 'checked' : ''}>
+                <span>${this.escapeHtml(label)}</span>
+            </label>`).join('');
+    }
+
+    async loadAssistants() {
+        const section = document.getElementById('assistant-management-section');
+        const container = document.getElementById('assistants-container');
+        if (!section || !container) return;
+        if (window.AdminSession?.role !== 'owner') {
+            section.classList.add('hidden');
+            return;
+        }
+        section.classList.remove('hidden');
+
+        try {
+            const [admins, caps] = await Promise.all([
+                this.supabase.select('admin_users', { filter: { role: 'admin' }, columns: 'user_id,role,active,created_at,display_name' }),
+                this.supabase.select('admin_capabilities', { columns: 'user_id,capability' })
+            ]);
+
+            const capMap = {};
+            (caps || []).forEach(item => {
+                (capMap[item.user_id] ||= []).push(item.capability);
+            });
+
+            if (!admins?.length) {
+                container.innerHTML = '<p style="padding:12px; color:#64748b;">لا يوجد مساعدون إداريون حالياً.</p>';
+                return;
+            }
+
+            container.innerHTML = (admins || []).map(admin => {
+                const name = admin.display_name || admin.user_id;
+                const labels = (capMap[admin.user_id] || []).map(code => {
+                    const item = this.assistantCapabilities().find(([c]) => c === code);
+                    return item ? item[1] : code;
+                });
+                return `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <strong>${this.escapeHtml(name)}</strong>
+                            <span class="badge ${admin.active ? 'badge-success' : 'badge-warning'}">${admin.active ? 'مفعّل' : 'موقوف'}</span>
+                        </div>
+                        <div style="font-size:0.78rem; color:#64748b; margin-top:4px;">${this.escapeHtml(admin.user_id)}</div>
+                        <div style="font-size:0.82rem; color:#334155; margin-top:7px;">${this.escapeHtml(labels.join('، ') || 'لا توجد صلاحيات ممنوحة')}</div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:9px;">
+                            <button type="button" class="btn-small" onclick="window.assessmentManager.editAssistant('${admin.user_id}')">✏️ تعديل</button>
+                            <button type="button" class="btn-small" onclick="window.assessmentManager.toggleAssistant('${admin.user_id}', ${admin.active})">${admin.active ? '⏸️ إيقاف' : '▶️ تفعيل'}</button>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            this.assistantRows = {};
+            (admins || []).forEach(admin => { this.assistantRows[admin.user_id] = { ...admin, capabilities: capMap[admin.user_id] || [] }; });
+        } catch (err) {
+            container.innerHTML = '<p style="padding:12px; color:#b91c1c;">تعذر تحميل المساعدين: ' + this.escapeHtml(err.message) + '</p>';
+        }
+    }
+
+    openAssistantModal(userId = null) {
+        if (window.AdminSession?.role !== 'owner') return;
+        const modal = document.getElementById('assistant-modal');
+        const title = document.getElementById('assistant-modal-title');
+        const email = document.getElementById('assistant-email');
+        const password = document.getElementById('assistant-password');
+        const passwordConfirm = document.getElementById('assistant-password-confirm');
+        const name = document.getElementById('assistant-name');
+        const idInput = document.getElementById('assistant-user-id');
+        const existing = userId ? this.assistantRows?.[userId] : null;
+
+        if (title) title.textContent = existing ? 'تعديل المساعد الإداري' : 'إضافة مساعد إداري';
+        if (idInput) idInput.value = userId || '';
+        if (name) name.value = existing?.display_name || '';
+        if (email) { email.value = ''; email.disabled = !!existing; }
+        if (password) { password.value = ''; password.required = !existing; }
+        if (passwordConfirm) { passwordConfirm.value = ''; passwordConfirm.required = !existing; }
+        this.renderAssistantCapabilityInputs(existing?.capabilities || []);
+        modal?.classList.remove('hidden');
+    }
+
+    closeAssistantModal() {
+        document.getElementById('assistant-modal')?.classList.add('hidden');
+    }
+
+    async saveAssistant() {
+        if (window.AdminSession?.role !== 'owner') return;
+        const userId = document.getElementById('assistant-user-id')?.value || '';
+        const name = document.getElementById('assistant-name')?.value.trim() || '';
+        const email = document.getElementById('assistant-email')?.value.trim() || '';
+        const password = document.getElementById('assistant-password')?.value || '';
+        const passwordConfirm = document.getElementById('assistant-password-confirm')?.value || '';
+        const capabilities = [...document.querySelectorAll('#assistant-capabilities input[type="checkbox"]:checked')].map(el => el.value);
+
+        try {
+            if (!userId) {
+                if (password !== passwordConfirm) throw new Error('كلمتا المرور غير متطابقتين.');
+                if (password.length < 10) throw new Error('كلمة مرور المساعد يجب أن تكون 10 أحرف على الأقل.');
+                if (!email) throw new Error('بريد المساعد مطلوب.');
+                await this.invokeAdminManagement({
+                    action: 'create_assistant',
+                    email, password, display_name: name, capabilities
+                });
+                this.showToast('تم إنشاء حساب المساعد ومنحه الصلاحيات المحددة.');
+            } else {
+                const current = this.assistantRows?.[userId];
+                await this.supabase.request('rpc/update_admin_assistant_profile_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: userId, p_display_name: name })
+                });
+
+                const currentCaps = new Set(current?.capabilities || []);
+                const nextCaps = new Set(capabilities);
+                for (const code of nextCaps) {
+                    if (!currentCaps.has(code)) {
+                        await this.supabase.request('rpc/grant_admin_capability_secure', {
+                            method: 'POST',
+                            body: JSON.stringify({ p_user_id: userId, p_capability: code })
+                        });
+                    }
+                }
+                for (const code of currentCaps) {
+                    if (!nextCaps.has(code)) {
+                        await this.supabase.request('rpc/revoke_admin_capability_secure', {
+                            method: 'POST',
+                            body: JSON.stringify({ p_user_id: userId, p_capability: code })
+                        });
+                    }
+                }
+                this.showToast('تم تحديث اسم المساعد وصلاحياته.');
+            }
+
+            this.closeAssistantModal();
+            await this.loadAssistants();
+        } catch (err) {
+            this.showToast('فشل حفظ المساعد: ' + err.message, true);
+        }
+    }
+
+    async editAssistant(userId) {
+        await this.loadAssistants();
+        this.openAssistantModal(userId);
+    }
+
+    async toggleAssistant(userId, active) {
+        if (window.AdminSession?.role !== 'owner') return;
+        try {
+            await this.supabase.request('rpc/set_admin_active_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: userId, p_active: !active })
+            });
+            this.showToast(active ? 'تم إيقاف المساعد.' : 'تم تفعيل المساعد.');
+            await this.loadAssistants();
+        } catch (err) {
+            this.showToast('فشل تغيير حالة المساعد: ' + err.message, true);
+        }
     }
 
     setupDashboardFilterEvents() {
         document.getElementById('btn-search')?.addEventListener('click', () => this.applyDashboardFilters());
         document.getElementById('search-input')?.addEventListener('keyup', (e) => {
-            this.populateFilterDropdown();
             if (e.key === 'Enter') this.applyDashboardFilters();
         });
         document.getElementById('filter-type')?.addEventListener('change', () => this.applyDashboardFilters());
@@ -711,6 +1035,15 @@ class AssessmentManager {
         document.getElementById('btn-close-modal').onclick = () => document.getElementById('detail-modal').classList.add('hidden');
         document.getElementById('btn-close-user-modal')?.addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
         document.getElementById('btn-cancel-user')?.addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
+        document.getElementById('btn-add-assistant')?.addEventListener('click', () => this.openAssistantModal());
+        document.getElementById('btn-close-assistant-modal')?.addEventListener('click', () => this.closeAssistantModal());
+        document.getElementById('btn-cancel-assistant')?.addEventListener('click', () => this.closeAssistantModal());
+        document.getElementById('assistant-form')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await this.saveAssistant();
+        });
+        this.setupStatCardActions();
+        if (window.AdminSession?.role === 'owner') this.loadAssistants();
     }
 
     applyDashboardFilters() {
@@ -726,7 +1059,8 @@ class AssessmentManager {
                 (lead.email || '').toLowerCase().includes(query) ||
                 (lead.phone || '').toLowerCase().includes(query);
 
-            const matchesType = !type || lead.assessment_type_id === type;
+            const leadFamilyId = this.familyByVersionId[lead.assessment_type_id]?.id || null;
+            const matchesType = !type || leadFamilyId === type;
             const matchesStatus = !status || (status === 'completed' ? lead.completed : !lead.completed);
 
             return matchesQuery && matchesType && matchesStatus;
@@ -739,7 +1073,7 @@ class AssessmentManager {
         else if (sortOrder === 'name') this.filteredLeads.sort((a, b) => (a.full_name || '').localeCompare(b.full_name || ''));
 
         this.currentPage = 1;
-        document.getElementById('results-count').textContent = `${this.filteredLeads.length} نتيجة`;
+        document.getElementById('results-count').textContent = `${this.filteredLeads.length} سجل`;
         this.renderLeadsTable();
     }
 
@@ -832,116 +1166,115 @@ class AssessmentManager {
             const lead = this.allLeads.find(l => l.id === leadId);
             if (!lead) return;
 
-            // جلب درجات المحاور والإجابات المصلحة من قاعدة البيانات
-            const [scores, answers] = await Promise.all([
+            // النتيجة الرسمية تأتي من assessment_results عند توفرها.
+            // البيانات القديمة تبقى معروضة كتاريخية، دون إعادة احتساب KPI في المتصفح.
+            const [sessions, legacyScores, answers, axesForAssessment] = await Promise.all([
+                this.supabase.select('sessions', { filter: { lead_id: leadId } }),
                 this.supabase.select('scores', { filter: { lead_id: leadId } }),
-                this.supabase.select('answers', { filter: { lead_id: leadId } })
+                this.supabase.select('answers', { filter: { lead_id: leadId } }),
+                this.supabase.select('axes', { filter: { assessment_type_id: lead.assessment_type_id } })
             ]);
+
+            const completedSession = (sessions || [])
+                .slice()
+                .sort((a, b) => new Date(b.completed_at || b.created_at || 0) - new Date(a.completed_at || a.created_at || 0))
+                .find(s => (s.status || '').toLowerCase() === 'completed')
+                || (sessions || [])[0]
+                || null;
+
+            const officialPayload = completedSession
+                ? await this.supabase.request('rpc/get_admin_assessment_result_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_session_id: completedSession.id })
+                })
+                : null;
+            const officialResult = officialPayload?.result || null;
+            const isOfficialResult = !!officialResult;
+
+            const axisNameByCode = {};
+            (axesForAssessment || []).forEach(axis => {
+                axisNameByCode[axis.code] = axis.title_ar || axis.title || axis.code;
+            });
+
+            const reportScores = isOfficialResult
+                ? (officialResult?.scores?.axes || []).map(s => ({
+                    name: axisNameByCode[s.axisCode] || s.axisCode || 'محور',
+                    score: Number.isFinite(Number(s.score)) ? Number(s.score) : null,
+                    status: s.status
+                }))
+                : (legacyScores || []).map(s => ({
+                    name: s.axis_name_ar || s.axis_id || 'محور',
+                    score: Number.isFinite(parseFloat(s.percentage)) ? parseFloat(s.percentage) : null,
+                    status: 'historical'
+                }));
 
             let axisGridHtml = '';
             let weakestAxis = { name: 'المحاور قيد المعالجة', score: 101 };
             let strongestAxis = { name: 'المحاور قيد المعالجة', score: -1 };
 
-            if (scores && scores.length > 0) {
-                scores.forEach(s => {
-                    const pct = parseFloat(s.percentage) || 0;
-                    const name = s.axis_name_ar || s.axis_id;
-                    
-                    if (pct < weakestAxis.score) { weakestAxis = { name: name, score: pct }; }
-                    if (pct > strongestAxis.score) { strongestAxis = { name: name, score: pct }; }
+            reportScores.forEach(s => {
+                if (!Number.isFinite(s.score)) return;
+                if (s.score < weakestAxis.score) weakestAxis = { name: s.name, score: s.score };
+                if (s.score > strongestAxis.score) strongestAxis = { name: s.name, score: s.score };
 
-                    axisGridHtml += `
-                        <div class="score-card">
-                            <div class="score-name">${name}</div>
-                            <div class="score-value">${pct.toFixed(1)}%</div>
-                        </div>
-                    `;
-                });
-            }
+                axisGridHtml += `
+                    <div class="score-card">
+                        <div class="score-name">${this.escapeHtml(s.name)}</div>
+                        <div class="score-value">${s.score.toFixed(1)}%</div>
+                    </div>
+                `;
+            });
 
-            // فحص ومعالجة فخاخ التناقض السلوكي نصياً بالعربية
             let behaviorTrapsHtml = '';
-            // قراءة الحقول الحقيقية المعتمدة سحابياً وهي answers.is_trap و trap_triggered
             const triggeredTraps = answers ? answers.filter(a => a.trap_triggered === true || a.is_trap === true) : [];
-            
+
             if (triggeredTraps.length > 0) {
                 triggeredTraps.forEach((trap, idx) => {
                     behaviorTrapsHtml += `
                         <div class="answer-item" style="background:#fff5f5; border-right:3px solid #ef4444; padding:12px; margin-bottom:8px; border-radius:6px; text-align:right;">
                             <div class="answer-question" style="font-weight:700; color:#991b1b;">🚨 فجوة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
                             <div style="font-size:0.85rem; color:#7f1d1d; line-height:1.6; margin-top:4px;">
-                                <strong>المعيار المفحوص:</strong> ${trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.'} <br>
-                                <span style="color:#b91c1c; font-weight:700;">📌 واقع رد الفريق المطبق في المحادثات (قيمة: ${trap.answer_value || 1}):</span>
+                                <strong>المعيار المفحوص:</strong> ${this.escapeHtml(trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.')} <br>
+                                <span style="color:#b91c1c; font-weight:700;">📌 واقع الرد (قيمة: ${this.escapeHtml(trap.answer_value ?? '—')}):</span>
                             </div>
                         </div>
                     `;
                 });
             } else {
-                behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">✅ أداء العيادة متطابق ومتزن بالكامل مع الرد السلوكي المعلن، ولم يتم رصد فخاخ تسريب حادة.</p>';
+                behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">لا توجد فخاخ مسجلة لهذا السجل.</p>';
             }
 
-            // احتساب مؤشرات الأداء الحيوية (KPIs Dashboard) ديناميكياً باستخدام Axis Roles
-            const calculateKPIsFromRoles = () => {
-                // جلب axis_roles و kpi_mappings من التقييم
-                const assessment = this.allAssessments?.find(a => a.id === lead.assessment_type_id);
-                const axisRoles = assessment?.axis_roles || {};
-                const kpiMappings = assessment?.kpi_mappings || {};
-
-                // ترجمة درجات المحاور إلى درجات الأدوار
-                const roleScores = {};
-                const availableScores = [];
-
-                if (scores && scores.length > 0) {
-                    scores.forEach(s => {
-                        const pct = parseFloat(s.percentage) || 0;
-                        availableScores.push(pct);
-                        const role = axisRoles[s.axis_id];
-                        if (role) {
-                            if (roleScores[role] !== undefined) {
-                                roleScores[role] = (roleScores[role] + pct) / 2;
-                            } else {
-                                roleScores[role] = pct;
-                            }
-                        }
-                    });
-                }
-
-                // Fallback: أدوار غير موجودة = متوسط الأدوار المتاحة
-                const avgScore = availableScores.length > 0
-                    ? availableScores.reduce((a, b) => a + b, 0) / availableScores.length
-                    : 50;
-
-                const allRoles = ['TRUST','COMMUNICATION','CONVERSION','RETENTION','LOYALTY',
-                    'SCHEDULING','RECEPTION','ADMIN','COORDINATION','JOURNEY','OPERATIONS','TEAM','GROWTH'];
-                allRoles.forEach(role => {
-                    if (roleScores[role] === undefined) roleScores[role] = avgScore;
-                });
-
-                // حساب كل KPI
-                const kpis = {};
-                for (const [kpiCode, mapping] of Object.entries(kpiMappings)) {
-                    let weightedSum = 0;
-                    let totalWeight = 0;
-                    for (const [role, weight] of Object.entries(mapping)) {
-                        weightedSum += (roleScores[role] || 0) * weight;
-                        totalWeight += weight;
-                    }
-                    kpis[kpiCode] = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : 0;
-                }
-
-                return kpis;
+            const kpiMap = Object.fromEntries(
+                (Array.isArray(officialResult?.kpis) ? officialResult.kpis : [])
+                    .map(k => [k.kpiCode, k])
+            );
+            const kpiValue = (code) => {
+                const item = kpiMap[code];
+                if (!item || item.value === null || item.value === undefined || item.status === 'unavailable') return 'غير متاح';
+                return Number(item.value).toFixed(1).replace(/\\.0$/, '') + '%';
             };
 
-            const kpis = calculateKPIsFromRoles();
-            const tfiIndex = kpis.TFI || 0;
-            const tapIndex = kpis.TAP || 0;
-            const prpIndex = kpis.PRP || 0;
-            const pliIndex = kpis.PLI || 0;
-            const psiIndex = kpis.PSI || 0;
-            const npiIndex = kpis.NPI || 0;
-            const eviIndex = kpis.EVI || 0;
-            const tciIndex = kpis.TCI || 0;
-            const rriIndex = kpis.RRI || null; // خاص بالاستقبال
+            const overallScore = officialResult?.scores?.overallScore ?? (
+                lead.score_percentage !== null && lead.score_percentage !== undefined
+                    ? parseFloat(lead.score_percentage)
+                    : null
+            );
+
+            const tfiIndex = kpiValue('TFI');
+            const tapIndex = kpiValue('TAP');
+            const prpIndex = kpiValue('PRP');
+            const pliIndex = kpiValue('PLI');
+            const psiIndex = kpiValue('PSI');
+            const npiIndex = kpiValue('NPI');
+            const eviIndex = kpiValue('EVI');
+            const tciIndex = kpiValue('TCI');
+            const rriValue = kpiMap.RRI?.value !== null && kpiMap.RRI?.value !== undefined && kpiMap.RRI?.status !== 'unavailable'
+                ? Number(kpiMap.RRI.value).toFixed(1).replace(/\\.0$/, '') + '%'
+                : null;
+
+            const resultSourceLabel = isOfficialResult
+                ? '✅ النتيجة الرسمية P3'
+                : '🕘 نتيجة تاريخية (البيانات القديمة)';
 
             // جلب اسم التقييم الفعلي من الخارطة التي قمنا ببنائها ديناميكياً
             const currentAssessmentName = this.assessmentTypesMap[lead.assessment_type_id] || 'نموذج تقييم استشاري';
@@ -951,28 +1284,29 @@ class AssessmentManager {
                 <div class="detail-section" style="text-align:right;">
                     <h4>📋 البيانات الاستشارية والتعريفية للمنشأة الطبية</h4>
                     <div class="detail-grid">
-                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${currentAssessmentName}</div></div>
+                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${this.escapeHtml(currentAssessmentName)}</div></div>
+                        <div class="detail-item"><div class="detail-label">مصدر النتيجة</div><div class="detail-value">${resultSourceLabel}</div></div>
                         <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${this.escapeHtml(lead.full_name)}</div></div>
                         <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${this.escapeHtml(lead.clinic_name || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${this.escapeHtml(lead.phone || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">البريد الإلكتروني التجاري</div><div class="detail-value">${this.escapeHtml(lead.email || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">التخصص السريري والبلد</div><div class="detail-value">${this.translateSpecialty(lead.specialty)} • ${lead.country === 'JO' ? 'الأردن 🇯🇴' : lead.country === 'SA' ? 'السعودية 🇸🇦' : lead.country || '🌍 أخرى'}</div></div>
-                        <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${lead.score_percentage ? parseFloat(lead.score_percentage).toFixed(1) + '%' : '---'}</div></div>
+                        <div class="detail-item"><div class="detail-label">معدل الكفاءة التشغيلية الكلي</div><div class="detail-value" style="color:#0f766e; font-size:1.15rem; font-weight:800;">${overallScore !== null && Number.isFinite(Number(overallScore)) ? Number(overallScore).toFixed(1) + '%' : '---'}</div></div>
                     </div>
                 </div>
 
                 <div class="detail-section" style="text-align:right;">
                     <h4>📊 لوحة مؤشرات الأداء الحيوية (KPIs Dashboard)</h4>
                     <div class="scores-grid">
-                        <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tapIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">الاستبقاء (PRP)</div><div class="score-value">${prpIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">الولاء (PLI)</div><div class="score-value">${pliIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">رضا المريض (PSI)</div><div class="score-value">${psiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">التوصية (NPI)</div><div class="score-value">${npiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}%</div></div>
-                        ${rriIndex !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriIndex}%</div></div>` : ''}
+                        <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfiIndex}</div></div>
+                        <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tapIndex}</div></div>
+                        <div class="score-card"><div class="score-name">الاستبقاء (PRP)</div><div class="score-value">${prpIndex}</div></div>
+                        <div class="score-card"><div class="score-name">الولاء (PLI)</div><div class="score-value">${pliIndex}</div></div>
+                        <div class="score-card"><div class="score-name">رضا المريض (PSI)</div><div class="score-value">${psiIndex}</div></div>
+                        <div class="score-card"><div class="score-name">التوصية (NPI)</div><div class="score-value">${npiIndex}</div></div>
+                        <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}</div></div>
+                        <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}</div></div>
+                        ${rriValue !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriValue}</div></div>` : ''}
                     </div>
                 </div>
 
