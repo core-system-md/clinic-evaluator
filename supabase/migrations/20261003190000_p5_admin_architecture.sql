@@ -582,7 +582,7 @@ $$;
 create or replace function public.delete_option_secure(p_option_id uuid)
 returns boolean language plpgsql security definer set search_path=public,pg_temp
 as $$
-declare v_status text; v_found boolean;
+declare v_status text; v_deleted integer;
 begin
   perform public.require_admin_capability('assessment.edit');
   select a.status into v_status from public.options o join public.questions q on q.id=o.question_id
@@ -590,8 +590,8 @@ begin
   if not found then return false; end if;
   if v_status<>'draft' then raise exception 'Only working copies can be edited' using errcode='55000'; end if;
   delete from public.options where id=p_option_id;
-  get diagnostics v_found = row_count;
-  return v_found;
+  get diagnostics v_deleted = row_count;
+  return v_deleted > 0;
 end;
 $$;
 
