@@ -328,7 +328,7 @@ class AssessmentManager {
                                 <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخة عمل جديدة</button>
                                 ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.publishAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">🚀 نشر</button>` : ''}
                                 ${currentStatusClean === 'published'
-                                    ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">⏹ إيقاف الظهور</button>` : '')
+                                    ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">${executionCount > 0 ? '📦 أرشفة وإيقاف الظهور' : '⏹ إيقاف الظهور'}</button>` : '')
                                     : currentStatusClean === 'draft'
                                         ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}', ${executionCount})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">🗑️ حذف المسودة</button>`
                                         : `<button onclick="window.assessmentManager.restorePublicAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">↩️ استعادة للعرض</button>`}
