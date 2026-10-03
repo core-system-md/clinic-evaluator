@@ -136,6 +136,9 @@ class AssessmentManager {
                 return;
             }
 
+            // تحديث مخزن التقييمات نفسه بعد كل refresh حتى لا تبقى الفلاتر على بيانات قديمة.
+            this.allAssessments = data || [];
+
             // بناء خارطة الأسماء محلياً لحل مشكلة غياب اسم التقييم في لوحة العرض
             data.forEach(ast => {
                 this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug;
