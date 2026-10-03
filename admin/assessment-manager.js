@@ -235,6 +235,9 @@ class AssessmentManager {
             families.forEach(f => { this.familyBySlug[f.slug] = f; });
             (data || []).forEach(ast => { const family = families.find(f => f.id === ast.family_id); if (family) this.familyByVersionId[ast.id] = family; });
             const authSettings = await this.supabase.select('assessment_settings') || [];
+            const sessionRows = await this.supabase.select('sessions') || [];
+            const sessionCountByAssessment = {};
+            sessionRows.forEach(session => { if (session.assessment_type_id) sessionCountByAssessment[session.assessment_type_id] = (sessionCountByAssessment[session.assessment_type_id] || 0) + 1; });
 
             if (!data || data.length === 0) {
                 container.innerHTML = `
@@ -299,6 +302,7 @@ class AssessmentManager {
                 // تتبع ومطابقة قفل بوابات الدفع والنفاذ المالي للتقييم
                 const family = this.familyByVersionId[ast.id];
                 const publicSlug = family?.slug || ast.slug;
+                const executionCount = sessionCountByAssessment[ast.id] || 0;
                 const lockedSetting = authSettings.find(s => s.assessment_key === publicSlug);
                 const isLocked = lockedSetting ? !!lockedSetting.auth_enabled : false;
 
@@ -326,7 +330,7 @@ class AssessmentManager {
                                 ${currentStatusClean === 'published'
                                     ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">⏹ إيقاف الظهور</button>` : '')
                                     : currentStatusClean === 'draft'
-                                        ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'draft')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">📦 أرشفة</button>`
+                                        ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}', ${executionCount})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">🗑️ حذف المسودة</button>`
                                         : `<button onclick="window.assessmentManager.restorePublicAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">↩️ استعادة للعرض</button>`}
                                 <button onclick="window.assessmentManager.toggleAuthLock('${publicSlug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
                                     ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
@@ -487,19 +491,23 @@ class AssessmentManager {
         }
     }
 
-    // استدعاء دالة الـ RPC لشطب التقييم (Soft Delete) وإخفائه منعاً للفوضى
-    async deleteAssessment(id) {
-        if (!confirm("هل أنت متأكد من شطب هذا التقييم نهائياً وإخفائه من لوحة التحكم؟")) return;
+    // مسودات العمل بلا أي تنفيذ تُحذف حذفاً حقيقياً؛ السجلات ذات التاريخ لا تُشطب.
+    async deleteAssessment(id, executionCount = 0) {
+        if (Number(executionCount) > 0) {
+            this.showToast("هذه المسودة مرتبطة بتاريخ تنفيذ ولا يمكن حذفها.", true);
+            return;
+        }
+        if (!confirm("هذه مسودة عمل لم تُستخدم في أي تنفيذ. سيتم حذفها نهائياً مع محتواها. متابعة؟")) return;
         try {
-            await this.supabase.request('rpc/update_assessment_status_secure', {
+            await this.supabase.request('rpc/delete_assessment_draft_secure', {
                 method: 'POST',
-                body: JSON.stringify({ p_id: id, p_status: 'draft', p_is_active: false })
+                body: JSON.stringify({ p_id: id })
             });
-            this.showToast("تم شطب وإخفاء سجل التقييم بنجاح حماية للمنظومة.");
+            this.showToast("تم حذف مسودة العمل نهائياً.");
             await this.renderAssessmentsTable();
-        this.populateFilterDropdown();
+            this.populateFilterDropdown();
         } catch (err) {
-            this.showToast("فشل شطب التقييم: " + err.message, true);
+            this.showToast("فشل حذف المسودة: " + err.message, true);
         }
     }
 
