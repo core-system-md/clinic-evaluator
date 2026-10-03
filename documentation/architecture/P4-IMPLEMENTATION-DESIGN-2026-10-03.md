@@ -2,7 +2,7 @@
 ## Atomic Submission, Resume, Idempotency & Finalization
 ## 2026-10-03
 
-**Status:** APPROVED DESIGN / READY FOR IMPLEMENTATION  
+**Status:** IMPLEMENTED / VERIFIED EXCEPT PROTECTED-USAGE RUNTIME  
 **Owner approval record:** `documentation/architecture/P4-OWNER-APPROVAL-2026-10-03.md`  
 **Branch:** `p4/investigation-2026-10-02`  
 **Production baseline:** `assessment-access` v18
@@ -136,7 +136,7 @@ This creates the authoritative handoff:
 
 Keep P3 calculation in the Edge Function as approved.
 
-The Edge Function receives the immutable submission snapshot from the preparation RPC and passes that snapshot to `calculateP3Production`.
+The Edge Function receives the immutable submission snapshot and frozen economic context from the preparation RPC and passes both to `calculateP3Production`.
 
 The scorer therefore never re-reads mutable draft answers while the final submission is being calculated.
 
