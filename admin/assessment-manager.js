@@ -503,13 +503,16 @@ class AssessmentManager {
         const titleAr = prompt("أدخل اسم المحور الجديد (بالعربية):");
         if (!titleAr) return;
         try {
-            await this.supabase.insert('axes', {
-                assessment_type_id: assessmentId,
-                title_ar: titleAr,
-                code: 'AX' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-                weight: 10,
-                display_order: 1,
-                status: 'active'
+            await this.supabase.request('rpc/save_axis_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_assessment_type_id: assessmentId,
+                    p_title: titleAr,
+                    p_title_ar: titleAr,
+                    p_code: 'AX' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                    p_weight: 10,
+                    p_display_order: 1
+                })
             });
             await this.editAssessment(assessmentId);
         } catch (err) { this.showToast("فشل إضافة المحور: " + err.message, true); }
@@ -519,15 +522,19 @@ class AssessmentManager {
         const qTextAr = prompt("أدخل نص السؤال الجديد (بالعربية):");
         if (!qTextAr) return;
         try {
-            await this.supabase.insert('questions', {
-                assessment_type_id: assessmentId,
-                axis_id: axisId,
-                question_text_ar: qTextAr,
-                code: 'Q' + Math.random().toString(36).substr(2, 6).toUpperCase(),
-                question_type: 'single',
-                display_order: 1,
-                is_required: true,
-                status: 'active'
+            await this.supabase.request('rpc/save_question_secure', {
+                method: 'POST',
+                body: JSON.stringify({
+                    p_assessment_type_id: assessmentId,
+                    p_axis_id: axisId,
+                    p_question_text: qTextAr,
+                    p_question_text_ar: qTextAr,
+                    p_code: 'Q' + Math.random().toString(36).substr(2, 6).toUpperCase(),
+                    p_question_type: 'select',
+                    p_display_order: 1,
+                    p_is_required: true,
+                    p_trap_index: null
+                })
             });
             await this.editAssessment(assessmentId);
         } catch (err) { this.showToast("فشل إضافة السؤال: " + err.message, true); }
@@ -683,10 +690,6 @@ class AssessmentManager {
         document.getElementById('filter-sort')?.addEventListener('change', () => this.applyDashboardFilters());
         document.getElementById('btn-refresh')?.addEventListener('click', () => this.loadUserSubmissionsDashboard());
         
-        document.getElementById('btn-logout')?.addEventListener('click', () => {
-            if (confirm('هل تود تسجيل الخروج والعودة للشاشة الآمنة؟')) { location.reload(); }
-        });
-
         const userForm = document.getElementById('user-form');
         if (userForm) {
             userForm.onsubmit = async (e) => {
@@ -696,8 +699,8 @@ class AssessmentManager {
         }
         
         document.getElementById('btn-close-modal').onclick = () => document.getElementById('detail-modal').classList.add('hidden');
-        document.getElementById('btn-close-user-modal').onclick = () => document.getElementById('user-modal').classList.add('hidden');
-        document.getElementById('btn-cancel-user').onclick = () => document.getElementById('user-modal').classList.add('hidden');
+        document.getElementById('btn-close-user-modal')?.addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
+        document.getElementById('btn-cancel-user')?.addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
     }
 
     applyDashboardFilters() {
