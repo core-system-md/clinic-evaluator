@@ -77,3 +77,5 @@ begin
 end $;
 
 commit;
+
+-- CI fixture intentionally disposable; no production data is referenced.
