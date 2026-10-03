@@ -49,6 +49,115 @@ class AssessmentManager {
         // تشغيل الجزء الثاني: مزامنة لوحة التحكم وجدول التقييمات التي نفذها المستخدمون
         await this.loadUserSubmissionsDashboard();
         this.setupDashboardFilterEvents();
+        this.setupOwnerAuditEvents();
+        if (window.AdminSession?.role === 'owner') this.loadOwnerAudit(true);
+    }
+
+    auditActionLabel(action) {
+        const labels = {
+            'assessment.create': 'إنشاء تقييم', 'assessment.edit': 'تعديل نسخة عمل',
+            'assessment.create_working_copy': 'إنشاء نسخة عمل', 'assessment.import': 'استيراد تقييم',
+            'assessment.publish': 'نشر تقييم', 'assessment.stop_public': 'إيقاف الظهور العام',
+            'assessment.restore_public': 'استعادة الظهور العام', 'assessment.status_change': 'تغيير حالة تقييم',
+            'assessment.axis.add': 'إضافة محور', 'assessment.axis.update': 'تعديل محور', 'assessment.axis.delete': 'حذف محور',
+            'assessment.question.add': 'إضافة سؤال', 'assessment.question.update': 'تعديل سؤال', 'assessment.question.delete': 'حذف سؤال',
+            'assessment.option.add': 'إضافة خيار', 'assessment.option.update': 'تعديل خيار', 'assessment.option.delete': 'حذف خيار',
+            'access.mode_change': 'تغيير وضع النفاذ', 'access.code_create': 'إنشاء كود نفاذ', 'access.code_revoke': 'إلغاء كود نفاذ',
+            'admin.assistant_create': 'إنشاء مساعد إداري', 'admin.assistant_update': 'تعديل مساعد إداري',
+            'admin.assistant_activate': 'تفعيل مساعد إداري', 'admin.assistant_deactivate': 'إيقاف مساعد إداري',
+            'admin.capability_grant': 'منح صلاحية لمساعد', 'admin.capability_revoke': 'سحب صلاحية من مساعد'
+        };
+        return labels[action] || action || 'حركة إدارية';
+    }
+
+    async loadOwnerAudit(resetPage = false) {
+        const section = document.getElementById('owner-audit-section');
+        const container = document.getElementById('audit-container');
+        if (!section || !container || window.AdminSession?.role !== 'owner') return;
+        section.classList.remove('hidden');
+        if (resetPage) this.auditPage = 0;
+        const limit = 25, offset = (this.auditPage || 0) * limit;
+        const action = document.getElementById('audit-action-filter')?.value || null;
+        const actor = document.getElementById('audit-actor-filter')?.value || null;
+        const family = document.getElementById('audit-family-filter')?.value || null;
+        container.innerHTML = '<p style="padding:12px; color:#64748b;">جاري تحميل سجل الحركات...</p>';
+        try {
+            const payload = await this.supabase.request('rpc/get_owner_admin_audit_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_limit: limit, p_offset: offset, p_action: action, p_actor_user_id: actor, p_family_id: family })
+            });
+            const result = Array.isArray(payload) ? { rows: payload, total: payload.length } : (payload || {});
+            const rows = result.rows || [], total = Number(result.total || 0);
+            this.auditRows = rows;
+            this.populateAuditFilters(rows, { action, actor, family });
+            if (!rows.length) {
+                container.innerHTML = '<div style="padding:18px; text-align:center; color:#64748b;">لا توجد حركات مطابقة.</div>';
+            } else {
+                let html = '<div style="overflow-x:auto;"><table class="data-table"><thead><tr><th>التاريخ</th><th>منفذ الحركة</th><th>الحركة</th><th>التقييم</th><th>النتيجة</th><th>التفاصيل</th></tr></thead><tbody>';
+                rows.forEach((row,index) => {
+                    html += '<tr><td>' + this.escapeHtml(this.formatAuditDate(row.created_at)) + '</td>' +
+                        '<td>' + this.escapeHtml(row.actor_name || 'غير معروف') + '</td>' +
+                        '<td>' + this.escapeHtml(this.auditActionLabel(row.action)) + '</td>' +
+                        '<td>' + this.escapeHtml(row.family_slug || '—') + '</td>' +
+                        '<td><span class="badge ' + (row.success ? 'badge-success' : 'badge-warning') + '">' + (row.success ? 'نجحت' : 'فشلت') + '</span></td>' +
+                        '<td><button type="button" class="btn-small" onclick="window.assessmentManager.openAuditDetail(' + index + ')">عرض</button></td></tr>';
+                });
+                container.innerHTML = html + '</tbody></table></div>';
+            }
+            const pages = Math.max(1, Math.ceil(total / limit)), page = this.auditPage || 0;
+            const pagination = document.getElementById('audit-pagination');
+            if (pagination) pagination.innerHTML = '<button type="button" class="btn-small" ' + (page <= 0 ? 'disabled' : '') + ' onclick="window.assessmentManager.changeAuditPage(-1)">السابق</button>' +
+                '<span style="font-size:0.85rem; color:#64748b;">صفحة ' + (page + 1) + ' من ' + pages + ' — ' + total + ' حركة</span>' +
+                '<button type="button" class="btn-small" ' + (page >= pages - 1 ? 'disabled' : '') + ' onclick="window.assessmentManager.changeAuditPage(1)">التالي</button>';
+        } catch (err) {
+            container.innerHTML = '<p style="padding:12px; color:#b91c1c;">تعذر تحميل سجل الحركات: ' + this.escapeHtml(err.message) + '</p>';
+        }
+    }
+
+    populateAuditFilters(rows, current) {
+        const fill = (id, items, selected, first, labeler) => {
+            const el = document.getElementById(id); if (!el) return;
+            const seen = new Set(), unique = [];
+            (items || []).forEach(item => { if (item.value && !seen.has(item.value)) { seen.add(item.value); unique.push(item); } });
+            el.innerHTML = '<option value="">' + first + '</option>' + unique.map(item => '<option value="' + this.escapeHtml(item.value) + '"' + (item.value === selected ? ' selected' : '') + '>' + this.escapeHtml(labeler(item)) + '</option>').join('');
+        };
+        fill('audit-action-filter', rows.map(r => ({value:r.action})), current.action, 'كل الحركات', x => this.auditActionLabel(x.value));
+        fill('audit-actor-filter', rows.map(r => ({value:r.actor_user_id,label:r.actor_name})), current.actor, 'كل المستخدمين', x => x.label || x.value);
+        fill('audit-family-filter', rows.map(r => ({value:r.family_id,label:r.family_slug})), current.family, 'كل التقييمات', x => x.label || x.value);
+    }
+
+    formatAuditDate(value) {
+        if (!value) return '—';
+        try { return new Date(value).toLocaleString('ar-JO', { dateStyle:'short', timeStyle:'short' }); } catch (_) { return value; }
+    }
+
+    openAuditDetail(index) {
+        if (window.AdminSession?.role !== 'owner') return;
+        const row = this.auditRows?.[index], body = document.getElementById('audit-detail-body');
+        if (!row || !body) return;
+        const pretty = value => value == null ? '—' : this.escapeHtml(JSON.stringify(value, null, 2));
+        body.innerHTML = '<div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; margin-bottom:14px;">' +
+            '<div><strong>منفذ الحركة:</strong><br>' + this.escapeHtml(row.actor_name || 'غير معروف') + '</div>' +
+            '<div><strong>الحركة:</strong><br>' + this.escapeHtml(this.auditActionLabel(row.action)) + '</div>' +
+            '<div><strong>التاريخ:</strong><br>' + this.escapeHtml(this.formatAuditDate(row.created_at)) + '</div>' +
+            '<div><strong>التقييم:</strong><br>' + this.escapeHtml(row.family_slug || '—') + '</div>' +
+            '<div><strong>النتيجة:</strong><br>' + (row.success ? 'نجحت' : 'فشلت') + '</div>' +
+            '<div><strong>رقم التتبع:</strong><br>' + this.escapeHtml(row.correlation_id || '—') + '</div></div>' +
+            (row.failure_reason ? '<div style="padding:10px; background:#fef2f2; color:#991b1b; border-radius:8px; margin-bottom:10px;"><strong>سبب الفشل:</strong> ' + this.escapeHtml(row.failure_reason) + '</div>' : '') +
+            '<details open style="margin-bottom:10px;"><summary style="cursor:pointer; font-weight:700;">قبل الحركة</summary><pre style="white-space:pre-wrap; direction:ltr; text-align:left; background:#f8fafc; padding:10px; border-radius:8px; overflow:auto;">' + pretty(row.before_data) + '</pre></details>' +
+            '<details open><summary style="cursor:pointer; font-weight:700;">بعد الحركة</summary><pre style="white-space:pre-wrap; direction:ltr; text-align:left; background:#f8fafc; padding:10px; border-radius:8px; overflow:auto;">' + pretty(row.after_data) + '</pre></details>';
+        document.getElementById('audit-detail-modal')?.classList.remove('hidden');
+    }
+
+    changeAuditPage(delta) { this.auditPage = Math.max(0, (this.auditPage || 0) + delta); this.loadOwnerAudit(false); }
+
+    setupOwnerAuditEvents() {
+        if (window.AdminSession?.role !== 'owner') return;
+        document.getElementById('btn-refresh-audit')?.addEventListener('click', () => this.loadOwnerAudit(false));
+        document.getElementById('audit-action-filter')?.addEventListener('change', () => this.loadOwnerAudit(true));
+        document.getElementById('audit-actor-filter')?.addEventListener('change', () => this.loadOwnerAudit(true));
+        document.getElementById('audit-family-filter')?.addEventListener('change', () => this.loadOwnerAudit(true));
+        document.getElementById('btn-close-audit-detail')?.addEventListener('click', () => document.getElementById('audit-detail-modal')?.classList.add('hidden'));
     }
 
     escapeHtml(value) {
