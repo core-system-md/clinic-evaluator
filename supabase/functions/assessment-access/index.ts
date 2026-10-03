@@ -54,6 +54,15 @@ function randomToken() {
   return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
+function pgErrorStatus(error: any) {
+  const code = String(error?.code || "");
+  if (code === "28000") return 401;
+  if (code === "42501") return 403;
+  if (code === "40901" || code === "40902" || code === "40903" || code === "40904") return 409;
+  if (code.startsWith("22")) return 400;
+  return 500;
+}
+
 async function getAccess(token: string) {
   if (!token) return null;
   const tokenHash = await sha256Hex(token);
@@ -459,9 +468,31 @@ Deno.serve(async (req) => {
       if (!access) return json({ error: "Invalid or expired assessment access" }, 401);
       if (access.session_id) return json({ success: true, data: { session_id: access.session_id, resumed: true, lead_id: null, expires_at: access.expires_at } });
 
+      const attemptKey = String(data.attempt_key || "").trim();
+      if (!attemptKey) return json({ error: "Missing attempt key" }, 400);
+      const attemptKeyHash = await sha256Hex(attemptKey);
+
       let leadId = data.lead_id ? String(data.lead_id) : null;
       const lead = data.lead || {};
       let history: any = { allowed: true, previousSessionData: null };
+
+      if (!leadId && !access.assessment_user_id) {
+        const { data: activeAttempt, error: activeAttemptError } = await supabase
+          .from("sessions")
+          .select("id, lead_id, status, submission_state, last_activity_at")
+          .eq("assessment_type_id", access.assessment_type_id)
+          .eq("attempt_key_hash", attemptKeyHash)
+          .eq("status", "in_progress")
+          .eq("submission_state", "draft")
+          .gte("last_activity_at", new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
+          .order("last_activity_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        if (activeAttemptError) throw activeAttemptError;
+        if (activeAttempt) {
+          leadId = activeAttempt.lead_id;
+        }
+      }
 
       if (!leadId) {
         if (!lead.assessment_type_id) lead.assessment_type_id = access.assessment_type_id || null;
@@ -519,9 +550,14 @@ Deno.serve(async (req) => {
           p_access_token_hash: access.tokenHash,
           p_assessment_type_id: access.assessment_type_id,
           p_lead_id: leadId,
+          p_attempt_key_hash: attemptKeyHash,
         });
         if (response.error) throw response.error;
         result = response.data;
+      }
+
+      if (result?.resumed && leadId && result.lead_id && result.lead_id !== leadId) {
+        await supabase.from("leads").delete().eq("id", leadId);
       }
 
       const sessionResult = (await supabase
@@ -536,7 +572,7 @@ Deno.serve(async (req) => {
           ...(result || {}),
           session_id: sessionResult?.session_id,
           expires_at: sessionResult?.expires_at,
-          lead_id: leadId,
+          lead_id: result?.lead_id || leadId,
           previous_session: history.previousSessionData
         }
       });
@@ -549,7 +585,7 @@ Deno.serve(async (req) => {
 
       let query = supabase
         .from("sessions")
-        .select("id, lead_id, assessment_type_id, assessment_user_id, status, current_question, started_at, completed_at, duration_seconds, usage_consumed_at");
+        .select("id, lead_id, assessment_type_id, assessment_user_id, status, submission_state, current_question, started_at, completed_at, duration_seconds, usage_consumed_at, last_activity_at, submission_started_at, submission_fingerprint");
       query = sessionFilter(query, access);
       const { data: session, error: sessionError } = await query.maybeSingle();
       if (sessionError) throw sessionError;
@@ -564,7 +600,18 @@ Deno.serve(async (req) => {
 
       await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
 
-      return json({ success: true, data: { session, answers } });
+      let storedResult: any = null;
+      if (session.status === "completed") {
+        const { data: resultRow, error: resultError } = await supabase
+          .from("assessment_results")
+          .select("result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at, result_status")
+          .eq("session_id", session.id)
+          .maybeSingle();
+        if (resultError) throw resultError;
+        storedResult = resultRow;
+      }
+
+      return json({ success: true, data: { session, answers, result: storedResult } });
     }
 
     if (action === "save_answer") {
@@ -573,62 +620,26 @@ Deno.serve(async (req) => {
       const { access } = auth;
       const questionId = String(data.question_id || "");
       const optionIndex = Number(data.option_index);
-      if (!questionId || !Number.isInteger(optionIndex) || optionIndex < 0) return json({ error: "Invalid answer payload" }, 400);
 
-      let query = supabase.from("sessions").select("id, lead_id, assessment_type_id, assessment_user_id, status");
-      query = sessionFilter(query, access);
-      const { data: session, error: sessionError } = await query.maybeSingle();
-      if (sessionError) throw sessionError;
-      if (!session || session.status !== "in_progress") return json({ error: "Assessment session is not active" }, 409);
-
-      const { data: question, error: questionError } = await supabase
-        .from("questions")
-        .select("id, code, axis_id, question_text_ar, question_text, assessment_type_id")
-        .eq("code", questionId)
-        .eq("assessment_type_id", session.assessment_type_id)
-        .maybeSingle();
-      if (questionError) throw questionError;
-      if (!question) return json({ error: "Question not found" }, 404);
-
-      const { data: option, error: optionError } = await supabase
-        .from("options")
-        .select("option_index, option_value, label_ar, label, is_trap")
-        .eq("question_id", question.id)
-        .eq("option_index", optionIndex)
-        .maybeSingle();
-      if (optionError) throw optionError;
-      if (!option) return json({ error: "Option not found" }, 400);
-
-      const { data: saved, error: saveError } = await supabase
-        .from("answers")
-        .upsert({
-          session_id: access.session_id,
-          lead_id: session.lead_id,
-          question_id: question.code,
-          axis_id: String(question.axis_id),
-          question_text: question.question_text_ar || question.question_text,
-          chosen_option_label: option.label_ar || option.label,
-          option_index: option.option_index,
-          option_value: option.option_value,
-          answer_value: option.option_value,
-          is_trap: Boolean(option.is_trap),
-          trap_triggered: false,
-          answered_at: new Date().toISOString(),
-        }, { onConflict: "session_id,question_id" })
-        .select("id, question_id, option_index, chosen_option_label, answered_at")
-        .single();
-
-      if (saveError) throw saveError;
-
-      await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
-
-      if (Number.isInteger(data.current_question)) {
-        let updateQuery = supabase.from("sessions").update({ current_question: data.current_question });
-        updateQuery = sessionFilter(updateQuery, access);
-        await updateQuery;
+      if (!questionId || !Number.isInteger(optionIndex) || optionIndex < 0) {
+        return json({ error: "Invalid answer payload" }, 400);
       }
 
-      return json({ success: true, data: saved });
+      const response = await supabase.rpc("save_assessment_answer", {
+        p_access_token_hash: access.tokenHash,
+        p_question_id: questionId,
+        p_option_index: optionIndex,
+        p_current_question: Number.isInteger(data.current_question) ? Number(data.current_question) : null,
+      });
+
+      if (response.error) {
+        throw Object.assign(
+          new Error(response.error.message || "Unable to save answer"),
+          { status: pgErrorStatus(response.error) },
+        );
+      }
+
+      return json({ success: true, data: response.data });
     }
 
     if (action === "update_progress") {
@@ -636,14 +647,32 @@ Deno.serve(async (req) => {
       if ("error" in auth) return json({ error: auth.error }, auth.status);
       const { access } = auth;
       const currentQuestion = Number(data.current_question);
-      if (!Number.isInteger(currentQuestion) || currentQuestion < 0) return json({ error: "Invalid progress" }, 400);
+      if (!Number.isInteger(currentQuestion) || currentQuestion < 0) {
+        return json({ error: "Invalid progress" }, 400);
+      }
 
-      let query = supabase.from("sessions").update({ current_question: currentQuestion });
-      query = sessionFilter(query, access).eq("status", "in_progress");
-      const { data: session, error } = await query.select("id, current_question, status").single();
-      if (error) throw error;
+      let query = supabase.from("sessions").update({
+        current_question: currentQuestion,
+        last_activity_at: new Date().toISOString(),
+      });
+      query = sessionFilter(query, access)
+        .eq("status", "in_progress")
+        .eq("submission_state", "draft");
 
-      await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
+      const { data: session, error } = await query
+        .select("id, current_question, status, submission_state")
+        .single();
+      if (error) {
+        throw Object.assign(
+          new Error(error.message || "Progress update failed"),
+          { status: pgErrorStatus(error) === 500 ? 409 : pgErrorStatus(error) },
+        );
+      }
+
+      await supabase
+        .from("assessment_session_access")
+        .update({ last_seen_at: new Date().toISOString() })
+        .eq("id", access.id);
 
       return json({ success: true, data: session });
     }
@@ -732,17 +761,93 @@ Deno.serve(async (req) => {
         });
       }
 
-      const economicInput = data.economic_input && typeof data.economic_input === "object"
+      const requestedEconomicInput = data.economic_input && typeof data.economic_input === "object"
         ? {
             averageVisitValue: data.economic_input.averageVisitValue ?? null,
             relationshipYears: data.economic_input.relationshipYears ?? null,
             referralPercentage: data.economic_input.referralPercentage ?? null,
           }
+        : {};
+
+      const preparation = await supabase.rpc("prepare_assessment_submission", {
+        p_session_id: session.id,
+        p_access_token_hash: access.tokenHash,
+        p_economic_input: requestedEconomicInput,
+      });
+      if (preparation.error) {
+        throw Object.assign(
+          new Error(preparation.error.message || "Unable to prepare submission"),
+          { status: pgErrorStatus(preparation.error) },
+        );
+      }
+
+      if (preparation.data?.already_completed) {
+        const { data: storedResult, error: storedResultError } = await supabase
+          .from("assessment_results")
+          .select("result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at")
+          .eq("session_id", session.id)
+          .maybeSingle();
+        if (storedResultError) throw storedResultError;
+
+        const structured = storedResult?.result || null;
+        return json({
+          success: true,
+          data: {
+            overallScore: Number.isFinite(structured?.scores?.overallScore)
+              ? Number(structured.scores.overallScore)
+              : null,
+            classification: structured?.classification?.bandCode ?? null,
+            axisScores: Object.fromEntries(
+              (structured?.scores?.axes || [])
+                .filter((axis: any) => Number.isFinite(axis?.score))
+                .map((axis: any) => [String(axis.axisCode), Number(axis.score)]),
+            ),
+            kpis: Object.fromEntries(
+              (structured?.kpis || [])
+                .filter((kpi: any) => kpi?.status !== "unavailable" && Number.isFinite(kpi?.value))
+                .map((kpi: any) => [String(kpi.kpiCode), Number(kpi.value)]),
+            ),
+            evSimulator: null,
+            traps: [],
+            structuredResult: structured,
+            provenance: storedResult
+              ? {
+                  assessmentVersion: storedResult.assessment_version,
+                  interpretationVersion: storedResult.interpretation_version,
+                  scoringEngineVersion: storedResult.scoring_engine_version,
+                  scoringContractVersion: storedResult.scoring_contract_version,
+                  assessmentConfigDigest: storedResult.assessment_config_digest,
+                  calculatedAt: storedResult.calculated_at,
+                }
+              : null,
+            already_completed: true,
+            session_id: session.id,
+            assessment_version: session.assessment_version,
+          },
+        });
+      }
+
+      const answerSnapshot = Array.isArray(preparation.data?.submission_snapshot)
+        ? preparation.data.submission_snapshot
+        : [];
+      const submissionFingerprint = String(preparation.data?.submission_fingerprint || "");
+      if (!submissionFingerprint) {
+        return json({ error: "Submission snapshot is unavailable" }, 409);
+      }
+
+      const frozenEconomicInput = preparation.data?.submission_economic_input
+        && typeof preparation.data.submission_economic_input === "object"
+        ? {
+            averageVisitValue: preparation.data.submission_economic_input.averageVisitValue ?? null,
+            relationshipYears: preparation.data.submission_economic_input.relationshipYears ?? null,
+            referralPercentage: preparation.data.submission_economic_input.referralPercentage ?? null,
+          }
         : undefined;
 
       const computed = await calculateP3Production(supabase, {
         sessionId: session.id,
-        economicInput,
+        economicInput: frozenEconomicInput,
+        answerSnapshot,
       });
 
       const {
@@ -752,14 +857,15 @@ Deno.serve(async (req) => {
       } = computed.result;
 
       const rpcName = access.assessment_user_id
-        ? "complete_p3_assessment_session"
-        : "complete_p3_public_assessment_session";
+        ? "complete_p4_assessment_session"
+        : "complete_p4_public_assessment_session";
 
       const rpcPayload = access.assessment_user_id
         ? {
             p_session_id: session.id,
             p_access_token_hash: access.tokenHash,
             p_assessment_user_id: access.assessment_user_id,
+            p_submission_fingerprint: submissionFingerprint,
             p_overall_score: computed.result.scores.overallScore,
             p_classification: computed.result.classification.bandCode ?? "",
             p_score_rows: computed.scoreRows,
@@ -773,6 +879,7 @@ Deno.serve(async (req) => {
         : {
             p_session_id: session.id,
             p_access_token_hash: access.tokenHash,
+            p_submission_fingerprint: submissionFingerprint,
             p_overall_score: computed.result.scores.overallScore,
             p_classification: computed.result.classification.bandCode ?? "",
             p_score_rows: computed.scoreRows,
@@ -785,7 +892,12 @@ Deno.serve(async (req) => {
           };
 
       const { data: completed, error: completionError } = await supabase.rpc(rpcName, rpcPayload);
-      if (completionError) throw completionError;
+      if (completionError) {
+        throw Object.assign(
+          new Error(completionError.message || "Assessment completion failed"),
+          { status: pgErrorStatus(completionError) },
+        );
+      }
 
       const storedStructured = (completed?.result || structuredResult) as any;
 

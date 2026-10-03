@@ -15,6 +15,8 @@ on:
     paths:
       - ".github/workflows/p2-external-e2e.yml"
       - "tests/external-assessment-access.mjs"
+      - "tests/p3-production-external-e2e.mjs"
+      - "supabase/functions/assessment-access/**"
   workflow_dispatch:
     inputs:
       assessment_slug:
