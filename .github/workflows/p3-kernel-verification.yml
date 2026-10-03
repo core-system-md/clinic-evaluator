@@ -93,6 +93,7 @@ jobs:
       - name: Add CI-only legacy migration compatibility shim
         run: |
           printf '%s\n' \
+            'create extension if not exists pg_net;' \
             'create or replace function public.update_updated_at_column()' \
             'returns trigger' \
             'language plpgsql' \
