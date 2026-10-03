@@ -468,6 +468,10 @@ Deno.serve(async (req) => {
       if (!access) return json({ error: "Invalid or expired assessment access" }, 401);
       if (access.session_id) return json({ success: true, data: { session_id: access.session_id, resumed: true, lead_id: null, expires_at: access.expires_at } });
 
+      const attemptKey = String(data.attempt_key || "").trim();
+      if (!attemptKey) return json({ error: "Missing attempt key" }, 400);
+      const attemptKeyHash = await sha256Hex(attemptKey);
+
       let leadId = data.lead_id ? String(data.lead_id) : null;
       const lead = data.lead || {};
       let history: any = { allowed: true, previousSessionData: null };
@@ -528,9 +532,14 @@ Deno.serve(async (req) => {
           p_access_token_hash: access.tokenHash,
           p_assessment_type_id: access.assessment_type_id,
           p_lead_id: leadId,
+          p_attempt_key_hash: attemptKeyHash,
         });
         if (response.error) throw response.error;
         result = response.data;
+      }
+
+      if (result?.resumed && leadId && result.lead_id && result.lead_id !== leadId) {
+        await supabase.from("leads").delete().eq("id", leadId);
       }
 
       const sessionResult = (await supabase
@@ -545,7 +554,7 @@ Deno.serve(async (req) => {
           ...(result || {}),
           session_id: sessionResult?.session_id,
           expires_at: sessionResult?.expires_at,
-          lead_id: leadId,
+          lead_id: result?.lead_id || leadId,
           previous_session: history.previousSessionData
         }
       });
