@@ -121,7 +121,7 @@ Architectural alternatives are recorded in:
 
 `documentation/architecture/P4-ARCHITECTURAL-DECISION-PACKAGE-OWNER-APPROVAL-2026-10-02.md`
 
-## 9. Owner approval required
+## 9. Owner approval record
 
 1. What exactly constitutes one business submission?
 2. Should lead creation be part of the same atomic unit as session creation?
@@ -146,4 +146,4 @@ Until approval is recorded:
 - no RLS/grant redesign;
 - no historical data rewrite.
 
-**P4 investigation is complete. The next canonical action is Owner Approval, followed only by implementation of the approved architecture.**
+**P4 investigation is complete and owner approval is recorded. Implementation and verification are now proceeding under the approved design; no historical data rewrite is in scope.**
