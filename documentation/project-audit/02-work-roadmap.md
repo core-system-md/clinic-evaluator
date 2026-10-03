@@ -174,7 +174,7 @@ Investigate and then design, subject to approval:
 - reporting/operations;
 - module boundaries and maintainability.
 
-## P3 — Canonical continuation (2026-10-02)
+## P3 — Canonical continuation (2026-10-02) — HISTORICAL CHECKPOINT
 
 The canonical P3 state is now maintained in:
 
@@ -219,7 +219,7 @@ These are architectural/product decisions and remain subject to investigation an
 
 ## Current checkpoint
 
-**Current phase:** P0–P4 integration/reconciliation before P5.
+**Current phase:** P5 — Admin architecture consolidation.
 
 **P0:** CLOSED with documented platform constraint(s).
 
@@ -241,10 +241,20 @@ P2 production implementation is now complete. The approved explicit assessment-f
 
 **P3 status:** CLOSED / IMPLEMENTED / RUNTIME VERIFIED. See the final Gate 3 closure record dated 2026-10-02.
 
-Gate A, Gate B, Gate C, and Gate D are complete at their defined boundaries. Gate E verification is active. No production scoring-semantic change, schema migration, historical rewrite, or cutover is authorized before the Implementation-Ready gate and explicit owner approval.
+Gate A–F text in this historical section is retained for traceability only. The final P3 Gate 3 closure record supersedes the old implementation-readiness wording.
 
 **P3 primary records:**
 - `documentation/audit/P3-reality-audit-2026-10-01.md`
 - `documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md`
 
 **P3 rule:** no change to scoring semantics, KPI behavior, trap behavior, normalization, weighting, or EV formulas may be introduced solely as code cleanup. Such changes require an explicit product/architecture decision first.
+
+**P0–P4 integration:** CLOSED / RUNTIME DEPLOYMENT VERIFIED (2026-10-03).
+
+Canonical integration audit: `documentation/architecture/P0-P4-INTEGRATION-AUDIT-2026-10-03.md`.
+
+Production main commit after the integration regression fix: `ca125cc3363ba01ffd9c7595356289cbcb0913fd`.
+
+Cloudflare production deployment from that exact commit: `a7ef21bc-4098-48ac-b772-6fb3e56f0d9b`, completed successfully.
+
+P5 may now begin its own investigate → document → approve → design → implement → verify → close sequence.

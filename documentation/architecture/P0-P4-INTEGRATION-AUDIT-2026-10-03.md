@@ -47,6 +47,8 @@ Cloudflare successfully built the fix branch commits.
 
 ## Closure condition
 
-P0-P4 remain closed as engineering phases. The post-P4 compatibility defect is a contained integration regression.
+P0-P4 integration is now CLOSED.
 
-P5 must not be treated as started until PR #19 is merged, the corrected code is deployed to Cloudflare production from the resulting main commit, and this record is updated with that deployment evidence.
+PR #19 was merged into main as commit `ca125cc3363ba01ffd9c7595356289cbcb0913fd`. Cloudflare production deployment `a7ef21bc-4098-48ac-b772-6fb3e56f0d9b` completed successfully from that exact main commit at 2026-10-03T11:35:54Z.
+
+The post-P4 compatibility defect is therefore closed as an integration regression fix. No P0-P4 architecture, scoring contract, or database submission state machine was reopened.
