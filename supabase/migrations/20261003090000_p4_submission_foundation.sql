@@ -346,7 +346,7 @@ begin
   where at.id = p_assessment_type_id
     and at.status = 'published';
 
-  if v_session.assessment_version is null then
+  if v_assessment_version is null then
     raise exception using errcode = '42501', message = 'Assessment unavailable';
   end if;
 
