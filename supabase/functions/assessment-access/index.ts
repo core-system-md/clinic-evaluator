@@ -582,62 +582,26 @@ Deno.serve(async (req) => {
       const { access } = auth;
       const questionId = String(data.question_id || "");
       const optionIndex = Number(data.option_index);
-      if (!questionId || !Number.isInteger(optionIndex) || optionIndex < 0) return json({ error: "Invalid answer payload" }, 400);
 
-      let query = supabase.from("sessions").select("id, lead_id, assessment_type_id, assessment_user_id, status");
-      query = sessionFilter(query, access);
-      const { data: session, error: sessionError } = await query.maybeSingle();
-      if (sessionError) throw sessionError;
-      if (!session || session.status !== "in_progress") return json({ error: "Assessment session is not active" }, 409);
-
-      const { data: question, error: questionError } = await supabase
-        .from("questions")
-        .select("id, code, axis_id, question_text_ar, question_text, assessment_type_id")
-        .eq("code", questionId)
-        .eq("assessment_type_id", session.assessment_type_id)
-        .maybeSingle();
-      if (questionError) throw questionError;
-      if (!question) return json({ error: "Question not found" }, 404);
-
-      const { data: option, error: optionError } = await supabase
-        .from("options")
-        .select("option_index, option_value, label_ar, label, is_trap")
-        .eq("question_id", question.id)
-        .eq("option_index", optionIndex)
-        .maybeSingle();
-      if (optionError) throw optionError;
-      if (!option) return json({ error: "Option not found" }, 400);
-
-      const { data: saved, error: saveError } = await supabase
-        .from("answers")
-        .upsert({
-          session_id: access.session_id,
-          lead_id: session.lead_id,
-          question_id: question.code,
-          axis_id: String(question.axis_id),
-          question_text: question.question_text_ar || question.question_text,
-          chosen_option_label: option.label_ar || option.label,
-          option_index: option.option_index,
-          option_value: option.option_value,
-          answer_value: option.option_value,
-          is_trap: Boolean(option.is_trap),
-          trap_triggered: false,
-          answered_at: new Date().toISOString(),
-        }, { onConflict: "session_id,question_id" })
-        .select("id, question_id, option_index, chosen_option_label, answered_at")
-        .single();
-
-      if (saveError) throw saveError;
-
-      await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
-
-      if (Number.isInteger(data.current_question)) {
-        let updateQuery = supabase.from("sessions").update({ current_question: data.current_question });
-        updateQuery = sessionFilter(updateQuery, access);
-        await updateQuery;
+      if (!questionId || !Number.isInteger(optionIndex) || optionIndex < 0) {
+        return json({ error: "Invalid answer payload" }, 400);
       }
 
-      return json({ success: true, data: saved });
+      const response = await supabase.rpc("save_assessment_answer", {
+        p_access_token_hash: access.tokenHash,
+        p_question_id: questionId,
+        p_option_index: optionIndex,
+        p_current_question: Number.isInteger(data.current_question) ? Number(data.current_question) : null,
+      });
+
+      if (response.error) {
+        throw Object.assign(
+          new Error(response.error.message || "Unable to save answer"),
+          { status: pgErrorStatus(response.error) },
+        );
+      }
+
+      return json({ success: true, data: response.data });
     }
 
     if (action === "update_progress") {
