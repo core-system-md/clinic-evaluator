@@ -75,8 +75,10 @@ try {
 
   // 4. Start a synthetic production session.
   const suffix = crypto.randomBytes(6).toString("hex");
+  const attemptKey = `p2-external-e2e-${ASSESSMENT_SLUG}-${suffix}`;
   const start = await call("start_session", {
     token,
+    attempt_key: attemptKey,
     lead: {
       full_name: `P2 External E2E ${suffix}`,
       email: `p2-e2e-${suffix}@example.invalid`,
