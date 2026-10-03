@@ -759,10 +759,254 @@ class AssessmentManager {
         });
     }
 
+    focusResults({ status = '', sort = 'newest' } = {}) {
+        const statusSelect = document.getElementById('filter-status');
+        const sortSelect = document.getElementById('filter-sort');
+        if (statusSelect) statusSelect.value = status;
+        if (sortSelect) sortSelect.value = sort;
+        this.applyDashboardFilters();
+        document.getElementById('leads-table')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    showClinicSummary() {
+        const modal = document.getElementById('detail-modal');
+        const body = document.getElementById('modal-body');
+        if (!modal || !body) return;
+
+        const groups = new Map();
+        (this.allLeads || []).forEach(lead => {
+            const name = (lead.clinic_name || 'غير مسجل').trim();
+            const item = groups.get(name) || { name, total: 0, completed: 0, incomplete: 0 };
+            item.total++;
+            if (lead.completed) item.completed++; else item.incomplete++;
+            groups.set(name, item);
+        });
+
+        const rows = [...groups.values()].sort((a, b) => b.total - a.total || a.name.localeCompare(b.name, 'ar'));
+        body.innerHTML = `
+            <div class="detail-section" style="text-align:right;">
+                <h4>🏥 قائمة العيادات</h4>
+                <p style="color:#64748b; margin-top:0;">إجمالي العيادات الفريدة: ${rows.length}</p>
+                <div style="overflow:auto; max-height:60vh;">
+                    <table class="data-table" style="width:100%;">
+                        <thead><tr><th>العيادة</th><th>السجلات</th><th>مكتمل</th><th>غير مكتمل</th></tr></thead>
+                        <tbody>
+                            ${rows.map(row => `
+                                <tr>
+                                    <td>${this.escapeHtml(row.name)}</td>
+                                    <td>${row.total}</td>
+                                    <td>${row.completed}</td>
+                                    <td>${row.incomplete}</td>
+                                </tr>`).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+        modal.classList.remove('hidden');
+    }
+
+    setupStatCardActions() {
+        const bind = (id, handler) => {
+            const el = document.getElementById(id);
+            if (!el || el.dataset.drilldownBound === 'true') return;
+            el.dataset.drilldownBound = 'true';
+            el.setAttribute('role', 'button');
+            el.setAttribute('tabindex', '0');
+            el.classList.add('stat-card-clickable');
+            el.addEventListener('click', handler);
+            el.addEventListener('keydown', event => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                    event.preventDefault();
+                    handler();
+                }
+            });
+        };
+
+        bind('stat-leads', () => this.focusResults({ status: '', sort: 'newest' }));
+        bind('stat-completed', () => this.focusResults({ status: 'completed', sort: 'newest' }));
+        bind('stat-avg', () => this.focusResults({ status: 'completed', sort: 'score-high' }));
+        bind('stat-clinics', () => this.showClinicSummary());
+    }
+
+    assistantCapabilities() {
+        return [
+            ['assessment.view', 'عرض التقييمات'],
+            ['assessment.edit', 'تعديل نسخ العمل'],
+            ['assessment.import', 'استيراد تقييم جديد'],
+            ['results.view', 'عرض النتائج'],
+            ['reports.view', 'عرض التقارير'],
+            ['reports.export', 'تصدير التقارير'],
+            ['access.view', 'عرض إدارة النفاذ'],
+            ['access.manage', 'إدارة أكواد النفاذ']
+        ];
+    }
+
+    renderAssistantCapabilityInputs(selected = []) {
+        const container = document.getElementById('assistant-capabilities');
+        if (!container) return;
+        const selectedSet = new Set(selected || []);
+        container.innerHTML = this.assistantCapabilities().map(([code, label]) => `
+            <label style="display:flex; gap:8px; align-items:center; padding:7px 0; cursor:pointer;">
+                <input type="checkbox" value="${code}" ${selectedSet.has(code) ? 'checked' : ''}>
+                <span>${this.escapeHtml(label)}</span>
+            </label>`).join('');
+    }
+
+    async loadAssistants() {
+        const section = document.getElementById('assistant-management-section');
+        const container = document.getElementById('assistants-container');
+        if (!section || !container) return;
+        if (window.AdminSession?.role !== 'owner') {
+            section.classList.add('hidden');
+            return;
+        }
+        section.classList.remove('hidden');
+
+        try {
+            const [admins, caps] = await Promise.all([
+                this.supabase.select('admin_users', { filter: { role: 'admin' }, columns: 'user_id,role,active,created_at,display_name' }),
+                this.supabase.select('admin_capabilities', { columns: 'user_id,capability' })
+            ]);
+
+            const capMap = {};
+            (caps || []).forEach(item => {
+                (capMap[item.user_id] ||= []).push(item.capability);
+            });
+
+            if (!admins?.length) {
+                container.innerHTML = '<p style="padding:12px; color:#64748b;">لا يوجد مساعدون إداريون حالياً.</p>';
+                return;
+            }
+
+            container.innerHTML = (admins || []).map(admin => {
+                const name = admin.display_name || admin.user_id;
+                const labels = (capMap[admin.user_id] || []).map(code => {
+                    const item = this.assistantCapabilities().find(([c]) => c === code);
+                    return item ? item[1] : code;
+                });
+                return `
+                    <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px; margin-bottom:10px;">
+                        <div style="display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; align-items:center;">
+                            <strong>${this.escapeHtml(name)}</strong>
+                            <span class="badge ${admin.active ? 'badge-success' : 'badge-warning'}">${admin.active ? 'مفعّل' : 'موقوف'}</span>
+                        </div>
+                        <div style="font-size:0.78rem; color:#64748b; margin-top:4px;">${this.escapeHtml(admin.user_id)}</div>
+                        <div style="font-size:0.82rem; color:#334155; margin-top:7px;">${this.escapeHtml(labels.join('، ') || 'لا توجد صلاحيات ممنوحة')}</div>
+                        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:9px;">
+                            <button type="button" class="btn-small" onclick="window.assessmentManager.editAssistant('${admin.user_id}')">✏️ تعديل</button>
+                            <button type="button" class="btn-small" onclick="window.assessmentManager.toggleAssistant('${admin.user_id}', ${admin.active})">${admin.active ? '⏸️ إيقاف' : '▶️ تفعيل'}</button>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            this.assistantRows = {};
+            (admins || []).forEach(admin => { this.assistantRows[admin.user_id] = { ...admin, capabilities: capMap[admin.user_id] || [] }; });
+        } catch (err) {
+            container.innerHTML = '<p style="padding:12px; color:#b91c1c;">تعذر تحميل المساعدين: ' + this.escapeHtml(err.message) + '</p>';
+        }
+    }
+
+    openAssistantModal(userId = null) {
+        if (window.AdminSession?.role !== 'owner') return;
+        const modal = document.getElementById('assistant-modal');
+        const title = document.getElementById('assistant-modal-title');
+        const email = document.getElementById('assistant-email');
+        const password = document.getElementById('assistant-password');
+        const passwordConfirm = document.getElementById('assistant-password-confirm');
+        const name = document.getElementById('assistant-name');
+        const idInput = document.getElementById('assistant-user-id');
+        const existing = userId ? this.assistantRows?.[userId] : null;
+
+        if (title) title.textContent = existing ? 'تعديل المساعد الإداري' : 'إضافة مساعد إداري';
+        if (idInput) idInput.value = userId || '';
+        if (name) name.value = existing?.display_name || '';
+        if (email) { email.value = ''; email.disabled = !!existing; }
+        if (password) { password.value = ''; password.required = !existing; }
+        if (passwordConfirm) { passwordConfirm.value = ''; passwordConfirm.required = !existing; }
+        this.renderAssistantCapabilityInputs(existing?.capabilities || []);
+        modal?.classList.remove('hidden');
+    }
+
+    closeAssistantModal() {
+        document.getElementById('assistant-modal')?.classList.add('hidden');
+    }
+
+    async saveAssistant() {
+        if (window.AdminSession?.role !== 'owner') return;
+        const userId = document.getElementById('assistant-user-id')?.value || '';
+        const name = document.getElementById('assistant-name')?.value.trim() || '';
+        const email = document.getElementById('assistant-email')?.value.trim() || '';
+        const password = document.getElementById('assistant-password')?.value || '';
+        const passwordConfirm = document.getElementById('assistant-password-confirm')?.value || '';
+        const capabilities = [...document.querySelectorAll('#assistant-capabilities input[type="checkbox"]:checked')].map(el => el.value);
+
+        try {
+            if (!userId) {
+                if (password !== passwordConfirm) throw new Error('كلمتا المرور غير متطابقتين.');
+                if (password.length < 10) throw new Error('كلمة مرور المساعد يجب أن تكون 10 أحرف على الأقل.');
+                if (!email) throw new Error('بريد المساعد مطلوب.');
+                await this.invokeAdminManagement({
+                    action: 'create_assistant',
+                    email, password, display_name: name, capabilities
+                });
+                this.showToast('تم إنشاء حساب المساعد ومنحه الصلاحيات المحددة.');
+            } else {
+                const current = this.assistantRows?.[userId];
+                await this.supabase.request('rpc/update_admin_assistant_profile_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_user_id: userId, p_display_name: name })
+                });
+
+                const currentCaps = new Set(current?.capabilities || []);
+                const nextCaps = new Set(capabilities);
+                for (const code of nextCaps) {
+                    if (!currentCaps.has(code)) {
+                        await this.supabase.request('rpc/grant_admin_capability_secure', {
+                            method: 'POST',
+                            body: JSON.stringify({ p_user_id: userId, p_capability: code })
+                        });
+                    }
+                }
+                for (const code of currentCaps) {
+                    if (!nextCaps.has(code)) {
+                        await this.supabase.request('rpc/revoke_admin_capability_secure', {
+                            method: 'POST',
+                            body: JSON.stringify({ p_user_id: userId, p_capability: code })
+                        });
+                    }
+                }
+                this.showToast('تم تحديث اسم المساعد وصلاحياته.');
+            }
+
+            this.closeAssistantModal();
+            await this.loadAssistants();
+        } catch (err) {
+            this.showToast('فشل حفظ المساعد: ' + err.message, true);
+        }
+    }
+
+    async editAssistant(userId) {
+        await this.loadAssistants();
+        this.openAssistantModal(userId);
+    }
+
+    async toggleAssistant(userId, active) {
+        if (window.AdminSession?.role !== 'owner') return;
+        try {
+            await this.supabase.request('rpc/set_admin_active_secure', {
+                method: 'POST',
+                body: JSON.stringify({ p_user_id: userId, p_active: !active })
+            });
+            this.showToast(active ? 'تم إيقاف المساعد.' : 'تم تفعيل المساعد.');
+            await this.loadAssistants();
+        } catch (err) {
+            this.showToast('فشل تغيير حالة المساعد: ' + err.message, true);
+        }
+    }
+
     setupDashboardFilterEvents() {
         document.getElementById('btn-search')?.addEventListener('click', () => this.applyDashboardFilters());
         document.getElementById('search-input')?.addEventListener('keyup', (e) => {
-            this.populateFilterDropdown();
             if (e.key === 'Enter') this.applyDashboardFilters();
         });
         document.getElementById('filter-type')?.addEventListener('change', () => this.applyDashboardFilters());
@@ -781,6 +1025,15 @@ class AssessmentManager {
         document.getElementById('btn-close-modal').onclick = () => document.getElementById('detail-modal').classList.add('hidden');
         document.getElementById('btn-close-user-modal')?.addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
         document.getElementById('btn-cancel-user')?.addEventListener('click', () => document.getElementById('user-modal').classList.add('hidden'));
+        document.getElementById('btn-add-assistant')?.addEventListener('click', () => this.openAssistantModal());
+        document.getElementById('btn-close-assistant-modal')?.addEventListener('click', () => this.closeAssistantModal());
+        document.getElementById('btn-cancel-assistant')?.addEventListener('click', () => this.closeAssistantModal());
+        document.getElementById('assistant-form')?.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            await this.saveAssistant();
+        });
+        this.setupStatCardActions();
+        if (window.AdminSession?.role === 'owner') this.loadAssistants();
     }
 
     applyDashboardFilters() {
@@ -1018,8 +1271,8 @@ class AssessmentManager {
                 <div class="detail-section" style="text-align:right;">
                     <h4>📋 البيانات الاستشارية والتعريفية للمنشأة الطبية</h4>
                     <div class="detail-grid">
-                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${this.escapeHtml(currentAssessmentName)}</div>
-                        <div class="detail-item"><div class="detail-label">مصدر النتيجة</div><div class="detail-value">${resultSourceLabel}</div></div></div>
+                        <div class="detail-item"><div class="detail-label">النموذج الطبي المفحوص</div><div class="detail-value" style="color:#0f766e; font-weight:800;">🔍 ${this.escapeHtml(currentAssessmentName)}</div></div>
+                        <div class="detail-item"><div class="detail-label">مصدر النتيجة</div><div class="detail-value">${resultSourceLabel}</div></div>
                         <div class="detail-item"><div class="detail-label">الطبيب / صاحب التقييم</div><div class="detail-value">${this.escapeHtml(lead.full_name)}</div></div>
                         <div class="detail-item"><div class="detail-label">العيادة / المركز الطبي</div><div class="detail-value">${this.escapeHtml(lead.clinic_name || '---')}</div></div>
                         <div class="detail-item"><div class="detail-label">رقم الهاتف والتواصل</div><div class="detail-value" style="direction:ltr; text-align:right;">${this.escapeHtml(lead.phone || '---')}</div></div>
@@ -1032,14 +1285,14 @@ class AssessmentManager {
                 <div class="detail-section" style="text-align:right;">
                     <h4>📊 لوحة مؤشرات الأداء الحيوية (KPIs Dashboard)</h4>
                     <div class="scores-grid">
-                        <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tapIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">الاستبقاء (PRP)</div><div class="score-value">${prpIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">الولاء (PLI)</div><div class="score-value">${pliIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">رضا المريض (PSI)</div><div class="score-value">${psiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">التوصية (NPI)</div><div class="score-value">${npiIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}%</div></div>
-                        <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}%</div></div>
+                        <div class="score-card"><div class="score-name">بناء الثقة (TFI)</div><div class="score-value">${tfiIndex}</div></div>
+                        <div class="score-card"><div class="score-name">قبول العلاج (TAP)</div><div class="score-value">${tapIndex}</div></div>
+                        <div class="score-card"><div class="score-name">الاستبقاء (PRP)</div><div class="score-value">${prpIndex}</div></div>
+                        <div class="score-card"><div class="score-name">الولاء (PLI)</div><div class="score-value">${pliIndex}</div></div>
+                        <div class="score-card"><div class="score-name">رضا المريض (PSI)</div><div class="score-value">${psiIndex}</div></div>
+                        <div class="score-card"><div class="score-name">التوصية (NPI)</div><div class="score-value">${npiIndex}</div></div>
+                        <div class="score-card"><div class="score-name">قيمة التجربة (EVI)</div><div class="score-value">${eviIndex}</div></div>
+                        <div class="score-card"><div class="score-name">ثقة العلاج (TCI)</div><div class="score-value">${tciIndex}</div></div>
                         ${rriValue !== null ? `<div class="score-card"><div class="score-name">جاهزية الاستقبال (RRI)</div><div class="score-value">${rriValue}</div></div>` : ''}
                     </div>
                 </div>
