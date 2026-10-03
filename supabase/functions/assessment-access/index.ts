@@ -54,6 +54,15 @@ function randomToken() {
   return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
+function pgErrorStatus(error: any) {
+  const code = String(error?.code || "");
+  if (code === "28000") return 401;
+  if (code === "42501") return 403;
+  if (code === "40901" || code === "40902" || code === "40903" || code === "40904") return 409;
+  if (code.startsWith("22")) return 400;
+  return 500;
+}
+
 async function getAccess(token: string) {
   if (!token) return null;
   const tokenHash = await sha256Hex(token);
