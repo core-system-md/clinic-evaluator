@@ -70,22 +70,6 @@ async function main() {
 
   const suffix = crypto.randomBytes(8).toString("hex");
   const attemptKey = `p4-e2e-${ASSESSMENT_SLUG}-${suffix}`;
-  const startResponse = await call("start_session", {
-    token,
-    attempt_key: attemptKey,
-    lead: {
-      full_name: `P3 Gate 3 E2E ${ASSESSMENT_SLUG} ${suffix}`,
-      email: `p3-gate3-${ASSESSMENT_SLUG}-${suffix}@example.invalid`,
-      source: "p3-gate3-e2e",
-    },
-  });
-  assert(
-    startResponse.status === 200 && startResponse.body?.success === true,
-    `start_session failed: HTTP ${startResponse.status}`,
-  );
-  const sessionId = startResponse.body?.data?.session_id;
-  assert(typeof sessionId === "string" && sessionId.length > 10, "No session id");
-  record("start_session", true, { session_id: sessionId });
 
   const secondAccessResponse = await call("issue_public_access", {
     assessment_key: ASSESSMENT_SLUG,
@@ -94,8 +78,50 @@ async function main() {
   const secondToken = secondAccessResponse.body?.data?.token;
   assert(typeof secondToken === "string" && secondToken.length >= 20, "Invalid second access token");
 
+  const [startA, startB] = await Promise.all([
+    call("start_session", {
+      token,
+      attempt_key: attemptKey,
+      lead: {
+        full_name: `P4 Concurrent Start A ${ASSESSMENT_SLUG} ${suffix}`,
+        email: `p4-start-a-${ASSESSMENT_SLUG}-${suffix}@example.invalid`,
+        source: "p4-concurrent-start-e2e",
+      },
+    }),
+    call("start_session", {
+      token: secondToken,
+      attempt_key: attemptKey,
+      lead: {
+        full_name: `P4 Concurrent Start B ${ASSESSMENT_SLUG} ${suffix}`,
+        email: `p4-start-b-${ASSESSMENT_SLUG}-${suffix}@example.invalid`,
+        source: "p4-concurrent-start-e2e",
+      },
+    }),
+  ]);
+
+  assert(startA.status === 200 && startA.body?.success === true, `concurrent start A failed: HTTP ${startA.status} ${JSON.stringify(startA.body)}`);
+  assert(startB.status === 200 && startB.body?.success === true, `concurrent start B failed: HTTP ${startB.status} ${JSON.stringify(startB.body)}`);
+
+  const sessionIdA = startA.body?.data?.session_id;
+  const sessionIdB = startB.body?.data?.session_id;
+  assert(typeof sessionIdA === "string" && sessionIdA.length > 10, "Concurrent start A missing session id");
+  assert(sessionIdA === sessionIdB, "Concurrent starts created two active sessions");
+  const sessionId = sessionIdA;
+  record("concurrent active-attempt creation collapse", true, { same_session_id: true });
+
+  const tokenForWork = token;
+  record("start_session", true, { session_id: sessionId });
+
+  const thirdAccessResponse = await call("issue_public_access", {
+    assessment_key: ASSESSMENT_SLUG,
+  });
+  assert(secondAccessResponse.status === 200 && secondAccessResponse.body?.success === true, "Second public access issuance failed");
+  assert(thirdAccessResponse.status === 200 && thirdAccessResponse.body?.success === true, "Third public access issuance failed");
+  const thirdToken = thirdAccessResponse.body?.data?.token;
+  assert(typeof thirdToken === "string" && thirdToken.length >= 20, "Invalid third access token");
+
   const resumeResponse = await call("start_session", {
-    token: secondToken,
+    token: thirdToken,
     attempt_key: attemptKey,
     lead: {
       full_name: `P4 Resume Probe ${ASSESSMENT_SLUG} ${suffix}`,
@@ -127,6 +153,7 @@ async function main() {
   }
   record("all required answers saved", true, { answered_questions: assessment.questions.length });
 
+  const token = tokenForWork;
   const frozenEconomicInput = {
     averageVisitValue: 250,
     relationshipYears: 5,
