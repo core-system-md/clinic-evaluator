@@ -647,4 +647,95 @@ grant execute on function public.update_draft_axis_secure(uuid,text,text,text,nu
 revoke all on function public.update_draft_question_secure(uuid,text,text,uuid,integer,boolean,integer) from public,anon;
 grant execute on function public.update_draft_question_secure(uuid,text,text,uuid,integer,boolean,integer) to authenticated;
 
+
+create or replace function public.update_draft_question_text_secure(
+  p_question_id uuid,
+  p_question_text text,
+  p_question_text_ar text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $function$
+declare
+  v_before jsonb;
+  v_family uuid;
+  v_status text;
+begin
+  perform public.require_admin_capability('assessment.edit');
+  select to_jsonb(q),at.family_id,at.status
+    into v_before,v_family,v_status
+  from public.questions q
+  join public.assessment_types at on at.id=q.assessment_type_id
+  where q.id=p_question_id
+  for update;
+  if not found then raise exception 'Question not found' using errcode='P0002'; end if;
+  if v_status<>'draft' then
+    raise exception 'Draft question content operation requires a working copy' using errcode='55000';
+  end if;
+
+  update public.questions
+     set question_text=coalesce(nullif(trim(p_question_text),''),question_text),
+         question_text_ar=coalesce(nullif(trim(p_question_text_ar),''),question_text_ar),
+         updated_at=now()
+   where id=p_question_id;
+
+  perform public.write_admin_audit(
+    'assessment.question.edit','questions',p_question_id,v_family,v_before,
+    (select to_jsonb(q) from public.questions q where q.id=p_question_id)
+  );
+  return jsonb_build_object('success',true,'id',p_question_id);
+end;
+$function$;
+
+create or replace function public.update_draft_axis_content_secure(
+  p_axis_id uuid,
+  p_title text,
+  p_title_ar text,
+  p_description text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path=public,pg_temp
+as $function$
+declare
+  v_before jsonb;
+  v_family uuid;
+  v_status text;
+begin
+  perform public.require_admin_capability('assessment.edit');
+  select to_jsonb(a),at.family_id,at.status
+    into v_before,v_family,v_status
+  from public.axes a
+  join public.assessment_types at on at.id=a.assessment_type_id
+  where a.id=p_axis_id
+  for update;
+  if not found then raise exception 'Axis not found' using errcode='P0002'; end if;
+  if v_status<>'draft' then
+    raise exception 'Draft axis content operation requires a working copy' using errcode='55000';
+  end if;
+
+  update public.axes
+     set title=coalesce(nullif(trim(p_title),''),title),
+         title_ar=coalesce(nullif(trim(p_title_ar),''),title_ar),
+         description=coalesce(p_description,description),
+         updated_at=now()
+   where id=p_axis_id;
+
+  perform public.write_admin_audit(
+    'assessment.axis.edit','axes',p_axis_id,v_family,v_before,
+    (select to_jsonb(a) from public.axes a where a.id=p_axis_id)
+  );
+  return jsonb_build_object('success',true,'id',p_axis_id);
+end;
+$function$;
+
+revoke all on function public.update_draft_question_text_secure(uuid,text,text) from public,anon;
+grant execute on function public.update_draft_question_text_secure(uuid,text,text) to authenticated;
+
+revoke all on function public.update_draft_axis_content_secure(uuid,text,text,text) from public,anon;
+grant execute on function public.update_draft_axis_content_secure(uuid,text,text,text) to authenticated;
+
 commit;
