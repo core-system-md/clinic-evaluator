@@ -514,6 +514,31 @@
         </div>
       </section>
 
+      <section class="settings-section hidden" id="owner-audit-section">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap;">
+          <div>
+            <h2>🧾 سجل حركات الإدارة</h2>
+            <p style="margin:4px 0 0; color:#64748b; font-size:0.85rem;">سجل للعمليات الإدارية المسجلة: من قام بها، ماذا حدث، وعلى أي تقييم، مع تفاصيل التغيير.</p>
+          </div>
+          <button type="button" id="btn-refresh-audit" class="btn-secondary">🔄 تحديث السجل</button>
+        </div>
+        <div id="audit-filters" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:8px; margin:14px 0;">
+          <select id="audit-action-filter" style="width:100%; padding:10px; border:1px solid #dbe3ea; border-radius:8px; font-family:inherit;">
+            <option value="">كل الحركات</option>
+          </select>
+          <select id="audit-actor-filter" style="width:100%; padding:10px; border:1px solid #dbe3ea; border-radius:8px; font-family:inherit;">
+            <option value="">كل المستخدمين</option>
+          </select>
+          <select id="audit-family-filter" style="width:100%; padding:10px; border:1px solid #dbe3ea; border-radius:8px; font-family:inherit;">
+            <option value="">كل التقييمات</option>
+          </select>
+        </div>
+        <div id="audit-container">
+          <p style="padding:12px; color:#64748b;">جاري تحميل سجل الحركات...</p>
+        </div>
+        <div id="audit-pagination" style="display:flex; justify-content:center; gap:8px; align-items:center; margin-top:12px;"></div>
+      </section>
+
       <section class="filters-section">
         <div class="search-box">
           <input type="text" id="search-input" placeholder="بحث: اسم، بريد، هاتف، عيادة...">
