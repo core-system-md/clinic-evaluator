@@ -564,6 +564,8 @@ begin
 end;
 $$;
 
+drop function if exists public.update_option_secure(uuid,text,integer);
+
 create or replace function public.update_option_secure(
  p_option_id uuid,p_label_ar text,p_option_value integer
 )
