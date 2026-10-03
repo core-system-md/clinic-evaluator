@@ -21,7 +21,7 @@
       document.getElementById('ast-title-en').value = ast.title_en || '';
       document.getElementById('ast-description').value = ast.description || '';
       document.getElementById('ast-status').value = status === 'published' ? 'Published' : 'Draft';
-      document.getElementById('ast-status').disabled = status === 'published';
+      document.getElementById('ast-status').disabled = true;
       document.getElementById('ast-has-traps').checked = !!ast.has_traps;
       document.getElementById('ast-has-simulator').checked = !!ast.has_ev_simulator;
       document.getElementById('ast-has-traps').disabled = status === 'published';
@@ -46,6 +46,31 @@
     } catch (err) {
       this.showToast('خطأ أثناء تحميل تفاصيل التقييم: ' + err.message, true);
     }
+  };
+
+  AssessmentManager.prototype.createNewAssessment = function () {
+    const form = document.getElementById('assessment-form');
+    if (form) form.reset();
+    document.getElementById('ast-id').value = '';
+    this.editingAssessmentSlug = null;
+    this.editingAssessmentStatus = 'draft';
+
+    const statusEl = document.getElementById('ast-status');
+    if (statusEl) {
+      statusEl.value = 'Draft';
+      statusEl.disabled = true;
+      statusEl.title = 'تغيير حالة النشر يتم من زر النشر المخصص.';
+    }
+    const trapsEl = document.getElementById('ast-has-traps');
+    const simEl = document.getElementById('ast-has-simulator');
+    if (trapsEl) trapsEl.disabled = false;
+    if (simEl) simEl.disabled = false;
+
+    const title = document.getElementById('assessment-modal-title');
+    if (title) title.innerText = 'إنشاء تقييم استشاري جديد';
+    const tabs = document.getElementById('modal-tab-content');
+    if (tabs) tabs.innerHTML = '<p style="color:#0f766e;padding:15px;background:#f0fdf4;border-radius:8px;text-align:center;font-size:0.85rem;font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً لتتمكن من تخصيص هيكله السحابي علائقياً.</p>';
+    document.getElementById('assessment-modal').classList.remove('hidden');
   };
 
   AssessmentManager.prototype.saveAssessment = async function () {
