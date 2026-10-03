@@ -67,8 +67,10 @@ async function main() {
   record("public access issuance", true, { assessment_type_id: assessmentTypeId });
 
   const suffix = crypto.randomBytes(8).toString("hex");
+  const attemptKey = `p4-e2e-${ASSESSMENT_SLUG}-${suffix}`;
   const startResponse = await call("start_session", {
     token,
+    attempt_key: attemptKey,
     lead: {
       full_name: `P3 Gate 3 E2E ${ASSESSMENT_SLUG} ${suffix}`,
       email: `p3-gate3-${ASSESSMENT_SLUG}-${suffix}@example.invalid`,
@@ -82,6 +84,29 @@ async function main() {
   const sessionId = startResponse.body?.data?.session_id;
   assert(typeof sessionId === "string" && sessionId.length > 10, "No session id");
   record("start_session", true, { session_id: sessionId });
+
+  const secondAccessResponse = await call("issue_public_access", {
+    assessment_key: ASSESSMENT_SLUG,
+  });
+  assert(secondAccessResponse.status === 200 && secondAccessResponse.body?.success === true, "Second public access issuance failed");
+  const secondToken = secondAccessResponse.body?.data?.token;
+  assert(typeof secondToken === "string" && secondToken.length >= 20, "Invalid second access token");
+
+  const resumeResponse = await call("start_session", {
+    token: secondToken,
+    attempt_key: attemptKey,
+    lead: {
+      full_name: `P4 Resume Probe ${ASSESSMENT_SLUG} ${suffix}`,
+      email: `p4-resume-${ASSESSMENT_SLUG}-${suffix}@example.invalid`,
+      source: "p4-resume-e2e",
+    },
+  });
+  assert(
+    resumeResponse.status === 200 && resumeResponse.body?.success === true,
+    `multi-tab resume failed: HTTP ${resumeResponse.status} ${JSON.stringify(resumeResponse.body)}`,
+  );
+  assert(resumeResponse.body?.data?.session_id === sessionId, "Second tab did not resolve to the same active session");
+  record("multi-tab active-attempt resume", true, { same_session_id: true });
 
   for (let i = 0; i < assessment.questions.length; i += 1) {
     const question = assessment.questions[i];
@@ -100,13 +125,22 @@ async function main() {
   }
   record("all required answers saved", true, { answered_questions: assessment.questions.length });
 
-  const completion = await call("complete", { token });
+  const [completionA, completionB] = await Promise.all([
+    call("complete", { token }),
+    call("complete", { token: secondToken }),
+  ]);
+
+  const completedResponses = [completionA, completionB];
   assert(
-    completion.status === 200 && completion.body?.success === true,
-    `complete failed: HTTP ${completion.status} ${JSON.stringify(completion.body)}`,
+    completedResponses.every((item) => item.status === 200 && item.body?.success === true),
+    `concurrent complete failed: ${completedResponses.map((item) => `HTTP ${item.status} ${JSON.stringify(item.body)}`).join(" | ")}`,
   );
-  const data = completion.body.data;
-  assert(data?.already_completed === false, "First completion was not marked fresh");
+
+  const fresh = completedResponses.find((item) => item.body?.data?.already_completed === false);
+  const replay = completedResponses.find((item) => item.body?.data?.already_completed === true);
+  assert(fresh && replay, "Concurrent completion did not collapse to exactly one fresh result");
+  const data = fresh.body.data;
+  assert(data?.already_completed === false, "Fresh completion was not marked fresh");
   assert(data?.structuredResult?.schemaVersion === "P3_STRUCTURED_RESULT_V1", "Missing Structured Result");
   assert(data?.structuredResult?.status === "PRODUCTION", "Structured Result is not production");
   assert(data?.structuredResult?.provenance?.engineIdentity === "P3_INTEGRATED_SCORER_V1", "Wrong P3 engine identity");
@@ -135,6 +169,21 @@ async function main() {
   record("idempotent completion retry", true, {
     same_result_id: true,
   });
+
+  const completedSession = await call("get_session", { token });
+  assert(completedSession.status === 200 && completedSession.body?.success === true, "Completed session reload failed");
+  assert(completedSession.body?.data?.session?.status === "completed", "Completed session state not returned");
+  assert(completedSession.body?.data?.result?.result?.schemaVersion === "P3_STRUCTURED_RESULT_V1", "Completed stored result was not returned");
+  record("completed result survives session reopen", true, { result_returned: true });
+
+  const lateAnswer = await call("save_answer", {
+    token,
+    question_id: assessment.questions[0].id,
+    option_index: Number(assessment.questions[0].options[0].index),
+    current_question: 1,
+  });
+  assert(lateAnswer.status === 409, `late answer was accepted with HTTP ${lateAnswer.status}`);
+  record("completed session rejects late answer", true, { http_status: lateAnswer.status });
 
   const bad = await call("get_session", { token: "invalid-p3-gate3-token" });
   assert(bad.status === 401, `Invalid token returned HTTP ${bad.status}`);
