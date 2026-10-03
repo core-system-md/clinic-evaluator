@@ -147,3 +147,14 @@ Until approval is recorded:
 - no historical data rewrite.
 
 **P4 investigation is complete and owner approval is recorded. Implementation and verification are now proceeding under the approved design; no historical data rewrite is in scope.**
+
+
+## 10. P4 implementation evidence — 2026-10-03
+
+The approved implementation is deployed to production as `assessment-access` v18 and has passed the live P4 external E2E matrix across all five published assessment families.
+
+The live matrix proved one active attempt under concurrent starts, multi-tab resume, incremental answer persistence, final completeness enforcement, frozen-answer finalization, idempotent completion/retry, immutable completed-session behavior, and recovery of the stored Structured Result.
+
+Protected usage is transactionally protected in the P4 finalizer by session locking plus assessment-user locking, and the second completion request returns the stored result before usage increment. Runtime execution of this protected fixture was intentionally not forced because the available production SQL safety boundary blocked creation of a synthetic security-sensitive user. Therefore this specific acceptance item remains **UNVERIFIED**.
+
+No historical session/result/answer rewrite was performed. Synthetic E2E records were cleaned and the live data counts returned to the pre-P4 baseline.
