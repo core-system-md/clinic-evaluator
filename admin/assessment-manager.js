@@ -552,14 +552,24 @@ class AssessmentManager {
             if (!ast) return this.showToast("التقييم المطلوب غير موجود.", true);
 
             if ((ast.status || '').toLowerCase() === 'published') {
-                const result = await this.supabase.request('rpc/create_assessment_version_secure', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_source_version_id: ast.id })
-                });
-                const draftId = this.rpcScalar(result);
-                if (!draftId) return this.showToast("تعذر إنشاء مسودة جديدة من الإصدار المنشور.", true);
-                ast = (await this.supabase.select('assessment_types') || []).find(a => a.id === draftId);
-                if (!ast) return this.showToast("تم إنشاء المسودة ولكن تعذر تحميلها.", true);
+                // Reuse the existing working copy for this assessment family when one already exists.
+                // This prevents every click on "Edit" from creating another draft.
+                const existingDraft = (allAssessments || [])
+                    .filter(a => a.family_id === ast.family_id && (a.status || '').toLowerCase() === 'draft' && a.is_active !== false)
+                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
+
+                if (existingDraft) {
+                    ast = existingDraft;
+                } else {
+                    const result = await this.supabase.request('rpc/create_assessment_version_secure', {
+                        method: 'POST',
+                        body: JSON.stringify({ p_source_version_id: ast.id })
+                    });
+                    const draftId = this.rpcScalar(result);
+                    if (!draftId) return this.showToast("تعذر إنشاء مسودة جديدة من الإصدار المنشور.", true);
+                    ast = (await this.supabase.select('assessment_types') || []).find(a => a.id === draftId);
+                    if (!ast) return this.showToast("تم إنشاء المسودة ولكن تعذر تحميلها.", true);
+                }
             } else if ((ast.status || '').toLowerCase() === 'archived') {
                 return this.showToast("الإصدار المؤرشف غير قابل للتعديل.", true);
             }
@@ -584,8 +594,16 @@ class AssessmentManager {
             
             const currentAxes = allAxes.filter(x => x.assessment_type_id === ast.id);
             const currentQuestions = allQuestions.filter(q => q.assessment_type_id === ast.id);
-            const allOptions = await this.supabase.select('options') || [];
-            this.currentOptions = allOptions.filter(o => currentQuestions.some(q => q.id === o.question_id));
+            // Load only options belonging to the current working copy.
+            // The project contains many historical versions, so a plain "select all options"
+            // can hit Supabase's row cap and omit the current version's options.
+            const questionIds = currentQuestions.map(q => q.id);
+            if (questionIds.length) {
+                const endpoint = 'options?select=*&question_id=in.(' + questionIds.join(',') + ')';
+                this.currentOptions = await this.supabase.request(endpoint, { method: 'GET' }) || [];
+            } else {
+                this.currentOptions = [];
+            }
 
             this.renderModalTabs(currentAxes, currentQuestions, ast.id);
 
