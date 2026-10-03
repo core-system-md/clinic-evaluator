@@ -744,7 +744,49 @@ Deno.serve(async (req) => {
       }
 
       if (preparation.data?.already_completed) {
-        return json({ success: true, data: await loadStoredCompletedResult() });
+        const { data: storedResult, error: storedResultError } = await supabase
+          .from("assessment_results")
+          .select("result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at")
+          .eq("session_id", session.id)
+          .maybeSingle();
+        if (storedResultError) throw storedResultError;
+
+        const structured = storedResult?.result || null;
+        return json({
+          success: true,
+          data: {
+            overallScore: Number.isFinite(structured?.scores?.overallScore)
+              ? Number(structured.scores.overallScore)
+              : null,
+            classification: structured?.classification?.bandCode ?? null,
+            axisScores: Object.fromEntries(
+              (structured?.scores?.axes || [])
+                .filter((axis: any) => Number.isFinite(axis?.score))
+                .map((axis: any) => [String(axis.axisCode), Number(axis.score)]),
+            ),
+            kpis: Object.fromEntries(
+              (structured?.kpis || [])
+                .filter((kpi: any) => kpi?.status !== "unavailable" && Number.isFinite(kpi?.value))
+                .map((kpi: any) => [String(kpi.kpiCode), Number(kpi.value)]),
+            ),
+            evSimulator: null,
+            traps: [],
+            structuredResult: structured,
+            provenance: storedResult
+              ? {
+                  assessmentVersion: storedResult.assessment_version,
+                  interpretationVersion: storedResult.interpretation_version,
+                  scoringEngineVersion: storedResult.scoring_engine_version,
+                  scoringContractVersion: storedResult.scoring_contract_version,
+                  assessmentConfigDigest: storedResult.assessment_config_digest,
+                  calculatedAt: storedResult.calculated_at,
+                }
+              : null,
+            already_completed: true,
+            session_id: session.id,
+            assessment_version: session.assessment_version,
+          },
+        });
       }
 
       const answerSnapshot = Array.isArray(preparation.data?.submission_snapshot)
