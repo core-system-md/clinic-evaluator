@@ -147,6 +147,18 @@ Investigate and then design, subject to approval:
 - duplicate-submission rules;
 - server-side calculation boundaries.
 
+## P4 — Submission / persistence — CLOSED
+
+**Status:** CLOSED / IMPLEMENTED / RUNTIME VERIFIED (2026-10-03)
+
+Canonical records:
+- `documentation/architecture/P4-CLOSURE-2026-10-03.md`
+- `documentation/architecture/P4-OWNER-APPROVAL-2026-10-03.md`
+- `documentation/architecture/P4-IMPLEMENTATION-DESIGN-2026-10-03.md`
+- `documentation/architecture/P4-IMPLEMENTATION-VERIFICATION-2026-10-03.md`
+
+P4 implementation and required runtime verification are complete. Protected usage idempotency/concurrency was verified against the exact P4 SQL on a disposable PostgreSQL CI database; production protected entitlement data was not modified.
+
 ## P5 — Admin architecture
 
 Investigate and then design, subject to approval:
