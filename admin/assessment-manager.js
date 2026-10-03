@@ -1168,12 +1168,19 @@ class AssessmentManager {
 
             // النتيجة الرسمية تأتي من assessment_results عند توفرها.
             // البيانات القديمة تبقى معروضة كتاريخية، دون إعادة احتساب KPI في المتصفح.
-            const [sessions, legacyScores, answers, axesForAssessment] = await Promise.all([
-                this.supabase.select('sessions', { filter: { lead_id: leadId } }),
+            const [sessionsPayload, legacyScores, answers, axesForAssessment] = await Promise.all([
+                this.supabase.request('rpc/get_admin_report_sessions_secure', {
+                    method: 'POST',
+                    body: JSON.stringify({ p_lead_id: leadId })
+                }),
                 this.supabase.select('scores', { filter: { lead_id: leadId } }),
                 this.supabase.select('answers', { filter: { lead_id: leadId } }),
                 this.supabase.select('axes', { filter: { assessment_type_id: lead.assessment_type_id } })
             ]);
+
+            // الجلسات محمية من القراءة المباشرة؛ تقرير الإدارة يحصل على أقل مجموعة
+            // بيانات لازمة عبر مسار الخادم المخصص للتقارير.
+            const sessions = Array.isArray(sessionsPayload) ? sessionsPayload : (sessionsPayload?.result || []);
 
             const completedSession = (sessions || [])
                 .slice()
