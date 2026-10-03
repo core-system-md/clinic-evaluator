@@ -822,10 +822,10 @@ class AssessmentManager {
             });
         };
 
-        bind('stat-leads', () => this.focusResults({ status: '', sort: 'newest' }));
-        bind('stat-completed', () => this.focusResults({ status: 'completed', sort: 'newest' }));
-        bind('stat-avg', () => this.focusResults({ status: 'completed', sort: 'score-high' }));
-        bind('stat-clinics', () => this.showClinicSummary());
+        bind('stat-card-leads', () => this.focusResults({ status: '', sort: 'newest' }));
+        bind('stat-card-completed', () => this.focusResults({ status: 'completed', sort: 'newest' }));
+        bind('stat-card-average', () => this.focusResults({ status: 'completed', sort: 'score-high' }));
+        bind('stat-card-clinics', () => this.showClinicSummary());
     }
 
     assistantCapabilities() {
