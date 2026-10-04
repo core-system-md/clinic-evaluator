@@ -459,94 +459,65 @@
     }
   };
 
-  AssessmentManager.prototype.addAxisInline = async function (assessmentId) {
-    const titleAr = prompt('أدخل اسم المحور الجديد (بالعربية):');
+    AssessmentManager.prototype.addAxisInline = async function (assessmentId) {
+    const inlineTitle=document.getElementById('new-axis-title')?.value.trim();
+    const inlineWeight=document.getElementById('new-axis-weight')?.value;
+    const titleAr=inlineTitle || prompt('أدخل اسم المحور الجديد (بالعربية):');
     if (!titleAr) return;
-    const weightRaw = prompt('أدخل وزن المحور (رقم غير سالب، مثال 10 أو 20):','10');
+    const weightRaw=inlineWeight !== undefined && inlineWeight !== '' ? inlineWeight : prompt('أدخل وزن المحور (رقم غير سالب، مثال 10 أو 20):','10');
     if (weightRaw === null) return;
-    const weight = parseFloat(weightRaw);
+    const weight=parseFloat(weightRaw);
     if (!Number.isFinite(weight) || weight < 0) return this.showToast('وزن المحور غير صالح.',true);
-
     try {
-      const axes = await this.supabase.select('axes',{filter:{assessment_type_id:assessmentId}}) || [];
-      const displayOrder = axes.reduce((m,a)=>Math.max(m,Number(a.display_order)||0),0)+1;
-      await this.supabase.request('rpc/save_axis_secure',{
-        method:'POST',
-        body:JSON.stringify({
-          p_assessment_type_id:assessmentId,
-          p_title:titleAr.trim(),
-          p_title_ar:titleAr.trim(),
-          p_code:'AX' + Math.random().toString(36).substr(2,6).toUpperCase(),
-          p_weight:weight,
-          p_display_order:displayOrder
-        })
-      });
+      const axes=await this.supabase.select('axes',{filter:{assessment_type_id:assessmentId}}) || [];
+      const displayOrder=axes.reduce((m,a)=>Math.max(m,Number(a.display_order)||0),0)+1;
+      await this.supabase.request('rpc/save_axis_secure',{method:'POST',body:JSON.stringify({
+        p_assessment_type_id:assessmentId,p_title:titleAr.trim(),p_title_ar:titleAr.trim(),
+        p_code:'AX'+Math.random().toString(36).substr(2,6).toUpperCase(),p_weight:weight,p_display_order:displayOrder
+      })});
       await this.editAssessment(assessmentId);
       this.showToast('تمت إضافة المحور وحفظ وزنه.');
-    } catch(err) {
-      this.showToast('فشل إضافة المحور: ' + err.message,true);
-    }
+    } catch(err) { this.showToast('فشل إضافة المحور: ' + err.message,true); }
   };
-
-  AssessmentManager.prototype.addQuestionInline = async function (assessmentId, axisId) {
-    const qTextAr = prompt('أدخل نص السؤال الجديد (بالعربية):');
+    AssessmentManager.prototype.addQuestionInline = async function (assessmentId, axisId) {
+    const inlineText=document.getElementById('new-question-text')?.value.trim();
+    const qTextAr=inlineText || prompt('أدخل نص السؤال الجديد (بالعربية):');
     if (!qTextAr) return;
     try {
-      const questions = await this.supabase.select('questions',{filter:{axis_id:axisId}}) || [];
-      const displayOrder = questions.reduce((m,q)=>Math.max(m,Number(q.display_order)||0),0)+1;
-      await this.supabase.request('rpc/save_question_secure',{
-        method:'POST',
-        body:JSON.stringify({
-          p_assessment_type_id:assessmentId,
-          p_axis_id:axisId,
-          p_question_text:qTextAr.trim(),
-          p_question_text_ar:qTextAr.trim(),
-          p_code:'Q' + Math.random().toString(36).substr(2,6).toUpperCase(),
-          p_question_type:'select',
-          p_display_order:displayOrder,
-          p_is_required:true,
-          p_trap_index:null
-        })
-      });
+      const questions=await this.supabase.select('questions',{filter:{axis_id:axisId}}) || [];
+      const displayOrder=questions.reduce((m,q)=>Math.max(m,Number(q.display_order)||0),0)+1;
+      await this.supabase.request('rpc/save_question_secure',{method:'POST',body:JSON.stringify({
+        p_assessment_type_id:assessmentId,p_axis_id:axisId,p_question_text:qTextAr.trim(),
+        p_question_text_ar:qTextAr.trim(),p_code:'Q'+Math.random().toString(36).substr(2,6).toUpperCase(),
+        p_question_type:'select',p_display_order:displayOrder,p_is_required:true,p_trap_index:null
+      })});
       await this.editAssessment(assessmentId);
       this.showToast('تمت إضافة السؤال وحفظه.');
-    } catch(err) {
-      this.showToast('فشل إضافة السؤال: ' + err.message,true);
-    }
+    } catch(err) { this.showToast('فشل إضافة السؤال: ' + err.message,true); }
   };
-
-  AssessmentManager.prototype.addOption = async function (questionId, assessmentId) {
+    AssessmentManager.prototype.addOption = async function (questionId, assessmentId) {
     try {
-      const allOptions = await this.supabase.select('options') || [];
-      const qOptions = allOptions.filter(o=>o.question_id===questionId);
-      if (qOptions.length >= 5) return this.showToast('الحد الأقصى 5 خيارات لكل سؤال.',true);
-      const scoreRaw = prompt('أدخل القيمة الرياضية للخيار الجديد (0 إلى 100):','0');
-      if (scoreRaw === null) return;
-      const score = parseFloat(scoreRaw);
-      if (!Number.isFinite(score) || score < 0 || score > 100) return this.showToast('قيمة الخيار غير صالحة.',true);
-      const maxOrder = qOptions.reduce((m,o)=>Math.max(m,Number(o.display_order)||0),0);
-      const maxIndex = qOptions.reduce((m,o)=>Math.max(m,Number(o.option_index)||-1),-1);
-      const label = prompt('أدخل نص الخيار الجديد:','خيار جديد');
-      if (label === null || !label.trim()) return;
-      await this.supabase.request('rpc/add_option_secure',{
-        method:'POST',
-        body:JSON.stringify({
-          p_question_id:questionId,
-          p_label_ar:label.trim(),
-          p_label:label.trim(),
-          p_option_value:score,
-          p_option_index:maxIndex+1,
-          p_display_order:maxOrder+1,
-          p_is_trap:false
-        })
-      });
+      const allOptions=await this.supabase.select('options') || [];
+      const qOptions=allOptions.filter(o=>o.question_id===questionId);
+      if(qOptions.length>=5) return this.showToast('الحد الأقصى 5 خيارات لكل سؤال.',true);
+      const inlineScore=document.getElementById('new-option-score')?.value;
+      const scoreRaw=inlineScore !== undefined && inlineScore !== '' ? inlineScore : prompt('أدخل القيمة الرياضية للخيار الجديد (0 إلى 100):','0');
+      if(scoreRaw===null) return;
+      const score=parseFloat(scoreRaw);
+      if(!Number.isFinite(score)||score<0||score>100) return this.showToast('قيمة الخيار غير صالحة.',true);
+      const inlineLabel=document.getElementById('new-option-label')?.value.trim();
+      const label=inlineLabel || prompt('أدخل نص الخيار الجديد:','خيار جديد');
+      if(label===null || !String(label).trim()) return;
+      const maxOrder=qOptions.reduce((m,o)=>Math.max(m,Number(o.display_order)||0),0);
+      const maxIndex=qOptions.reduce((m,o)=>Math.max(m,Number(o.option_index)||-1),-1);
+      await this.supabase.request('rpc/add_option_secure',{method:'POST',body:JSON.stringify({
+        p_question_id:questionId,p_label_ar:String(label).trim(),p_label:String(label).trim(),
+        p_option_value:score,p_option_index:maxIndex+1,p_display_order:maxOrder+1,p_is_trap:false
+      })});
       await this.editAssessment(assessmentId);
       this.showToast('تمت إضافة الخيار وحفظ قيمته.');
-    } catch(err) {
-      this.showToast('فشل إضافة الخيار: ' + err.message,true);
-    }
+    } catch(err) { this.showToast('فشل إضافة الخيار: ' + err.message,true); }
   };
-
   AssessmentManager.prototype.deleteDraftQuestion = async function (questionId, assessmentId) {
     if (!confirm('حذف هذا السؤال من المسودة؟ سيتم حذف خياراته المرتبطة به أيضاً.')) return;
     try {
@@ -606,58 +577,42 @@
     }
   };
 
-  AssessmentManager.prototype.addKpiMapping = function (assessmentId) {
-    const raw = prompt('أدخل كود KPI الجديد، مثال TFI:');
-    if (!raw) return;
-    const code = raw.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');
-    if (!code) return this.showToast('كود KPI غير صالح.',true);
-    if (document.getElementById('calc-kpi-' + code)) return this.showToast('كود KPI موجود بالفعل.',true);
-    const list = document.getElementById('calc-kpi-list');
-    if (!list) return;
-    const box = document.createElement('div');
-    box.className = 'calc-kpi-box';
-    box.id = 'calc-kpi-box-' + code;
-    box.style.cssText = 'background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;';
-    box.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:center;gap:5px;"><strong style="font-size:.7rem;">' + safe(this,code) + '</strong>' +
-      '<button type="button" onclick="window.assessmentManager.removeKpiMapping(\'' + safe(this,code) + '\',\'' + assessmentId + '\')" style="font-size:.62rem;color:#b91c1c;background:#fff;border:1px solid #fecaca;border-radius:4px;">حذف</button></div>' +
-      '<textarea id="calc-kpi-' + safe(this,code) + '" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">{&quot;ROLE&quot;:1}</textarea>';
-    list.appendChild(box);
-    this.showToast('أضيفت خريطة KPI للمحرر. اضغط حفظ الإعدادات الحسابية.');
+    AssessmentManager.prototype.addKpiMapping = function (assessmentId) {
+    const raw=document.getElementById('new-kpi-code')?.value.trim() || prompt('أدخل كود KPI الجديد، مثال TFI:');
+    if(!raw) return;
+    const code=raw.toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+    if(!code) return this.showToast('كود KPI غير صالح.',true);
+    if(document.getElementById('calc-kpi-'+code)) return this.showToast('كود KPI موجود بالفعل.',true);
+    const list=document.getElementById('calc-kpi-list'); if(!list) return;
+    const box=document.createElement('div'); box.className='calc-kpi-box'; box.id='calc-kpi-box-'+code;
+    box.innerHTML='<div class="mapping-head"><strong>'+safe(this,code)+'</strong><button type="button" class="btn-danger btn-compact" onclick="window.assessmentManager.removeKpiMapping(\''+safe(this,code)+'\')">حذف</button></div><textarea id="calc-kpi-'+safe(this,code)+'" rows="6">{&quot;ROLE&quot;:1}</textarea>';
+    list.insertBefore(box,list.querySelector('.compact-create') || null);
+    this._markWorkspaceDirty?.(true);
   };
-
-  AssessmentManager.prototype.addEvMapping = function (assessmentId) {
-    const raw = prompt('أدخل كود خريطة EV الجديدة:');
-    if (!raw) return;
-    const code = raw.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');
-    if (!code) return this.showToast('كود EV غير صالح.',true);
-    if (document.getElementById('calc-ev-' + code)) return this.showToast('كود EV موجود بالفعل.',true);
-    const list = document.getElementById('calc-ev-list');
-    if (!list) return;
-    const box = document.createElement('div');
-    box.className = 'calc-ev-box';
-    box.id = 'calc-ev-box-' + code;
-    box.style.cssText = 'background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;';
-    box.innerHTML =
-      '<div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:.7rem;">' + safe(this,code) + '</strong>' +
-      '<button type="button" onclick="window.assessmentManager.removeEvMapping(\'' + safe(this,code) + '\',\'' + assessmentId + '\')" style="font-size:.62rem;color:#b91c1c;background:#fff;border:1px solid #fecaca;border-radius:4px;">حذف</button></div>' +
-      '<textarea id="calc-ev-' + safe(this,code) + '" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">{&quot;ROLE&quot;:1}</textarea>';
-    list.appendChild(box);
-    this.showToast('أضيفت خريطة EV للمحرر. اضغط حفظ الإعدادات الحسابية.');
+    AssessmentManager.prototype.addEvMapping = function (assessmentId) {
+    const raw=document.getElementById('new-ev-code')?.value.trim() || prompt('أدخل كود خريطة EV الجديدة:');
+    if(!raw) return;
+    const code=raw.toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+    if(!code) return this.showToast('كود EV غير صالح.',true);
+    if(document.getElementById('calc-ev-'+code)) return this.showToast('كود EV موجود بالفعل.',true);
+    const list=document.getElementById('calc-ev-list'); if(!list) return;
+    const box=document.createElement('div'); box.className='calc-ev-box'; box.id='calc-ev-box-'+code;
+    box.innerHTML='<div class="mapping-head"><strong>'+safe(this,code)+'</strong><button type="button" class="btn-danger btn-compact" onclick="window.assessmentManager.removeEvMapping(\''+safe(this,code)+'\')">حذف</button></div><textarea id="calc-ev-'+safe(this,code)+'" rows="6">{&quot;ROLE&quot;:1}</textarea>';
+    list.insertBefore(box,list.querySelector('.compact-create') || null);
+    this._markWorkspaceDirty?.(true);
   };
-
-  AssessmentManager.prototype.removeKpiMapping = function (code) {
-    if (!confirm('حذف خريطة KPI ' + code + ' من المسودة؟')) return;
-    document.getElementById('calc-kpi-box-' + code)?.remove();
+    AssessmentManager.prototype.removeKpiMapping = function (code) {
+    if (!confirm('حذف خريطة KPI '+code+' من المسودة؟')) return;
+    document.getElementById('calc-kpi-box-'+code)?.remove();
+    this._markWorkspaceDirty?.(true);
     this.showToast('أزيلت من المحرر. اضغط حفظ الإعدادات الحسابية لتثبيت الحذف.');
   };
-
-  AssessmentManager.prototype.removeEvMapping = function (code) {
-    if (!confirm('حذف خريطة EV ' + code + ' من المسودة؟')) return;
-    document.getElementById('calc-ev-box-' + code)?.remove();
+    AssessmentManager.prototype.removeEvMapping = function (code) {
+    if (!confirm('حذف خريطة EV '+code+' من المسودة؟')) return;
+    document.getElementById('calc-ev-box-'+code)?.remove();
+    this._markWorkspaceDirty?.(true);
     this.showToast('أزيلت من المحرر. اضغط حفظ الإعدادات الحسابية لتثبيت الحذف.');
   };
-
   AssessmentManager.prototype.deleteOption = async function (optionId, assessmentId) {
     if (!confirm('هل أنت متأكد من حذف هذا الخيار من المسودة؟')) return;
     try {
