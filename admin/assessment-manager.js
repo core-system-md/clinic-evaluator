@@ -1266,7 +1266,11 @@ class AssessmentManager {
 
         try {
             const lead = this.allLeads.find(l => l.id === leadId);
-            if (!lead) return;
+            if (!lead) {
+                modalBody.innerHTML = '<p style="color:#b91c1c; padding:16px; text-align:center;">تعذر العثور على السجل المطلوب. أُغلقت نافذة القراءة لأن عملية التحميل انتهت دون بيانات.</p>';
+                window.setTimeout(() => modal.classList.add('hidden'), 1400);
+                return;
+            }
 
             // النتيجة الرسمية تأتي من assessment_results عند توفرها.
             // البيانات القديمة تبقى معروضة كتاريخية، دون إعادة احتساب KPI في المتصفح.
@@ -1452,6 +1456,7 @@ class AssessmentManager {
 
         } catch (err) {
             modalBody.innerHTML = `<p style="color:red; padding:12px; text-align:center;">❌ فشل معالجة واستخراج تقرير القراءة الاستشارية: ${err.message}</p>`;
+            window.setTimeout(() => modal.classList.add('hidden'), 2200);
         }
     }
 
