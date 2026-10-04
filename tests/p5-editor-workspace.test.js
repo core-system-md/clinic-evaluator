@@ -11,6 +11,7 @@ const publicRuntime = fs.readFileSync('supabase/functions/assessment-access/inde
 const htmlFiles = ['comprehensive-clinic-assessment.html','clinic-performance.html','medical-team-assessment.html','admin-reception-assessment.html','patient-journey.html'].map(file => fs.readFileSync(file, 'utf8'));
 const migration = fs.readFileSync('supabase/migrations/20261004140000_p5_delete_draft_cascade_fix.sql', 'utf8');
 const visibilityMigration = fs.readFileSync('supabase/migrations/20261004150000_p5_public_visibility_option_allocation.sql', 'utf8');
+const lifecycleTriggerFix = fs.readFileSync('supabase/migrations/20261004160000_p5_lifecycle_trigger_final_fix.sql', 'utf8');
 
 test('P5 editor workspace assets are wired correctly', () => {
   assert.equal((html.match(/id="assessment-modal"/g) || []).length, 1);
@@ -126,6 +127,14 @@ test('public visibility and archive are separate lifecycle operations', () => {
   assert.ok(manager.includes('archiveAssessment'));
 });
 
+
+test('P2 immutability trigger permits only approved lifecycle metadata changes', () => {
+  assert.ok(lifecycleTriggerFix.includes("NEW.status not in ('published','archived')"));
+  assert.ok(lifecycleTriggerFix.includes("NEW.status = 'archived' and NEW.is_active <> false"));
+  assert.ok(lifecycleTriggerFix.includes("NEW.status = 'published' and NEW.archived_at is not null"));
+  assert.ok(lifecycleTriggerFix.includes("NEW.published_at is distinct from OLD.published_at"));
+  assert.ok(lifecycleTriggerFix.includes("OLD.status = 'archived'"));
+});
 
 test('stop public is a visibility-only lifecycle operation', () => {
   assert.ok(manager.includes('stopPublicAssessment'), 'dedicated stop-public action missing');
