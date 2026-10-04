@@ -53,7 +53,7 @@ test('P5 editor has contextual persistence and error handling', () => {
 });
 
 test('draft deletion is single-entry, server-authoritative and migration fixes cascade-trigger failure', () => {
-  assert.equal((manager.match(/حذف المسودة نهائياً/g) || []).length, 1);
+  assert.equal((manager.match(/🗑️ حذف المسودة<\/button>/g) || []).length, 1);
   assert.ok(lifecycle.includes("delete_assessment_draft_secure"));
   assert.ok(lifecycle.includes("result.success !== true"));
   for (const token of [
