@@ -6,6 +6,8 @@ const html = fs.readFileSync('admin/admin.html', 'utf8');
 const js = fs.readFileSync('admin/assessment-editor-workspace.js', 'utf8');
 const manager = fs.readFileSync('admin/assessment-manager.js', 'utf8');
 const lifecycle = fs.readFileSync('admin/assessment-lifecycle.js', 'utf8');
+const app = fs.readFileSync('assets/js/app.js', 'utf8');
+const htmlFiles = ['comprehensive-clinic-assessment.html','clinic-performance.html','medical-team-assessment.html','admin-reception-assessment.html','patient-journey.html'].map(file => fs.readFileSync(file, 'utf8'));
 const migration = fs.readFileSync('supabase/migrations/20261004140000_p5_delete_draft_cascade_fix.sql', 'utf8');
 const visibilityMigration = fs.readFileSync('supabase/migrations/20261004150000_p5_public_visibility_option_allocation.sql', 'utf8');
 
@@ -16,9 +18,9 @@ test('P5 editor workspace assets are wired correctly', () => {
   assert.ok(html.includes('#dashboard-content.editor-mode'));
   assert.ok(html.includes('id="workspace-breadcrumb"'));
   assert.ok(html.includes('id="workspace-delete-draft"'));
-  assert.ok(html.includes('assessment-manager.js?v=20261004-3'));
-  assert.ok(html.includes('assessment-lifecycle.js?v=20261004-4'));
-  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-3'));
+  assert.ok(html.includes('assessment-manager.js?v=20261004-4'));
+  assert.ok(html.includes('assessment-lifecycle.js?v=20261004-5'));
+  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-4'));
 });
 
 test('P5 editor workspace JavaScript parses', () => {
