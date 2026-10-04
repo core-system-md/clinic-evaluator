@@ -123,13 +123,15 @@
       this._workspaceState.questionId = axisQuestions.some(q => q.id === rememberedQuestion) ? rememberedQuestion : axisQuestions[0]?.id || null;
       this._workspaceState.mode = this._workspaceData.status;
       this._workspaceState.dirty = false;
-      this._setWorkspaceStatus('saved','فتح المحرر',this._workspaceData.ast.title_ar || this._workspaceData.ast.slug,'تم تحميل أحدث نسخة من الخادم.');
-      this._renderWorkspaceView();
-      document.getElementById('assessment-modal')?.classList.remove('hidden');
+      this._workspaceState.lastSaved = this._formatWorkspaceDate(this._workspaceData.ast.updated_at) || this._workspaceState.lastSaved;
+      this._setWorkspaceStatus('saved','فتح المحرر',this._workspaceData.ast.title_ar || this._workspaceData.ast.slug,'تم تحميل أحدث نسخة من الخادم.','يمكنك اختيار أي قسم والتحرير ضمن هذه النسخة.');
       document.getElementById('dashboard-content')?.classList.add('editor-mode');
+      document.getElementById('assessment-modal')?.classList.remove('hidden');
+      this._renderWorkspaceView();
       window.scrollTo({top:0,behavior:'smooth'});
     } catch (err) {
-      this.showToast('تعذر فتح المحرر: ' + err.message, true);
+      this._setWorkspaceStatus?.('error','فتح المحرر','التقييم',this._workspaceErrorText(err),'حدّث لوحة الإدارة ثم أعد المحاولة.');
+      this.showToast('تعذر فتح المحرر: ' + this._workspaceErrorText(err), true);
     }
   };
 
@@ -147,30 +149,38 @@
   AssessmentManager.prototype._renderWorkspaceView = function(isNew) {
     const d = this._workspaceData;
     if (!d) return;
-    const form = document.getElementById('assessment-form');
-    if (!form) return;
-    document.getElementById('ast-id').value = d.ast.id || '';
-    document.getElementById('ast-title-ar').value = d.ast.title_ar || '';
-    document.getElementById('ast-title-en').value = d.ast.title_en || '';
-    document.getElementById('ast-description').value = d.ast.description || '';
-    document.getElementById('ast-status').value = d.status === 'published' ? 'Published' : 'Draft';
-    document.getElementById('ast-status').disabled = true;
-    document.getElementById('ast-has-traps').checked = !!d.ast.has_traps;
-    document.getElementById('ast-has-simulator').checked = !!d.ast.has_ev_simulator;
-    document.getElementById('ast-has-traps').disabled = d.status === 'published';
-    document.getElementById('ast-has-simulator').disabled = d.status === 'published';
-    const title = document.getElementById('assessment-modal-title');
-    if (title) title.textContent = isNew ? 'إنشاء تقييم استشاري جديد' : (d.status === 'published' ? 'تحرير محتوى منشور' : 'تحرير مسودة عمل');
+    const statusText = d.status === 'published' ? 'منشور' : 'مسودة';
+    const title = d.ast.title_ar || 'تقييم جديد';
     const familyLabel = d.family?.slug || d.ast.family_id || '—';
-    document.getElementById('workspace-assessment-name').textContent = d.ast.title_ar || 'تقييم جديد';
+    const axis = d.axes.find(a => a.id === this._workspaceState.axisId);
+    const question = d.questions.find(q => q.id === this._workspaceState.questionId);
+    const trail = [title, axis?.title_ar || axis?.title || axis?.code, question?.question_text_ar || question?.question_text || question?.code]
+      .filter(Boolean).join(' → ');
+
+    document.getElementById('assessment-modal-title').textContent =
+      isNew ? 'إنشاء تقييم استشاري جديد' :
+      (d.status === 'published' ? 'تحرير محتوى منشور' : 'تحرير مسودة عمل');
+
+    document.getElementById('workspace-assessment-name').textContent = title;
     document.getElementById('workspace-family').textContent = familyLabel;
-    document.getElementById('workspace-status').textContent = d.status === 'published' ? 'منشور' : 'مسودة';
+    document.getElementById('workspace-status').textContent = statusText;
     document.getElementById('workspace-version').textContent = d.ast.slug || 'سيُحدد بعد الحفظ';
-    document.getElementById('workspace-counts').textContent = d.axes.length + ' محاور · ' + d.questions.length + ' سؤالاً · ' + d.options.length + ' خيارات';
+    document.getElementById('workspace-counts').textContent =
+      d.axes.length + ' محاور · ' + d.questions.length + ' أسئلة · ' + d.options.length + ' خيارات';
+
+    const breadcrumb = document.getElementById('workspace-breadcrumb');
+    if (breadcrumb) breadcrumb.textContent = trail || 'Assessment → Overview';
+
     const lastSaved = document.getElementById('workspace-last-saved');
-    if (lastSaved) lastSaved.textContent = this._workspaceState.lastSaved ? 'آخر حفظ: ' + this._workspaceState.lastSaved : 'آخر حفظ: —';
+    if (lastSaved) lastSaved.textContent =
+      this._workspaceState.lastSaved ? 'آخر حفظ مؤكد: ' + this._workspaceState.lastSaved : 'آخر حفظ مؤكد: —';
+
+    const deleteBtn = document.getElementById('workspace-delete-draft');
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', d.status !== 'draft' || !d.ast.id);
+
     this._markWorkspaceDirty(!!this._workspaceState.dirty);
     document.querySelectorAll('.workspace-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === this._workspaceState.section));
+
     const area = document.getElementById('modal-tab-content');
     if (!area) return;
     area.innerHTML = this._renderSection(isNew);
