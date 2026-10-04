@@ -256,12 +256,12 @@
         (pub?'<span class="scope-pill scope-locked">الهيكل مقفل</span>':archived?'<span class="scope-pill scope-locked">أرشيف — قراءة فقط</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftAxis(\''+axis.id+'\',\''+d.ast.id+'\')">حذف المحور</button>') +
         '</div>' +
         '<div class="editor-form-grid">' +
-          '<label>اسم المحور<input id="axis-title-workspace" data-axis-title="'+esc(this,axis.id)+'" type="text" value="'+esc(this,axis.title_ar||axis.title||'')+'" '+(pub?'disabled':'')+'></label>' +
-          '<label>الوزن<input id="axis-weight-'+axis.id+'" type="number" min="0" max="100" step="0.01" value="'+esc(this,axis.weight??0)+'" '+(pub?'disabled':'')+'></label>' +
-          '<label>الترتيب<input id="axis-order-'+axis.id+'" type="number" min="1" value="'+esc(this,axis.display_order??1)+'" '+(pub?'disabled':'')+'></label>' +
-          '<label>دور الحساب<select id="axis-role-'+axis.id+'" '+(pub?'disabled':'')+'><option value="">— بدون دور —</option>'+ROLES.map(r=>'<option '+(this._workspaceData.ast.axis_roles?.[axis.code]===r?'selected':'')+' value="'+r+'">'+r+'</option>').join('')+'</select></label>' +
+          '<label>اسم المحور<input id="axis-title-workspace" data-axis-title="'+esc(this,axis.id)+'" type="text" value="'+esc(this,axis.title_ar||axis.title||'')+'" '+((pub||archived)?'disabled':'')+'></label>' +
+          '<label>الوزن<input id="axis-weight-'+axis.id+'" type="number" min="0" max="100" step="0.01" value="'+esc(this,axis.weight??0)+'" '+((pub||archived)?'disabled':'')+'></label>' +
+          '<label>الترتيب<input id="axis-order-'+axis.id+'" type="number" min="1" value="'+esc(this,axis.display_order??1)+'" '+((pub||archived)?'disabled':'')+'></label>' +
+          '<label>دور الحساب<select id="axis-role-'+axis.id+'" '+((pub||archived)?'disabled':'')+'><option value="">— بدون دور —</option>'+ROLES.map(r=>'<option '+(this._workspaceData.ast.axis_roles?.[axis.code]===r?'selected':'')+' value="'+r+'">'+r+'</option>').join('')+'</select></label>' +
         '</div>' +
-        '<div class="locked-grid"><span>الكود: <b>'+esc(this,axis.code||'—')+'</b></span><span>الأسئلة: <b>'+qs.length+'</b></span><span>الحالة: <b>'+(pub?'منشور':'مسودة')+'</b></span></div>' +
+        '<div class="locked-grid"><span>الكود: <b>'+esc(this,axis.code||'—')+'</b></span><span>الأسئلة: <b>'+qs.length+'</b></span><span>الحالة: <b>'+(pub?'منشور':archived?'أرشيف':'مسودة')+'</b></span></div>' +
         '<div class="editor-actions">' +
           (pub?'<button type="button" class="btn-primary" onclick="window.assessmentManager.updatePublishedAxisContent(\''+axis.id+'\',document.getElementById(\'axis-title-workspace\').value,\''+d.ast.id+'\')">💾 حفظ نص المحور</button><button type="button" class="btn-secondary" onclick="window.assessmentManager.duplicateAssessment(\''+d.ast.id+'\')">📋 إنشاء نسخة عمل</button>' :
            archived?'<span class="editor-help-inline">هذا المحور تاريخي للقراءة فقط.</span>' :
@@ -299,20 +299,20 @@
         '<article class="option-card">' +
           '<div class="option-card-head"><span class="option-number">الخيار '+(i+1)+'</span><span class="option-code">Index '+esc(this,o.option_index??i)+'</span></div>' +
           '<div class="option-fields">' +
-            '<label>النص<input id="option-label-'+o.id+'" type="text" value="'+esc(this,o.label_ar||o.label||'')+'" '+(pub?'':'')+'></label>' +
+            '<label>النص<input id="option-label-'+o.id+'" type="text" value="'+esc(this,o.label_ar||o.label||'')+'" '+((pub||archived)?'disabled':'')+'></label>' +
             (pub?
               '<div class="readonly-stat"><span>القيمة</span><b>'+esc(this,o.option_value??0)+'</b></div><div class="readonly-stat"><span>الترتيب</span><b>'+esc(this,o.display_order??i+1)+'</b></div>' +
               '<button type="button" class="btn-secondary" onclick="window.assessmentManager.updatePublishedOptionText(\''+o.id+'\',document.getElementById(\'option-label-'+o.id+'\').value,\''+d.ast.id+'\')">💾 حفظ النص</button>' :
-              '<label>القيمة <input id="option-value-'+o.id+'" type="number" min="0" max="100" step="0.01" value="'+esc(this,o.option_value??0)+'"></label>' +
-              '<label>رقم الخيار <input id="option-index-'+o.id+'" type="number" min="0" value="'+esc(this,o.option_index??i)+'"></label>' +
-              '<label>ترتيب العرض <input id="option-order-'+o.id+'" type="number" min="1" value="'+esc(this,o.display_order??i+1)+'"></label>' +
-              '<label class="check-row"><input id="option-trap-'+o.id+'" type="checkbox" '+(o.is_trap?'checked':'')+'> Trap</label>' +
-              '<div class="option-actions"><button type="button" class="btn-secondary" onclick="window.assessmentManager.updateDraftOption(\''+o.id+'\',\''+d.ast.id+'\')">💾 حفظ الخيار</button><button type="button" class="btn-danger" onclick="window.assessmentManager.deleteOption(\''+o.id+'\',\''+d.ast.id+'\')">حذف</button></div>') +
+              '<label>القيمة <input id="option-value-'+o.id+'" type="number" min="0" max="100" step="0.01" value="'+esc(this,o.option_value??0)+'" '+(archived?'disabled':'')+'></label>' +
+              '<label>رقم الخيار <input id="option-index-'+o.id+'" type="number" min="0" value="'+esc(this,o.option_index??i)+'" '+(archived?'disabled':'')+'></label>' +
+              '<label>ترتيب العرض <input id="option-order-'+o.id+'" type="number" min="1" value="'+esc(this,o.display_order??i+1)+'" '+(archived?'disabled':'')+'></label>' +
+              '<label class="check-row"><input id="option-trap-'+o.id+'" type="checkbox" '+(o.is_trap?'checked':'')+(archived?' disabled':'')+'> Trap</label>' +
+              '<div class="option-actions">'+(archived?'':'<button type="button" class="btn-secondary" onclick="window.assessmentManager.updateDraftOption(\''+o.id+'\',\''+d.ast.id+'\')">💾 حفظ الخيار</button><button type="button" class="btn-danger" onclick="window.assessmentManager.deleteOption(\''+o.id+'\',\''+d.ast.id+'\')">حذف</button>')+'</div>') +
           '</div>' +
         '</article>'
       ).join('');
 
-      const addOption=pub?'':'<div class="inline-create inline-create-option"><div><strong>إضافة خيار</strong><small>حد أقصى 5 خيارات لكل سؤال.</small></div><div class="inline-create-fields option-create-fields"><input id="new-option-label" type="text" placeholder="نص الخيار"><input id="new-option-score" type="number" min="0" max="100" step="0.01" value="0" placeholder="القيمة"><button type="button" class="btn-primary btn-compact" '+(opts.length>=5?'disabled':'')+' onclick="window.assessmentManager.addOption(\''+q.id+'\',\''+d.ast.id+'\')">+ إضافة الخيار</button></div></div>';
+      const addOption=(pub||archived)?'':'<div class="inline-create inline-create-option"><div><strong>إضافة خيار</strong><small>حد أقصى 5 خيارات لكل سؤال.</small></div><div class="inline-create-fields option-create-fields"><input id="new-option-label" type="text" placeholder="نص الخيار"><input id="new-option-score" type="number" min="0" max="100" step="0.01" value="0" placeholder="القيمة"><button type="button" class="btn-primary btn-compact" '+(opts.length>=5?'disabled':'')+' onclick="window.assessmentManager.addOption(\''+q.id+'\',\''+d.ast.id+'\')">+ إضافة الخيار</button></div></div>';
 
       editor='<section class="editor-card editor-card-primary">' +
         '<div class="card-title-row"><div><div class="context-kicker">السؤال المحدد</div><h3>'+esc(this,q.code||'السؤال')+'</h3><p class="editor-help">هذا السؤال تابع لمحور: <b>'+esc(this,axis.title_ar||axis.code)+'</b>.</p></div>' +
