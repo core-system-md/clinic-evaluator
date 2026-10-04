@@ -332,7 +332,7 @@
     }
 
     return '<div class="axis-chip-row">'+axisButtons+'</div><div class="workspace-split"><aside class="workspace-list-pane"><div class="pane-head"><div><h3>أسئلة المحور</h3><span>'+qs.length+' سؤال</span></div>' +
-      (pub?'':'<div class="inline-create compact-create"><input id="new-question-text" type="text" placeholder="نص السؤال الجديد"><button type="button" class="btn-primary btn-compact" onclick="window.assessmentManager.addQuestionInline(\''+d.ast.id+'\',\''+axis.id+'\')">+ سؤال</button></div>') +
+      ((pub||archived)?'':'<div class="inline-create compact-create"><input id="new-question-text" type="text" placeholder="نص السؤال الجديد"><button type="button" class="btn-primary btn-compact" onclick="window.assessmentManager.addQuestionInline(\''+d.ast.id+'\',\''+axis.id+'\')">+ سؤال</button></div>') +
       qList+'</aside><main class="workspace-editor-pane">'+editor+'</main></div>';
   };
   AssessmentManager.prototype._renderCalculation = function() {
