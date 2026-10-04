@@ -49,6 +49,7 @@ class ClinicEvaluatorApp {
       this.setupEVSimulator();
       this.setupPrint();
       this.setupKeyboardShortcuts();
+      this.setupHistoryNavigation();
 
       this.assessment = this.getActiveAssessment();
       if (!this.assessment) throw new Error('Assessment content not found.');
@@ -96,6 +97,9 @@ class ClinicEvaluatorApp {
     const data = await this.assessmentAccessRequest('get_content', {
       assessment_key: this.currentAssessmentKey
     });
+    if (!Array.isArray(data.questions) || !data.questions.length || !data.id || !data.slug) {
+      throw new Error('محتوى التقييم المنشور غير مكتمل.');
+    }
     this.config = {
       version: String(data.version || 1),
       project: 'CORE System Server Runtime',
@@ -212,6 +216,24 @@ class ClinicEvaluatorApp {
     return key ? this.config.assessment_types[key] : null;
   }
 
+  setupHistoryNavigation() {
+    if (this._historyNavigationBound) return;
+    this._historyNavigationBound = true;
+
+    let fallback = '/index.html';
+    try {
+      const referrer = document.referrer ? new URL(document.referrer) : null;
+      if (referrer && referrer.origin === window.location.origin && referrer.pathname !== window.location.pathname) {
+        fallback = referrer.pathname + referrer.search + referrer.hash;
+      }
+    } catch (_) {}
+
+    window.history.pushState({ clinicEvaluatorAssessmentGuard: true }, '', window.location.href);
+    window.addEventListener('popstate', () => {
+      window.location.replace(fallback);
+    }, { once: true });
+  }
+
   /* ─────────────── UI VIEWS CONTROLLER ─────────────── */
 
   showView(id) {
@@ -283,9 +305,13 @@ class ClinicEvaluatorApp {
 
 
   async startAssessmentFlow() {
-    this.questions = this.assessment.questions || [];
+    this.questions = Array.isArray(this.assessment?.questions) ? this.assessment.questions : [];
     this.answers = {};
     this.currentQuestionIndex = 0;
+
+    if (!this.questions.length) {
+      throw new Error('تعذر تحميل أسئلة التقييم المنشور من الخادم.');
+    }
 
     if (!this.assessmentUuid) {
       this.showError('تعذر تحديد نوع التقييم.');
