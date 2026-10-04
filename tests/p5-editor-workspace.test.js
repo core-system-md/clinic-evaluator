@@ -46,14 +46,14 @@ test('P5 editor has contextual persistence and error handling', () => {
   assert.ok(js.includes('this._workspaceState.section=\'questions\''), 'axis-to-question navigation missing');
   assert.ok(js.includes('new-axis-title'), 'inline axis creation missing');
   assert.ok(js.includes('new-question-text'), 'inline question creation missing');
-  assert.ok(js.includes('new-option-label-'+"'+q.id+'"), 'question-scoped inline option creation missing');
+  assert.ok(js.includes('new-option-label-'+q.id+'"'), 'question-scoped inline option creation missing');
   assert.ok(js.includes('new-kpi-code'), 'inline KPI creation missing');
   assert.ok(js.includes('new-ev-code'), 'inline EV creation missing');
   assert.ok(js.includes('option-card'), 'responsive option editor missing');
 });
 
 test('draft deletion is single-entry, server-authoritative and migration fixes cascade-trigger failure', () => {
-  assert.equal((manager.match(/🗑️ حذف المسودة<\/button>/g) || []).length, 1);
+  assert.equal((manager.match(/🗑 حذف المسودة<\/button>/g) || []).length, 1);
   assert.ok(lifecycle.includes("delete_assessment_draft_secure"));
   assert.ok(lifecycle.includes("result.success !== true"));
   for (const token of [
@@ -93,13 +93,13 @@ test('lifecycle actions are status-specific and archive is separated from active
 test('question workspace renders every question and scopes option creation per question', () => {
   assert.ok(js.includes('d.questions.filter(q=>q.axis_id===axis.id)'), 'all questions for selected axis must be loaded');
   assert.ok(js.includes('d.options.filter(o=>o.question_id===q.id)'), 'options must be rendered per question');
-  assert.ok(js.includes('new-option-label-'+"'+q.id+'"), 'option creation input must be unique per question');
+  assert.ok(js.includes('new-option-label-'+q.id+'"'), 'option creation input must be unique per question');
   assert.ok(lifecycle.includes("select('options',{filter:{question_id:questionId}})"), 'option creation must query only the target question');
 });
 
 test('editor controller has no duplicate lifecycle prototypes', () => {
   for (const name of ['editAssessment','createNewAssessment','saveAssessment']) {
-    const matches = lifecycle.match(new RegExp('AssessmentManager\\\\.prototype\\\\.'+name+'\\\\s*=','g')) || [];
+    const matches = lifecycle.match(new RegExp('AssessmentManager\\.prototype\\.'+name+'\\s*=','g')) || [];
     assert.equal(matches.length, 0, name + ' legacy duplicate must be removed from lifecycle module');
   }
 });
