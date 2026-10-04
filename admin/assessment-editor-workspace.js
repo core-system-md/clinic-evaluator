@@ -333,19 +333,34 @@
   };
   AssessmentManager.prototype._renderCalculation = function() {
     const d=this._workspaceData, pub=d.status==='published', ast=d.ast;
-    const roleRows=d.axes.map(a=>'<label class="calc-row"><span><strong>'+esc(this,a.title_ar||a.code)+'</strong><small>'+esc(this,a.code||'')+'</small></span><select '+(pub?'disabled':'')+' id="calc-axis-role-'+a.id+'" data-axis-code="'+esc(this,a.code||'')+'"><option value="">— بدون دور —</option>'+ROLES.map(r=>'<option '+(ast.axis_roles?.[a.code]===r?'selected':'')+' value="'+r+'">'+r+'</option>').join('')+'</select></label>').join('');
-
-    const mapBoxes=(kind,obj)=>Object.keys(obj||{}).map(code=>
-      '<div class="mapping-box"><div class="mapping-head"><div><strong>'+esc(this,code)+'</strong><small>JSON mapping</small></div>'+(pub?'':'<button type="button" class="btn-danger btn-compact" onclick="window.assessmentManager.remove'+kind+'Mapping(\''+esc(this,code)+'\')">حذف</button>')+'</div>' +
-      '<textarea id="calc-'+kind.toLowerCase()+'-'+esc(this,code)+'" rows="6" '+(pub?'disabled':'')+'>'+esc(this,JSON.stringify(obj[code]||{},null,2))+'</textarea></div>'
+    const roleRows=d.axes.map(a=>
+      '<label class="calc-row"><span><strong>'+esc(this,a.title_ar||a.code)+'</strong><small>'+esc(this,a.code||'')+'</small></span>' +
+      '<select '+(pub?'disabled':'')+' id="calc-axis-role-'+a.id+'" data-axis-code="'+esc(this,a.code||'')+'"><option value="">— بدون دور —</option>'+
+      ROLES.map(r=>'<option '+(ast.axis_roles?.[a.code]===r?'selected':'')+' value="'+r+'">'+r+'</option>').join('')+
+      '</select></label>'
     ).join('');
 
+    const mapBoxes=Object.keys(ast.kpi_mappings||{}).map(code=>
+      '<div class="mapping-box"><div class="mapping-head"><div><strong>'+esc(this,code)+'</strong><small>خريطة KPI — أوزان الأدوار</small></div></div>'+
+      '<textarea id="calc-kpi-'+esc(this,code)+'" rows="7" '+(pub?'disabled':'')+'>'+esc(this,JSON.stringify(ast.kpi_mappings[code]||{},null,2))+'</textarea></div>'
+    ).join('');
+
+    const evRows=ROLES.map(role=>{
+      const value=ast.ev_mappings?.[role];
+      return '<label class="calc-row ev-row"><span><strong>'+esc(this,role)+'</strong><small>وزن EV</small></span>'+
+        '<input '+(pub?'disabled':'')+' data-ev-role="'+esc(this,role)+'" type="number" min="0" step="0.01" value="'+(value===undefined||value===null?'':esc(this,value))+'" placeholder="مثال 0.10"></label>';
+    }).join('');
+
     return '<section class="editor-card editor-card-primary calculation-card">' +
-      '<div class="card-title-row"><div><h3>الإعدادات الحسابية</h3><p class="editor-help">هذه البيانات تغيّر تعريف القياس، لذلك لا تُعدل على النسخة المنشورة. احفظ ثم أعد التحقق من الخادم.</p></div><span class="scope-pill '+(pub?'scope-locked':'')+'">'+(pub?'منشور — قراءة فقط':'مسودة — قابل للتعديل')+'</span></div>' +
+      '<div class="card-title-row"><div><h3>الإعدادات الحسابية</h3><p class="editor-help">الأدوار وخرائط KPI وأوزان EV جزء من تعريف القياس. احفظها ثم أعد التحقق من الخادم.</p></div><span class="scope-pill '+(pub?'scope-locked':'')+'">'+(pub?'منشور — قراءة فقط':'مسودة — قابل للتعديل')+'</span></div>' +
       '<h4>ربط المحاور بالأدوار</h4><div class="calc-list">'+(roleRows||'<div class="workspace-empty">لا توجد محاور.</div>')+'</div>' +
-      '<div class="mapping-section"><div class="section-subhead"><div><h4>خرائط KPI</h4><span>JSON</span></div></div>'+mapBoxes('Kpi',ast.kpi_mappings)+(pub?'':'<div class="inline-create compact-create"><input id="new-kpi-code" type="text" placeholder="كود KPI مثل TFI"><button type="button" class="btn-secondary btn-compact" onclick="window.assessmentManager.addKpiMapping(\''+ast.id+'\')">+ KPI</button></div>')+'</div>' +
-      '<div class="mapping-section"><div class="section-subhead"><div><h4>خرائط EV</h4><span>JSON</span></div></div>'+mapBoxes('Ev',ast.ev_mappings)+(pub?'':'<div class="inline-create compact-create"><input id="new-ev-code" type="text" placeholder="كود EV"><button type="button" class="btn-secondary btn-compact" onclick="window.assessmentManager.addEvMapping(\''+ast.id+'\')">+ خريطة EV</button></div>')+'</div>' +
-      (pub?'<div class="locked-notice">هذه نسخة منشورة. للتعديل الحسابي استخدم «إنشاء نسخة عمل».</div>':'<div class="editor-actions editor-actions-primary"><button type="button" class="btn-primary" onclick="window.assessmentManager.saveCalculationConfig(\''+ast.id+'\')">💾 حفظ الإعدادات الحسابية</button></div>') +
+      '<div class="mapping-section"><div class="section-subhead"><div><h4>خرائط KPI</h4><span>كل KPI = كائن أوزان للأدوار</span></div></div>'+
+        (mapBoxes||'<div class="workspace-empty">لا توجد خرائط KPI.</div>')+
+      '</div>' +
+      '<div class="mapping-section"><div class="section-subhead"><div><h4>أوزان EV حسب الدور</h4><span>قيمة رقمية لكل Role وفق محرك التقييم الحالي</span></div></div>'+
+        '<div class="calc-list ev-weight-list">'+evRows+'</div>'+
+      '</div>' +
+      (pub?'<div class="locked-notice">هذه نسخة منشورة. للتعديلات الحسابية أنشئ نسخة عمل.</div>':'<div class="editor-actions editor-actions-primary"><button type="button" class="btn-primary" onclick="window.assessmentManager.saveCalculationConfig(\''+ast.id+'\')">💾 حفظ الإعدادات الحسابية</button></div>') +
     '</section>';
   };
   AssessmentManager.prototype._renderValidation = function() {
