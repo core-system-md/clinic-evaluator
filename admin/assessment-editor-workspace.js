@@ -378,7 +378,15 @@
     });
 
     root.querySelectorAll('[data-axis-select]').forEach(b=>b.addEventListener('click',()=>this._workspaceSelectAxis(b.dataset.axisSelect)));
-    root.querySelectorAll('[data-axis-question]').forEach(b=>b.addEventListener('click',()=>this._workspaceSelectAxis(b.dataset.axisQuestion) && this._workspaceNavigate('questions')));
+    root.querySelectorAll('[data-axis-question]').forEach(b=>b.addEventListener('click',()=>{
+      if(!this._confirmWorkspaceLeave('أسئلة المحور')) return;
+      const axisId=b.dataset.axisQuestion;
+      this._workspaceState.axisId=axisId;
+      const axisQuestions=this._workspaceData.questions.filter(q=>q.axis_id===axisId).sort(byOrder);
+      this._workspaceState.questionId=axisQuestions[0]?.id || null;
+      this._workspaceState.section='questions';
+      this._renderWorkspaceView();
+    }));
     root.querySelectorAll('[data-question-select]').forEach(b=>b.addEventListener('click',()=>this._workspaceSelectQuestion(b.dataset.questionSelect)));
 
     document.getElementById('workspace-save-details')?.addEventListener('click',()=>this.saveAssessment());
@@ -394,7 +402,9 @@
   };
   AssessmentManager.prototype.runWorkspaceValidation = async function() {
     const d=this._workspaceData; const out=document.getElementById('workspace-validation-result'); if(!d?.ast?.id||!out) return;
-    this._setWorkspaceStatus('saving','التحقق','التقييم','جاري فحص سلامة النسخة على الخادم.'); out.innerHTML='<div class="validation-loading">جاري التحقق...</div>';
+    const target=d.ast.title_ar || d.ast.slug || 'التقييم';
+    this._setWorkspaceStatus('saving','التحقق',target,'جاري فحص سلامة النسخة على الخادم.','لا تغلق المحرر أثناء التحقق.');
+    out.innerHTML='<div class="validation-loading">جاري التحقق...</div>';
     try {
       const raw=await this.supabase.request('rpc/validate_assessment_version_secure',{method:'POST',body:JSON.stringify({p_version_id:d.ast.id})});
       const result=raw?.result ?? raw; const valid=!!result?.valid;
@@ -402,8 +412,15 @@
       let html='<div class="validation-banner '+(valid?'valid':'invalid')+'"><strong>'+(valid?'النسخة اجتازت التحقق.':'النسخة تحتاج إلى إصلاحات.')+'</strong></div>';
       if(Array.isArray(checks)&&checks.length) html+='<div class="validation-checks">'+checks.map(c=>'<div><strong>'+esc(this,c.name||c.check||'فحص')+'</strong><span>'+esc(this,c.message||c.detail||String(c))+'</span></div>').join('')+'</div>';
       else html+='<pre>'+esc(this,JSON.stringify(result,null,2))+'</pre>';
-      out.innerHTML=html; this._setWorkspaceStatus('saved','التحقق','التقييم',valid?'لا توجد مشكلة تمنع النشر وفق نتيجة الخادم.':'راجع الفحوصات المعروضة قبل محاولة النشر.');
-    } catch(err) { out.innerHTML='<div class="validation-banner invalid"><strong>فشل تشغيل التحقق</strong><span>'+esc(this,err.message)+'</span></div>'; this._setWorkspaceStatus('error','التحقق','التقييم',err.message,'صحح الخطأ ثم أعد التحقق.'); }
+      out.innerHTML=html;
+      this._setWorkspaceStatus(valid?'saved':'error','التحقق',target,
+        valid?'النسخة اجتازت الفحوصات الخادمية ويمكن متابعة النشر.':'توجد فحوصات تحتاج إلى إصلاح قبل النشر.',
+        valid?'انتقل إلى «دورة الإصدار» للنشر.':'أصلح العناصر المشار إليها ثم أعد التحقق.');
+    } catch(err) {
+      const reason=this._workspaceErrorText(err);
+      out.innerHTML='<div class="validation-banner invalid"><strong>لم يكتمل التحقق</strong><span>'+esc(this,reason)+'</span></div>';
+      this._setWorkspaceStatus('error','التحقق',target,reason,'راجع السبب ثم أعد التحقق.');
+    }
   };
 
   AssessmentManager.prototype.saveAssessment = async function() {
@@ -440,15 +457,14 @@
       if (!savedId) throw new Error('الخادم لم يُعد معرف التقييم المحفوظ.');
       await this.renderAssessmentsTable();
       this.populateFilterDropdown();
-      this._workspaceState.lastSaved = new Date().toLocaleString('ar-JO',{dateStyle:'short',timeStyle:'short'});
+      this._workspaceState.lastSaved = null;
       this._markWorkspaceDirty(false);
-      this._workspaceState.axisId = null;
-      this._workspaceState.questionId = null;
       await this.editAssessment(savedId);
-      this._setWorkspaceStatus('saved','حفظ البيانات الأساسية',title,'تم الحفظ وإعادة القراءة من الخادم بنجاح.','تابع التحرير أو افتح «التحقق والنشر».');
+      this._setWorkspaceStatus('saved','حفظ البيانات الأساسية',this._workspaceData?.ast?.title_ar || title,'تم الحفظ وإعادة القراءة من الخادم بنجاح.','تابع التحرير أو افتح «التحقق والنشر».');
     } catch(err) {
-      this._setWorkspaceStatus('error','حفظ البيانات الأساسية',title,err.message,'تحقق من البيانات ولم يُعتبر الحفظ ناجحاً.');
-      this.showToast('فشل حفظ البيانات الأساسية: ' + err.message,true);
+      const reason=this._workspaceErrorText(err);
+      this._setWorkspaceStatus('error','حفظ البيانات الأساسية',title,reason,'تحقق من البيانات ولم يُعتبر الحفظ ناجحاً.');
+      this.showToast('فشل حفظ البيانات الأساسية: ' + reason,true);
     }
   };
 
@@ -459,19 +475,11 @@
     if(!root || root.classList.contains('hidden')) return;
     const text=String(message||'');
     if(isError) {
-      this._setWorkspaceStatus('error','عملية التحرير','التقييم',text,'راجع السبب ثم أعد المحاولة.');
-      return;
-    }
-    const pending = /إلى المحرر|اضغط حفظ/i.test(text);
-    if(pending) {
-      this._setWorkspaceStatus('info','تعديل محلي','التقييم',text,'اضغط زر الحفظ الظاهر في هذا القسم.');
-      return;
-    }
-    const persisted = /حفظ|تحديث|حذف|إضافة|إنشاء|استعادة|نشر|إيقاف|تمت|تمتة|تم /i.test(text);
-    if(persisted) {
-      this._workspaceState.lastSaved = new Date().toLocaleString('ar-JO',{dateStyle:'short',timeStyle:'short'});
-      this._markWorkspaceDirty(false);
-      this._setWorkspaceStatus('saved','عملية التحرير','التقييم',text,'تم تحديث حالة المحرر من نتيجة العملية.');
+      const reason=this._workspaceErrorText ? this._workspaceErrorText({message:text}) : text;
+      this._setWorkspaceStatus('error','عملية التحرير','التقييم',reason,'راجع السبب ثم أعد المحاولة.');
+    } else if (/اضغط حفظ|للمحرر فقط|في المحرر/.test(text)) {
+      this._setWorkspaceStatus('info','تعديل محلي','التقييم',text,'احفظ من الزر الظاهر في القسم الحالي.');
+      this._markWorkspaceDirty(true);
     }
   };
 
