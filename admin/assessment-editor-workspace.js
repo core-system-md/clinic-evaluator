@@ -355,7 +355,8 @@
       '<div class="card-title-row"><div><h3>الإعدادات الحسابية</h3><p class="editor-help">الأدوار وخرائط KPI وأوزان EV جزء من تعريف القياس. احفظها ثم أعد التحقق من الخادم.</p></div><span class="scope-pill '+(pub?'scope-locked':'')+'">'+(pub?'منشور — قراءة فقط':'مسودة — قابل للتعديل')+'</span></div>' +
       '<h4>ربط المحاور بالأدوار</h4><div class="calc-list">'+(roleRows||'<div class="workspace-empty">لا توجد محاور.</div>')+'</div>' +
       '<div class="mapping-section"><div class="section-subhead"><div><h4>خرائط KPI</h4><span>كل KPI = كائن أوزان للأدوار</span></div></div>'+
-        (mapBoxes||'<div class="workspace-empty">لا توجد خرائط KPI.</div>')+
+        '<div id="calc-kpi-list">'+(mapBoxes||'<div class="workspace-empty">لا توجد خرائط KPI.</div>')+'</div>'+
+        (pub?'':'<div class="inline-create compact-create"><div><strong>إضافة KPI</strong><small>أدخل كودًا جديدًا ثم احفظ الإعدادات.</small></div><div class="inline-create-fields"><input id="new-kpi-code" type="text" placeholder="مثال TFI"><button type="button" class="btn-secondary btn-compact" onclick="window.assessmentManager.addKpiMapping(\''+ast.id+'\')">+ KPI</button></div></div>')+
       '</div>' +
       '<div class="mapping-section"><div class="section-subhead"><div><h4>أوزان EV حسب الدور</h4><span>قيمة رقمية لكل Role وفق محرك التقييم الحالي</span></div></div>'+
         '<div class="calc-list ev-weight-list">'+evRows+'</div>'+
