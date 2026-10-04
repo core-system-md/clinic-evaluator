@@ -497,26 +497,35 @@
   };
     AssessmentManager.prototype.addOption = async function (questionId, assessmentId) {
     try {
-      const allOptions=await this.supabase.select('options') || [];
-      const qOptions=allOptions.filter(o=>o.question_id===questionId);
-      if(qOptions.length>=5) return this.showToast('الحد الأقصى 5 خيارات لكل سؤال.',true);
-      const inlineScore=document.getElementById('new-option-score')?.value;
-      const scoreRaw=inlineScore !== undefined && inlineScore !== '' ? inlineScore : prompt('أدخل القيمة الرياضية للخيار الجديد (0 إلى 100):','0');
+      const qOptions=await this.supabase.select('options',{filter:{question_id:questionId}}) || [];
+      if(qOptions.length>=5) return this.showToast('الحد الأقصى 5 خيارات لهذا السؤال هو 5.',true);
+
+      const inlineScore=document.getElementById('new-option-score-'+questionId);
+      const scoreRaw=inlineScore && inlineScore.value !== '' ? inlineScore.value : prompt('أدخل القيمة الرياضية للخيار الجديد (0 إلى 100):','0');
       if(scoreRaw===null) return;
       const score=parseFloat(scoreRaw);
-      if(!Number.isFinite(score)||score<0||score>100) return this.showToast('قيمة الخيار غير صالحة.',true);
-      const inlineLabel=document.getElementById('new-option-label')?.value.trim();
-      const label=inlineLabel || prompt('أدخل نص الخيار الجديد:','خيار جديد');
+      if(!Number.isFinite(score)||score<0||score>100) return this.showToast('قيمة الخيار يجب أن تكون بين 0 و100.',true);
+
+      const inlineLabel=document.getElementById('new-option-label-'+questionId);
+      const label=(inlineLabel?.value || '').trim() || prompt('أدخل نص الخيار الجديد:','خيار جديد');
       if(label===null || !String(label).trim()) return;
+
       const maxOrder=qOptions.reduce((m,o)=>Math.max(m,Number(o.display_order)||0),0);
       const maxIndex=qOptions.reduce((m,o)=>Math.max(m,Number(o.option_index)||-1),-1);
-      await this.supabase.request('rpc/add_option_secure',{method:'POST',body:JSON.stringify({
-        p_question_id:questionId,p_label_ar:String(label).trim(),p_label:String(label).trim(),
-        p_option_value:score,p_option_index:maxIndex+1,p_display_order:maxOrder+1,p_is_trap:false
-      })});
+      const raw=await this.supabase.request('rpc/add_option_secure',{
+        method:'POST',
+        body:JSON.stringify({
+          p_question_id:questionId,p_label_ar:String(label).trim(),p_label:String(label).trim(),
+          p_option_value:score,p_option_index:maxIndex+1,p_display_order:maxOrder+1,p_is_trap:false
+        })
+      });
+      const createdId=this.rpcScalar(raw);
+      if(!createdId) throw new Error('الخادم لم يُرجع هوية الخيار الجديد.');
       await this.editAssessment(assessmentId);
-      this.showToast('تمت إضافة الخيار وحفظ قيمته.');
-    } catch(err) { this.showToast('فشل إضافة الخيار: ' + err.message,true); }
+      this.showToast('تمت إضافة الخيار لهذا السؤال وحفظه من الخادم.');
+    } catch(err) {
+      this.showToast('فشل إضافة الخيار لهذا السؤال: ' + (this._workspaceErrorText?this._workspaceErrorText(err):err.message),true);
+    }
   };
   AssessmentManager.prototype.deleteDraftQuestion = async function (questionId, assessmentId) {
     if (!confirm('حذف هذا السؤال من المسودة؟ سيتم حذف خياراته المرتبطة به أيضاً.')) return;
