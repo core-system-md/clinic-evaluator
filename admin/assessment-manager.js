@@ -338,7 +338,6 @@ class AssessmentManager {
                                     ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
                                 </button>
                                 ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${publicSlug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
-                                ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}', ${executionCount})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fef2f2; color:#dc2626; border:1px solid #fee2e2;">🗑️ حذف المسودة نهائياً</button>` : ''}
                             </div>
                         </td>
                     </tr>
