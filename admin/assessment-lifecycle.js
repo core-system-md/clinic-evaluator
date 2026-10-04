@@ -355,6 +355,25 @@
     }
   };
 
+  AssessmentManager.prototype.stopPublicAssessment = async function (familyId) {
+    if (!familyId) {
+      this.showToast('تعذر تحديد عائلة التقييم لإيقاف الظهور.', true);
+      return;
+    }
+    if (!confirm('سيتم إيقاف الظهور العام للإصدار المنشور الحالي فقط. ستبقى حالته «منشور» ويمكن إعادة ظهوره أو أرشفته لاحقاً. متابعة؟')) return;
+    try {
+      await this.supabase.request('rpc/stop_public_assessment_secure',{
+        method:'POST',
+        body:JSON.stringify({p_family_id:familyId})
+      });
+      await this.renderAssessmentsTable();
+      this.populateFilterDropdown();
+      this.showToast('تم إيقاف الظهور العام. الإصدار ما زال «منشوراً».');
+    } catch(err) {
+      this.showToast('فشل إيقاف الظهور العام: ' + (this._workspaceErrorText?this._workspaceErrorText(err):err.message),true);
+    }
+  };
+
   AssessmentManager.prototype.archiveAssessment = async function (id, currentStatus, isActive) {
     const current = String(currentStatus || '').toLowerCase();
     if (current !== 'published') {
