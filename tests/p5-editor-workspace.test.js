@@ -6,6 +6,8 @@ const html = fs.readFileSync('admin/admin.html', 'utf8');
 const js = fs.readFileSync('admin/assessment-editor-workspace.js', 'utf8');
 const manager = fs.readFileSync('admin/assessment-manager.js', 'utf8');
 const lifecycle = fs.readFileSync('admin/assessment-lifecycle.js', 'utf8');
+const app = fs.readFileSync('assets/js/app.js', 'utf8');
+const htmlFiles = ['comprehensive-clinic-assessment.html','clinic-performance.html','medical-team-assessment.html','admin-reception-assessment.html','patient-journey.html'].map(file => fs.readFileSync(file, 'utf8'));
 const migration = fs.readFileSync('supabase/migrations/20261004140000_p5_delete_draft_cascade_fix.sql', 'utf8');
 const visibilityMigration = fs.readFileSync('supabase/migrations/20261004150000_p5_public_visibility_option_allocation.sql', 'utf8');
 
@@ -16,9 +18,9 @@ test('P5 editor workspace assets are wired correctly', () => {
   assert.ok(html.includes('#dashboard-content.editor-mode'));
   assert.ok(html.includes('id="workspace-breadcrumb"'));
   assert.ok(html.includes('id="workspace-delete-draft"'));
-  assert.ok(html.includes('assessment-manager.js?v=20261004-3'));
-  assert.ok(html.includes('assessment-lifecycle.js?v=20261004-4'));
-  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-3'));
+  assert.ok(html.includes('assessment-manager.js?v=20261004-4'));
+  assert.ok(html.includes('assessment-lifecycle.js?v=20261004-5'));
+  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-4'));
 });
 
 test('P5 editor workspace JavaScript parses', () => {
@@ -121,4 +123,23 @@ test('public visibility and archive are separate lifecycle operations', () => {
   assert.ok(visibilityMigration.includes('archive_assessment_secure'));
   assert.ok(manager.includes('resumePublicAssessment'));
   assert.ok(manager.includes('archiveAssessment'));
+});
+
+
+test('stop public is a visibility-only lifecycle operation', () => {
+  assert.ok(manager.includes('stopPublicAssessment'), 'dedicated stop-public action missing');
+  assert.ok(manager.includes("stopPublicAssessment(\\'"+'family.id'), 'active published row must call stop-public with family id');
+  assert.ok(lifecycle.includes('stop_public_assessment_secure'), 'stop-public secure RPC missing from lifecycle controller');
+  assert.ok(!manager.includes("archiveAssessment(\\'"+'ast.id'+", \\'published\\', true"), 'stop-public must not call archiveAssessment');
+});
+
+test('public assessment runtime guards content and creates a back-navigation entry', () => {
+  assert.ok(app.includes('setupHistoryNavigation'), 'public back-navigation guard missing');
+  assert.ok(app.includes('clinicEvaluatorAssessmentGuard'), 'history guard state missing');
+  assert.ok(app.includes('Array.isArray(data.questions)'), 'public content validation missing');
+  assert.ok(htmlFiles.some(file => file.includes('/assets/js/app.js?v=20261004-2')), 'public runtime cache-busting missing');
+});
+
+test('workspace editor loads the requested assessment directly when cache misses', () => {
+  assert.ok(js.includes("select('assessment_types', {filter:{id}})"), 'editor direct target lookup missing');
 });

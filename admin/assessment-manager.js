@@ -259,7 +259,7 @@ class AssessmentManager {
                   '<button onclick="window.assessmentManager.deleteAssessment(\''+ast.id+'\', '+execution+')" class="btn-small lifecycle-delete">🗑 حذف المسودة</button>'
                 : '<button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">✏️ تعديل المحتوى</button>'+
                   '<button onclick="window.assessmentManager.duplicateAssessment(\''+ast.id+'\')" class="btn-details lifecycle-copy">📋 نسخة عمل جديدة</button>'+
-                  (family?.id?'<button onclick="window.assessmentManager.archiveAssessment(\''+ast.id+'\', \'published\', true)" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
+                  (family?.id?'<button onclick="window.assessmentManager.stopPublicAssessment(\''+family.id+'\')" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
               return '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:12px 10px;font-weight:600;color:#1e293b;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#94a3b8;font-weight:400;margin-top:3px;">v'+(ast.version||'—')+' · '+(ast.axis_count||0)+' محاور · '+(ast.question_count||0)+' أسئلة</div></td><td style="padding:12px 10px;">'+(status==='published'?'<span class="badge badge-success">منشور</span>':'<span class="badge badge-warning">مسودة</span>')+'</td><td style="padding:12px 10px;text-align:center;">'+access(ast,family)+'</td><td style="padding:12px 10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">'+actions+'</div></td></tr>';
             }).join('');
 
@@ -412,75 +412,6 @@ class AssessmentManager {
         document.getElementById('assessment-modal-title').innerText = "إنشاء تقييم استشاري جديد";
         document.getElementById('modal-tab-content').innerHTML = '<p style="color:#0f766e; padding:15px; background:#f0fdf4; border-radius:8px; text-align:center; font-size:0.85rem; font-weight:600;">يرجى حفظ بيانات التقييم الأساسية أولاً لتتمكن من تخصيص هيكله السحابي علائقياً.</p>';
         document.getElementById('assessment-modal').classList.remove('hidden');
-    }
-
-    async editAssessment(id) {
-        try {
-            const allAssessments = await this.supabase.select('assessment_types');
-            let ast = allAssessments.find(a => a.id === id);
-            if (!ast) return this.showToast("التقييم المطلوب غير موجود.", true);
-
-            if ((ast.status || '').toLowerCase() === 'published') {
-                // Reuse the existing working copy for this assessment family when one already exists.
-                // This prevents every click on "Edit" from creating another draft.
-                const existingDraft = (allAssessments || [])
-                    .filter(a => a.family_id === ast.family_id && (a.status || '').toLowerCase() === 'draft' && a.is_active !== false)
-                    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))[0];
-
-                if (existingDraft) {
-                    ast = existingDraft;
-                } else {
-                    const result = await this.supabase.request('rpc/create_assessment_version_secure', {
-                        method: 'POST',
-                        body: JSON.stringify({ p_source_version_id: ast.id })
-                    });
-                    const draftId = this.rpcScalar(result);
-                    if (!draftId) return this.showToast("تعذر إنشاء مسودة جديدة من الإصدار المنشور.", true);
-                    ast = (await this.supabase.select('assessment_types') || []).find(a => a.id === draftId);
-                    if (!ast) return this.showToast("تم إنشاء المسودة ولكن تعذر تحميلها.", true);
-                }
-            } else if ((ast.status || '').toLowerCase() === 'archived') {
-                return this.showToast("الإصدار المؤرشف غير قابل للتعديل.", true);
-            }
-
-            this.editingAssessmentSlug = ast.slug || null;
-
-            let mappedStatus = 'Draft';
-            const rawStat = (ast.status || '').toLowerCase();
-            if (rawStat === 'published') mappedStatus = 'Published';
-            if (rawStat === 'archived') mappedStatus = 'Archived';
-
-            document.getElementById('ast-id').value = ast.id;
-            document.getElementById('ast-title-ar').value = ast.title_ar || '';
-            document.getElementById('ast-title-en').value = ast.title_en || '';
-            document.getElementById('ast-description').value = ast.description || '';
-            document.getElementById('ast-status').value = mappedStatus;
-            document.getElementById('ast-has-traps').checked = !!ast.has_traps;
-            document.getElementById('ast-has-simulator').checked = !!ast.has_ev_simulator;
-
-            const allAxes = await this.supabase.select('axes') || [];
-            const allQuestions = await this.supabase.select('questions') || [];
-            
-            const currentAxes = allAxes.filter(x => x.assessment_type_id === ast.id);
-            const currentQuestions = allQuestions.filter(q => q.assessment_type_id === ast.id);
-            // Load only options belonging to the current working copy.
-            // The project contains many historical versions, so a plain "select all options"
-            // can hit Supabase's row cap and omit the current version's options.
-            const questionIds = currentQuestions.map(q => q.id);
-            if (questionIds.length) {
-                const endpoint = 'options?select=*&question_id=in.(' + questionIds.join(',') + ')';
-                this.currentOptions = await this.supabase.request(endpoint, { method: 'GET' }) || [];
-            } else {
-                this.currentOptions = [];
-            }
-
-            this.renderModalTabs(currentAxes, currentQuestions, ast.id);
-
-            document.getElementById('assessment-modal-title').innerText = "تعديل تقييم: " + (ast.title_ar || '');
-            document.getElementById('assessment-modal').classList.remove('hidden');
-        } catch (err) {
-            this.showToast("خطأ أثناء تحميل تفاصيل الهيكل العلائقي: " + err.message, true);
-        }
     }
 
     renderModalTabs(axes, questions, assessmentId) {
