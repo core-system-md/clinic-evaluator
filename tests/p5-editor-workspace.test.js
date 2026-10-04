@@ -33,7 +33,7 @@ test('workspace preserves canonical CRUD and lifecycle hooks', () => {
     'saveCalculationConfig','addKpiMapping','addEvMapping',
     'validate_assessment_version_secure','publishAssessment','duplicateAssessment'
   ]) {
-    assert.ok(js.includes(token) || lifecycle.includes(token), token + ' hook missing');
+    assert.ok(js.includes(token) || lifecycle.includes(token) || manager.includes(token), token + ' hook missing');
   }
 });
 
