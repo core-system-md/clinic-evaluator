@@ -277,11 +277,11 @@
     html += '</div>';
 
     html += '<div style="font-size:.72rem;font-weight:700;color:#334155;margin-bottom:5px;">خرائط KPI — كل KPI = كود ← أدوار وأوزان</div>';
-    html += '<div style="display:flex;flex-direction:column;gap:7px;">';
+    html += '<div id="calc-kpi-list" style="display:flex;flex-direction:column;gap:7px;">';
     const kpis = Object.keys(kpiMappings);
     if (!kpis.length) html += '<div style="color:#64748b;font-size:.68rem;">لا توجد خرائط KPI حالياً. يمكن إضافة واحدة من الزر.</div>';
     kpis.forEach(code => {
-      html += '<div style="background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;">';
+      html += '<div class="calc-kpi-box" id="calc-kpi-box-' + safe(this,code) + '" style="background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center;gap:5px;"><strong style="font-size:.7rem;">' + safe(this,code) + '</strong><button type="button" onclick="window.assessmentManager.removeKpiMapping(\'' + safe(this,code) + '\',\'' + ast.id + '\')" style="font-size:.62rem;color:#b91c1c;background:#fff;border:1px solid #fecaca;border-radius:4px;">حذف</button></div>';
       html += '<textarea id="calc-kpi-' + safe(this,code) + '" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">' + safe(this,jsonPretty(kpiMappings[code])) + '</textarea>';
       html += '</div>';
@@ -290,11 +290,11 @@
     html += '</div>';
 
     html += '<div style="font-size:.72rem;font-weight:700;color:#334155;margin:12px 0 5px;">خرائط EV</div>';
-    html += '<div style="display:flex;flex-direction:column;gap:7px;">';
+    html += '<div id="calc-ev-list" style="display:flex;flex-direction:column;gap:7px;">';
     const evs = Object.keys(evMappings);
     if (!evs.length) html += '<div style="color:#64748b;font-size:.68rem;">لا توجد خرائط EV حالياً.</div>';
     evs.forEach(code => {
-      html += '<div style="background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;">';
+      html += '<div class="calc-ev-box" id="calc-ev-box-' + safe(this,code) + '" style="background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;">';
       html += '<div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:.7rem;">' + safe(this,code) + '</strong><button type="button" onclick="window.assessmentManager.removeEvMapping(\'' + safe(this,code) + '\',\'' + ast.id + '\')" style="font-size:.62rem;color:#b91c1c;background:#fff;border:1px solid #fecaca;border-radius:4px;">حذف</button></div>';
       html += '<textarea id="calc-ev-' + safe(this,code) + '" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">' + safe(this,jsonPretty(evMappings[code])) + '</textarea>';
       html += '</div>';
@@ -607,57 +607,55 @@
   };
 
   AssessmentManager.prototype.addKpiMapping = function (assessmentId) {
-    const code = prompt('أدخل كود KPI الجديد، مثال TFI:');
-    if (!code) return;
-    const clean = code.trim().toUpperCase();
-    const el = document.getElementById('calc-kpi-' + clean);
-    if (el) return this.showToast('كود KPI موجود بالفعل.',true);
-    const mappings = {};
-    document.querySelectorAll('textarea[id^="calc-kpi-"]').forEach(t => {
-      mappings[t.id.substring('calc-kpi-'.length)] = t.value;
-    });
-    mappings[clean] = '{\n  "ROLE": 1\n}';
-    const temp = document.getElementById('assessment-modal');
-    if (temp) this.showToast('تمت إضافة خريطة KPI في المحرر؛ عدّل JSON ثم اضغط حفظ الإعدادات الحسابية.');
-    const ast = (this.allAssessments || []).find(a=>a.id===assessmentId);
-    if (ast) this.renderModalTabs(
-      this._currentAxes || [], this._currentQuestions || [], ast, 'draft'
-    );
-    // Re-open from database so the new row is not presented as if it was saved.
-    this.showToast('لإضافة KPI فعلياً استخدم JSON الحالي ثم احفظ؛ إنشاء السطر الجديد يتم بعد الحفظ.');
+    const raw = prompt('أدخل كود KPI الجديد، مثال TFI:');
+    if (!raw) return;
+    const code = raw.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+    if (!code) return this.showToast('كود KPI غير صالح.',true);
+    if (document.getElementById('calc-kpi-' + code)) return this.showToast('كود KPI موجود بالفعل.',true);
+    const list = document.getElementById('calc-kpi-list');
+    if (!list) return;
+    const box = document.createElement('div');
+    box.className = 'calc-kpi-box';
+    box.id = 'calc-kpi-box-' + code;
+    box.style.cssText = 'background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;';
+    box.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;gap:5px;"><strong style="font-size:.7rem;">' + safe(this,code) + '</strong>' +
+      '<button type="button" onclick="window.assessmentManager.removeKpiMapping(\'' + safe(this,code) + '\',\'' + assessmentId + '\')" style="font-size:.62rem;color:#b91c1c;background:#fff;border:1px solid #fecaca;border-radius:4px;">حذف</button></div>' +
+      '<textarea id="calc-kpi-' + safe(this,code) + '" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">{&quot;ROLE&quot;:1}</textarea>';
+    list.appendChild(box);
+    this.showToast('أضيفت خريطة KPI للمحرر. اضغط حفظ الإعدادات الحسابية.');
   };
 
   AssessmentManager.prototype.addEvMapping = function (assessmentId) {
-    const code = prompt('أدخل كود خريطة EV الجديدة:');
-    if (!code) return;
-    const clean = code.trim().toUpperCase();
-    const existing = document.getElementById('calc-ev-' + clean);
-    if (existing) return this.showToast('كود EV موجود بالفعل.',true);
-    // Create a temporary textarea so the next explicit Save captures it.
-    const container = document.querySelector('#modal-tab-content');
-    if (!container) return;
-    const wrap = document.createElement('div');
-    wrap.style.cssText='background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;';
-    wrap.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:.7rem;">'+safe(this,clean)+'</strong></div><textarea id="calc-ev-'+safe(this,clean)+'" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">{\\n  "ROLE": 1\\n}</textarea>';
-    const section = [...container.querySelectorAll('div')].find(el => el.textContent?.includes('خرائط EV') && el.querySelector('textarea[id^="calc-ev-"]'));
-    if (section) section.appendChild(wrap);
-    this.showToast('أضيفت خريطة EV للمحرر؛ اضغط حفظ الإعدادات الحسابية.');
+    const raw = prompt('أدخل كود خريطة EV الجديدة:');
+    if (!raw) return;
+    const code = raw.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+    if (!code) return this.showToast('كود EV غير صالح.',true);
+    if (document.getElementById('calc-ev-' + code)) return this.showToast('كود EV موجود بالفعل.',true);
+    const list = document.getElementById('calc-ev-list');
+    if (!list) return;
+    const box = document.createElement('div');
+    box.className = 'calc-ev-box';
+    box.id = 'calc-ev-box-' + code;
+    box.style.cssText = 'background:#fff;padding:7px;border:1px solid #dbeafe;border-radius:5px;';
+    box.innerHTML =
+      '<div style="display:flex;justify-content:space-between;align-items:center;"><strong style="font-size:.7rem;">' + safe(this,code) + '</strong>' +
+      '<button type="button" onclick="window.assessmentManager.removeEvMapping(\'' + safe(this,code) + '\',\'' + assessmentId + '\')" style="font-size:.62rem;color:#b91c1c;background:#fff;border:1px solid #fecaca;border-radius:4px;">حذف</button></div>' +
+      '<textarea id="calc-ev-' + safe(this,code) + '" style="width:100%;min-height:60px;margin-top:5px;font-family:monospace;font-size:.65rem;direction:ltr;">{&quot;ROLE&quot;:1}</textarea>';
+    list.appendChild(box);
+    this.showToast('أضيفت خريطة EV للمحرر. اضغط حفظ الإعدادات الحسابية.');
   };
 
-  AssessmentManager.prototype.removeKpiMapping = function (code, assessmentId) {
+  AssessmentManager.prototype.removeKpiMapping = function (code) {
     if (!confirm('حذف خريطة KPI ' + code + ' من المسودة؟')) return;
-    const el = document.getElementById('calc-kpi-' + code);
-    const box = el?.closest('div[style*="border:1px solid #dbeafe"]');
-    if (box) box.remove();
-    this.showToast('أزيلت من المحرر فقط؛ اضغط حفظ الإعدادات الحسابية لتثبيت الحذف.');
+    document.getElementById('calc-kpi-box-' + code)?.remove();
+    this.showToast('أزيلت من المحرر. اضغط حفظ الإعدادات الحسابية لتثبيت الحذف.');
   };
 
-  AssessmentManager.prototype.removeEvMapping = function (code, assessmentId) {
+  AssessmentManager.prototype.removeEvMapping = function (code) {
     if (!confirm('حذف خريطة EV ' + code + ' من المسودة؟')) return;
-    const el = document.getElementById('calc-ev-' + code);
-    const box = el?.closest('div[style*="border:1px solid #dbeafe"]');
-    if (box) box.remove();
-    this.showToast('أزيلت من المحرر فقط؛ اضغط حفظ الإعدادات الحسابية لتثبيت الحذف.');
+    document.getElementById('calc-ev-box-' + code)?.remove();
+    this.showToast('أزيلت من المحرر. اضغط حفظ الإعدادات الحسابية لتثبيت الحذف.');
   };
 
   AssessmentManager.prototype.deleteOption = async function (optionId, assessmentId) {
