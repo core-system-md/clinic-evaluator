@@ -688,19 +688,47 @@
     }
   };
 
-  AssessmentManager.prototype.deleteAssessment = async function (id, executionCount = 0) {
-    if (Number(executionCount) > 0) {
-      this.showToast('هذه المسودة مرتبطة بتاريخ تنفيذ ولا يمكن حذفها.', true);
-      return;
+  AssessmentManager.prototype.deleteAssessment = async function (id) {
+    const target = this._workspaceData?.ast?.id === id
+      ? (this._workspaceData.ast.title_ar || this._workspaceData.ast.slug || 'المسودة')
+      : 'المسودة';
+    const inWorkspace = this._workspaceData?.ast?.id === id && !document.getElementById('assessment-modal')?.classList.contains('hidden');
+    if (inWorkspace && this._workspaceState?.dirty && !confirm('توجد تعديلات غير محفوظة. حذف المسودة سيحذف كل محتواها نهائياً. متابعة؟')) return;
+    if (!inWorkspace && !confirm('هذه مسودة عمل. سيتم حذفها نهائياً مع محاورها وأسئلتها وخياراتها. إذا كانت مرتبطة بتاريخ تنفيذ سيرفض الخادم الحذف ويحافظ عليها. متابعة؟')) return;
+
+    if (inWorkspace && this._setWorkspaceStatus) {
+      this._setWorkspaceStatus('saving','حذف المسودة',target,'جاري طلب الحذف من الخادم والتحقق من النتيجة.','لا تغلق الصفحة أثناء العملية.');
     }
-    if (!confirm('هذه مسودة لم تُستخدم في أي تنفيذ. سيتم حذفها نهائياً مع محتواها. متابعة؟')) return;
+
     try {
-      await this.supabase.request('rpc/delete_assessment_draft_secure',{method:'POST',body:JSON.stringify({p_id:id})});
+      const raw = await this.supabase.request('rpc/delete_assessment_draft_secure',{
+        method:'POST',
+        body:JSON.stringify({p_id:id})
+      });
+      const result = raw?.result ?? raw;
+      if (!result || result.success !== true) {
+        throw new Error('الخادم لم يؤكد حذف المسودة.');
+      }
+
       await this.renderAssessmentsTable();
       this.populateFilterDropdown();
-      this.showToast('تم حذف المسودة نهائياً.');
+
+      if (inWorkspace) {
+        this._workspaceState.dirty = false;
+        document.getElementById('assessment-modal')?.classList.add('hidden');
+        document.getElementById('dashboard-content')?.classList.remove('editor-mode');
+      }
+
+      this.showToast('تم حذف المسودة نهائياً مع محتواها.');
     } catch(err) {
-      this.showToast('فشل حذف المسودة: ' + err.message,true);
+      if (inWorkspace && this._setWorkspaceStatus) {
+        const message = String(err?.message || err || '');
+        const detail = /execution history|نتائج|تنفيذ/i.test(message)
+          ? 'هذه النسخة مرتبطة بسجل تنفيذ، لذلك لم يتم حذفها.'
+          : message;
+        this._setWorkspaceStatus('error','حذف المسودة',target,detail,'تحقق من السبب ثم أعد المحاولة؛ لم يُعتبر الحذف ناجحاً.');
+      }
+      this.showToast('فشل حذف المسودة: ' + (err?.message || err), true);
     }
   };
 })();
