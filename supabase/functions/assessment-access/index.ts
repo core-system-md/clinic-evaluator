@@ -193,7 +193,7 @@ function safeContent(runtime: Awaited<ReturnType<typeof loadAssessment>>, requir
       is_required: q.is_required !== false,
       options: runtime.options
         .filter((o) => o.question_id === q.id)
-        .sort((a, b) => a.display_order - b.display_order)
+        .sort((a, b) => Number(a.option_index) - Number(b.option_index))
         .map((o) => ({
           index: o.option_index,
           label: o.label_ar || o.label,
@@ -302,6 +302,17 @@ async function issuePublicAccess(assessmentKey: string) {
     throw Object.assign(new Error("Assessment unavailable"), { status: 404 });
   }
 
+  const { data: publicVersion, error: publicVersionError } = await supabase
+    .from("assessment_types")
+    .select("id, status, is_active")
+    .eq("id", family.current_published_version_id)
+    .maybeSingle();
+
+  if (publicVersionError) throw publicVersionError;
+  if (!publicVersion || publicVersion.status !== "published" || publicVersion.is_active !== true) {
+    throw Object.assign(new Error("Assessment unavailable"), { status: 404 });
+  }
+
   if (await getRequiresLogin(assessmentKey)) {
     throw Object.assign(new Error("Assessment requires login"), { status: 403 });
   }
@@ -348,6 +359,17 @@ Deno.serve(async (req) => {
       if (familyError) throw familyError;
       if (!family?.current_published_version_id) return json({ error: "Assessment unavailable" }, 404);
 
+      const { data: publicVersion, error: publicVersionError } = await supabase
+        .from("assessment_types")
+        .select("id, status, is_active")
+        .eq("id", family.current_published_version_id)
+        .maybeSingle();
+
+      if (publicVersionError) throw publicVersionError;
+      if (!publicVersion || publicVersion.status !== "published" || publicVersion.is_active !== true) {
+        return json({ error: "Assessment unavailable" }, 404);
+      }
+
       const requiresLogin = await getRequiresLogin(assessmentKey);
       const runtime = await loadAssessment(family.current_published_version_id, family);
       return json({ success: true, data: safeContent(runtime, requiresLogin) });
@@ -366,8 +388,10 @@ Deno.serve(async (req) => {
       const { data: versions, error: versionError } = versionIds.length
         ? await supabase
             .from("assessment_types")
-            .select("id, title_ar, description, question_count, axis_count")
+            .select("id, title_ar, description, question_count, axis_count, status, is_active")
             .in("id", versionIds)
+            .eq("status", "published")
+            .eq("is_active", true)
         : { data: [], error: null };
 
       if (versionError) throw versionError;
@@ -467,6 +491,19 @@ Deno.serve(async (req) => {
       const access = await getAccess(token);
       if (!access) return json({ error: "Invalid or expired assessment access" }, 401);
       if (access.session_id) return json({ success: true, data: { session_id: access.session_id, resumed: true, lead_id: null, expires_at: access.expires_at } });
+
+      if (!access.assessment_user_id) {
+        const { data: publicVersion, error: publicVersionError } = await supabase
+          .from("assessment_types")
+          .select("id, status, is_active")
+          .eq("id", access.assessment_type_id)
+          .maybeSingle();
+
+        if (publicVersionError) throw publicVersionError;
+        if (!publicVersion || publicVersion.status !== "published" || publicVersion.is_active !== true) {
+          return json({ error: "Assessment unavailable" }, 404);
+        }
+      }
 
       const attemptKey = String(data.attempt_key || "").trim();
       if (!attemptKey) return json({ error: "Missing attempt key" }, 400);
