@@ -393,6 +393,21 @@
       this.showToast('فشل إعادة الظهور العام: ' + (this._workspaceErrorText?this._workspaceErrorText(err):err.message),true);
     }
   };
+  AssessmentManager.prototype.restorePublicAssessment = async function (id) {
+    if (!confirm('إعادة هذه النسخة المؤرشفة للظهور العام؟ سيتم نشرها مجدداً مع الحفاظ على نسخها التاريخية.')) return;
+    try {
+      await this.supabase.request('rpc/restore_public_assessment_secure',{
+        method:'POST',
+        body:JSON.stringify({p_version_id:id})
+      });
+      await this.renderAssessmentsTable();
+      this.populateFilterDropdown();
+      this.showToast('تمت استعادة الإصدار للظهور العام.');
+    } catch(err) {
+      this.showToast('فشل استعادة الظهور العام: ' + (this._workspaceErrorText?this._workspaceErrorText(err):err.message),true);
+    }
+  };
+
   AssessmentManager.prototype.deleteAssessment = async function (id) {
     const target = this._workspaceData?.ast?.id === id
       ? (this._workspaceData.ast.title_ar || this._workspaceData.ast.slug || 'المسودة')
