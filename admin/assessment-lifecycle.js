@@ -556,9 +556,15 @@
       });
 
       const evMappings = {};
-      document.querySelectorAll('textarea[id^="calc-ev-"]').forEach(el => {
-        const code = el.id.substring('calc-ev-'.length);
-        evMappings[code] = parseObject(el.value,'خريطة EV ' + code);
+      document.querySelectorAll('[data-ev-role]').forEach(el => {
+        const role = el.dataset.evRole;
+        const raw = el.value.trim();
+        if (!raw) return;
+        const weight = Number(raw);
+        if (!Number.isFinite(weight) || weight < 0) {
+          throw new Error('وزن EV للدور ' + role + ' يجب أن يكون رقماً غير سالب.');
+        }
+        evMappings[role] = weight;
       });
 
       await this.supabase.request('rpc/update_draft_calculation_config_secure',{
@@ -573,7 +579,8 @@
       await this.editAssessment(assessmentId);
       this.showToast('تم حفظ الإعدادات الحسابية.');
     } catch(err) {
-      this.showToast('فشل حفظ الإعدادات الحسابية: ' + err.message,true);
+      const reason=this._workspaceErrorText ? this._workspaceErrorText(err) : err.message;
+      this.showToast('فشل حفظ الإعدادات الحسابية: ' + reason,true);
     }
   };
 
