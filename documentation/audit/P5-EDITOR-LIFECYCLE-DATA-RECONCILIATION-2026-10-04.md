@@ -129,3 +129,23 @@ No changes to:
 - Option creation queries only the target question and uses question-scoped input controls.
 - Duplicate lifecycle prototypes for edit/create/save were removed from `assessment-lifecycle.js`; the workspace controller owns those responsibilities.
 - Editor asset cache-busting versions were incremented.
+
+
+## Owner clarification — visibility is not archive
+
+Stop Public and Archive are separate operations.
+
+- Stop Public: published remains published; only `is_active=false`.
+- Resume Public: published remains published; `is_active=true`.
+- Archive: only a stopped published version may be moved to `archived`.
+- Archived versions remain historical/read-only.
+
+The correction adds secure resume/archive RPCs and a dedicated stopped-public UI section. It does not introduce a new lifecycle state.
+
+## Option-addition correction
+
+The browser no longer calculates option indexes/orders from a client-side options query. The secure `add_option_secure` RPC locks the question row, enforces the five-option limit, allocates the next index/order server-side, and returns the created option id. This directly removes the observed 409 duplicate `(question_id, option_index)` failure mode.
+
+## Transient report loading state
+
+The report-details modal no longer remains indefinitely on its loading message when the target record is missing or report processing fails; those terminal error states are replaced with a message and automatically closed. Successful report content remains available for manual reading.

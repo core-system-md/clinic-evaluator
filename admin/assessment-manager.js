@@ -236,8 +236,10 @@ class AssessmentManager {
 
             const active = data.filter(a => a.is_active !== false && ['draft','published'].includes(String(a.status||'').toLowerCase()))
               .sort((a,b) => new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));
+            const stopped = data.filter(a => a.is_active === false && String(a.status||'').toLowerCase()==='published')
+              .sort((a,b) => new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));
             const archived = data.filter(a => String(a.status||'').toLowerCase()==='archived')
-              .sort((a,b) => new Date(b.archived_at||b.updated_at||b.created_at)-new Date(a.archived_at||a.updated_at||a.created_at));
+              .sort((a,b) => new Date(b.archived_at||b.updated_at||b.created_at)-new Date(a.archived_at||a.created_at));
 
             const access = (ast,family) => {
               if (String(ast.status||'').toLowerCase() !== 'published') return '<span class="badge" style="background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;">غير مطبق على المسودة</span>';
@@ -257,14 +259,19 @@ class AssessmentManager {
                   '<button onclick="window.assessmentManager.deleteAssessment(\''+ast.id+'\', '+execution+')" class="btn-small lifecycle-delete">🗑 حذف المسودة</button>'
                 : '<button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">✏️ تعديل المحتوى</button>'+
                   '<button onclick="window.assessmentManager.duplicateAssessment(\''+ast.id+'\')" class="btn-details lifecycle-copy">📋 نسخة عمل جديدة</button>'+
-                  (family?.id?'<button onclick="window.assessmentManager.archiveAssessment(\''+ast.id+'\', \'published\')" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
+                  (family?.id?'<button onclick="window.assessmentManager.archiveAssessment(\''+ast.id+'\', \'published\', true)" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
               return '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:12px 10px;font-weight:600;color:#1e293b;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#94a3b8;font-weight:400;margin-top:3px;">v'+(ast.version||'—')+' · '+(ast.axis_count||0)+' محاور · '+(ast.question_count||0)+' أسئلة</div></td><td style="padding:12px 10px;">'+(status==='published'?'<span class="badge badge-success">منشور</span>':'<span class="badge badge-warning">مسودة</span>')+'</td><td style="padding:12px 10px;text-align:center;">'+access(ast,family)+'</td><td style="padding:12px 10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">'+actions+'</div></td></tr>';
+            }).join('');
+
+            const stoppedRows=stopped.map(ast=>{
+              return '<tr style="border-bottom:1px solid #fde68a;background:#fffbeb;"><td style="padding:10px;font-weight:600;color:#78350f;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#a16207;margin-top:3px;">v'+(ast.version||'—')+' · منشور · متوقف عن الظهور</div></td><td style="padding:10px;"><span class="badge" style="background:#fef3c7;color:#92400e;border:1px solid #fcd34d;">منشور — متوقف</span></td><td style="padding:10px;color:#92400e;">غير ظاهر للعامة</td><td style="padding:10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"><button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">✏️ تحرير المحتوى</button><button onclick="window.assessmentManager.resumePublicAssessment(\''+ast.id+'\')" class="btn-small lifecycle-restore">▶️ إعادة الظهور</button><button onclick="window.assessmentManager.archiveAssessment(\''+ast.id+'\', \'published\', false)" class="btn-small lifecycle-archive">🗄️ أرشفة</button></div></td></tr>';
             }).join('');
 
             const archiveRows=archived.map(ast=>'<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px;font-weight:600;color:#475569;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#94a3b8;margin-top:3px;">v'+(ast.version||'—')+' · تاريخي</div></td><td style="padding:10px;"><span class="badge btn-secondary">مؤرشف</span></td><td style="padding:10px;color:#64748b;">غير متاح للعامة</td><td style="padding:10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"><button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">👁 عرض تاريخي</button><button onclick="window.assessmentManager.restorePublicAssessment(\''+ast.id+'\')" class="btn-small lifecycle-restore">↩️ استعادة للظهور</button></div></td></tr>').join('');
 
             container.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;"><h4 style="color:#134e4a;font-weight:700;margin:0;">التقييمات النشطة</h4><div style="display:flex;gap:6px;flex-wrap:wrap;"><button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="padding:6px 12px;font-size:.85rem;">+ تقييم جديد</button><button onclick="window.assessmentManager.importAssessment()" class="btn-primary" style="padding:6px 12px;font-size:.85rem;background:#6366f1;">📥 استيراد</button></div></div>'+
               '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:100%;border-collapse:collapse;background:white;font-size:.85rem;text-align:right;"><thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:12px 10px;">عنوان التقييم</th><th style="padding:12px 10px;">الحالة</th><th style="padding:12px 10px;text-align:center;">النفاذ العام</th><th style="padding:12px 10px;text-align:center;">إجراءات التحكم</th></tr></thead><tbody>'+(activeRows||'<tr><td colspan="4" style="padding:20px;text-align:center;color:#64748b;">لا توجد تقييمات نشطة.</td></tr>')+'</tbody></table></div>'+
+              '<section style="margin-top:18px;padding:14px;background:#fffbeb;border:1px solid #fcd34d;border-radius:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><h4 style="margin:0;color:#92400e;">⏸️ منشور لكن متوقف عن الظهور</h4><small style="color:#a16207;">إيقاف الظهور لا يغيّر حالة الإصدار إلى أرشيف. يمكنك إعادة الظهور أو أرشفته بشكل مستقل.</small></div><span class="badge" style="background:#fef3c7;color:#92400e;">'+stopped.length+' نسخ</span></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;background:white;font-size:.82rem;text-align:right;"><thead><tr style="background:#fff;border-bottom:1px solid #fcd34d;"><th style="padding:10px;">التقييم</th><th style="padding:10px;">الحالة</th><th style="padding:10px;">الظهور</th><th style="padding:10px;text-align:center;">إجراءات</th></tr></thead><tbody>'+(stoppedRows||'<tr><td colspan="4" style="padding:16px;text-align:center;color:#a16207;">لا توجد إصدارات متوقفة.</td></tr>')+'</tbody></table></div></section>'+
               '<section style="margin-top:18px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><h4 style="margin:0;color:#475569;">🗄️ الأرشيف</h4><small style="color:#94a3b8;">نسخ تاريخية غير متاحة للعامة ولا تدخل في قائمة العمل.</small></div><span class="badge btn-secondary">'+archived.length+' نسخ</span></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;background:white;font-size:.82rem;text-align:right;"><thead><tr style="background:#fff;border-bottom:1px solid #e2e8f0;"><th style="padding:10px;">التقييم</th><th style="padding:10px;">الحالة</th><th style="padding:10px;">الظهور</th><th style="padding:10px;text-align:center;">إجراءات</th></tr></thead><tbody>'+(archiveRows||'<tr><td colspan="4" style="padding:16px;text-align:center;color:#94a3b8;">الأرشيف فارغ.</td></tr>')+'</tbody></table></div></section>';
         } catch(err) {
             container.innerHTML='<p style="color:red;padding:10px;">فشل تحميل قائمة التقييمات: '+this.escapeHtml(String(err?.message||err))+'</p>';
@@ -365,70 +372,6 @@ class AssessmentManager {
     }
 
     // استدعاء دالة الـ RPC للتبديل السريع للحالات (مسودة / مؤرشف)
-    async archiveAssessment(id, currentStatus) {
-        const currentClean = (currentStatus || '').toLowerCase();
-        try {
-            if (currentClean === 'published') {
-                const family = this.familyByVersionId[id];
-                if (!family?.id) throw new Error('تعذر تحديد عائلة التقييم المنشور.');
-                if (!confirm('سيتم إيقاف ظهور هذا التقييم للعامة مع إبقاء بياناته ونتائجه التاريخية داخل الإدارة. متابعة؟')) return;
-                await this.supabase.request('rpc/stop_public_assessment_secure', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_family_id: family.id })
-                });
-                this.showToast('تم إيقاف الظهور العام مع حفظ التاريخ.');
-            } else if (currentClean === 'draft') {
-                await this.supabase.request('rpc/update_assessment_status_secure', {
-                    method: 'POST',
-                    body: JSON.stringify({ p_id: id, p_status: 'archived', p_is_active: true })
-                });
-                this.showToast('تمت أرشفة نسخة العمل.');
-            } else {
-                this.showToast('النسخة المؤرشفة غير قابلة للتعديل.', true);
-                return;
-            }
-            await this.renderAssessmentsTable();
-            this.populateFilterDropdown();
-        } catch (err) {
-            this.showToast("فشل تغيير الحالة: " + err.message, true);
-        }
-    }
-
-    async restorePublicAssessment(id) {
-        if (!confirm('إعادة هذه النسخة السابقة للظهور العام؟')) return;
-        try {
-            await this.supabase.request('rpc/restore_public_assessment_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_version_id: id })
-            });
-            this.showToast('تمت استعادة التقييم للظهور العام.');
-            await this.renderAssessmentsTable();
-            this.populateFilterDropdown();
-        } catch (err) {
-            this.showToast('فشل استعادة الظهور العام: ' + err.message, true);
-        }
-    }
-
-    // مسودات العمل بلا أي تنفيذ تُحذف حذفاً حقيقياً؛ السجلات ذات التاريخ لا تُشطب.
-    async deleteAssessment(id, executionCount = 0) {
-        if (Number(executionCount) > 0) {
-            this.showToast("هذه المسودة مرتبطة بتاريخ تنفيذ ولا يمكن حذفها.", true);
-            return;
-        }
-        if (!confirm("هذه مسودة عمل لم تُستخدم في أي تنفيذ. سيتم حذفها نهائياً مع محتواها. متابعة؟")) return;
-        try {
-            await this.supabase.request('rpc/delete_assessment_draft_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_id: id })
-            });
-            this.showToast("تم حذف مسودة العمل نهائياً.");
-            await this.renderAssessmentsTable();
-            this.populateFilterDropdown();
-        } catch (err) {
-            this.showToast("فشل حذف المسودة: " + err.message, true);
-        }
-    }
-
     // استدعاء دالة الـ RPC لتنفيذ محرك النسخ المتطابق الشامل والعميق (Deep Relational Duplication)
     async duplicateAssessment(id) {
         if (!confirm("إنشاء إصدار جديد كمسودة من هذا التقييم؟ سيبقى الإصدار المنشور الحالي ثابتاً حتى يتم النشر.")) return;
@@ -1259,7 +1202,11 @@ class AssessmentManager {
 
         try {
             const lead = this.allLeads.find(l => l.id === leadId);
-            if (!lead) return;
+            if (!lead) {
+                modalBody.innerHTML = '<p style="color:#b91c1c; padding:16px; text-align:center;">تعذر العثور على السجل المطلوب. أُغلقت نافذة القراءة لأن عملية التحميل انتهت دون بيانات.</p>';
+                window.setTimeout(() => modal.classList.add('hidden'), 1400);
+                return;
+            }
 
             // النتيجة الرسمية تأتي من assessment_results عند توفرها.
             // البيانات القديمة تبقى معروضة كتاريخية، دون إعادة احتساب KPI في المتصفح.
@@ -1445,6 +1392,7 @@ class AssessmentManager {
 
         } catch (err) {
             modalBody.innerHTML = `<p style="color:red; padding:12px; text-align:center;">❌ فشل معالجة واستخراج تقرير القراءة الاستشارية: ${err.message}</p>`;
+            window.setTimeout(() => modal.classList.add('hidden'), 2200);
         }
     }
 
