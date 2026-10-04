@@ -116,3 +116,16 @@ No changes to:
 - report text;
 - Q1–Q4;
 - security/RLS boundaries.
+
+
+## 7. Implemented on this correction branch
+
+- Active assessment table now contains only Draft and Published records.
+- Archived records are rendered in a dedicated Archive section.
+- Draft rows expose only Edit / Publish / Delete.
+- Published rows expose Edit / Working Copy / Stop Public.
+- Paid-access controls are not presented as Draft lifecycle actions.
+- Workspace questions now render all questions for the selected axis and all options for each question.
+- Option creation queries only the target question and uses question-scoped input controls.
+- Duplicate lifecycle prototypes for edit/create/save were removed from `assessment-lifecycle.js`; the workspace controller owns those responsibilities.
+- Editor asset cache-busting versions were incremented.
