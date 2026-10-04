@@ -7,6 +7,7 @@ const js = fs.readFileSync('admin/assessment-editor-workspace.js', 'utf8');
 const manager = fs.readFileSync('admin/assessment-manager.js', 'utf8');
 const lifecycle = fs.readFileSync('admin/assessment-lifecycle.js', 'utf8');
 const app = fs.readFileSync('assets/js/app.js', 'utf8');
+const publicRuntime = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
 const htmlFiles = ['comprehensive-clinic-assessment.html','clinic-performance.html','medical-team-assessment.html','admin-reception-assessment.html','patient-journey.html'].map(file => fs.readFileSync(file, 'utf8'));
 const migration = fs.readFileSync('supabase/migrations/20261004140000_p5_delete_draft_cascade_fix.sql', 'utf8');
 const visibilityMigration = fs.readFileSync('supabase/migrations/20261004150000_p5_public_visibility_option_allocation.sql', 'utf8');
@@ -137,7 +138,14 @@ test('public assessment runtime guards content and creates a back-navigation ent
   assert.ok(app.includes('setupHistoryNavigation'), 'public back-navigation guard missing');
   assert.ok(app.includes('clinicEvaluatorAssessmentGuard'), 'history guard state missing');
   assert.ok(app.includes('Array.isArray(data.questions)'), 'public content validation missing');
-  assert.ok(htmlFiles.some(file => file.includes('/assets/js/app.js?v=20261004-2')), 'public runtime cache-busting missing');
+  assert.ok(htmlFiles.some(file => file.includes('/assets/js/app.js?v=20261004-3')), 'public runtime cache-busting missing');
+  assert.ok(publicRuntime.includes('publicVersion.is_active !== true'), 'public runtime must enforce visibility state');
+  assert.ok(publicRuntime.includes('publicVersion.status !== "published"'), 'public runtime must enforce published state');
+  assert.ok(publicRuntime.includes('Assessment unavailable'), 'stopped public assessments must not issue/serve public access');
+});
+
+test('report detail lookup has a server fallback when the in-memory row is stale', () => {
+  assert.ok(manager.includes("this.supabase.select('leads', { filter: { id: leadId }, limit: 1 })"), 'report detail fallback lookup missing');
 });
 
 test('workspace editor loads the requested assessment directly when cache misses', () => {
