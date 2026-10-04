@@ -41,7 +41,10 @@ The fix deletes Draft-local children explicitly while the parent remains a Draft
 
 The fix was reproduced successfully inside a transaction; the real Draft was rolled back and remains present.
 
-### 2.6 Calculation contract mismatch
+### 2.6 Archived editor coverage
+The workspace originally blocked archived versions entirely. That violated the P5 historical/read-only requirement. Archived versions are now loadable for inspection, with all mutation controls suppressed and a clear “Archive — read only” state. The lifecycle action exposed there is restore-to-public through the existing secure RPC.
+
+### 2.7 Calculation contract mismatch
 The P5 completeness RPC previously required every EV mapping value to be an object. The live assessment data and the canonical scoring engine use `ev_mappings: Record<Role, number>`.
 
 The editor previously serialized scalar EV values as JSON and attempted to parse them as objects, so Calculation → Save could fail on valid live data.
