@@ -1132,10 +1132,17 @@ class AssessmentManager {
         modalBody.innerHTML = '<p style="text-align:center; padding:24px; font-weight:600; color:#475569;">⏳ جاري قراءة وفحص الفخاخ السلوكية واستنباط التحليلات النصية لرحلة المريض...</p>';
 
         try {
-            const lead = this.allLeads.find(l => l.id === leadId);
+            let lead = (this.allLeads || []).find(l => l.id === leadId);
             if (!lead) {
-                modalBody.innerHTML = '<p style="color:#b91c1c; padding:16px; text-align:center;">تعذر العثور على السجل المطلوب. أُغلقت نافذة القراءة لأن عملية التحميل انتهت دون بيانات.</p>';
-                window.setTimeout(() => modal.classList.add('hidden'), 1400);
+                try {
+                    const rows = await this.supabase.select('leads', { filter: { id: leadId }, limit: 1 });
+                    lead = Array.isArray(rows) ? rows[0] : null;
+                } catch (lookupError) {
+                    console.warn('[CORE System] Direct lead lookup failed:', lookupError);
+                }
+            }
+            if (!lead) {
+                modalBody.innerHTML = '<p style="color:#b91c1c; padding:16px; text-align:center;">تعذر تحميل سجل التقييم المحدد من الخادم.</p>';
                 return;
             }
 
