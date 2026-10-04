@@ -477,9 +477,14 @@
     if(isError) {
       const reason=this._workspaceErrorText ? this._workspaceErrorText({message:text}) : text;
       this._setWorkspaceStatus('error','عملية التحرير','التقييم',reason,'راجع السبب ثم أعد المحاولة.');
-    } else if (/اضغط حفظ|للمحرر فقط|في المحرر/.test(text)) {
-      this._setWorkspaceStatus('info','تعديل محلي','التقييم',text,'احفظ من الزر الظاهر في القسم الحالي.');
+    } else if (/اضغط حفظ|أزيلت من المحرر|أضيفت من المحرر|في المحرر/.test(text)) {
+      this._setWorkspaceStatus('info','تعديل محلي',this._workspaceData?.ast?.title_ar || 'التقييم',text,'احفظ العملية من الزر الظاهر في القسم الحالي.');
       this._markWorkspaceDirty(true);
+    } else if (/^(تم|تمت)\s/.test(text)) {
+      const when=this._formatWorkspaceDate(this._workspaceData?.ast?.updated_at) || new Date().toLocaleString('ar-JO',{dateStyle:'short',timeStyle:'short'});
+      this._workspaceState.lastSaved=when;
+      this._markWorkspaceDirty(false);
+      this._setWorkspaceStatus('saved','اكتملت العملية',this._workspaceData?.ast?.title_ar || 'التقييم',text,'تم تأكيد العملية من الخادم؛ يمكنك متابعة التحرير.');
     }
   };
 
