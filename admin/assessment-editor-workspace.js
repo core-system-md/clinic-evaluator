@@ -10,13 +10,43 @@
 
   AssessmentManager.prototype._workspaceState = AssessmentManager.prototype._workspaceState || { section:'overview', axisId:null, questionId:null, dirty:false, lastSaved:null, mode:null };
 
+  AssessmentManager.prototype._formatWorkspaceDate = function (value) {
+    if (!value) return null;
+    try {
+      return new Date(value).toLocaleString('ar-JO', {dateStyle:'short', timeStyle:'short'});
+    } catch (_) {
+      return String(value);
+    }
+  };
+
+  AssessmentManager.prototype._workspaceErrorText = function (err) {
+    const raw = String(err?.message || err || '').trim();
+    if (/admin capability required/i.test(raw)) return 'لا تملك الصلاحية الإدارية المطلوبة لهذه العملية.';
+    if (/Assessment version not found|التقييم المطلوب غير موجود/i.test(raw)) return 'لم تعد هذه النسخة موجودة على الخادم. حدّث لوحة الإدارة ثم افتحها من جديد.';
+    if (/current public assessment cannot be deleted/i.test(raw)) return 'هذه النسخة هي النسخة العامة الحالية، لذلك يمنع النظام حذفها.';
+    if (/execution history/i.test(raw)) return 'هذه النسخة مرتبطة بتاريخ تنفيذ أو نتائج، لذلك يجب الاحتفاظ بها كسجل تاريخي.';
+    if (/working copy is a source for another assessment version/i.test(raw)) return 'هذه المسودة مستخدمة كمصدر لنسخة أخرى، لذلك يمنع النظام حذفها للحفاظ على سلسلة الإصدارات.';
+    if (/Only draft|only working-copy|requires a working copy|published.*immutable|immutable/i.test(raw)) return 'هذه العملية غير مسموحة على حالة النسخة الحالية. راجع الحالة واعمَل على نسخة عمل عند الحاجة.';
+    if (/must be|required|cannot be empty|invalid|between 0 and 100|positive/i.test(raw)) return raw;
+    return raw || 'حدث خطأ غير معروف من الخادم.';
+  };
+
   AssessmentManager.prototype._setWorkspaceStatus = function (kind, operation, target, detail, nextAction) {
     const el = document.getElementById('workspace-operation-status');
     if (!el) return;
-    const labels = {saving:'جاري الحفظ', saved:'تم الحفظ', error:'تعذر الحفظ', info:'معلومة'};
+    const labels = {
+      saving:'جارٍ التنفيذ',
+      saved:'تم الحفظ',
+      error:'لم تكتمل العملية',
+      info:'حالة المحرر'
+    };
     const cls = kind === 'error' ? 'is-error' : kind === 'saved' ? 'is-saved' : kind === 'saving' ? 'is-saving' : '';
     el.className = 'workspace-status ' + cls;
-    el.innerHTML = '<strong>' + esc(this, labels[kind] || kind) + '</strong><span>' + esc(this, operation || 'عملية') + ' → ' + esc(this, target || 'التقييم') + '</span>' + (detail ? '<span>' + esc(this, detail) + '</span>' : '') + (nextAction ? '<span>الخطوة التالية: ' + esc(this, nextAction) + '</span>' : '');
+    el.innerHTML =
+      '<strong>' + esc(this, labels[kind] || kind) + '</strong>' +
+      '<span>' + esc(this, operation || 'عملية') + ' → ' + esc(this, target || 'التقييم') + '</span>' +
+      (detail ? '<span>' + esc(this, detail) + '</span>' : '') +
+      (nextAction ? '<span>التالي: ' + esc(this, nextAction) + '</span>' : '');
   };
 
   AssessmentManager.prototype._markWorkspaceDirty = function (dirty) {
@@ -25,12 +55,20 @@
     if (badge) { badge.textContent = dirty ? 'تعديلات غير محفوظة' : 'كل التعديلات محفوظة'; badge.className = 'workspace-dirty ' + (dirty ? 'dirty' : 'clean'); }
   };
 
+  AssessmentManager.prototype._confirmWorkspaceLeave = function(nextLabel) {
+    if (!this._workspaceState?.dirty) return true;
+    return confirm('توجد تعديلات غير محفوظة. الانتقال إلى ' + (nextLabel || 'قسم آخر') + ' سيتركها في الذاكرة فقط. احفظ التغييرات أولاً أم تابع؟');
+  };
+
   AssessmentManager.prototype._workspaceNavigate = function(section) {
+    const labels = {overview:'نظرة عامة',structure:'الهيكل',questions:'الأسئلة',calculation:'الحساب',validation:'التحقق والنشر'};
+    if (section !== this._workspaceState.section && !this._confirmWorkspaceLeave(labels[section])) return;
     this._workspaceState.section = section;
     this._renderWorkspaceView();
   };
 
   AssessmentManager.prototype._workspaceSelectAxis = function(axisId) {
+    if (!this._confirmWorkspaceLeave('المحور المحدد')) return;
     this._workspaceState.axisId = axisId;
     const questions = this._workspaceData.questions.filter(q => q.axis_id === axisId).sort(byOrder);
     if (!questions.some(q => q.id === this._workspaceState.questionId)) this._workspaceState.questionId = questions[0]?.id || null;
@@ -39,16 +77,19 @@
   };
 
   AssessmentManager.prototype._workspaceSelectQuestion = function(questionId) {
+    if (!this._confirmWorkspaceLeave('السؤال المحدد')) return;
     this._workspaceState.questionId = questionId;
     this._workspaceState.section = 'questions';
     this._renderWorkspaceView();
   };
 
   AssessmentManager.prototype.closeAssessmentWorkspace = function() {
-    if (this._workspaceState.dirty && !confirm('لديك تعديلات غير محفوظة في بيانات التقييم الأساسية. مغادرة المحرر الآن؟')) return;
+    if (this._workspaceState.dirty && !confirm('توجد تعديلات غير محفوظة. مغادرة المحرر الآن؟')) return;
     document.getElementById('assessment-modal')?.classList.add('hidden');
     document.getElementById('dashboard-content')?.classList.remove('editor-mode');
     this._workspaceState.dirty = false;
+    this._workspaceState.axisId = null;
+    this._workspaceState.questionId = null;
   };
 
   AssessmentManager.prototype._loadWorkspaceData = async function(id) {
