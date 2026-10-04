@@ -97,7 +97,6 @@
     const ast = allAssessments.find(a => a.id === id);
     if (!ast) throw new Error('التقييم المطلوب غير موجود.');
     const status = cleanStatus(ast);
-    if (status === 'archived') throw new Error('الإصدار المؤرشف تاريخي وغير قابل للتعديل. استخدم الاستعادة أو إنشاء نسخة عمل.');
     const axes = (await this.supabase.select('axes', {filter:{assessment_type_id:id}}) || []).sort(byOrder);
     const questions = (await this.supabase.select('questions', {filter:{assessment_type_id:id}}) || []).sort(byOrder);
     const qIds = questions.map(q => q.id);
@@ -149,7 +148,10 @@
   AssessmentManager.prototype._renderWorkspaceView = function(isNew) {
     const d = this._workspaceData;
     if (!d) return;
-    const statusText = d.status === 'published' ? 'منشور' : 'مسودة';
+    const statusText = d.status === 'published' ? 'منشور' : d.status === 'archived' ? 'أرشيف / تاريخي' : 'مسودة';
+    const isPublished = d.status === 'published';
+    const isArchived = d.status === 'archived';
+    const isDraft = d.status === 'draft';
     const title = d.ast.title_ar || 'تقييم جديد';
     const familyLabel = d.family?.slug || d.ast.family_id || '—';
     const axis = d.axes.find(a => a.id === this._workspaceState.axisId);
@@ -176,7 +178,7 @@
       this._workspaceState.lastSaved ? 'آخر حفظ مؤكد: ' + this._workspaceState.lastSaved : 'آخر حفظ مؤكد: —';
 
     const deleteBtn = document.getElementById('workspace-delete-draft');
-    if (deleteBtn) deleteBtn.classList.toggle('hidden', d.status !== 'draft' || !d.ast.id);
+    if (deleteBtn) deleteBtn.classList.toggle('hidden', !isDraft || !d.ast.id);
 
     this._markWorkspaceDirty(!!this._workspaceState.dirty);
     document.querySelectorAll('.workspace-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.section === this._workspaceState.section));
@@ -197,24 +199,24 @@
   };
 
   AssessmentManager.prototype._renderOverview = function(isNew) {
-    const d=this._workspaceData, pub=d.status==='published';
+    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft';
     return '<div class="workspace-flow">' +
       '<section class="editor-card editor-card-primary">' +
-        '<div class="card-title-row"><div><h3>بيانات التقييم</h3><p class="editor-help">عدّل البيانات ثم استخدم «حفظ البيانات الأساسية». النجاح لا يُعرض إلا بعد إعادة القراءة من الخادم.</p></div><span class="scope-pill">'+(pub?'تحرير نص منشور':'نسخة عمل قابلة للتحرير')+'</span></div>' +
+        '<div class="card-title-row"><div><h3>بيانات التقييم</h3><p class="editor-help">'+(archived?'هذا إصدار تاريخي للقراءة فقط. لا يمكن تعديل محتواه من هنا.':'عدّل البيانات ثم استخدم «حفظ البيانات الأساسية». النجاح لا يُعرض إلا بعد إعادة القراءة من الخادم.')+'</p></div><span class="scope-pill '+(archived?'scope-locked':'')+'">'+(pub?'تحرير نص منشور':archived?'أرشيف — قراءة فقط':'نسخة عمل قابلة للتحرير')+'</span></div>' +
         '<div class="editor-form-grid">' +
-          '<label>العنوان بالعربية <span class="required-mark">*</span><input id="ast-title-ar" type="text" required value="'+esc(this,d.ast.title_ar||'')+'" autocomplete="off"></label>' +
-          '<label>العنوان بالإنجليزية<input id="ast-title-en" type="text" value="'+esc(this,d.ast.title_en||'')+'" autocomplete="off"></label>' +
-          '<label class="wide">الوصف<textarea id="ast-description" rows="5">'+esc(this,d.ast.description||'')+'</textarea></label>' +
+          '<label>العنوان بالعربية <span class="required-mark">*</span><input id="ast-title-ar" type="text" required value="'+esc(this,d.ast.title_ar||'')+'" autocomplete="off" '+(archived?'disabled':'')+'></label>' +
+          '<label>العنوان بالإنجليزية<input id="ast-title-en" type="text" value="'+esc(this,d.ast.title_en||'')+'" autocomplete="off" '+(archived?'disabled':'')+'></label>' +
+          '<label class="wide">الوصف<textarea id="ast-description" rows="5" '+(archived?'disabled':'')+'>'+esc(this,d.ast.description||'')+'</textarea></label>' +
         '</div>' +
         '<input type="hidden" id="ast-id" value="'+esc(this,d.ast.id||'')+'">' +
         '<input type="hidden" id="ast-status" value="'+(pub?'Published':'Draft')+'">' +
         '<div class="setting-strip">' +
-          '<label class="switch-row"><input id="ast-has-traps" type="checkbox" '+(d.ast.has_traps?'checked':'')+(pub?' disabled':'')+'><span><strong>الأفخاخ</strong><small>تفعيل منطق Trap لهذه النسخة</small></span></label>' +
-          '<label class="switch-row"><input id="ast-has-simulator" type="checkbox" '+(d.ast.has_ev_simulator?'checked':'')+(pub?' disabled':'')+'><span><strong>محاكي EV</strong><small>تفعيل إعداد المحاكي لهذه النسخة</small></span></label>' +
+          '<label class="switch-row"><input id="ast-has-traps" type="checkbox" '+(d.ast.has_traps?'checked':'')+((pub||archived)?' disabled':'')+'><span><strong>الأفخاخ</strong><small>تفعيل منطق Trap لهذه النسخة</small></span></label>' +
+          '<label class="switch-row"><input id="ast-has-simulator" type="checkbox" '+(d.ast.has_ev_simulator?'checked':'')+((pub||archived)?' disabled':'')+'><span><strong>محاكي EV</strong><small>تفعيل إعداد المحاكي لهذه النسخة</small></span></label>' +
         '</div>' +
         '<div class="editor-actions editor-actions-primary">' +
-          '<button type="button" class="btn-primary" id="workspace-save-details">💾 حفظ البيانات الأساسية</button>' +
-          (pub?'<span class="editor-help-inline">التعديلات الهيكلية والحسابية تتطلب «نسخة عمل جديدة».</span>':'<span class="editor-help-inline">الحالة والتوقيت الظاهر أعلاه مصدرهما الخادم بعد آخر حفظ مؤكد.</span>') +
+          (archived?'':'<button type="button" class="btn-primary" id="workspace-save-details">💾 حفظ البيانات الأساسية</button>') +
+          (pub?'<span class="editor-help-inline">التعديلات الهيكلية والحسابية تتطلب «نسخة عمل جديدة».</span>':archived?'<span class="editor-help-inline">لا توجد عملية حفظ هنا لأن الإصدار مؤرشف.</span>':'<span class="editor-help-inline">الحالة والتوقيت الظاهر أعلاه مصدرهما الخادم بعد آخر حفظ مؤكد.</span>') +
         '</div>' +
       '</section>' +
       '<section class="editor-card">' +
@@ -235,7 +237,7 @@
     '</div>';
   };
   AssessmentManager.prototype._renderStructure = function() {
-    const d=this._workspaceData, pub=d.status==='published';
+    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft';
     const list=d.axes.map((a,index) => {
       const qs=d.questions.filter(q=>q.axis_id===a.id);
       return '<button type="button" class="workspace-axis-item '+(a.id===this._workspaceState.axisId?'active':'')+'" data-axis-select="'+esc(this,a.id)+'">' +
@@ -277,7 +279,7 @@
     '</div>';
   };
   AssessmentManager.prototype._renderQuestions = function() {
-    const d=this._workspaceData, pub=d.status==='published', axis=d.axes.find(a=>a.id===this._workspaceState.axisId);
+    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft', axis=d.axes.find(a=>a.id===this._workspaceState.axisId);
     const axisButtons=d.axes.map(a=>'<button type="button" class="mini-chip '+(a.id===this._workspaceState.axisId?'active':'')+'" data-axis-question="'+a.id+'">'+esc(this,a.title_ar||a.code)+'</button>').join('');
     if(!axis) return '<section class="editor-card"><div class="card-title-row"><div><h3>الأسئلة</h3><p class="editor-help">لا توجد محاور محددة بعد. ارجع إلى «الهيكل» وأنشئ محوراً أولاً.</p></div><button type="button" class="btn-secondary" onclick="window.assessmentManager._workspaceNavigate(\'structure\')">← إلى الهيكل</button></div></section>';
 
@@ -332,7 +334,7 @@
       qList+'</aside><main class="workspace-editor-pane">'+editor+'</main></div>';
   };
   AssessmentManager.prototype._renderCalculation = function() {
-    const d=this._workspaceData, pub=d.status==='published', ast=d.ast;
+    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft', ast=d.ast;
     const roleRows=d.axes.map(a=>
       '<label class="calc-row"><span><strong>'+esc(this,a.title_ar||a.code)+'</strong><small>'+esc(this,a.code||'')+'</small></span>' +
       '<select '+(pub?'disabled':'')+' id="calc-axis-role-'+a.id+'" data-axis-code="'+esc(this,a.code||'')+'"><option value="">— بدون دور —</option>'+
