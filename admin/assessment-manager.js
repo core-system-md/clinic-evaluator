@@ -222,137 +222,54 @@ class AssessmentManager {
     async renderAssessmentsTable() {
         const container = document.getElementById('assessments-table-container');
         if (!container) return;
-
         try {
-            if (!this.supabase) {
-                container.innerHTML = '<p style="color:red; padding:10px;">خطأ: Supabase غير متصل</p>';
-                return;
-            }
-
-            // جلب حزم البيانات المتزامنة للتقييمات وإعدادات بوابات النفاذ ماليًا
-            const data = await this.supabase.select('assessment_types');
+            const data = await this.supabase.select('assessment_types') || [];
             const families = await this.supabase.select('assessment_families') || [];
             families.forEach(f => { this.familyBySlug[f.slug] = f; });
-            (data || []).forEach(ast => { const family = families.find(f => f.id === ast.family_id); if (family) this.familyByVersionId[ast.id] = family; });
+            data.forEach(ast => { const f = families.find(x => x.id === ast.family_id); if (f) this.familyByVersionId[ast.id] = f; });
             const authSettings = await this.supabase.select('assessment_settings') || [];
-            const sessionCountsPayload = await this.supabase.request('rpc/get_admin_assessment_session_counts_secure', {
-                method: 'POST',
-                body: JSON.stringify({})
-            });
-            const sessionCountByAssessment = sessionCountsPayload?.result || sessionCountsPayload || {};
-
-            if (!data || data.length === 0) {
-                container.innerHTML = `
-                    <div style="padding:20px; text-align:center; color:#6b7280;">
-                        <p>لا توجد تقييمات حالياً في قاعدة البيانات.</p>
-                        <button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="margin-top:10px; padding:8px 16px;">إضافة تقييم جديد +</button>
-                    </div>`;
-                return;
-            }
-
-            // تحديث مخزن التقييمات نفسه بعد كل refresh حتى لا تبقى الفلاتر على بيانات قديمة.
-            this.allAssessments = data || [];
-
-            // بناء خارطة الأسماء محلياً لحل مشكلة غياب اسم التقييم في لوحة العرض
-            data.forEach(ast => {
-                this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug;
-            });
-
+            const countsRaw = await this.supabase.request('rpc/get_admin_assessment_session_counts_secure',{method:'POST',body:'{}'});
+            const sessionCounts = countsRaw?.result || countsRaw || {};
+            this.allAssessments = data;
+            data.forEach(ast => { this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug; });
             this.populateFilterDropdown();
 
-            // تطبيق الـ Soft Delete برمجياً لعرض السجلات النشطة فقط ومنع الفوضى البصرية
-            const activeAssessments = data.filter(ast => ast.is_active !== false);
+            const active = data.filter(a => ['draft','published'].includes(String(a.status||'').toLowerCase()))
+              .sort((a,b) => new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));
+            const archived = data.filter(a => String(a.status||'').toLowerCase()==='archived')
+              .sort((a,b) => new Date(b.archived_at||b.updated_at||b.created_at)-new Date(a.archived_at||a.updated_at||a.created_at));
 
-            if (activeAssessments.length === 0) {
-                container.innerHTML = `
-                    <div style="padding:20px; text-align:center; color:#6b7280;">
-                        <p>جميع التقييمات مشطوبة أو مؤرشفة حالياً.</p>
-                        <button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="margin-top:10px; padding:8px 16px;">إضافة تقييم جديد +</button>
-                    </div>`;
-                return;
-            }
+            const access = (ast,family) => {
+              if (String(ast.status||'').toLowerCase() !== 'published') return '<span class="badge" style="background:#f8fafc;color:#64748b;border:1px solid #e2e8f0;">غير مطبق على المسودة</span>';
+              const slug=family?.slug||ast.slug, setting=authSettings.find(x=>x.assessment_key===slug), locked=!!setting?.auth_enabled;
+              return '<div style="display:flex;gap:4px;justify-content:center;align-items:center;flex-wrap:wrap;">'+
+                '<span class="badge" style="background:'+(locked?'#fee2e2':'#dcfce7')+';color:'+(locked?'#991b1b':'#166534')+';border:1px solid '+(locked?'#fca5a5':'#86efac')+';">'+(locked?'🔒 مدفوع محمي':'🔓 مجاني عام')+'</span>'+
+                '<button onclick="window.assessmentManager.toggleAuthLock(\''+slug+'\', '+locked+')" class="btn-small" style="padding:4px 6px;font-size:.72rem;background:#fffbeb;color:#92400e;border:1px solid #fde68a;">'+(locked?'فتح مجاني':'قفل مدفوع')+'</button>'+
+                (locked?'<button onclick="window.assessmentManager.openUserModal(\''+slug+'\')" class="btn-small" style="padding:4px 6px;font-size:.72rem;background:#0f766e;color:#fff;">🔑 كود</button>':'')+
+              '</div>';
+            };
 
-            activeAssessments.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+            const activeRows=active.map(ast=>{
+              const status=String(ast.status||'').toLowerCase(), family=this.familyByVersionId[ast.id], execution=Number(sessionCounts[ast.id]||0);
+              const actions=status==='draft'
+                ? '<button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">✏️ تعديل</button>'+
+                  '<button onclick="window.assessmentManager.publishAssessment(\''+ast.id+'\')" class="btn-small lifecycle-publish">🚀 نشر</button>'+
+                  '<button onclick="window.assessmentManager.deleteAssessment(\''+ast.id+'\', '+execution+')" class="btn-small lifecycle-delete">🗑 حذف المسودة</button>'
+                : '<button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">✏️ تعديل المحتوى</button>'+
+                  '<button onclick="window.assessmentManager.duplicateAssessment(\''+ast.id+'\')" class="btn-details lifecycle-copy">📋 نسخة عمل جديدة</button>'+
+                  (family?.id?'<button onclick="window.assessmentManager.archiveAssessment(\''+ast.id+'\', \'published\')" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
+              return '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:12px 10px;font-weight:600;color:#1e293b;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#94a3b8;font-weight:400;margin-top:3px;">v'+(ast.version||'—')+' · '+(ast.axis_count||0)+' محاور · '+(ast.question_count||0)+' أسئلة</div></td><td style="padding:12px 10px;">'+(status==='published'?'<span class="badge badge-success">منشور</span>':'<span class="badge badge-warning">مسودة</span>')+'</td><td style="padding:12px 10px;text-align:center;">'+access(ast,family)+'</td><td style="padding:12px 10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">'+actions+'</div></td></tr>';
+            }).join('');
 
-            let html = `
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h4 style="color:#134e4a; font-weight:700;">التقييمات المتاحة في النظام</h4>
-                    <button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="padding:6px 12px; font-size:0.85rem;">+ تقييم جديد</button>
-                    <button onclick="window.assessmentManager.importAssessment()" class="btn-primary" style="padding:6px 12px; font-size:0.85rem; background:#6366f1;">📥 استيراد</button>
-                </div>
-                <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
-                    <table style="width:100%; border-collapse:collapse; background:white; font-size:0.85rem; text-align:right;">
-                        <thead>
-                            <tr style="background:#f8fafc; border-bottom:2px solid #e2e8f0;">
-                                <th style="padding:12px 10px; color:#475569;">عنوان التقييم</th>
-                                <th style="padding:12px 10px; color:#475569;">الحالة</th>
-                                <th style="padding:12px 10px; color:#475569;">نمط النفاذ</th>
-                                <th style="padding:12px 10px; color:#475569; text-align:center;">إجراءات التحكم</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-            `;
+            const archiveRows=archived.map(ast=>'<tr style="border-bottom:1px solid #e5e7eb;"><td style="padding:10px;font-weight:600;color:#475569;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#94a3b8;margin-top:3px;">v'+(ast.version||'—')+' · تاريخي</div></td><td style="padding:10px;"><span class="badge btn-secondary">مؤرشف</span></td><td style="padding:10px;color:#64748b;">غير متاح للعامة</td><td style="padding:10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;"><button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">👁 عرض تاريخي</button><button onclick="window.assessmentManager.restorePublicAssessment(\''+ast.id+'\')" class="btn-small lifecycle-restore">↩️ استعادة للظهور</button></div></td></tr>').join('');
 
-            activeAssessments.forEach(ast => {
-                let badgeClass = 'badge-warning';
-                let statusText = 'مسودة';
-                
-                const currentStatusClean = (ast.status || '').toLowerCase();
-                if (currentStatusClean === 'published') { badgeClass = 'badge-success'; statusText = 'منشور'; }
-                if (currentStatusClean === 'archived') { badgeClass = 'btn-secondary'; statusText = 'مؤرشف'; }
-
-                // تتبع ومطابقة قفل بوابات الدفع والنفاذ المالي للتقييم
-                const family = this.familyByVersionId[ast.id];
-                const publicSlug = family?.slug || ast.slug;
-                const executionCount = sessionCountByAssessment[ast.id] || 0;
-                const lockedSetting = authSettings.find(s => s.assessment_key === publicSlug);
-                const isLocked = lockedSetting ? !!lockedSetting.auth_enabled : false;
-
-                html += `
-                    <tr style="border-bottom:1px solid #f1f5f9;">
-                        <td style="padding:12px 10px; font-weight:600; color:#1e293b;">
-                            ${ast.title_ar || 'بدون عنوان'}
-                            <div style="font-size:0.75rem; color:#94a3b8; font-weight:400; margin-top:2px;">
-                                المحاور: ${ast.axis_count || 0} | الأسئلة: ${ast.question_count || 0}
-                            </div>
-                        </td>
-                        <td style="padding:12px 10px;">
-                            <span class="badge ${badgeClass}">${statusText}</span>
-                        </td>
-                        <td style="padding:12px 10px;">
-                            <span class="badge" style="background:${isLocked ? '#fee2e2' : '#dcfce7'}; color:${isLocked ? '#991b1b' : '#166534'}; border:1px solid ${isLocked ? '#fca5a5' : '#86efac'};">
-                                ${isLocked ? '🔒 مدفوع محمي' : '🔓 مجاني عام'}
-                            </span>
-                        </td>
-                        <td style="padding:12px 10px; text-align:center;">
-                            <div style="display:flex; gap:4px; justify-content:center; flex-wrap:wrap;">
-                                <button onclick="window.assessmentManager.editAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem;">✏️ تعديل</button>
-                                <button onclick="window.assessmentManager.duplicateAssessment('${ast.id}')" class="btn-details" style="padding:4px 6px; font-size:0.75rem; background:#6366f1;">📋 نسخة عمل جديدة</button>
-                                ${currentStatusClean === 'draft' ? `<button onclick="window.assessmentManager.publishAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">🚀 نشر</button>` : ''}
-                                ${currentStatusClean === 'published'
-                                    ? (family?.id ? `<button onclick="window.assessmentManager.archiveAssessment('${ast.id}', 'published')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fff7ed; color:#9a3412;">${executionCount > 0 ? '📦 أرشفة وإيقاف الظهور' : '⏹ إيقاف الظهور'}</button>` : '')
-                                    : currentStatusClean === 'draft'
-                                        ? `<button onclick="window.assessmentManager.deleteAssessment('${ast.id}', ${executionCount})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#e2e8f0; color:#334155;">🗑️ حذف المسودة</button>`
-                                        : `<button onclick="window.assessmentManager.restorePublicAssessment('${ast.id}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#dcfce7; color:#166534;">↩️ استعادة للعرض</button>`}
-                                <button onclick="window.assessmentManager.toggleAuthLock('${publicSlug}', ${isLocked})" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#fffbeb; color:#b45309; border:1px solid #fef3c7;">
-                                    ${isLocked ? '🔓 فتح مجاني' : '🔒 قفل مدفوع'}
-                                </button>
-                                ${isLocked ? `<button onclick="window.assessmentManager.openUserModal('${publicSlug}')" class="btn-small" style="padding:4px 6px; font-size:0.75rem; background:#0f766e; color:white;">🔑 كود</button>` : ''}
-                            </div>
-                        </td>
-                    </tr>
-                `;
-            });
-
-            html += '</tbody></table></div>';
-            container.innerHTML = html;
-
-        } catch (err) {
-            container.innerHTML = `<p style="color:red; padding:10px;">فشل تحميل مخرجات قاعدة البيانات: ${err.message}</p>`;
+            container.innerHTML='<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:15px;"><h4 style="color:#134e4a;font-weight:700;margin:0;">التقييمات النشطة</h4><div style="display:flex;gap:6px;flex-wrap:wrap;"><button onclick="window.assessmentManager.createNewAssessment()" class="btn-primary" style="padding:6px 12px;font-size:.85rem;">+ تقييم جديد</button><button onclick="window.assessmentManager.importAssessment()" class="btn-primary" style="padding:6px 12px;font-size:.85rem;background:#6366f1;">📥 استيراد</button></div></div>'+
+              '<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><table style="width:100%;border-collapse:collapse;background:white;font-size:.85rem;text-align:right;"><thead><tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0;"><th style="padding:12px 10px;">عنوان التقييم</th><th style="padding:12px 10px;">الحالة</th><th style="padding:12px 10px;text-align:center;">النفاذ العام</th><th style="padding:12px 10px;text-align:center;">إجراءات التحكم</th></tr></thead><tbody>'+(activeRows||'<tr><td colspan="4" style="padding:20px;text-align:center;color:#64748b;">لا توجد تقييمات نشطة.</td></tr>')+'</tbody></table></div>'+
+              '<section style="margin-top:18px;padding:14px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;"><div><h4 style="margin:0;color:#475569;">🗄️ الأرشيف</h4><small style="color:#94a3b8;">نسخ تاريخية غير متاحة للعامة ولا تدخل في قائمة العمل.</small></div><span class="badge btn-secondary">'+archived.length+' نسخ</span></div><div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;background:white;font-size:.82rem;text-align:right;"><thead><tr style="background:#fff;border-bottom:1px solid #e2e8f0;"><th style="padding:10px;">التقييم</th><th style="padding:10px;">الحالة</th><th style="padding:10px;">الظهور</th><th style="padding:10px;text-align:center;">إجراءات</th></tr></thead><tbody>'+(archiveRows||'<tr><td colspan="4" style="padding:16px;text-align:center;color:#94a3b8;">الأرشيف فارغ.</td></tr>')+'</tbody></table></div></section>';
+        } catch(err) {
+            container.innerHTML='<p style="color:red;padding:10px;">فشل تحميل قائمة التقييمات: '+this.escapeHtml(String(err?.message||err))+'</p>';
         }
     }
-
-    // استدعاء دالة الـ RPC السحابية الآمنة لتبديل نمط النفاذ (مجاني / مدفوع)
     async toggleAuthLock(slug, isLocked) {
         try {
             await this.supabase.request('rpc/toggle_assessment_auth_secure', {
