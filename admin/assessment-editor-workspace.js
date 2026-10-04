@@ -93,9 +93,10 @@
   };
 
   AssessmentManager.prototype._loadWorkspaceData = async function(id) {
-    const allAssessments = await this.supabase.select('assessment_types') || [];
-    const ast = allAssessments.find(a => a.id === id);
-    if (!ast) throw new Error('التقييم المطلوب غير موجود.');
+    const cached = Array.isArray(this.allAssessments) ? this.allAssessments.find(a => a.id === id) : null;
+    const fetched = cached ? [] : (await this.supabase.select('assessment_types', {filter:{id}}) || []);
+    const ast = cached || fetched[0];
+    if (!ast) throw new Error('تعذر العثور على إصدار التقييم المطلوب على الخادم.');
     const status = cleanStatus(ast);
     const axes = (await this.supabase.select('axes', {filter:{assessment_type_id:id}}) || []).sort(byOrder);
     const questions = (await this.supabase.select('questions', {filter:{assessment_type_id:id}}) || []).sort(byOrder);
