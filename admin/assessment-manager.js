@@ -259,7 +259,7 @@ class AssessmentManager {
                   '<button onclick="window.assessmentManager.deleteAssessment(\''+ast.id+'\', '+execution+')" class="btn-small lifecycle-delete">🗑 حذف المسودة</button>'
                 : '<button onclick="window.assessmentManager.editAssessment(\''+ast.id+'\')" class="btn-details">✏️ تعديل المحتوى</button>'+
                   '<button onclick="window.assessmentManager.duplicateAssessment(\''+ast.id+'\')" class="btn-details lifecycle-copy">📋 نسخة عمل جديدة</button>'+
-                  (family?.id?'<button onclick="window.assessmentManager.archiveAssessment(\''+ast.id+'\', \'published\', true)" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
+                  (family?.id?'<button onclick="window.assessmentManager.stopPublicAssessment(\''+family.id+'\')" class="btn-small lifecycle-stop">⏹ إيقاف الظهور العام</button>':'');
               return '<tr style="border-bottom:1px solid #f1f5f9;"><td style="padding:12px 10px;font-weight:600;color:#1e293b;">'+(ast.title_ar||'بدون عنوان')+'<div style="font-size:.72rem;color:#94a3b8;font-weight:400;margin-top:3px;">v'+(ast.version||'—')+' · '+(ast.axis_count||0)+' محاور · '+(ast.question_count||0)+' أسئلة</div></td><td style="padding:12px 10px;">'+(status==='published'?'<span class="badge badge-success">منشور</span>':'<span class="badge badge-warning">مسودة</span>')+'</td><td style="padding:12px 10px;text-align:center;">'+access(ast,family)+'</td><td style="padding:12px 10px;text-align:center;"><div style="display:flex;gap:4px;justify-content:center;flex-wrap:wrap;">'+actions+'</div></td></tr>';
             }).join('');
 
