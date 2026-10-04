@@ -66,3 +66,14 @@ test('draft deletion is single-entry, server-authoritative and migration fixes c
     "delete from public.assessment_types"
   ]) assert.ok(migration.includes(token), token + ' explicit cleanup missing');
 });
+
+
+test('archived versions are viewable but have no mutation controls', () => {
+  const ws = js;
+  assert.ok(ws.includes("status === 'archived'"), 'archived status branch missing');
+  assert.ok(ws.includes("archived?'أرشيف — قراءة فقط'"), 'archived calculation read-only label missing');
+  assert.ok(ws.includes("archived?'أرشيف / تاريخي'"), 'archived workspace status label missing');
+  assert.ok(ws.includes("restorePublicAssessment"), 'archived restore action missing');
+  assert.ok(ws.includes("(pub||archived)?'':"), 'archived mutation controls are not globally suppressed');
+  assert.ok(!ws.includes("if (status === 'archived') throw"), 'archived versions are still blocked from opening');
+});
