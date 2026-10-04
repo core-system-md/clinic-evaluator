@@ -280,61 +280,59 @@
     '</div>';
   };
   AssessmentManager.prototype._renderQuestions = function() {
-    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft', axis=d.axes.find(a=>a.id===this._workspaceState.axisId);
-    const axisButtons=d.axes.map(a=>'<button type="button" class="mini-chip '+(a.id===this._workspaceState.axisId?'active':'')+'" data-axis-question="'+a.id+'">'+esc(this,a.title_ar||a.code)+'</button>').join('');
-    if(!axis) return '<section class="editor-card"><div class="card-title-row"><div><h3>الأسئلة</h3><p class="editor-help">لا توجد محاور محددة بعد. ارجع إلى «الهيكل» وأنشئ محوراً أولاً.</p></div><button type="button" class="btn-secondary" onclick="window.assessmentManager._workspaceNavigate(\'structure\')">← إلى الهيكل</button></div></section>';
+    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', axis=d.axes.find(a=>a.id===this._workspaceState.axisId);
+    if(!axis) return '<section class="editor-card"><div class="card-title-row"><div><h3>الأسئلة</h3><p class="editor-help">اختر محوراً من الهيكل أولاً.</p></div><button type="button" class="btn-secondary" onclick="window.assessmentManager._workspaceNavigate(\'structure\')">← إلى الهيكل</button></div></section>';
 
     const qs=d.questions.filter(q=>q.axis_id===axis.id).sort(byOrder);
-    const qList=qs.map((q,index)=>
-      '<button type="button" class="workspace-question-item '+(q.id===this._workspaceState.questionId?'active':'')+'" data-question-select="'+q.id+'">' +
-        '<span class="item-index">'+(index+1)+'</span><span class="item-main"><strong>'+esc(this,q.question_text_ar||q.question_text||'سؤال بدون نص')+'</strong><small>'+esc(this,q.code||'')+'</small></span>' +
-      '</button>'
-    ).join('') || '<div class="workspace-empty">لا توجد أسئلة تحت هذا المحور.</div>';
+    const axisButtons=d.axes.map(a=>'<button type="button" class="mini-chip '+(a.id===axis.id?'active':'')+'" data-axis-question="'+a.id+'">'+esc(this,a.title_ar||a.code)+'</button>').join('');
 
-    const q=qs.find(x=>x.id===this._workspaceState.questionId);
-    let editor='<section class="editor-card"><div class="empty-state-icon">?</div><h3>اختر سؤالاً</h3><p class="editor-help">اختر سؤالاً من القائمة لفتح نصه وخياراته.</p></section>';
-    if(q){
+    const cards=qs.map((q,index)=>{
       const opts=d.options.filter(o=>o.question_id===q.id).sort(byOrder);
       const optionCards=opts.map((o,i)=>
         '<article class="option-card">' +
           '<div class="option-card-head"><span class="option-number">الخيار '+(i+1)+'</span><span class="option-code">Index '+esc(this,o.option_index??i)+'</span></div>' +
           '<div class="option-fields">' +
-            '<label>النص<input id="option-label-'+o.id+'" type="text" value="'+esc(this,o.label_ar||o.label||'')+'" '+((pub||archived)?'disabled':'')+'></label>' +
-            (pub?
-              '<div class="readonly-stat"><span>القيمة</span><b>'+esc(this,o.option_value??0)+'</b></div><div class="readonly-stat"><span>الترتيب</span><b>'+esc(this,o.display_order??i+1)+'</b></div>' +
-              '<button type="button" class="btn-secondary" onclick="window.assessmentManager.updatePublishedOptionText(\''+o.id+'\',document.getElementById(\'option-label-'+o.id+'\').value,\''+d.ast.id+'\')">💾 حفظ النص</button>' :
-              '<label>القيمة <input id="option-value-'+o.id+'" type="number" min="0" max="100" step="0.01" value="'+esc(this,o.option_value??0)+'" '+(archived?'disabled':'')+'></label>' +
-              '<label>رقم الخيار <input id="option-index-'+o.id+'" type="number" min="0" value="'+esc(this,o.option_index??i)+'" '+(archived?'disabled':'')+'></label>' +
-              '<label>ترتيب العرض <input id="option-order-'+o.id+'" type="number" min="1" value="'+esc(this,o.display_order??i+1)+'" '+(archived?'disabled':'')+'></label>' +
-              '<label class="check-row"><input id="option-trap-'+o.id+'" type="checkbox" '+(o.is_trap?'checked':'')+(archived?' disabled':'')+'> Trap</label>' +
-              '<div class="option-actions">'+(archived?'':'<button type="button" class="btn-secondary" onclick="window.assessmentManager.updateDraftOption(\''+o.id+'\',\''+d.ast.id+'\')">💾 حفظ الخيار</button><button type="button" class="btn-danger" onclick="window.assessmentManager.deleteOption(\''+o.id+'\',\''+d.ast.id+'\')">حذف</button>')+'</div>') +
+            (pub
+              ? '<label>النص<input id="option-label-'+o.id+'" type="text" value="'+esc(this,o.label_ar||o.label||'')+'"></label>' +
+                '<div class="readonly-stat"><span>القيمة</span><b>'+esc(this,o.option_value??0)+'</b></div>' +
+                '<div class="readonly-stat"><span>الترتيب</span><b>'+esc(this,o.display_order??i+1)+'</b></div>' +
+                '<button type="button" class="btn-secondary" onclick="window.assessmentManager.updatePublishedOptionText(\''+o.id+'\',document.getElementById(\'option-label-'+o.id+'\').value,\''+d.ast.id+'\')">💾 حفظ النص</button>'
+              : '<label>النص<input id="option-label-'+o.id+'" type="text" value="'+esc(this,o.label_ar||o.label||'')+'"></label>' +
+                '<label>القيمة<input id="option-value-'+o.id+'" type="number" min="0" max="100" step="0.01" value="'+esc(this,o.option_value??0)+'"></label>' +
+                '<label>رقم الخيار<input id="option-index-'+o.id+'" type="number" min="0" value="'+esc(this,o.option_index??i)+'"></label>' +
+                '<label>ترتيب العرض<input id="option-order-'+o.id+'" type="number" min="1" value="'+esc(this,o.display_order??i+1)+'"></label>' +
+                '<label class="check-row"><input id="option-trap-'+o.id+'" type="checkbox" '+(o.is_trap?'checked':'')+'> Trap</label>' +
+                '<div class="option-actions"><button type="button" class="btn-secondary" onclick="window.assessmentManager.updateDraftOption(\''+o.id+'\',\''+d.ast.id+'\')">💾 حفظ الخيار</button><button type="button" class="btn-danger" onclick="window.assessmentManager.deleteOption(\''+o.id+'\',\''+d.ast.id+'\')">حذف</button></div>'
+            ) +
           '</div>' +
         '</article>'
       ).join('');
 
-      const addOption=(pub||archived)?'':'<div class="inline-create inline-create-option"><div><strong>إضافة خيار</strong><small>حد أقصى 5 خيارات لكل سؤال.</small></div><div class="inline-create-fields option-create-fields"><input id="new-option-label" type="text" placeholder="نص الخيار"><input id="new-option-score" type="number" min="0" max="100" step="0.01" value="0" placeholder="القيمة"><button type="button" class="btn-primary btn-compact" '+(opts.length>=5?'disabled':'')+' onclick="window.assessmentManager.addOption(\''+q.id+'\',\''+d.ast.id+'\')">+ إضافة الخيار</button></div></div>';
+      const addOption=(pub||archived)?'':'<div class="inline-create inline-create-option"><div><strong>إضافة خيار لهذا السؤال</strong><small>'+opts.length+'/5 خيارات</small></div><div class="inline-create-fields option-create-fields"><input id="new-option-label-'+q.id+'" type="text" placeholder="نص الخيار"><input id="new-option-score-'+q.id+'" type="number" min="0" max="100" step="0.01" value="0" placeholder="القيمة"><button type="button" class="btn-primary btn-compact" '+(opts.length>=5?'disabled':'')+' onclick="window.assessmentManager.addOption(\''+q.id+'\',\''+d.ast.id+'\')">+ إضافة الخيار</button></div></div>';
 
-      editor='<section class="editor-card editor-card-primary">' +
-        '<div class="card-title-row"><div><div class="context-kicker">السؤال المحدد</div><h3>'+esc(this,q.code||'السؤال')+'</h3><p class="editor-help">هذا السؤال تابع لمحور: <b>'+esc(this,axis.title_ar||axis.code)+'</b>.</p></div>' +
-        (pub?'<span class="scope-pill scope-locked">المحتوى النصي فقط</span>':archived?'<span class="scope-pill scope-locked">أرشيف — قراءة فقط</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">حذف السؤال</button>') +
+      return '<article class="question-editor-card">' +
+        '<div class="question-editor-head"><div><span class="context-kicker">السؤال '+(index+1)+' من '+qs.length+'</span><h3>'+esc(this,q.question_text_ar||q.question_text||'سؤال بدون نص')+'</h3><span class="question-code">'+esc(this,q.code||'')+'</span></div>' +
+        (pub?'<span class="scope-pill scope-locked">محتوى نصي فقط</span>':archived?'<span class="scope-pill scope-locked">أرشيف — قراءة فقط</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">حذف السؤال</button>') +
         '</div>' +
-        '<label>نص السؤال<textarea id="question-text-workspace" data-question-text="'+q.id+'" rows="5" '+(archived?'disabled':'')+'>'+esc(this,q.question_text_ar||q.question_text||'')+'</textarea></label>' +
-        (pub?
-          '<div class="locked-grid"><span>الترتيب: <b>'+esc(this,q.display_order??1)+'</b></span><span>إلزامي: <b>'+(q.is_required?'نعم':'لا')+'</b></span><span>Trap: <b>'+esc(this,q.trap_index??'—')+'</b></span><span>النوع: <b>'+esc(this,q.question_type||'—')+'</b></span></div>' :
-          '<div class="editor-form-grid"><label>الترتيب<input id="question-order-'+q.id+'" type="number" min="1" value="'+esc(this,q.display_order??1)+'" '+(archived?'disabled':'')+'"></label><label class="check-row"><input id="question-required-'+q.id+'" type="checkbox" '+(q.is_required?'checked':'')+(archived?' disabled':'')+'> إلزامي</label><label>Trap<input id="question-trap-'+q.id+'" type="number" min="0" value="'+esc(this,q.trap_index??'')+'"></label><label>نوع السؤال<input type="text" value="'+esc(this,q.question_type||'select')+'" disabled></label></div>') +
-        '<div class="editor-actions">' +
-          (pub?'<button type="button" class="btn-primary" onclick="window.assessmentManager.updatePublishedQuestionText(\''+q.id+'\',document.getElementById(\'question-text-workspace\').value,\''+d.ast.id+'\')">💾 حفظ نص السؤال</button><button type="button" class="btn-secondary" onclick="window.assessmentManager.duplicateAssessment(\''+d.ast.id+'\')">📋 نسخة عمل</button>' :
-           archived?'<span class="editor-help-inline">هذا السؤال تاريخي للقراءة فقط.</span>' :
-            '<button type="button" class="btn-primary" onclick="window.assessmentManager.updateDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">💾 حفظ السؤال</button>') +
-        '</div>' +
-        '<div class="options-editor"><div class="section-subhead"><div><h4>خيارات الإجابة</h4><span>'+opts.length+' من 5</span></div></div>'+addOption+(optionCards||'<div class="workspace-empty">لا توجد خيارات لهذا السؤال.</div>')+'</div>' +
-      '</section>';
-    }
+        (pub
+          ? '<label>نص السؤال<textarea id="question-text-'+q.id+'" rows="4">'+esc(this,q.question_text_ar||q.question_text||'')+'</textarea></label><div class="locked-grid"><span>الترتيب: <b>'+esc(this,q.display_order??1)+'</b></span><span>إلزامي: <b>'+(q.is_required?'نعم':'لا')+'</b></span><span>Trap: <b>'+esc(this,q.trap_index??'—')+'</b></span></div><div class="editor-actions"><button type="button" class="btn-primary" onclick="window.assessmentManager.updatePublishedQuestionText(\''+q.id+'\',document.getElementById(\'question-text-'+q.id+'\').value,\''+d.ast.id+'\')">💾 حفظ نص السؤال</button><button type="button" class="btn-secondary" onclick="window.assessmentManager.duplicateAssessment(\''+d.ast.id+'\')">📋 إنشاء نسخة عمل</button></div>'
+          : '<label>نص السؤال<textarea id="question-text-'+q.id+'" data-question-text="'+q.id+'" rows="4">'+esc(this,q.question_text_ar||q.question_text||'')+'</textarea></label><div class="editor-form-grid"><label>الترتيب<input id="question-order-'+q.id+'" type="number" min="1" value="'+esc(this,q.display_order??1)+'"></label><label class="check-row"><input id="question-required-'+q.id+'" type="checkbox" '+(q.is_required?'checked':'')+'> إلزامي</label><label>Trap<input id="question-trap-'+q.id+'" type="number" min="0" value="'+esc(this,q.trap_index??'')+'"></label></div><div class="editor-actions"><button type="button" class="btn-primary" onclick="window.assessmentManager.updateDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">💾 حفظ السؤال</button></div>'
+        ) +
+        '<div class="question-options"><div class="section-subhead"><div><h4>خيارات الإجابة</h4><span>'+opts.length+' خيارات محفوظة لهذا السؤال</span></div></div>' +
+        (optionCards || '<div class="workspace-empty">لا توجد خيارات محفوظة لهذا السؤال.</div>') +
+        addOption +
+        '</div></article>';
+    }).join('');
 
-    return '<div class="axis-chip-row">'+axisButtons+'</div><div class="workspace-split"><aside class="workspace-list-pane"><div class="pane-head"><div><h3>أسئلة المحور</h3><span>'+qs.length+' سؤال</span></div>' +
-      ((pub||archived)?'':'<div class="inline-create compact-create"><input id="new-question-text" type="text" placeholder="نص السؤال الجديد"><button type="button" class="btn-primary btn-compact" onclick="window.assessmentManager.addQuestionInline(\''+d.ast.id+'\',\''+axis.id+'\')">+ سؤال</button></div>') +
-      qList+'</aside><main class="workspace-editor-pane">'+editor+'</main></div>';
+    const addQuestion=(pub||archived)?'':'<div class="inline-create compact-create"><div><strong>إضافة سؤال إلى «'+esc(this,axis.title_ar||axis.code)+'»</strong><small>سيظهر السؤال الجديد هنا بعد تأكيد الحفظ من الخادم.</small></div><div class="inline-create-fields"><input id="new-question-text" type="text" placeholder="نص السؤال بالعربية"><button type="button" class="btn-primary btn-compact" onclick="window.assessmentManager.addQuestionInline(\''+d.ast.id+'\',\''+axis.id+'\')">+ إضافة السؤال</button></div></div>';
+
+    return '<div class="workspace-flow">' +
+      '<section class="editor-card"><div class="card-title-row"><div><h3>أسئلة محور: '+esc(this,axis.title_ar||axis.code)+'</h3><p class="editor-help">يتم عرض جميع أسئلة المحور وجميع خيارات كل سؤال هنا. لا تحتاج إلى فتح سؤال واحد لإظهار خياراته.</p></div><span class="scope-pill">'+(pub?'منشور — نصوص فقط':archived?'أرشيف — قراءة فقط':'مسودة — تحرير كامل')+'</span></div><div class="axis-chip-row">'+axisButtons+'</div></section>' +
+      addQuestion +
+      (cards || '<section class="editor-card"><div class="workspace-empty">لا توجد أسئلة تحت هذا المحور.</div></section>') +
+    '</div>';
   };
+
   AssessmentManager.prototype._renderCalculation = function() {
     const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft', ast=d.ast;
     const roleRows=d.axes.map(a=>
