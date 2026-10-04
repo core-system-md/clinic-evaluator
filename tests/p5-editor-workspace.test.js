@@ -122,3 +122,22 @@ test('public visibility and archive are separate lifecycle operations', () => {
   assert.ok(manager.includes('resumePublicAssessment'));
   assert.ok(manager.includes('archiveAssessment'));
 });
+
+
+test('stop public is a visibility-only lifecycle operation', () => {
+  assert.ok(manager.includes('stopPublicAssessment'), 'dedicated stop-public action missing');
+  assert.ok(manager.includes("stopPublicAssessment(\\'"+'family.id'), 'active published row must call stop-public with family id');
+  assert.ok(lifecycle.includes('stop_public_assessment_secure'), 'stop-public secure RPC missing from lifecycle controller');
+  assert.ok(!manager.includes("archiveAssessment(\\'"+'ast.id'+", \\'published\\', true"), 'stop-public must not call archiveAssessment');
+});
+
+test('public assessment runtime guards content and creates a back-navigation entry', () => {
+  assert.ok(app.includes('setupHistoryNavigation'), 'public back-navigation guard missing');
+  assert.ok(app.includes('clinicEvaluatorAssessmentGuard'), 'history guard state missing');
+  assert.ok(app.includes('Array.isArray(data.questions)'), 'public content validation missing');
+  assert.ok(htmlFiles.some(file => file.includes('/assets/js/app.js?v=20261004-2')), 'public runtime cache-busting missing');
+});
+
+test('workspace editor loads the requested assessment directly when cache misses', () => {
+  assert.ok(workspace.includes("select('assessment_types', {filter:{id}})"), 'editor direct target lookup missing');
+});
