@@ -149,7 +149,7 @@
     const d=this._workspaceData, published=d.status==='published';
     return '<div class="workspace-section-grid">' +
       '<section class="editor-card"><h4>بيانات التقييم</h4><p class="editor-help">هذه البيانات تُحفظ عبر عملية إدارية آمنة. الحفظ يعيد قراءة النسخة من الخادم قبل إعلان نجاحه.</p>' +
-      '<div class="editor-form-grid"><label>العنوان بالعربية<input id="ast-title-ar" type="text" required value=""></label><label>العنوان بالإنجليزية<input id="ast-title-en" type="text" value=""></label><label class="wide">الوصف التشخيصي<textarea id="ast-description" rows="3"></textarea></label></div>' +
+      '<div class="editor-form-grid"><label>العنوان بالعربية<input id="ast-title-ar" type="text" required value="'+esc(this,d.ast.title_ar||'')+'"></label><label>العنوان بالإنجليزية<input id="ast-title-en" type="text" value="'+esc(this,d.ast.title_en||'')+'"></label><label class="wide">الوصف التشخيصي<textarea id="ast-description" rows="3">'+esc(this,d.ast.description||'')+'</textarea></label></div>' +
       '<div class="editor-meta-row"><span>الحالة: <strong>'+(published?'منشور':'مسودة')+'</strong></span><span>النفاذ: '+(published?'محتوى منشور':'نسخة عمل')+'</span></div>' +
       '<div class="editor-actions"><button type="button" class="btn-primary" id="workspace-save-details">💾 حفظ البيانات الأساسية</button>'+(published?'':'<span class="editor-help-inline">النشر يتم من قسم «التحقق والنشر» فقط.</span>')+'</div></section>' +
       '<section class="editor-card"><h4>ملخص الحالة</h4><div class="summary-grid"><div><span>Family</span><strong>'+esc(this,d.family?.slug || d.ast.family_id || '—')+'</strong></div><div><span>الهيكل</span><strong>'+d.axes.length+' محاور</strong></div><div><span>الأسئلة</span><strong>'+d.questions.length+'</strong></div><div><span>الخيارات</span><strong>'+d.options.length+'</strong></div></div></section></div>';
@@ -232,16 +232,73 @@
     } catch(err) { out.innerHTML='<div class="validation-banner invalid"><strong>فشل تشغيل التحقق</strong><span>'+esc(this,err.message)+'</span></div>'; this._setWorkspaceStatus('error','التحقق','التقييم',err.message,'صحح الخطأ ثم أعد التحقق.'); }
   };
 
-  const originalSave = AssessmentManager.prototype.saveAssessment;
   AssessmentManager.prototype.saveAssessment = async function() {
-    const title=document.getElementById('ast-title-ar')?.value.trim();
-    const id=document.getElementById('ast-id')?.value || null;
-    if(!title) return this._setWorkspaceStatus('error','حفظ البيانات الأساسية','العنوان','العنوان بالعربية مطلوب.','أدخل عنواناً ثم حاول الحفظ مجدداً.');
-    this._setWorkspaceStatus('saving','حفظ البيانات الأساسية',title,'جاري تنفيذ العملية والتحقق من persistence.');
+    const id = document.getElementById('ast-id')?.value || null;
+    const status = this.editingAssessmentStatus || String(document.getElementById('ast-status')?.value || 'draft').toLowerCase();
+    const titleAr = document.getElementById('ast-title-ar')?.value.trim() || '';
+    const titleEn = document.getElementById('ast-title-en')?.value.trim() || '';
+    const description = document.getElementById('ast-description')?.value.trim() || '';
+    const generatedSlug = this.editingAssessmentSlug ||
+      (titleEn ? titleEn.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g,'') : 'assessment-' + Date.now());
+    const title = titleAr || titleEn || 'التقييم';
+
+    if (!titleAr) {
+      this._setWorkspaceStatus('error','حفظ البيانات الأساسية',title,'العنوان بالعربية مطلوب.','أدخل العنوان ثم أعد المحاولة.');
+      return;
+    }
+
+    this._setWorkspaceStatus('saving','حفظ البيانات الأساسية',title,'جاري الحفظ والتحقق من القراءة من الخادم بعد العملية.');
     try {
-      await originalSave.call(this);
-      if(id || document.getElementById('ast-id')?.value) { this._workspaceState.lastSaved=new Date().toLocaleString('ar-JO',{dateStyle:'short',timeStyle:'short'}); this._markWorkspaceDirty(false); this._setWorkspaceStatus('saved','حفظ البيانات الأساسية',title,'تمت إعادة القراءة من الخادم.','يمكن متابعة التحرير أو التحقق والنشر.'); }
-    } catch(err) { this._setWorkspaceStatus('error','حفظ البيانات الأساسية',title,err.message,'لم يعتمد أي نجاح؛ راجع الرسالة ثم أعد المحاولة.'); throw err; }
+      const raw = await this.supabase.request('rpc/save_assessment_secure', {
+        method:'POST',
+        body:JSON.stringify({
+          p_id:id,
+          p_title_ar:titleAr,
+          p_title_en:titleEn,
+          p_slug:generatedSlug,
+          p_description:description,
+          p_status:status,
+          p_has_traps:!!document.getElementById('ast-has-traps')?.checked,
+          p_has_ev_simulator:!!document.getElementById('ast-has-simulator')?.checked
+        })
+      });
+      const savedId = id || this.rpcScalar(raw);
+      if (!savedId) throw new Error('الخادم لم يُعد معرف التقييم المحفوظ.');
+      await this.renderAssessmentsTable();
+      this.populateFilterDropdown();
+      this._workspaceState.lastSaved = new Date().toLocaleString('ar-JO',{dateStyle:'short',timeStyle:'short'});
+      this._markWorkspaceDirty(false);
+      this._workspaceState.axisId = null;
+      this._workspaceState.questionId = null;
+      await this.editAssessment(savedId);
+      this._setWorkspaceStatus('saved','حفظ البيانات الأساسية',title,'تم الحفظ وإعادة القراءة من الخادم بنجاح.','تابع التحرير أو افتح «التحقق والنشر».');
+    } catch(err) {
+      this._setWorkspaceStatus('error','حفظ البيانات الأساسية',title,err.message,'تحقق من البيانات ولم يُعتبر الحفظ ناجحاً.');
+      this.showToast('فشل حفظ البيانات الأساسية: ' + err.message,true);
+    }
+  };
+
+  const previousShowToast = AssessmentManager.prototype.showToast;
+  AssessmentManager.prototype.showToast = function(message, isError=false) {
+    previousShowToast.call(this,message,isError);
+    const root=document.getElementById('assessment-modal');
+    if(!root || root.classList.contains('hidden')) return;
+    const text=String(message||'');
+    if(isError) {
+      this._setWorkspaceStatus('error','عملية التحرير','التقييم',text,'راجع السبب ثم أعد المحاولة.');
+      return;
+    }
+    const pending = /إلى المحرر|اضغط حفظ/i.test(text);
+    if(pending) {
+      this._setWorkspaceStatus('info','تعديل محلي','التقييم',text,'اضغط زر الحفظ الظاهر في هذا القسم.');
+      return;
+    }
+    const persisted = /حفظ|تحديث|حذف|إضافة|إنشاء|استعادة|نشر|إيقاف|تمت|تمتة|تم /i.test(text);
+    if(persisted) {
+      this._workspaceState.lastSaved = new Date().toLocaleString('ar-JO',{dateStyle:'short',timeStyle:'short'});
+      this._markWorkspaceDirty(false);
+      this._setWorkspaceStatus('saved','عملية التحرير','التقييم',text,'تم تحديث حالة المحرر من نتيجة العملية.');
+    }
   };
 
   document.addEventListener('DOMContentLoaded',()=>{
