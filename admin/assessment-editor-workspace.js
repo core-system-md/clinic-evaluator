@@ -253,7 +253,7 @@
       const qs=d.questions.filter(q=>q.axis_id===axis.id).sort(byOrder);
       editor='<section class="editor-card editor-card-primary">' +
         '<div class="card-title-row"><div><div class="context-kicker">المحور المحدد</div><h3>'+esc(this,axis.title_ar||axis.title||axis.code)+'</h3><p class="editor-help">'+qs.length+' سؤال مرتبط بهذا المحور.</p></div>' +
-        (pub?'<span class="scope-pill scope-locked">الهيكل مقفل</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftAxis(\''+axis.id+'\',\''+d.ast.id+'\')">حذف المحور</button>') +
+        (pub?'<span class="scope-pill scope-locked">الهيكل مقفل</span>':archived?'<span class="scope-pill scope-locked">أرشيف — قراءة فقط</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftAxis(\''+axis.id+'\',\''+d.ast.id+'\')">حذف المحور</button>') +
         '</div>' +
         '<div class="editor-form-grid">' +
           '<label>اسم المحور<input id="axis-title-workspace" data-axis-title="'+esc(this,axis.id)+'" type="text" value="'+esc(this,axis.title_ar||axis.title||'')+'" '+(pub?'disabled':'')+'></label>' +
@@ -264,16 +264,17 @@
         '<div class="locked-grid"><span>الكود: <b>'+esc(this,axis.code||'—')+'</b></span><span>الأسئلة: <b>'+qs.length+'</b></span><span>الحالة: <b>'+(pub?'منشور':'مسودة')+'</b></span></div>' +
         '<div class="editor-actions">' +
           (pub?'<button type="button" class="btn-primary" onclick="window.assessmentManager.updatePublishedAxisContent(\''+axis.id+'\',document.getElementById(\'axis-title-workspace\').value,\''+d.ast.id+'\')">💾 حفظ نص المحور</button><button type="button" class="btn-secondary" onclick="window.assessmentManager.duplicateAssessment(\''+d.ast.id+'\')">📋 إنشاء نسخة عمل</button>' :
+           archived?'<span class="editor-help-inline">هذا المحور تاريخي للقراءة فقط.</span>' :
             '<button type="button" class="btn-primary" onclick="window.assessmentManager.updateDraftAxis(\''+axis.id+'\',\''+d.ast.id+'\')">💾 حفظ المحور</button><button type="button" class="btn-secondary" onclick="window.assessmentManager._workspaceNavigate(\'questions\')">الانتقال إلى أسئلة المحور</button>') +
         '</div>' +
       '</section>';
     }
 
-    const addForm=pub?'':'<div class="inline-create"><div><strong>إضافة محور</strong><small>أنشئ المحور هنا بدل إدخاله في نافذة متفرقة.</small></div><div class="inline-create-fields"><input id="new-axis-title" type="text" placeholder="اسم المحور بالعربية"><input id="new-axis-weight" type="number" min="0" max="100" step="0.01" value="10" placeholder="الوزن"><button type="button" class="btn-primary btn-compact" onclick="window.assessmentManager.addAxisInline(\''+d.ast.id+'\')">+ إضافة</button></div></div>';
+    const addForm=(pub||archived)?'':'<div class="inline-create"><div><strong>إضافة محور</strong><small>أنشئ المحور هنا بدل إدخاله في نافذة متفرقة.</small></div><div class="inline-create-fields"><input id="new-axis-title" type="text" placeholder="اسم المحور بالعربية"><input id="new-axis-weight" type="number" min="0" max="100" step="0.01" value="10" placeholder="الوزن"><button type="button" class="btn-primary btn-compact" onclick="window.assessmentManager.addAxisInline(\''+d.ast.id+'\')">+ إضافة</button></div></div>';
 
     return '<div class="workspace-split">' +
       '<aside class="workspace-list-pane"><div class="pane-head"><div><h3>المحاور</h3><span>'+d.axes.length+' محور</span></div>' +
-      (pub?'':'<span class="pane-tip">اختر محوراً للفتح والتحرير.</span>') +
+      (pub||archived?'':'<span class="pane-tip">اختر محوراً للفتح والتحرير.</span>') +
       '</div>'+addForm+list+'</aside>' +
       '<main class="workspace-editor-pane">'+editor+'</main>' +
     '</div>';
@@ -315,14 +316,15 @@
 
       editor='<section class="editor-card editor-card-primary">' +
         '<div class="card-title-row"><div><div class="context-kicker">السؤال المحدد</div><h3>'+esc(this,q.code||'السؤال')+'</h3><p class="editor-help">هذا السؤال تابع لمحور: <b>'+esc(this,axis.title_ar||axis.code)+'</b>.</p></div>' +
-        (pub?'<span class="scope-pill scope-locked">المحتوى النصي فقط</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">حذف السؤال</button>') +
+        (pub?'<span class="scope-pill scope-locked">المحتوى النصي فقط</span>':archived?'<span class="scope-pill scope-locked">أرشيف — قراءة فقط</span>':'<button type="button" class="btn-danger" onclick="window.assessmentManager.deleteDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">حذف السؤال</button>') +
         '</div>' +
-        '<label>نص السؤال<textarea id="question-text-workspace" data-question-text="'+q.id+'" rows="5">'+esc(this,q.question_text_ar||q.question_text||'')+'</textarea></label>' +
+        '<label>نص السؤال<textarea id="question-text-workspace" data-question-text="'+q.id+'" rows="5" '+(archived?'disabled':'')+'>'+esc(this,q.question_text_ar||q.question_text||'')+'</textarea></label>' +
         (pub?
           '<div class="locked-grid"><span>الترتيب: <b>'+esc(this,q.display_order??1)+'</b></span><span>إلزامي: <b>'+(q.is_required?'نعم':'لا')+'</b></span><span>Trap: <b>'+esc(this,q.trap_index??'—')+'</b></span><span>النوع: <b>'+esc(this,q.question_type||'—')+'</b></span></div>' :
-          '<div class="editor-form-grid"><label>الترتيب<input id="question-order-'+q.id+'" type="number" min="1" value="'+esc(this,q.display_order??1)+'"></label><label class="check-row"><input id="question-required-'+q.id+'" type="checkbox" '+(q.is_required?'checked':'')+'> إلزامي</label><label>Trap<input id="question-trap-'+q.id+'" type="number" min="0" value="'+esc(this,q.trap_index??'')+'"></label><label>نوع السؤال<input type="text" value="'+esc(this,q.question_type||'select')+'" disabled></label></div>') +
+          '<div class="editor-form-grid"><label>الترتيب<input id="question-order-'+q.id+'" type="number" min="1" value="'+esc(this,q.display_order??1)+'" '+(archived?'disabled':'')+'"></label><label class="check-row"><input id="question-required-'+q.id+'" type="checkbox" '+(q.is_required?'checked':'')+(archived?' disabled':'')+'> إلزامي</label><label>Trap<input id="question-trap-'+q.id+'" type="number" min="0" value="'+esc(this,q.trap_index??'')+'"></label><label>نوع السؤال<input type="text" value="'+esc(this,q.question_type||'select')+'" disabled></label></div>') +
         '<div class="editor-actions">' +
           (pub?'<button type="button" class="btn-primary" onclick="window.assessmentManager.updatePublishedQuestionText(\''+q.id+'\',document.getElementById(\'question-text-workspace\').value,\''+d.ast.id+'\')">💾 حفظ نص السؤال</button><button type="button" class="btn-secondary" onclick="window.assessmentManager.duplicateAssessment(\''+d.ast.id+'\')">📋 نسخة عمل</button>' :
+           archived?'<span class="editor-help-inline">هذا السؤال تاريخي للقراءة فقط.</span>' :
             '<button type="button" class="btn-primary" onclick="window.assessmentManager.updateDraftQuestion(\''+q.id+'\',\''+d.ast.id+'\')">💾 حفظ السؤال</button>') +
         '</div>' +
         '<div class="options-editor"><div class="section-subhead"><div><h4>خيارات الإجابة</h4><span>'+opts.length+' من 5</span></div></div>'+addOption+(optionCards||'<div class="workspace-empty">لا توجد خيارات لهذا السؤال.</div>')+'</div>' +
@@ -337,49 +339,51 @@
     const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived', draft=d.status==='draft', ast=d.ast;
     const roleRows=d.axes.map(a=>
       '<label class="calc-row"><span><strong>'+esc(this,a.title_ar||a.code)+'</strong><small>'+esc(this,a.code||'')+'</small></span>' +
-      '<select '+(pub?'disabled':'')+' id="calc-axis-role-'+a.id+'" data-axis-code="'+esc(this,a.code||'')+'"><option value="">— بدون دور —</option>'+
+      '<select '+((pub||archived)?'disabled':'')+' id="calc-axis-role-'+a.id+'" data-axis-code="'+esc(this,a.code||'')+'"><option value="">— بدون دور —</option>'+
       ROLES.map(r=>'<option '+(ast.axis_roles?.[a.code]===r?'selected':'')+' value="'+r+'">'+r+'</option>').join('')+
       '</select></label>'
     ).join('');
 
     const mapBoxes=Object.keys(ast.kpi_mappings||{}).map(code=>
       '<div class="mapping-box"><div class="mapping-head"><div><strong>'+esc(this,code)+'</strong><small>خريطة KPI — أوزان الأدوار</small></div></div>'+
-      '<textarea id="calc-kpi-'+esc(this,code)+'" rows="7" '+(pub?'disabled':'')+'>'+esc(this,JSON.stringify(ast.kpi_mappings[code]||{},null,2))+'</textarea></div>'
+      '<textarea id="calc-kpi-'+esc(this,code)+'" rows="7" '+((pub||archived)?'disabled':'')+'>'+esc(this,JSON.stringify(ast.kpi_mappings[code]||{},null,2))+'</textarea></div>'
     ).join('');
 
     const evRows=ROLES.map(role=>{
       const value=ast.ev_mappings?.[role];
       return '<label class="calc-row ev-row"><span><strong>'+esc(this,role)+'</strong><small>وزن EV</small></span>'+
-        '<input '+(pub?'disabled':'')+' data-ev-role="'+esc(this,role)+'" type="number" min="0" step="0.01" value="'+(value===undefined||value===null?'':esc(this,value))+'" placeholder="مثال 0.10"></label>';
+        '<input '+((pub||archived)?'disabled':'')+' data-ev-role="'+esc(this,role)+'" type="number" min="0" step="0.01" value="'+(value===undefined||value===null?'':esc(this,value))+'" placeholder="مثال 0.10"></label>';
     }).join('');
 
     return '<section class="editor-card editor-card-primary calculation-card">' +
-      '<div class="card-title-row"><div><h3>الإعدادات الحسابية</h3><p class="editor-help">الأدوار وخرائط KPI وأوزان EV جزء من تعريف القياس. احفظها ثم أعد التحقق من الخادم.</p></div><span class="scope-pill '+(pub?'scope-locked':'')+'">'+(pub?'منشور — قراءة فقط':'مسودة — قابل للتعديل')+'</span></div>' +
+      '<div class="card-title-row"><div><h3>الإعدادات الحسابية</h3><p class="editor-help">الأدوار وخرائط KPI وأوزان EV جزء من تعريف القياس. احفظها ثم أعد التحقق من الخادم.</p></div><span class="scope-pill '+(pub?'scope-locked':'')+'">'+(pub?'منشور — قراءة فقط':archived?'أرشيف — قراءة فقط':'مسودة — قابل للتعديل')+'</span></div>' +
       '<h4>ربط المحاور بالأدوار</h4><div class="calc-list">'+(roleRows||'<div class="workspace-empty">لا توجد محاور.</div>')+'</div>' +
       '<div class="mapping-section"><div class="section-subhead"><div><h4>خرائط KPI</h4><span>كل KPI = كائن أوزان للأدوار</span></div></div>'+
         '<div id="calc-kpi-list">'+(mapBoxes||'<div class="workspace-empty">لا توجد خرائط KPI.</div>')+'</div>'+
-        (pub?'':'<div class="inline-create compact-create"><div><strong>إضافة KPI</strong><small>أدخل كودًا جديدًا ثم احفظ الإعدادات.</small></div><div class="inline-create-fields"><input id="new-kpi-code" type="text" placeholder="مثال TFI"><button type="button" class="btn-secondary btn-compact" onclick="window.assessmentManager.addKpiMapping(\''+ast.id+'\')">+ KPI</button></div></div>')+
+        ((pub||archived)?'':'<div class="inline-create compact-create"><div><strong>إضافة KPI</strong><small>أدخل كودًا جديدًا ثم احفظ الإعدادات.</small></div><div class="inline-create-fields"><input id="new-kpi-code" type="text" placeholder="مثال TFI"><button type="button" class="btn-secondary btn-compact" onclick="window.assessmentManager.addKpiMapping(\''+ast.id+'\')">+ KPI</button></div></div>')+
       '</div>' +
       '<div class="mapping-section"><div class="section-subhead"><div><h4>أوزان EV حسب الدور</h4><span>قيمة رقمية لكل Role وفق محرك التقييم الحالي</span></div></div>'+
         '<div class="calc-list ev-weight-list">'+evRows+'</div>'+
       '</div>' +
-      (pub?'<div class="locked-notice">هذه نسخة منشورة. للتعديلات الحسابية أنشئ نسخة عمل.</div>':'<div class="editor-actions editor-actions-primary"><button type="button" class="btn-primary" onclick="window.assessmentManager.saveCalculationConfig(\''+ast.id+'\')">💾 حفظ الإعدادات الحسابية</button></div>') +
+      (pub||archived?'<div class="locked-notice">'+(archived?'هذه نسخة مؤرشفة وتُعرض للقراءة فقط.':'هذه نسخة منشورة. للتعديلات الحسابية أنشئ نسخة عمل.')+'</div>':'<div class="editor-actions editor-actions-primary"><button type="button" class="btn-primary" onclick="window.assessmentManager.saveCalculationConfig(\''+ast.id+'\')">💾 حفظ الإعدادات الحسابية</button></div>') +
     '</section>';
   };
   AssessmentManager.prototype._renderValidation = function() {
-    const d=this._workspaceData, pub=d.status==='published';
+    const d=this._workspaceData, pub=d.status==='published', archived=d.status==='archived';
     return '<div class="workspace-flow">' +
       '<section class="editor-card editor-card-primary">' +
-        '<div class="card-title-row"><div><h3>التحقق قبل النشر</h3><p class="editor-help">هذا الفحص خادمي. لا يُعد نجاحاً نهائياً حتى يعيد الخادم نتيجة قابلة للقراءة.</p></div><span class="scope-pill">'+(pub?'منشور':'مسودة')+'</span></div>' +
+        '<div class="card-title-row"><div><h3>التحقق قبل النشر</h3><p class="editor-help">هذا الفحص خادمي. لا يُعد نجاحاً نهائياً حتى يعيد الخادم نتيجة قابلة للقراءة.</p></div><span class="scope-pill '+(archived?'scope-locked':'')+'">'+(pub?'منشور':archived?'أرشيف — تاريخي':'مسودة')+'</span></div>' +
         '<div class="validation-instructions"><b>قبل النشر</b><span>احفظ كل قسم عدّلته، ثم شغّل التحقق. أخطاء الصلاحية أو القيود ستظهر بسبب واضح وإجراء تالٍ.</span></div>' +
-        '<button type="button" class="btn-primary btn-large" id="workspace-run-validation">🔎 تشغيل التحقق الآن</button>' +
+        (archived?'':'<button type="button" class="btn-primary btn-large" id="workspace-run-validation">🔎 تشغيل التحقق الآن</button>') +
         '<div id="workspace-validation-result" class="validation-result"><div class="workspace-empty">لم يُشغّل التحقق بعد.</div></div>' +
       '</section>' +
       '<section class="editor-card">' +
         '<div class="card-title-row"><div><h3>دورة الإصدار</h3><p class="editor-help">الحالة الحالية هي مصدر الحقيقة؛ لا يغيّر هذا القسم قواعد P2/P3/P4.</p></div></div>' +
-        '<div class="lifecycle-box"><div class="lifecycle-state">'+(pub?'منشور':'مسودة')+'</div>' +
+        '<div class="lifecycle-box"><div class="lifecycle-state">'+(pub?'منشور':archived?'أرشيف / تاريخي':'مسودة')+'</div>' +
         (pub?
           '<p>المحتوى التحريري يمكن تعديله مباشرة. أي تعديل هيكلي أو حسابي يبدأ من نسخة عمل جديدة.</p><div class="editor-actions"><button type="button" class="btn-secondary" onclick="window.assessmentManager.duplicateAssessment(\''+d.ast.id+'\')">📋 إنشاء نسخة عمل</button></div>' :
+         archived?
+          '<p>هذه نسخة تاريخية غير قابلة للتعديل أو الحذف. الإجراء المتاح من خارج المحرر هو استعادة الظهور العام عبر دورة الحياة المعتمدة.</p><div class="editor-actions"><button type="button" class="btn-secondary" onclick="window.assessmentManager.restorePublicAssessment(\''+d.ast.id+'\')">↩️ استعادة للعرض</button></div>' :
           '<p>يمكن نشر هذه المسودة بعد اجتياز التحقق. حذفها نهائياً مسموح فقط عندما لا توجد بيانات تنفيذ مرتبطة بها.</p><div class="editor-actions"><button type="button" class="btn-primary" onclick="window.assessmentManager.publishAssessment(\''+d.ast.id+'\')">🚀 نشر المسودة</button><button type="button" class="btn-danger" id="workspace-delete-draft-secondary" onclick="window.assessmentManager.deleteAssessment(\''+d.ast.id+'\')">🗑 حذف المسودة نهائياً</button></div>') +
         '</div>' +
       '</section>' +
