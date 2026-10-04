@@ -57,7 +57,7 @@
 
   AssessmentManager.prototype._confirmWorkspaceLeave = function(nextLabel) {
     if (!this._workspaceState?.dirty) return true;
-    return confirm('توجد تعديلات غير محفوظة. الانتقال إلى ' + (nextLabel || 'قسم آخر') + ' سيتركها في الذاكرة فقط. احفظ التغييرات أولاً أم تابع؟');
+    return confirm('توجد تعديلات غير محفوظة. الانتقال إلى ' + (nextLabel || 'قسم آخر') + ' سيؤدي إلى فقد هذه التعديلات غير المحفوظة. هل تريد المتابعة؟');
   };
 
   AssessmentManager.prototype._workspaceNavigate = function(section) {
@@ -408,7 +408,7 @@
     document.getElementById('workspace-run-validation')?.addEventListener('click',()=>this.runWorkspaceValidation());
 
     const deleteHeader=document.getElementById('workspace-delete-draft');
-    deleteHeader?.addEventListener('click',()=>this.deleteAssessment(this._workspaceData?.ast?.id));
+    if (deleteHeader) deleteHeader.onclick=()=>this.deleteAssessment(this._workspaceData?.ast?.id);
 
     const area=document.getElementById('modal-tab-content');
     area?.querySelectorAll('[data-section-next]').forEach(btn=>{
