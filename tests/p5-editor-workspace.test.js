@@ -7,6 +7,7 @@ const js = fs.readFileSync('admin/assessment-editor-workspace.js', 'utf8');
 const manager = fs.readFileSync('admin/assessment-manager.js', 'utf8');
 const lifecycle = fs.readFileSync('admin/assessment-lifecycle.js', 'utf8');
 const migration = fs.readFileSync('supabase/migrations/20261004140000_p5_delete_draft_cascade_fix.sql', 'utf8');
+const visibilityMigration = fs.readFileSync('supabase/migrations/20261004150000_p5_public_visibility_option_allocation.sql', 'utf8');
 
 test('P5 editor workspace assets are wired correctly', () => {
   assert.equal((html.match(/id="assessment-modal"/g) || []).length, 1);
@@ -15,6 +16,8 @@ test('P5 editor workspace assets are wired correctly', () => {
   assert.ok(html.includes('#dashboard-content.editor-mode'));
   assert.ok(html.includes('id="workspace-breadcrumb"'));
   assert.ok(html.includes('id="workspace-delete-draft"'));
+  assert.ok(html.includes('assessment-manager.js?v=20261004-3'));
+  assert.ok(html.includes('assessment-lifecycle.js?v=20261004-4'));
   assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-3'));
 });
 
@@ -88,13 +91,19 @@ test('lifecycle actions are status-specific and archive is separated from active
   assert.ok(manager.includes('الأرشيف'), 'Dedicated archive section missing');
   assert.ok(manager.includes('غير مطبق على المسودة'), 'Paid access must not be presented as a Draft lifecycle action');
   assert.ok(manager.includes('restorePublicAssessment'), 'Archived restore action missing');
+  assert.ok(manager.includes('resumePublicAssessment'), 'Stopped-public resume action missing');
+  assert.ok(manager.includes('منشور لكن متوقف عن الظهور'), 'Stopped-public section missing');
+  assert.ok(manager.includes('archiveAssessment'), 'Separate archive action missing');
 });
 
 test('question workspace renders every question and scopes option creation per question', () => {
   assert.ok(js.includes('d.questions.filter(q=>q.axis_id===axis.id)'), 'all questions for selected axis must be loaded');
   assert.ok(js.includes('d.options.filter(o=>o.question_id===q.id)'), 'options must be rendered per question');
   assert.ok(js.includes("new-option-label-'+q.id+'"), 'option creation input must be unique per question');
-  assert.ok(lifecycle.includes("select('options',{filter:{question_id:questionId}})"), 'option creation must query only the target question');
+  assert.ok(!lifecycle.includes("select('options',{filter:{question_id:questionId}})"), 'option allocation must not depend on client-side option reads');
+  assert.ok(lifecycle.includes('p_option_index:null'), 'option index must be allocated by the secure RPC');
+  assert.ok(visibilityMigration.includes('select coalesce(max(option_index),-1)+1'), 'server must allocate the next option index');
+  assert.ok(visibilityMigration.includes('for update'), 'server must lock the question during option allocation');
 });
 
 test('editor controller has no duplicate lifecycle prototypes', () => {
@@ -102,4 +111,14 @@ test('editor controller has no duplicate lifecycle prototypes', () => {
     const matches = lifecycle.match(new RegExp('AssessmentManager\\.prototype\\.'+name+'\\s*=','g')) || [];
     assert.equal(matches.length, 0, name + ' legacy duplicate must be removed from lifecycle module');
   }
+});
+
+
+test('public visibility and archive are separate lifecycle operations', () => {
+  assert.ok(visibilityMigration.includes("set is_active=false"));
+  assert.ok(visibilityMigration.includes("set status='archived'"));
+  assert.ok(visibilityMigration.includes('resume_public_assessment_secure'));
+  assert.ok(visibilityMigration.includes('archive_assessment_secure'));
+  assert.ok(manager.includes('resumePublicAssessment'));
+  assert.ok(manager.includes('archiveAssessment'));
 });
