@@ -310,7 +310,8 @@ class ClinicEvaluatorApp {
     this.currentQuestionIndex = 0;
 
     if (!this.questions.length) {
-      throw new Error('تعذر تحميل أسئلة التقييم المنشور من الخادم.');
+      this.showError('تعذر تحميل أسئلة التقييم المنشور من الخادم.');
+      return;
     }
 
     if (!this.assessmentUuid) {
