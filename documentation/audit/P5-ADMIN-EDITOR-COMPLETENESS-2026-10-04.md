@@ -61,6 +61,8 @@ An Archived Published version is historical and immutable. It is not a Draft and
 
 ## 4. Implemented correction
 
+During server-side acceptance testing, a real deletion defect was found: deleting a Draft question/axis cascades into options after the parent question row is gone, while the existing Draft-structure trigger attempted to resolve the parent again and rejected the cascade as if it were Published/Archived. The trigger was corrected specifically for this PostgreSQL cascade case, and the full Draft create → edit → calculation-config → question delete → axis delete → Draft delete transaction now passes under an Owner-authenticated request context.
+
 The correction adds secure Draft-only operations for:
 - full axis editing including weight/order;
 - full question configuration editing;
