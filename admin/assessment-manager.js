@@ -235,9 +235,11 @@ class AssessmentManager {
             families.forEach(f => { this.familyBySlug[f.slug] = f; });
             (data || []).forEach(ast => { const family = families.find(f => f.id === ast.family_id); if (family) this.familyByVersionId[ast.id] = family; });
             const authSettings = await this.supabase.select('assessment_settings') || [];
-            const sessionRows = await this.supabase.select('sessions') || [];
-            const sessionCountByAssessment = {};
-            sessionRows.forEach(session => { if (session.assessment_type_id) sessionCountByAssessment[session.assessment_type_id] = (sessionCountByAssessment[session.assessment_type_id] || 0) + 1; });
+            const sessionCountsPayload = await this.supabase.request('rpc/get_admin_assessment_session_counts_secure', {
+                method: 'POST',
+                body: JSON.stringify({})
+            });
+            const sessionCountByAssessment = sessionCountsPayload?.result || sessionCountsPayload || {};
 
             if (!data || data.length === 0) {
                 container.innerHTML = `
