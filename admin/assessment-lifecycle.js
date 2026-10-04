@@ -228,7 +228,7 @@
                   html += '<input type="text" value="' + safe(this,opt.label_ar || opt.label || '') + '" onchange="window.assessmentManager.updatePublishedOptionText(\'' + opt.id + '\',this.value,\'' + assessmentId + '\')" style="flex:1;min-width:130px;padding:5px;border:1px solid #e5e7eb;border-radius:4px;font-family:Cairo;font-size:0.68rem;">';
                 } else {
                   html += '<input type="text" value="' + safe(this,opt.label_ar || opt.label || '') + '" id="option-label-' + opt.id + '" style="flex:1;min-width:120px;padding:5px;border:1px solid #e5e7eb;border-radius:4px;font-family:Cairo;font-size:0.68rem;">';
-                  html += '<input type="number" value="' + (opt.option_value ?? 0) + '" id="option-value-' + opt.id + '" min="0" max="100" step="0.01" title="القيمة الرياضية المستخدمة في مسار الحساب الحالي" style="width:65px;padding:5px;text-align:center;">';
+                  html += '<input type="number" value="' + (opt.option_value ?? 0) + '" id="option-value-' + opt.id + '" min="0" max="100" step="0.01" title="قيمة المصدر المخزنة؛ لا تُعامل كمرساة P3 canonical" style="width:65px;padding:5px;text-align:center;">';
                   html += '<input type="number" value="' + (opt.option_index ?? idx) + '" id="option-index-' + opt.id + '" min="0" style="width:50px;padding:5px;text-align:center;" title="هوية/ترتيب الخيار">';
                   html += '<input type="number" value="' + (opt.display_order ?? idx + 1) + '" id="option-order-' + opt.id + '" min="1" style="width:50px;padding:5px;text-align:center;">';
                   html += '<label style="font-size:0.62rem;color:#64748b;"><input type="checkbox" id="option-trap-' + opt.id + '" ' + (opt.is_trap ? 'checked' : '') + '> Trap</label>';
@@ -302,7 +302,7 @@
     html += '<button type="button" onclick="window.assessmentManager.addEvMapping(\'' + ast.id + '\')" style="align-self:flex-start;padding:4px 8px;background:#fff;border:1px solid #93c5fd;border-radius:4px;font-family:Cairo;font-size:.65rem;">+ إضافة خريطة EV</button>';
     html += '</div>';
 
-    html += '<div style="margin-top:10px;padding:7px;background:#fff;border:1px dashed #94a3b8;border-radius:5px;font-size:.62rem;color:#475569;direction:rtl;">أوزان المحاور وقيم الخيارات تُعدل مباشرة في عناصرها أعلاه. خرائط الأدوار وKPI وEV تُحفظ مع المسودة ولا تُعدل على المنشور.</div>';
+    html += '<div style="margin-top:10px;padding:7px;background:#fff;border:1px dashed #94a3b8;border-radius:5px;font-size:.62rem;color:#475569;direction:rtl;">أوزان المحاور وحقول الخيارات تُعدل مباشرة في عناصرها أعلاه. خرائط الأدوار وKPI وEV تُحفظ مع المسودة فقط. قيمة الخيار المخزنة ليست بديلاً عن مرساة P3 التفسيرية.</div>';
     html += '</div>';
     return html;
   };
