@@ -15,7 +15,7 @@ test('P5 editor workspace assets are wired correctly', () => {
   assert.ok(html.includes('#dashboard-content.editor-mode'));
   assert.ok(html.includes('id="workspace-breadcrumb"'));
   assert.ok(html.includes('id="workspace-delete-draft"'));
-  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-2'));
+  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-3'));
 });
 
 test('P5 editor workspace JavaScript parses', () => {
