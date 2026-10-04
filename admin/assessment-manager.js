@@ -234,7 +234,7 @@ class AssessmentManager {
             data.forEach(ast => { this.assessmentTypesMap[ast.id] = ast.title_ar || ast.title_en || ast.slug; });
             this.populateFilterDropdown();
 
-            const active = data.filter(a => ['draft','published'].includes(String(a.status||'').toLowerCase()))
+            const active = data.filter(a => a.is_active !== false && ['draft','published'].includes(String(a.status||'').toLowerCase()))
               .sort((a,b) => new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));
             const archived = data.filter(a => String(a.status||'').toLowerCase()==='archived')
               .sort((a,b) => new Date(b.archived_at||b.updated_at||b.created_at)-new Date(a.archived_at||a.updated_at||a.created_at));
