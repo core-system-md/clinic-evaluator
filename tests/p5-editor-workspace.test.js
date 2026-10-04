@@ -15,7 +15,7 @@ test('P5 editor workspace assets are wired correctly', () => {
   assert.ok(html.includes('#dashboard-content.editor-mode'));
   assert.ok(html.includes('id="workspace-breadcrumb"'));
   assert.ok(html.includes('id="workspace-delete-draft"'));
-  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-2'));
+  assert.ok(html.includes('assessment-editor-workspace.js?v=20261004-3'));
 });
 
 test('P5 editor workspace JavaScript parses', () => {
@@ -33,7 +33,7 @@ test('workspace preserves canonical CRUD and lifecycle hooks', () => {
     'saveCalculationConfig','addKpiMapping','addEvMapping',
     'validate_assessment_version_secure','publishAssessment','duplicateAssessment'
   ]) {
-    assert.ok(js.includes(token) || lifecycle.includes(token), token + ' hook missing');
+    assert.ok(js.includes(token) || lifecycle.includes(token) || manager.includes(token), token + ' hook missing');
   }
 });
 
@@ -46,14 +46,14 @@ test('P5 editor has contextual persistence and error handling', () => {
   assert.ok(js.includes('this._workspaceState.section=\'questions\''), 'axis-to-question navigation missing');
   assert.ok(js.includes('new-axis-title'), 'inline axis creation missing');
   assert.ok(js.includes('new-question-text'), 'inline question creation missing');
-  assert.ok(js.includes('new-option-label'), 'inline option creation missing');
+  assert.ok(js.includes("new-option-label-'+q.id+'"), 'question-scoped inline option creation missing');
   assert.ok(js.includes('new-kpi-code'), 'inline KPI creation missing');
   assert.ok(js.includes('new-ev-code'), 'inline EV creation missing');
   assert.ok(js.includes('option-card'), 'responsive option editor missing');
 });
 
 test('draft deletion is single-entry, server-authoritative and migration fixes cascade-trigger failure', () => {
-  assert.equal((manager.match(/🗑️ حذف المسودة<\/button>/g) || []).length, 1);
+  assert.equal((manager.match(/🗑 حذف المسودة<\/button>/g) || []).length, 1);
   assert.ok(lifecycle.includes("delete_assessment_draft_secure"));
   assert.ok(lifecycle.includes("result.success !== true"));
   for (const token of [
@@ -76,4 +76,30 @@ test('archived versions are viewable but have no mutation controls', () => {
   assert.ok(ws.includes("restorePublicAssessment"), 'archived restore action missing');
   assert.ok(ws.includes("(pub||archived)?'':"), 'archived mutation controls are not globally suppressed');
   assert.ok(!ws.includes("if (status === 'archived') throw"), 'archived versions are still blocked from opening');
+});
+
+
+test('lifecycle actions are status-specific and archive is separated from active work', () => {
+  assert.ok(manager.includes("['draft','published'].includes"), 'active list must contain only Draft/Published');
+  assert.ok(manager.includes("status === 'draft'"), 'Draft action branch missing');
+  assert.ok(manager.includes("status === 'published'"), 'Published action branch missing');
+  assert.ok(manager.includes("status === 'archived'"), 'Archive action branch missing');
+  assert.ok(manager.includes('إيقاف الظهور العام'), 'Published stop-public action missing');
+  assert.ok(manager.includes('الأرشيف'), 'Dedicated archive section missing');
+  assert.ok(manager.includes('غير مطبق على المسودة'), 'Paid access must not be presented as a Draft lifecycle action');
+  assert.ok(manager.includes('restorePublicAssessment'), 'Archived restore action missing');
+});
+
+test('question workspace renders every question and scopes option creation per question', () => {
+  assert.ok(js.includes('d.questions.filter(q=>q.axis_id===axis.id)'), 'all questions for selected axis must be loaded');
+  assert.ok(js.includes('d.options.filter(o=>o.question_id===q.id)'), 'options must be rendered per question');
+  assert.ok(js.includes("new-option-label-'+q.id+'"), 'option creation input must be unique per question');
+  assert.ok(lifecycle.includes("select('options',{filter:{question_id:questionId}})"), 'option creation must query only the target question');
+});
+
+test('editor controller has no duplicate lifecycle prototypes', () => {
+  for (const name of ['editAssessment','createNewAssessment','saveAssessment']) {
+    const matches = lifecycle.match(new RegExp('AssessmentManager\\.prototype\\.'+name+'\\s*=','g')) || [];
+    assert.equal(matches.length, 0, name + ' legacy duplicate must be removed from lifecycle module');
+  }
 });
