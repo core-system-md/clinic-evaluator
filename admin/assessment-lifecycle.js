@@ -210,9 +210,6 @@
   };
     AssessmentManager.prototype.addOption = async function (questionId, assessmentId) {
     try {
-      const qOptions=await this.supabase.select('options',{filter:{question_id:questionId}}) || [];
-      if(qOptions.length>=5) return this.showToast('الحد الأقصى 5 خيارات لهذا السؤال هو 5.',true);
-
       const inlineScore=document.getElementById('new-option-score-'+questionId);
       const scoreRaw=inlineScore && inlineScore.value !== '' ? inlineScore.value : prompt('أدخل القيمة الرياضية للخيار الجديد (0 إلى 100):','0');
       if(scoreRaw===null) return;
@@ -223,13 +220,18 @@
       const label=(inlineLabel?.value || '').trim() || prompt('أدخل نص الخيار الجديد:','خيار جديد');
       if(label===null || !String(label).trim()) return;
 
-      const maxOrder=qOptions.reduce((m,o)=>Math.max(m,Number(o.display_order)||0),0);
-      const maxIndex=qOptions.reduce((m,o)=>Math.max(m,Number(o.option_index)||-1),-1);
+      // Index/order are allocated atomically by the secure RPC from the question row.
+      // The browser must not infer them from a potentially stale/RLS-filtered collection.
       const raw=await this.supabase.request('rpc/add_option_secure',{
         method:'POST',
         body:JSON.stringify({
-          p_question_id:questionId,p_label_ar:String(label).trim(),p_label:String(label).trim(),
-          p_option_value:score,p_option_index:maxIndex+1,p_display_order:maxOrder+1,p_is_trap:false
+          p_question_id:questionId,
+          p_label_ar:String(label).trim(),
+          p_label:String(label).trim(),
+          p_option_value:score,
+          p_option_index:null,
+          p_display_order:null,
+          p_is_trap:false
         })
       });
       const createdId=this.rpcScalar(raw);
@@ -353,25 +355,44 @@
     }
   };
 
-  AssessmentManager.prototype.archiveAssessment = async function (id, currentStatus) {
+  AssessmentManager.prototype.archiveAssessment = async function (id, currentStatus, isActive) {
     const current = String(currentStatus || '').toLowerCase();
     if (current !== 'published') {
-      this.showToast('المسودة لا تُؤرشف، والإصدار المؤرشف تاريخي وغير قابل للتعديل.', true);
+      this.showToast('الأرشفة متاحة للإصدار المنشور فقط.', true);
       return;
     }
+    if (isActive !== false) {
+      this.showToast('أوقف الظهور العام أولاً، ثم نفّذ الأرشفة كعملية مستقلة.', true);
+      return;
+    }
+    if (!confirm('سيتم نقل هذا الإصدار المنشور المتوقف عن الظهور إلى الأرشيف. يمكن استعادته لاحقاً للظهور العام. متابعة؟')) return;
     try {
-      const family = this.familyByVersionId[id];
-      if (!family?.id) throw new Error('تعذر تحديد عائلة التقييم المنشور.');
-      if (!confirm('سيتم إيقاف ظهور هذا التقييم للعامة مع إبقاء بياناته التاريخية. متابعة؟')) return;
-      await this.supabase.request('rpc/stop_public_assessment_secure',{method:'POST',body:JSON.stringify({p_family_id:family.id})});
+      await this.supabase.request('rpc/archive_assessment_secure',{
+        method:'POST',
+        body:JSON.stringify({p_version_id:id})
+      });
       await this.renderAssessmentsTable();
       this.populateFilterDropdown();
-      this.showToast('تم إيقاف الظهور العام مع حفظ التاريخ.');
+      this.showToast('تمت أرشفة الإصدار. الأرشفة مستقلة عن إيقاف الظهور العام.');
     } catch(err) {
-      this.showToast('فشل إيقاف الظهور العام: ' + err.message,true);
+      this.showToast('فشل الأرشفة: ' + (this._workspaceErrorText?this._workspaceErrorText(err):err.message),true);
     }
   };
 
+  AssessmentManager.prototype.resumePublicAssessment = async function (id) {
+    if (!confirm('إعادة هذا الإصدار المنشور المتوقف إلى الظهور العام؟')) return;
+    try {
+      await this.supabase.request('rpc/resume_public_assessment_secure',{
+        method:'POST',
+        body:JSON.stringify({p_version_id:id})
+      });
+      await this.renderAssessmentsTable();
+      this.populateFilterDropdown();
+      this.showToast('تمت إعادة الظهور العام. الحالة بقيت «منشور».');
+    } catch(err) {
+      this.showToast('فشل إعادة الظهور العام: ' + (this._workspaceErrorText?this._workspaceErrorText(err):err.message),true);
+    }
+  };
   AssessmentManager.prototype.deleteAssessment = async function (id) {
     const target = this._workspaceData?.ast?.id === id
       ? (this._workspaceData.ast.title_ar || this._workspaceData.ast.slug || 'المسودة')
