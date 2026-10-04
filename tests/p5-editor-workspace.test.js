@@ -141,5 +141,5 @@ test('public assessment runtime guards content and creates a back-navigation ent
 });
 
 test('workspace editor loads the requested assessment directly when cache misses', () => {
-  assert.ok(workspace.includes("select('assessment_types', {filter:{id}})"), 'editor direct target lookup missing');
+  assert.ok(js.includes("select('assessment_types', {filter:{id}})"), 'editor direct target lookup missing');
 });
