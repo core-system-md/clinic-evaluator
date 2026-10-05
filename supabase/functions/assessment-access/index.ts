@@ -128,7 +128,13 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
     optionsByQuestion.set(option.question_id, list);
   }
 
-  const scoringQuestions = (questions || []).map((q) => ({
+  const axisOrderById = new Map((axes || []).map((axis) => [axis.id, Number(axis.display_order) || 0]));
+  const orderedQuestions = [...(questions || [])].sort((a, b) =>
+    (axisOrderById.get(a.axis_id) || 0) - (axisOrderById.get(b.axis_id) || 0) ||
+    (Number(a.display_order) || 0) - (Number(b.display_order) || 0)
+  );
+
+  const scoringQuestions = orderedQuestions.map((q) => ({
     code: q.code,
     axis_id: axisCodeById.get(q.axis_id) || "",
     layer: q.layer || "A",
@@ -143,7 +149,7 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
     assessment,
     family: familyOverride,
     axes: axes || [],
-    questions: questions || [],
+    questions: orderedQuestions,
     options: options || [],
     traps: traps || [],
     scoring: {
@@ -340,10 +346,9 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
-  let action = "unknown";
   try {
     const body = await req.json();
-    action = body?.action;
+    const action = body?.action;
     const data = body?.data || {};
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
 
@@ -998,13 +1003,6 @@ Deno.serve(async (req) => {
     return json({ error: "Unknown action" }, 400);
   } catch (error) {
     const status = Number((error as any)?.status) || 500;
-    console.error("assessment-access request failure", {
-      action,
-      message: error instanceof Error ? error.message : String(error),
-      name: error instanceof Error ? error.name : typeof error,
-      stack: error instanceof Error ? error.stack : null,
-      status,
-    });
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
 });
