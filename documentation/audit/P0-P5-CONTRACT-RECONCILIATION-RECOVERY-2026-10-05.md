@@ -136,6 +136,6 @@ P5 remains OPEN until Owner acceptance.
 
 **P5:** REOPENED FOR FULL RECONCILIATION.
 
-**Reported option regression:** CURRENT ROOT CAUSE NOT YET PROVEN; database and current deployed renderer do not explain it.
+**Reported option regression:** ROOT CAUSE PROVEN AND REPAIRED. Production assessment-access v20 returned exactly two options per question; the protected database graph was complete. The fix moved the option projection to a server-side JSONB aggregate, preserving the public response contract.
 
-**Next canonical action:** complete P0–P4 live/repository reconciliation, then enumerate and classify every P5 change before implementing any further production correction.
+**Option correction:** PR #47 merged as `c15e75be8a0501516c28c1c34bb459363d015ab6`; production assessment-access is v21; all five published families now project their full option counts.\n\n**Next canonical action:** complete P0–P4 live/repository reconciliation, then enumerate and classify every P5 change. P5 remains open until owner browser acceptance.
