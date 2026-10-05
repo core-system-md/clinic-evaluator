@@ -1,22 +1,6 @@
 name: P2 external E2E verification
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/p2-external-e2e.yml"
-      - "tests/external-assessment-access.mjs"
-      - "tests/p3-production-external-e2e.mjs"
-      - "supabase/functions/assessment-access/**"
-  pull_request:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/p2-external-e2e.yml"
-      - "tests/external-assessment-access.mjs"
-      - "tests/p3-production-external-e2e.mjs"
-      - "supabase/functions/assessment-access/**"
   workflow_dispatch:
     inputs:
       assessment_slug:
@@ -34,6 +18,7 @@ jobs:
     env:
       EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
       ASSESSMENT_SLUG: ${{ inputs.assessment_slug }}
+      ALLOW_LIVE_E2E: ${{ secrets.ALLOW_LIVE_E2E }}
     steps:
       - uses: actions/checkout@v4
 
@@ -64,6 +49,7 @@ jobs:
     env:
       EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
       ASSESSMENT_SLUG: ${{ matrix.assessment_slug }}
+      ALLOW_LIVE_E2E: ${{ secrets.ALLOW_LIVE_E2E }}
     steps:
       - uses: actions/checkout@v4
 
