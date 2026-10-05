@@ -340,9 +340,10 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
+  let action = "unknown";
   try {
     const body = await req.json();
-    const action = body?.action;
+    action = body?.action;
     const data = body?.data || {};
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
 
