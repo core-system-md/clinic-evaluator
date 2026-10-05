@@ -49,7 +49,6 @@ class ClinicEvaluatorApp {
       this.setupEVSimulator();
       this.setupPrint();
       this.setupKeyboardShortcuts();
-      this.setupHistoryNavigation();
 
       this.assessment = this.getActiveAssessment();
       if (!this.assessment) throw new Error('Assessment content not found.');
@@ -97,9 +96,6 @@ class ClinicEvaluatorApp {
     const data = await this.assessmentAccessRequest('get_content', {
       assessment_key: this.currentAssessmentKey
     });
-    if (!Array.isArray(data.questions) || !data.questions.length || !data.id || !data.slug) {
-      throw new Error('محتوى التقييم المنشور غير مكتمل.');
-    }
     this.config = {
       version: String(data.version || 1),
       project: 'CORE System Server Runtime',
@@ -216,30 +212,6 @@ class ClinicEvaluatorApp {
     return key ? this.config.assessment_types[key] : null;
   }
 
-  setupHistoryNavigation() {
-    if (this._historyNavigationBound) return;
-    this._historyNavigationBound = true;
-
-    let fallback = '/index.html';
-    try {
-      const referrer = document.referrer ? new URL(document.referrer) : null;
-      if (referrer && referrer.origin === window.location.origin && referrer.pathname !== window.location.pathname) {
-        fallback = referrer.pathname + referrer.search + referrer.hash;
-      }
-    } catch (_) {}
-
-    // Add a real history entry so the browser Back action is handled inside
-    // the assessment instead of closing a directly-opened tab.
-    window.history.pushState(
-      { clinicEvaluatorAssessmentGuard: true, fallback },
-      '',
-      window.location.href
-    );
-    window.addEventListener('popstate', () => {
-      window.location.replace(fallback);
-    });
-  }
-
   /* ─────────────── UI VIEWS CONTROLLER ─────────────── */
 
   showView(id) {
@@ -311,14 +283,9 @@ class ClinicEvaluatorApp {
 
 
   async startAssessmentFlow() {
-    this.questions = Array.isArray(this.assessment?.questions) ? this.assessment.questions : [];
+    this.questions = this.assessment.questions || [];
     this.answers = {};
     this.currentQuestionIndex = 0;
-
-    if (!this.questions.length) {
-      this.showError('تعذر تحميل أسئلة التقييم المنشور من الخادم.');
-      return;
-    }
 
     if (!this.assessmentUuid) {
       this.showError('تعذر تحديد نوع التقييم.');
@@ -401,10 +368,9 @@ class ClinicEvaluatorApp {
 
     let optsHtml = '';
     (q.options || []).forEach((opt, i) => {
-      const optionIndex = Number.isInteger(Number(opt.index)) ? Number(opt.index) : i;
-      const sel = (this.answers[q.id]?.index === optionIndex) ? 'sel' : '';
+      const sel = (this.answers[q.id]?.index === i) ? 'sel' : '';
       const letter = letters[i] || (i + 1);
-      optsHtml += `<div class="opt ${sel}" data-index="${optionIndex}"><div class="opt-letter">${letter}</div><div>${opt.label}</div></div>`;
+      optsHtml += `<div class="opt ${sel}" data-index="${i}"><div class="opt-letter">${letter}</div><div>${opt.label}</div></div>`;
     });
 
     container.innerHTML = `
@@ -426,7 +392,7 @@ class ClinicEvaluatorApp {
         if (!Number.isInteger(idx)) return;
 
         this.answers[qid] = { index: idx };
-        container.querySelectorAll('.opt').forEach((o) => o.classList.toggle('sel', Number(o.dataset.index) === idx));
+        container.querySelectorAll('.opt').forEach((o, i) => o.classList.toggle('sel', i === idx));
         this.updateProgress();
 
         try {
@@ -501,9 +467,8 @@ class ClinicEvaluatorApp {
           if (key === '0') idx = 9; // 0 = 10th option
         }
 
-        const optionPosition = q.options.findIndex((option) => Number(option.index) === idx);
-        if (idx >= 0 && optionPosition >= 0) {
-          this.answers[q.id] = { index: idx, value: q.options[optionPosition].value };
+        if (idx >= 0 && idx < q.options.length) {
+          this.answers[q.id] = { index: idx, value: q.options[idx].value };
           const opts = document.querySelectorAll('#question-container .opt');
           opts.forEach((o, i) => o.classList.toggle('sel', i === idx));
           this.updateProgress();
