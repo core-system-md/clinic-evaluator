@@ -997,6 +997,13 @@ Deno.serve(async (req) => {
     return json({ error: "Unknown action" }, 400);
   } catch (error) {
     const status = Number((error as any)?.status) || 500;
+    console.error("assessment-access request failure", {
+      action,
+      message: error instanceof Error ? error.message : String(error),
+      name: error instanceof Error ? error.name : typeof error,
+      stack: error instanceof Error ? error.stack : null,
+      status,
+    });
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
 });
