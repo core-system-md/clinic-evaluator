@@ -104,16 +104,15 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
       .select("id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer, trap_for")
       .eq("assessment_type_id", assessmentTypeId)
       .order("display_order", { ascending: true }),
-    supabase.rpc("get_public_assessment_options_secure", {
-      p_assessment_type_id: assessmentTypeId,
-    }),
+    supabase
+      .from("options")
+      .select("id, question_id, option_index, option_value, label, label_ar, is_trap, display_order")
+      .order("display_order", { ascending: true }),
     supabase
       .from("traps")
       .select("name, message, message_ar, question_id, validates, target_axis, penalty_base, penalty_max")
       .eq("assessment_type_id", assessmentTypeId),
   ]);
-
-  const options = Array.isArray(optionsPayload) ? optionsPayload : [];
 
   if (assessmentError || axesError || questionsError || optionsError || trapsError) {
     throw assessmentError || axesError || questionsError || optionsError || trapsError;
