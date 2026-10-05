@@ -4,6 +4,13 @@ import crypto from "node:crypto";
 import { writeFileSync } from "node:fs";
 
 const EDGE_URL = process.env.EDGE_URL;
+const LIVE_PROJECT_MARKER = "oaqpzaarppccbnepffxx";
+
+function assertLiveE2EOptIn() {
+  if (String(EDGE_URL || "").includes(LIVE_PROJECT_MARKER) && process.env.ALLOW_LIVE_E2E !== "true") {
+    throw new Error("Refusing to write E2E test data to production without ALLOW_LIVE_E2E=true.");
+  }
+}
 const ASSESSMENT_SLUG = process.env.ASSESSMENT_SLUG;
 const result = {
   started_at: new Date().toISOString(),
@@ -37,6 +44,7 @@ function assert(condition, message) {
 async function main() {
   assert(EDGE_URL, "EDGE_URL is missing");
   assert(ASSESSMENT_SLUG, "ASSESSMENT_SLUG is missing");
+  assertLiveE2EOptIn();
 
   const contentResponse = await call("get_content", {
     assessment_key: ASSESSMENT_SLUG,

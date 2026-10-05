@@ -2,6 +2,13 @@ import { writeFileSync } from "node:fs";
 import crypto from "node:crypto";
 
 const EDGE_URL = process.env.EDGE_URL;
+const LIVE_PROJECT_MARKER = "oaqpzaarppccbnepffxx";
+
+function assertLiveE2EOptIn() {
+  if (String(EDGE_URL || "").includes(LIVE_PROJECT_MARKER) && process.env.ALLOW_LIVE_E2E !== "true") {
+    throw new Error("Refusing to write E2E test data to production without ALLOW_LIVE_E2E=true.");
+  }
+}
 const ASSESSMENT_SLUG = process.env.ASSESSMENT_SLUG || "admin-reception-assessment";
 const result = {
   started_at: new Date().toISOString(),
@@ -34,6 +41,7 @@ function assert(condition, message) {
 
 try {
   assert(EDGE_URL, "EDGE_URL is missing");
+  assertLiveE2EOptIn();
 
   // 1. Catalog: proves the runner can reach the production Edge Function externally.
   const catalog = await call("get_catalog");
@@ -53,6 +61,11 @@ try {
   assert(assessment.slug === ASSESSMENT_SLUG, "Public slug is not the stable family slug");
   assert(Array.isArray(assessment.questions) && assessment.questions.length > 0, "No questions returned");
   assert(Array.isArray(assessment.axes) && assessment.axes.length > 0, "No axes returned");
+  const expectedMinOptions = ASSESSMENT_SLUG === "clinic-performance" ? 5 : 3;
+  assert(
+    assessment.questions.every((question) => Array.isArray(question.options) && question.options.length >= expectedMinOptions),
+    `Incomplete option set returned for ${ASSESSMENT_SLUG}; expected at least ${expectedMinOptions} options per question.`,
+  );
   record("get_content published-version resolution", true, {
     http_status: content.status,
     question_count: assessment.questions.length,
