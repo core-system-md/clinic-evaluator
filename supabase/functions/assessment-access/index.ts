@@ -88,7 +88,7 @@ async function requireSessionAccess(token: string) {
 }
 
 async function loadAssessment(assessmentTypeId: string, familyOverride: any = null) {
-  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: optionsPayload, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
+  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
     supabase
       .from("assessment_types")
       .select("id, slug, family_id, title_ar, title_en, description, question_count, axis_count, has_traps, has_ev_simulator, version, config_version, axis_roles, kpi_mappings, ev_mappings")
