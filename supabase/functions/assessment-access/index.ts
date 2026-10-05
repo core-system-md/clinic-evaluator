@@ -88,7 +88,7 @@ async function requireSessionAccess(token: string) {
 }
 
 async function loadAssessment(assessmentTypeId: string, familyOverride: any = null) {
-  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: options, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
+  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }, { data: optionsPayload, error: optionsError }, { data: traps, error: trapsError }] = await Promise.all([
     supabase
       .from("assessment_types")
       .select("id, slug, family_id, title_ar, title_en, description, question_count, axis_count, has_traps, has_ev_simulator, version, config_version, axis_roles, kpi_mappings, ev_mappings")
@@ -104,15 +104,16 @@ async function loadAssessment(assessmentTypeId: string, familyOverride: any = nu
       .select("id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer, trap_for")
       .eq("assessment_type_id", assessmentTypeId)
       .order("display_order", { ascending: true }),
-    supabase
-      .from("options")
-      .select("id, question_id, option_index, option_value, label, label_ar, is_trap, display_order")
-      .order("display_order", { ascending: true }),
+    supabase.rpc("get_public_assessment_options_secure", {
+      p_assessment_type_id: assessmentTypeId,
+    }),
     supabase
       .from("traps")
       .select("name, message, message_ar, question_id, validates, target_axis, penalty_base, penalty_max")
       .eq("assessment_type_id", assessmentTypeId),
   ]);
+
+  const options = Array.isArray(optionsPayload) ? optionsPayload : [];
 
   if (assessmentError || axesError || questionsError || optionsError || trapsError) {
     throw assessmentError || axesError || questionsError || optionsError || trapsError;
