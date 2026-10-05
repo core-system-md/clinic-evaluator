@@ -1055,7 +1055,7 @@ class AssessmentManager {
         const pageLeads = this.filteredLeads.slice(startIndex, endIndex);
 
         if (pageLeads.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="10" style="text-align:center; padding:24px; color:#6b7280; font-weight:600;">📭 لا توجد تقييمات منجزة مطابقة لمعايير التصفية الحالية.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; padding:24px; color:#6b7280; font-weight:600;">📭 لا توجد تقييمات منجزة مطابقة لمعايير التصفية الحالية.</td></tr>';
             document.getElementById('pagination').innerHTML = '';
             return;
         }
@@ -1070,10 +1070,11 @@ class AssessmentManager {
                 <tr>
                     <td>${dateStr}</td>
                     <td style="font-weight:700; color:#111827;">${this.escapeHtml(lead.full_name || 'طبيب غير معروف')}</td>
+                    <td>${this.escapeHtml(this.assessmentTypesMap[lead.assessment_type_id] || this.familyByVersionId[lead.assessment_type_id]?.slug || '---')}</td>
                     <td>${this.escapeHtml(lead.clinic_name || '---')}</td>
                     <td>${this.translateSpecialty(lead.specialty)}</td>
                     <td>${this.translateStaffSize(lead.team)}</td>
-                    <td>${lead.years || '---'}</td>
+                    <td>${this.escapeHtml(this.translateYears(lead.years))}</td>
                     <td>${this.escapeHtml(lead.country === 'JO' ? '🇯🇴 الأردن' : lead.country === 'SA' ? '🇸🇦 السعودية' : lead.country || '🌍 أخرى')}</td>
                     <td style="font-weight:800; color:#0f766e; font-size:1rem;">${scoreDisplay}</td>
                     <td>${stateBadge}</td>
@@ -1342,6 +1343,16 @@ class AssessmentManager {
     translateStaffSize(t) {
         const map = { '1': '1 – 3 أفراد', '2': '4 – 8 أفراد', '3': '9 – 15 فرداً', '4': 'أكثر من 15 فرداً' };
         return map[t] || t || '---';
+    }
+
+    translateYears(value) {
+        const map = {
+            '1': 'أقل من سنة',
+            '2': '1 – 3 سنوات',
+            '3': '3 – 7 سنوات',
+            '4': 'أكثر من 7 سنوات'
+        };
+        return map[String(value ?? '')] || value || '---';
     }
 }
 
