@@ -193,7 +193,7 @@ function safeContent(runtime: Awaited<ReturnType<typeof loadAssessment>>, requir
       is_required: q.is_required !== false,
       options: runtime.options
         .filter((o) => o.question_id === q.id)
-        .sort((a, b) => Number(a.option_index) - Number(b.option_index))
+        .sort((a, b) => a.display_order - b.display_order)
         .map((o) => ({
           index: o.option_index,
           label: o.label_ar || o.label,
