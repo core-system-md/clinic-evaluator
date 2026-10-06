@@ -378,6 +378,9 @@ export async function calculateP3Production(
 
   const selections = buildSelections(runtime, answerRows);
 
+  const interpretationRegistry =
+    assessmentVersion === 2 ? registryV2 : registry;
+
   const versionedConfig = {
     assessment: {
       id: runtime.assessment.id,
@@ -422,10 +425,10 @@ export async function calculateP3Production(
           a.optionIndex - b.optionIndex,
       ),
     interpretation: {
-      schemaVersion: registry.schemaVersion,
-      entries: ((assessmentVersion === 2 ? registryV2.entries : registry.entries) as Array<Record<string, unknown>>)
+      schemaVersion: interpretationRegistry.schemaVersion,
+      entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
-        .filter((entry) => assessmentVersion !== 2 || String(entry.assessmentVersion ?? "2") === "2")
+        .filter((entry) => String(entry.assessmentVersion ?? String(assessmentVersion)) === String(assessmentVersion))
         .sort(
           (a, b) =>
             String(a.questionCode).localeCompare(String(b.questionCode)) ||

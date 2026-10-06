@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
+import registryV2 from "../supabase/functions/assessment-access/p3-response-interpretation-registry-v2.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/p3-integrated-scorer-v1.mts";
 
@@ -39,6 +40,33 @@ function run(slug, extra = {}) {
     ...extra,
   });
 }
+
+test("integrated scorer propagates interpretation version 2", () => {
+  const entry = registryV2.entries.find(
+    (e) => e.assessmentSlug === "comprehensive-clinic-assessment" && e.questionCode === "CCV2Q01" && e.optionIndex === 1,
+  );
+  assert.ok(entry);
+  const result = scoreP3IntegratedV1({
+    sessionId: "00000000-0000-0000-0000-000000000001",
+    assessmentFamilyId: "family-1",
+    assessmentTypeId: "type-comprehensive-clinic-assessment-v2",
+    assessmentVersion: "2",
+    resultId: "result-v2",
+    calculatedAt: "2026-10-06T00:00:00Z",
+    scoringContractVersion: "P3_CONTRACT_V1",
+    assessmentConfigDigest: "fixture-digest-v2",
+    assessmentSlug: "comprehensive-clinic-assessment",
+    selections: [{ questionCode: entry.questionCode, optionId: entry.optionId, optionIndex: entry.optionIndex }],
+    axes: [{ code: entry.axisCode, weight: 1 }],
+    axisRoles: {},
+    kpiMappings: {},
+  });
+
+  assert.equal(result.provenance.interpretationVersion, "2");
+  const resolved = result.resolvedSelections.find((item) => item.questionCode === entry.questionCode);
+  assert.equal(resolved?.optionId, entry.optionId);
+  assert.equal(resolved?.anchorScore, entry.anchorScore);
+});
 
 test("all five published families execute through the single integrated path", () => {
   for (const [slug, family] of Object.entries(families)) {
