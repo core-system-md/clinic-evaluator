@@ -573,6 +573,50 @@
         "mode": "CAP_VALIDATOR_ANCHOR",
         "maxEffectiveAnchorScore": 70
       }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q1",
+      "targetQuestionCode": "Q3",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q10",
+      "targetQuestionCode": "Q9",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q12",
+      "targetQuestionCode": "Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q21",
+      "targetQuestionCode": "Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
     }
   ]
 }
