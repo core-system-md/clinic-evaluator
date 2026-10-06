@@ -91,14 +91,14 @@ test("all zero and all one-hundred numeric states produce the frozen boundaries"
 });
 
 test("Q7 semantic-only state has no numeric effect", () => {
-  const state0 = score(selections((q) => 0));
+  const state0 = score(selections((q, opts) => q === "Q7" ? 0 : opts.length - 1));
   const state100 = score(selections((q, opts) => q === "Q7" ? 2 : opts.length - 1));
   assert.equal(state0.scores.axes.find((a) => a.axisCode === "A2")?.score, state100.scores.axes.find((a) => a.axisCode === "A2")?.score);
   assert.equal(state0.scores.overallScore, state100.scores.overallScore);
 });
 
 test("missing A1 excludes the axis rather than zero-filling it", () => {
-  const complete = score(selections((q) => 3));
+  const complete = score(selections((q, opts) => opts.length - 1));
   const missingA1 = score(selections((q, opts) => Number(q.slice(1)) <= 5 ? null : opts.length - 1).filter(Boolean));
   const axis = missingA1.scores.axes.find((a) => a.axisCode === "A1");
   assert.equal(axis?.status, "unavailable");
@@ -149,7 +149,8 @@ test("KPI projection uses the actual Patient Journey mapping and preserves parti
 test("missing required selection never becomes a zero", () => {
   const result = score(selections((q, opts) => q === "Q5" ? null : opts.length - 1).filter(Boolean));
   const q5 = result.resolvedSelections.find((item) => item.questionCode === "Q5");
-  assert.equal(q5, undefined);
+  assert.equal(q5?.answered, false);
+  assert.equal(q5?.anchorScore, null);
   assert.equal(result.scores.axes.find((a) => a.axisCode === "A1")?.status, "measured");
   assert.equal(result.scores.axes.find((a) => a.axisCode === "A1")?.score, 100);
 });
