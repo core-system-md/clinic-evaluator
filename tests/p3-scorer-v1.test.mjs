@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
+import registryV2 from "../supabase/functions/assessment-access/p3-response-interpretation-registry-v2.json" with { type: "json" };
 import { scoreP3AssessmentV1 } from "../supabase/functions/assessment-access/p3-scorer-v1.mts";
 
 function firstSelection(assessmentSlug) {
@@ -18,7 +19,7 @@ function firstSelection(assessmentSlug) {
 test("P3 scorer resolves selected option identity before aggregation",()=>{
  const selections=firstSelection("medical-team-assessment");
  const r=scoreP3AssessmentV1({assessmentSlug:"medical-team-assessment",selections});
- assert.equal(r.scorerVersion,"P3_SCORER_V1_NONPRODUCTION");
+ assert.equal(r.scorerVersion,"P3_SCORER_V1");
  assert.equal(new Set(r.selections.map(x=>x.questionCode)).size,12);
  assert.equal(r.profile.overallComposite,null);
 });
@@ -33,6 +34,17 @@ test("Q2c9f29 option 2 uses interpretation anchor 40, not source option_value 0"
  assert.equal(resolved.optionId,entry.optionId);
  const bucket=r.profile.components.find(c=>c.componentCode==="C01")?.layers.find(l=>l.measurementLayer==="P/E");
  assert.equal(bucket?.score?.percentage,40);
+});
+
+test("interpretation version 2 resolves from the version 2 registry",()=>{
+ const entry=registryV2.entries.find(e=>e.assessmentSlug==="comprehensive-clinic-assessment"&&e.questionCode==="CCV2Q01"&&e.optionIndex===1);
+ assert.ok(entry);
+ const r=scoreP3AssessmentV1({assessmentSlug:"comprehensive-clinic-assessment",interpretationVersion:2,selections:[{questionCode:entry.questionCode,optionId:entry.optionId,optionIndex:entry.optionIndex}]});
+ const resolved=r.selections.find(x=>x.questionCode===entry.questionCode);
+ assert.equal(r.scorerVersion,"P3_SCORER_V1");
+ assert.equal(r.interpretationVersion,2);
+ assert.equal(resolved?.optionId,entry.optionId);
+ assert.equal(resolved?.anchorScore,entry.anchorScore);
 });
 
 test("missing questions create coverage gaps, not numeric zeros",()=>{
