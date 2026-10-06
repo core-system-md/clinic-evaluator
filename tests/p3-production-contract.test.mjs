@@ -1,3 +1,4 @@
+import fs from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import canonicalRegistry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
@@ -79,4 +80,45 @@ test("production structured result does not persist internal scorer-only fields"
   assert.equal(Object.hasOwn(persisted, "resolvedSelections"), false);
   assert.equal(Object.hasOwn(persisted, "axisPersistenceRows"), false);
   assert.equal(persisted.status, "PRODUCTION");
+});
+
+
+test("production adapter is explicitly on consistency scoring contract v2", () => {
+  const adapter = fs.readFileSync(
+    "supabase/functions/assessment-access/p3-production-adapter.mts",
+    "utf8",
+  );
+  assert.match(adapter, /p3-consistency-rule-registry-v2\.json/);
+  assert.match(adapter, /p3-consistency-pair-registry-v1\.json/);
+  assert.match(adapter, /scoringContractVersion: "P3_AGGREGATION_V2"/);
+  assert.doesNotMatch(adapter, /scoringContractVersion: "P3_AGGREGATION_V1"/);
+
+  const canonicalRules = JSON.parse(
+    fs.readFileSync(
+      "documentation/architecture/P3-CONSISTENCY-RULE-REGISTRY-V2.json",
+      "utf8",
+    ),
+  );
+  const packagedRules = JSON.parse(
+    fs.readFileSync(
+      "supabase/functions/assessment-access/p3-consistency-rule-registry-v2.json",
+      "utf8",
+    ),
+  );
+  assert.deepEqual(packagedRules, canonicalRules);
+
+  const canonicalPairs = JSON.parse(
+    fs.readFileSync(
+      "documentation/architecture/P3-CONSISTENCY-PAIR-REGISTRY-V1.json",
+      "utf8",
+    ),
+  );
+  const packagedPairs = JSON.parse(
+    fs.readFileSync(
+      "supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json",
+      "utf8",
+    ),
+  );
+  assert.deepEqual(packagedPairs, canonicalPairs);
+  assert.deepEqual(packagedPairs.pairs, []);
 });
