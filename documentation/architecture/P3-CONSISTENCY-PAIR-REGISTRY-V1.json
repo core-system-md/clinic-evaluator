@@ -2,5 +2,23 @@
   "schemaVersion": "P3_CONSISTENCY_PAIR_REGISTRY_V1",
   "status": "assessment-scoped-production-activation-ready",
   "crossAssessmentPolicy": "REJECT",
-  "pairs": []
+  "pairs": [],
+  "pairContract": {
+    "required": [
+      "assessmentSlug",
+      "assessmentVersion",
+      "relationshipType",
+      "validatorQuestionCode",
+      "targetQuestionCode"
+    ],
+    "optional": [
+      "scoreEffectOverride"
+    ],
+    "scoreEffectOverride": {
+      "mode": "CAP_VALIDATOR_ANCHOR",
+      "maxEffectiveAnchorScore": "required finite number when score effect is active"
+    },
+    "scopeRule": "assessmentSlug and assessmentVersion must match the pinned runtime assessment; cross-assessment pairs are rejected",
+    "activationRule": "Only explicitly approved item relationships may be added."
+  }
 }
