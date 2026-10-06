@@ -6,6 +6,7 @@ import {
   type P3IntegratedResult,
 } from "./p3-integrated-scorer-v1.mts";
 import { type P3ResolvedSelection } from "./p3-scorer-v1.mts";
+import { type P3ConsistencyRule } from "./p3-consistency-engine.mts";
 import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
 import consistencyRuleRegistry from "./p3-consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./p3-consistency-pair-registry-v1.json" with { type: "json" };
@@ -445,6 +446,11 @@ export async function calculateP3Production(
     },
   };
 
+  const consistencyConfiguration = scopedConsistencyConfiguration(
+    runtime.family.slug,
+    assessmentVersion,
+  );
+
   const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
   const resultId = crypto.randomUUID();
   const calculatedAt = new Date().toISOString();
@@ -466,14 +472,8 @@ export async function calculateP3Production(
     })),
     axisRoles: runtime.assessment.axis_roles ?? {},
     kpiMappings: runtime.assessment.kpi_mappings ?? {},
-    consistencyRules: scopedConsistencyConfiguration(
-      runtime.family.slug,
-      assessmentVersion,
-    ).rules as any,
-    consistencyPairs: scopedConsistencyConfiguration(
-      runtime.family.slug,
-      assessmentVersion,
-    ).pairs.map((pair) => ({
+    consistencyRules: consistencyConfiguration.rules as P3ConsistencyRule[],
+    consistencyPairs: consistencyConfiguration.pairs.map((pair) => ({
       relationshipType: pair.relationshipType,
       validatorQuestionCode: pair.validatorQuestionCode,
       targetQuestionCode: pair.targetQuestionCode,
