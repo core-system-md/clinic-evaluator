@@ -92,14 +92,14 @@ test("all zero and all one-hundred numeric states produce the frozen boundaries"
 
 test("Q7 semantic-only state has no numeric effect", () => {
   const state0 = score(selections((q) => 0));
-  const state100 = score(selections((q) => q === "Q7" ? 2 : 3));
+  const state100 = score(selections((q, opts) => q === "Q7" ? 2 : opts.length - 1));
   assert.equal(state0.scores.axes.find((a) => a.axisCode === "A2")?.score, state100.scores.axes.find((a) => a.axisCode === "A2")?.score);
   assert.equal(state0.scores.overallScore, state100.scores.overallScore);
 });
 
 test("missing A1 excludes the axis rather than zero-filling it", () => {
   const complete = score(selections((q) => 3));
-  const missingA1 = score(selections((q) => Number(q.slice(1)) <= 5 ? null : 3).filter(Boolean));
+  const missingA1 = score(selections((q, opts) => Number(q.slice(1)) <= 5 ? null : opts.length - 1).filter(Boolean));
   const axis = missingA1.scores.axes.find((a) => a.axisCode === "A1");
   assert.equal(axis?.status, "unavailable");
   assert.equal(missingA1.scores.axes.filter((a) => a.score !== null).length, 4);
@@ -117,7 +117,7 @@ test("each approved consistency pair caps 100 against 0 or 40, but not against 7
   );
   for (const pair of pairs) {
     for (const targetIndex of [0,1]) {
-      const baseline = selections((q) => 3);
+      const baseline = selections((q, opts) => opts.length - 1);
       const targetEntry = entriesByQuestion.get(pair.targetQuestionCode)[targetIndex];
       baseline[Number(pair.targetQuestionCode.slice(1)) - 1] = {
         questionCode: targetEntry.questionCode, optionId: targetEntry.optionId, optionIndex: targetEntry.optionIndex,
@@ -126,14 +126,14 @@ test("each approved consistency pair caps 100 against 0 or 40, but not against 7
       const validator = withFinding.resolvedSelections.find((x) => x.questionCode === pair.validatorQuestionCode);
       assert.equal(validator?.anchorScore, 70, pair.validatorQuestionCode);
     }
-    const noFinding = selections((q) => q === pair.validatorQuestionCode ? 2 : q === pair.targetQuestionCode ? 2 : 3);
+    const noFinding = selections((q, opts) => q === pair.validatorQuestionCode ? Math.min(2, opts.length - 1) : q === pair.targetQuestionCode ? Math.min(2, opts.length - 1) : opts.length - 1);
     const result = score(noFinding, { consistencyRules: [rule], consistencyPairs: pairs });
     assert.equal(result.consistency.findings.length, 0, pair.validatorQuestionCode);
   }
 });
 
 test("KPI projection uses the actual Patient Journey mapping and preserves partial coverage", () => {
-  const result = score(selections((q) => 3));
+  const result = score(selections((q, opts) => opts.length - 1));
   for (const code of ["TFI","TAP","PRP","PLI","PSI","NPI","EVI","TCI"]) {
     const kpi = result.kpis.find((item) => item.kpiCode === code);
     assert.ok(kpi, code);
@@ -147,7 +147,7 @@ test("KPI projection uses the actual Patient Journey mapping and preserves parti
 });
 
 test("missing required selection never becomes a zero", () => {
-  const result = score(selections((q) => q === "Q5" ? null : 3).filter(Boolean));
+  const result = score(selections((q, opts) => q === "Q5" ? null : opts.length - 1).filter(Boolean));
   const q5 = result.resolvedSelections.find((item) => item.questionCode === "Q5");
   assert.equal(q5, undefined);
   assert.equal(result.scores.axes.find((a) => a.axisCode === "A1")?.status, "measured");
