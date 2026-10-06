@@ -1,0 +1,6 @@
+{
+  "schemaVersion": "P3_CONSISTENCY_PAIR_REGISTRY_V1",
+  "status": "assessment-scoped-production-activation-ready",
+  "crossAssessmentPolicy": "REJECT",
+  "pairs": []
+}
