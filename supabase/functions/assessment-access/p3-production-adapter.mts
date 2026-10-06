@@ -7,6 +7,8 @@ import {
 } from "./p3-integrated-scorer-v1.mts";
 import { type P3ResolvedSelection } from "./p3-scorer-v1.mts";
 import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
+import consistencyRuleRegistry from "./p3-consistency-rule-registry-v2.json" with { type: "json" };
+import consistencyPairRegistry from "./p3-consistency-pair-registry-v1.json" with { type: "json" };
 
 type AssessmentRow = {
   id: string;
@@ -110,6 +112,36 @@ async function sha256Hex(value: string): Promise<string> {
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+type RuntimeConsistencyPair = {
+  assessmentSlug: string;
+  assessmentVersion: string;
+  relationshipType: string;
+  validatorQuestionCode: string;
+  targetQuestionCode: string;
+  scoreEffectOverride?: {
+    mode: "CAP_VALIDATOR_ANCHOR";
+    maxEffectiveAnchorScore?: number | null;
+  };
+};
+
+function scopedConsistencyConfiguration(
+  assessmentSlug: string,
+  assessmentVersion: number,
+) {
+  const version = String(assessmentVersion);
+  const rules = consistencyRuleRegistry.rules as Array<Record<string, unknown>>;
+  const pairs = (consistencyPairRegistry.pairs as RuntimeConsistencyPair[]).filter(
+    (pair) =>
+      pair.assessmentSlug === assessmentSlug &&
+      pair.assessmentVersion === version,
+  );
+
+  return {
+    rules,
+    pairs,
+  };
 }
 
 function bandFor(score: number | null): string | null {
@@ -398,6 +430,19 @@ export async function calculateP3Production(
         )
         .map((entry) => ({ ...entry })),
     },
+    consistency: {
+      schemaVersion: consistencyRuleRegistry.schemaVersion,
+      ruleRegistryVersion: consistencyRuleRegistry.schemaVersion,
+      rules: (consistencyRuleRegistry.rules as Array<Record<string, unknown>>).map((rule) => ({ ...rule })),
+      pairRegistryVersion: consistencyPairRegistry.schemaVersion,
+      pairs: (consistencyPairRegistry.pairs as RuntimeConsistencyPair[])
+        .filter(
+          (pair) =>
+            pair.assessmentSlug === runtime.family.slug &&
+            pair.assessmentVersion === String(assessmentVersion),
+        )
+        .map((pair) => ({ ...pair })),
+    },
   };
 
   const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
@@ -411,7 +456,7 @@ export async function calculateP3Production(
     assessmentVersion: String(assessmentVersion),
     resultId,
     calculatedAt,
-    scoringContractVersion: "P3_AGGREGATION_V1",
+    scoringContractVersion: "P3_AGGREGATION_V2",
     assessmentConfigDigest,
     assessmentSlug: runtime.family.slug,
     selections,
@@ -421,8 +466,19 @@ export async function calculateP3Production(
     })),
     axisRoles: runtime.assessment.axis_roles ?? {},
     kpiMappings: runtime.assessment.kpi_mappings ?? {},
-    consistencyRules: [],
-    consistencyPairs: [],
+    consistencyRules: scopedConsistencyConfiguration(
+      runtime.family.slug,
+      assessmentVersion,
+    ).rules as any,
+    consistencyPairs: scopedConsistencyConfiguration(
+      runtime.family.slug,
+      assessmentVersion,
+    ).pairs.map((pair) => ({
+      relationshipType: pair.relationshipType,
+      validatorQuestionCode: pair.validatorQuestionCode,
+      targetQuestionCode: pair.targetQuestionCode,
+      scoreEffectOverride: pair.scoreEffectOverride,
+    })),
     economicInput: input.economicInput,
     resultStatus: "PRODUCTION",
     engineIdentity: "P3_INTEGRATED_SCORER_V1",
@@ -464,7 +520,7 @@ export async function calculateP3Production(
       assessmentVersion,
       interpretationVersion: Number(result.provenance.interpretationVersion),
       scoringEngineVersion: "P3_SCORER_V1",
-      scoringContractVersion: "P3_AGGREGATION_V1",
+      scoringContractVersion: "P3_AGGREGATION_V2",
       assessmentConfigDigest,
     },
   };
