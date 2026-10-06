@@ -1,5 +1,6 @@
 /** P3 integrated scorer/result path. */
 import {
+  aggregateP3Profile,
   scoreP3AssessmentV1,
   type P3Selection,
   type P3ResolvedSelection,
