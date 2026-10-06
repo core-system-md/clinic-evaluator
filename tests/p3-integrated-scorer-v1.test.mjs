@@ -62,7 +62,7 @@ test("integrated scorer propagates interpretation version 2", () => {
     kpiMappings: {},
   });
 
-  assert.equal(result.interpretationVersion, "2");
+  assert.equal(result.provenance.interpretationVersion, "2");
   const resolved = result.resolvedSelections.find((item) => item.questionCode === entry.questionCode);
   assert.equal(resolved?.optionId, entry.optionId);
   assert.equal(resolved?.anchorScore, entry.anchorScore);
