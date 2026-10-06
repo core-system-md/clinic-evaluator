@@ -1,10 +1,10 @@
 /** P3 integrated scorer/result path. */
 import {
-  aggregateP3Profile,
   scoreP3AssessmentV1,
   type P3Selection,
   type P3ResolvedSelection,
 } from "./p3-scorer-v1.mts";
+import { aggregateP3Profile } from "./p3-aggregation-engine.mts";
 import {
   buildP3Coverage,
   evaluateP3Criticality,
