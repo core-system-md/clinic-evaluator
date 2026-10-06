@@ -11,9 +11,11 @@ import {
   type P3CriticalityItem,
 } from "./p3-criticality-coverage-engine.mts";
 import {
+  applyP3ConsistencyScoreEffects,
   evaluateP3Consistency,
   type P3ConsistencyRule,
   type P3ConsistencyFinding,
+  type P3ConsistencyScoreEffect,
 } from "./p3-consistency-engine.mts";
 import {
   buildP3StructuredResultV1,
@@ -27,6 +29,7 @@ export type P3ConsistencyPair = {
   relationshipType: string;
   validatorQuestionCode: string;
   targetQuestionCode: string;
+  scoreEffectOverride?: P3ConsistencyScoreEffect;
 };
 export type P3EconomicInput = {
   averageVisitValue: number | null;
@@ -247,6 +250,7 @@ function buildConsistencyFindings(
       validator: { ...validator, assessmentSlug, assessmentVersion },
       target: { ...target, assessmentSlug, assessmentVersion },
       relationshipType: pair.relationshipType,
+      scoreEffectOverride: pair.scoreEffectOverride,
     });
 
     if (finding) findings.push(finding);
@@ -289,8 +293,22 @@ export function scoreP3IntegratedV1(input: {
     selections: input.selections,
   });
 
+  // Consistency is evaluated against the original interpreted selections.
+  // Any declared score effect is then applied once, before numeric aggregation.
+  const consistencyFindings = buildConsistencyFindings(
+    scored.selections,
+    input.consistencyRules ?? [],
+    input.consistencyPairs ?? [],
+    input.assessmentSlug,
+    input.assessmentVersion,
+  );
+  const effectiveSelections = applyP3ConsistencyScoreEffects(
+    scored.selections,
+    consistencyFindings,
+  );
+
   const byAxis = new Map<string, P3ResolvedSelection[]>();
-  for (const item of scored.selections) {
+  for (const item of effectiveSelections) {
     if (!item.axisCode) continue;
     const list = byAxis.get(item.axisCode) ?? [];
     list.push(item);
@@ -319,7 +337,9 @@ export function scoreP3IntegratedV1(input: {
       ) / weightSum
     : null;
 
-  const coverageItems: P3CoverageItem[] = scored.selections.map((item) => ({
+  const effectiveProfile = aggregateP3Profile(effectiveSelections);
+
+  const coverageItems: P3CoverageItem[] = effectiveSelections.map((item) => ({
     questionCode: item.questionCode,
     answered: item.answered,
     interpreted: item.answered,
@@ -339,10 +359,10 @@ export function scoreP3IntegratedV1(input: {
 
   const coverage = buildP3Coverage(
     coverageItems,
-    scored.selections.length,
+    effectiveSelections.length,
   );
 
-  const criticalityItems: P3CriticalityItem[] = scored.selections.map(
+  const criticalityItems: P3CriticalityItem[] = effectiveSelections.map(
     (item) => ({
       questionCode: item.questionCode,
       criticality: item.criticality ?? "NORMAL",
@@ -353,14 +373,6 @@ export function scoreP3IntegratedV1(input: {
   const criticality = evaluateP3Criticality(
     criticalityItems,
     coverage.coverageStatus,
-  );
-
-  const consistencyFindings = buildConsistencyFindings(
-    scored.selections,
-    input.consistencyRules ?? [],
-    input.consistencyPairs ?? [],
-    input.assessmentSlug,
-    input.assessmentVersion,
   );
 
   const roles = projectRoles(axisResults, input.axisRoles);
@@ -397,10 +409,10 @@ export function scoreP3IntegratedV1(input: {
     assessmentConfigDigest: input.assessmentConfigDigest,
     interpretationVersion: String(scored.interpretationVersion),
     scoringEngineVersion: "P3_SCORER_V1",
-    inputLineage: scored.selections
+    inputLineage: effectiveSelections
       .filter((item) => item.answered && item.optionId)
       .map((item) => `${item.questionCode}:${item.optionId}`),
-    responses: scored.selections
+    responses: effectiveSelections
       .filter(
         (item) =>
           item.answered && item.optionId && item.semanticStateKey,
@@ -412,7 +424,7 @@ export function scoreP3IntegratedV1(input: {
         sourceOptionValue: item.sourceOptionValue ?? null,
         semanticStateKey: item.semanticStateKey!,
       })),
-    profile: scored.profile,
+    profile: effectiveProfile,
     overallScore,
     axisScores: axisResults,
     coverage,
@@ -491,6 +503,6 @@ export function scoreP3IntegratedV1(input: {
   return {
     ...structured,
     axisPersistenceRows,
-    resolvedSelections: scored.selections,
+    resolvedSelections: effectiveSelections,
   };
 }
