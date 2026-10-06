@@ -1,5 +1,5 @@
 /**
- * P3 scorer V1 — ISOLATED / NON-PRODUCTION.
+ * P3 scorer V1 — production scoring kernel.
  *
  * Flow:
  * selected option identity
@@ -8,14 +8,14 @@
  *   -> component/layer aggregation
  *   -> multi-dimensional profile
  *
- * This module intentionally does not replace score-engine.ts.
  * It never uses source option_value as a score.
  */
 
-import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
+import registryV1 from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
+import registryV2 from "./p3-response-interpretation-registry-v2.json" with { type: "json" };
 import { aggregateP3Profile, type P3ResolvedMeasurement } from "./p3-aggregation-engine.mts";
 
-type RegistryEntry = (typeof registry.entries)[number];
+type RegistryEntry = (typeof registryV1.entries)[number];
 
 export type P3Selection = {
   questionCode: string;
@@ -38,22 +38,31 @@ export type P3ResolvedSelection = P3ResolvedMeasurement & {
 };
 
 export type P3ScorerV1Result = {
-  scorerVersion: "P3_SCORER_V1_NONPRODUCTION";
+  scorerVersion: "P3_SCORER_V1";
   assessmentSlug: string;
   interpretationVersion: number;
   selections: P3ResolvedSelection[];
   profile: ReturnType<typeof aggregateP3Profile>;
 };
 
-const byQuestion = new Map<string, RegistryEntry[]>();
-for (const entry of registry.entries as RegistryEntry[]) {
-  const key = `${entry.assessmentSlug}|${entry.questionCode}`;
-  const list = byQuestion.get(key) ?? [];
-  list.push(entry);
-  byQuestion.set(key, list);
+function registryEntriesForVersion(interpretationVersion: number): RegistryEntry[] {
+  if (interpretationVersion === 1) return registryV1.entries as RegistryEntry[];
+  if (interpretationVersion === 2) return registryV2.entries as RegistryEntry[];
+  throw new Error(`Unsupported interpretation version: ${interpretationVersion}`);
 }
 
-function questionEntries(assessmentSlug: string): RegistryEntry[][] {
+function questionEntries(
+  assessmentSlug: string,
+  interpretationVersion: number,
+): RegistryEntry[][] {
+  const byQuestion = new Map<string, RegistryEntry[]>();
+  for (const entry of registryEntriesForVersion(interpretationVersion)) {
+    const key = `${entry.assessmentSlug}|${entry.questionCode}`;
+    const list = byQuestion.get(key) ?? [];
+    list.push(entry);
+    byQuestion.set(key, list);
+  }
+
   return [...byQuestion.entries()]
     .filter(([key]) => key.startsWith(`${assessmentSlug}|`))
     .map(([, entries]) => entries);
@@ -79,7 +88,7 @@ export function resolveP3Selections(
   selections: P3Selection[],
   interpretationVersion = 1,
 ): P3ResolvedSelection[] {
-  const questions = questionEntries(assessmentSlug);
+  const questions = questionEntries(assessmentSlug, interpretationVersion);
   if (!questions.length) throw new Error(`Unknown assessment family: ${assessmentSlug}`);
 
   const seenQuestions = new Set<string>();
@@ -184,7 +193,7 @@ export function scoreP3AssessmentV1(input: {
   );
   const profile = aggregateP3Profile(resolved);
   return {
-    scorerVersion: "P3_SCORER_V1_NONPRODUCTION",
+    scorerVersion: "P3_SCORER_V1",
     assessmentSlug: input.assessmentSlug,
     interpretationVersion,
     selections: resolved,
