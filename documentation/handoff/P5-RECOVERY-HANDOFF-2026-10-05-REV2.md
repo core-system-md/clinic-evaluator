@@ -264,3 +264,145 @@ Earlier operational handoff:
 `documentation/handoff/P5-ADMIN-OPERATIONAL-HANDOFF-2026-10-04.md`
 
 The REV2 handoff is the document to use for the next conversation.
+
+
+# 2026-10-06 CURRENT-STATE ADDENDUM — SUPERSEDES THE OPERATIONAL STATE ABOVE
+
+This addendum is the authoritative state for the next conversation. The historical recovery findings in this document remain valid unless explicitly closed below.
+
+## A. Repository and production identity
+
+Repository: `core-system-md/clinic-evaluator`
+
+Supabase: `oaqpzaarppccbnepffxx`
+
+Current main merge commit: `79dc578e7421ef8f8d5348d3eeb81690d7750444`
+
+Merged PR: #50 — approved Comprehensive Clinic Assessment v2
+
+Production Edge Function: `assessment-access` v29
+
+Production deployment SHA: `7530eb134e7ced78845317fe3ed05f28b4d0415ed5dc7d84905066d7b2458622`
+
+`verify_jwt=false` remains unchanged from the prior production deployment.
+
+## B. Comprehensive Clinic current lifecycle
+
+Public family slug remains: `comprehensive-clinic-assessment`
+
+Active published version:
+- assessment_type id: `d58150e6-9a85-4837-b41f-2a5f99682639`
+- internal slug: `comprehensive-clinic-assessment-v2`
+- version: 2
+- status: `published`
+- `is_active=true`
+
+Previous v1:
+- assessment_type id: `0779bf3c-45a1-42d9-a2e5-9c9523a23b81`
+- version: 1
+- status: `archived`
+- `is_active=false`
+
+Family current_published_version_id points to v2.
+
+Published v1 was not edited and P2 immutability triggers remain enabled.
+
+## C. Approved content now live
+
+36 questions, all required.
+
+152 options.
+
+Six frozen axes and weights:
+- رحلة المريض — 20%
+- التحويل للعلاج وبناء الثقة — 20%
+- الإدارة والتشغيل — 20%
+- الفريق الطبي — 15%
+- المتابعة والاحتفاظ بالمريض — 15%
+- النمو والاستدامة — 10%
+
+Question codes are `CCV2Q01` through `CCV2Q36`.
+
+Option anchors use the approved `0 / 40 / 70 / 100` pattern, with the specified `0 / 40 / 70 / 100 / 100` five-option cases.
+
+22 questions carry explicit cross-question trap/verification relationships.
+
+The direct `options.is_trap` flag is not used as a scoring penalty mechanism.
+
+## D. Consistency/reality-check state
+
+The shared P3 reality-check decision remains authoritative:
+`documentation/architecture/P3-CONSISTENCY-REALITY-CHECK-DECISION-2026-10-06.md`
+
+The production mapping for Comprehensive Clinic v2 contains 52 explicit pair relationships derived from the approved 22-question relationship map.
+
+Score effect:
+`CAP_VALIDATOR_ANCHOR`
+
+Declared ceiling for this assessment:
+`70`
+
+Therefore the intended strong direct contradiction behavior is:
+`100 -> 70`
+
+No legacy trap multiplier or impact penalty is invoked by this mechanism.
+
+## E. Runtime interpretation
+
+The repository now contains:
+- `p3-response-interpretation-registry-v2.json` — 152 entries;
+- `p3-consistency-pair-registry-v1.json` — 52 Comprehensive Clinic v2 pairs;
+- version-aware selection in `p3-production-adapter.mts`.
+
+The live v29 function was re-read after deployment and confirmed to contain these artifacts.
+
+## F. Database safety state
+
+Usage data was verified empty at publication time. No sessions, answers, scores, or assessment results were created by this rollout.
+
+No other assessment family was changed.
+
+Axis weights remain exactly unchanged.
+
+## G. Important reproducibility gap
+
+The v2 assessment content was inserted directly into the live Supabase database during this implementation.
+
+There is currently no dedicated repository SQL migration that independently reconstructs the exact v2 database rows.
+
+Do not claim full source-controlled database reproducibility until this is addressed.
+
+## H. Verification boundary
+
+This session verified:
+- v2 lifecycle state;
+- family publication pointer;
+- 36 questions / 152 options;
+- 22 trap relationship questions;
+- 100% total axis weighting;
+- live function v29 and deployment identity;
+- version-aware interpretation registry and consistency pair activation.
+
+Final owner browser/E2E acceptance of the newly published v2 was not performed in this session.
+
+Therefore **P5 remains OPEN**.
+
+## I. Required starting point in the next conversation
+
+Start directly from this addendum.
+
+1. Read this addendum and the 2026-10-06 P3 consistency decision.
+2. Re-check the live public `get_catalog` and `get_content` paths for `comprehensive-clinic-assessment`.
+3. Verify all 36 question option cardinalities and public option labels.
+4. Run controlled end-to-end validation without creating synthetic production usage unless explicitly authorized.
+5. Verify result provenance for version 2 and P3 aggregation v2.
+6. Treat the missing source-controlled v2 database migration as a documented outstanding item.
+7. Do not redesign the approved assessment, change weights, modify v1, or alter the P2 lifecycle unless a new owner decision explicitly authorizes it.
+
+## J. Authoritative current references
+
+- `documentation/architecture/P3-CONSISTENCY-REALITY-CHECK-DECISION-2026-10-06.md`
+- `documentation/handoff/P5-RECOVERY-HANDOFF-2026-10-05-REV2.md` (this addendum)
+- PR #50
+- main commit `79dc578e7421ef8f8d5348d3eeb81690d7750444`
+- production `assessment-access` v29
