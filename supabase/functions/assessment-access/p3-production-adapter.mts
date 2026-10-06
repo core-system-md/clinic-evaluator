@@ -8,6 +8,7 @@ import {
 import { type P3ResolvedSelection } from "./p3-scorer-v1.mts";
 import { type P3ConsistencyRule } from "./p3-consistency-engine.mts";
 import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
+import registryV2 from "./p3-response-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./p3-consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./p3-consistency-pair-registry-v1.json" with { type: "json" };
 
@@ -422,8 +423,9 @@ export async function calculateP3Production(
       ),
     interpretation: {
       schemaVersion: registry.schemaVersion,
-      entries: (registry.entries as Array<Record<string, unknown>>)
+      entries: ((assessmentVersion === 2 ? registryV2.entries : registry.entries) as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
+        .filter((entry) => assessmentVersion !== 2 || String(entry.assessmentVersion ?? "2") === "2")
         .sort(
           (a, b) =>
             String(a.questionCode).localeCompare(String(b.questionCode)) ||
