@@ -1,0 +1,35 @@
+name: P5 Patient Journey v2 verification
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "documentation/architecture/P5-PATIENT-JOURNEY-V2-CONTENT-2026-10-06.json"
+      - "documentation/architecture/P5-PATIENT-JOURNEY-V2-INTERPRETATION-REGISTRY-2026-10-06.json"
+      - "supabase/functions/assessment-access/p3-response-interpretation-registry-v2.json"
+      - "supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json"
+      - "supabase/functions/assessment-access/p3-*.mts"
+      - "tests/patient-journey-v2.test.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  p5-patient-journey-v2:
+    name: Patient Journey v2 contract verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run Patient Journey v2 verification
+        run: node --experimental-strip-types --test tests/patient-journey-v2.test.mjs
