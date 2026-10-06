@@ -200,3 +200,96 @@ test("criticality remains structured and does not enter the overallScore formula
   ));
 });
 
+
+test("explicit consistency cap changes the validator before axis and overall aggregation", () => {
+  const slug = "patient-journey";
+  const selections = firstSelection(slug);
+  const validatorCode = selections[0].questionCode;
+  const targetCode = selections[1].questionCode;
+
+  const validator100 = registry.entries.find(
+    (entry) =>
+      entry.assessmentSlug === slug &&
+      entry.questionCode === validatorCode &&
+      entry.scoreEligible &&
+      entry.anchorScore === 100,
+  );
+  const target0 = registry.entries.find(
+    (entry) =>
+      entry.assessmentSlug === slug &&
+      entry.questionCode === targetCode &&
+      entry.scoreEligible &&
+      entry.anchorScore === 0,
+  );
+  assert.ok(validator100);
+  assert.ok(target0);
+
+  selections[0] = {
+    questionCode: validator100.questionCode,
+    optionId: validator100.optionId,
+    optionIndex: validator100.optionIndex,
+  };
+  selections[1] = {
+    questionCode: target0.questionCode,
+    optionId: target0.optionId,
+    optionIndex: target0.optionIndex,
+  };
+
+  const baseline = run(slug, { selections });
+  const checked = run(slug, {
+    selections,
+    consistencyRules: [{
+      ruleId: "CR-009",
+      ruleVersion: 1,
+      relationshipType: "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      trigger: {
+        validator: { scoreMode: "DIRECT_ANCHOR", scoreEligible: true, minAnchorPercentage: 100 },
+        target: { scoreMode: "DIRECT_ANCHOR", scoreEligible: true, maxAnchorPercentage: 40 },
+      },
+      severity: "MATERIAL",
+      affectedComponents: "FROM_INPUTS",
+      findingCode: "REALITY_CHECK_CONTRADICTION",
+      interpretation: "Test-only explicit reality-check cap.",
+      reviewRequired: true,
+      scoreEffect: {
+        mode: "CAP_VALIDATOR_ANCHOR",
+        maxEffectiveAnchorScore: null,
+      },
+    }],
+    consistencyPairs: [{
+      relationshipType: "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      validatorQuestionCode: validatorCode,
+      targetQuestionCode: targetCode,
+      scoreEffectOverride: {
+        mode: "CAP_VALIDATOR_ANCHOR",
+        maxEffectiveAnchorScore: 70,
+      },
+    }],
+  });
+
+  const effectiveValidator = checked.resolvedSelections.find(
+    (item) => item.questionCode === validatorCode,
+  );
+  assert.equal(effectiveValidator?.anchorScore, 70);
+  assert.equal(
+    checked.consistency.findings.find(
+      (finding) => finding.findingCode === "REALITY_CHECK_CONTRADICTION",
+    )?.scoreAdjustment?.effectiveAnchorScore,
+    70,
+  );
+  assert.notEqual(
+    checked.scores.overallScore,
+    baseline.scores.overallScore,
+  );
+
+  const validatorAxis = effectiveValidator?.axisCode;
+  const baselineAxis = baseline.scores.axes.find(
+    (axis) => axis.axisCode === validatorAxis,
+  );
+  const checkedAxis = checked.scores.axes.find(
+    (axis) => axis.axisCode === validatorAxis,
+  );
+  assert.ok(baselineAxis);
+  assert.ok(checkedAxis);
+  assert.ok(Number(checkedAxis.score) < Number(baselineAxis.score));
+});

@@ -6,6 +6,16 @@
 **Canonical branch:** `main`  
 **Canonical source:** the current `main` branch (this document moves with it).
 
+## 0. 2026-10-06 owner decision superseding consistency-only scoring
+
+The owner-approved decision in `documentation/architecture/P3-CONSISTENCY-REALITY-CHECK-DECISION-2026-10-06.md` supersedes the earlier consistency-specific V1 statements that all consistency findings must have `scoreEffect=NONE`.
+
+The shared P3 consistency layer now permits an **explicit, assessment/version-scoped validator-anchor cap** when a declared contradiction rule matches. This is not a generic penalty and does not alter axis weights. The cap is declared by rule/item configuration (for the approved Comprehensive Clinic design, the intended high-state correction is `100 → 70`). Assessments without approved score-effect mappings remain numerically unchanged.
+
+The current live runtime baseline was re-verified before implementation: Supabase `assessment-access` is ACTIVE at version 27; published v1 assessment families are active; `assessment_results`, sessions, answers, and scores are currently empty.
+
+Earlier consistency V1 artifacts remain preserved as historical evidence.
+
 ## 1. Purpose
 
 This document is the single working reference for P3 status, document precedence, reconciled findings, open decisions, and the sequence required to reach the Implementation-Ready gate.

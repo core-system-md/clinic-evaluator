@@ -1,0 +1,242 @@
+{
+  "schemaVersion": "P3_CONSISTENCY_RULE_REGISTRY_V2",
+  "status": "implementation-authoritative",
+  "defaultScoreEffect": "NONE",
+  "crossAssessmentPolicy": "REJECT",
+  "scoreEffectPolicy": {
+    "version": "P3_CONSISTENCY_SCORE_EFFECT_V1",
+    "modes": [
+      "NONE",
+      "CAP_VALIDATOR_ANCHOR"
+    ],
+    "capSource": "EXPLICIT_RULE_OR_ASSESSMENT_PAIR_CONFIGURATION",
+    "noStacking": true
+  },
+  "rules": [
+    {
+      "ruleId": "CR-001",
+      "ruleVersion": 1,
+      "relationshipType": "CLAIM_VS_MEASUREMENT_GAP",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "evidenceRole": "MEASUREMENT_CLAIM",
+          "minAnchorPercentage": 80
+        },
+        "target": {
+          "evidenceRole": "EVIDENCE_GAP"
+        }
+      },
+      "severity": "ATTENTION",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "EVIDENCE_GAP",
+      "interpretation": "A strong measurement-capability claim is paired with an explicit evidence gap; this is a review signal, not proof that the claim is false.",
+      "reviewRequired": true,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-002",
+      "ruleVersion": 1,
+      "relationshipType": "STANDARDIZATION_VS_PROVIDER_CASE_VARIABILITY",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "minAnchorPercentage": 80
+        },
+        "target": {
+          "contextRequired": true
+        }
+      },
+      "severity": "ATTENTION",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "VARIABILITY_SIGNAL",
+      "interpretation": "A strong stable-process response is paired with an explicitly contextual/provider-dependent response; inspect whether variability is legitimate adaptation or lack of standardization.",
+      "reviewRequired": true,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-003",
+      "ruleVersion": 1,
+      "relationshipType": "PRACTICE_CLAIM_VS_EVIDENCE_LIMITATION",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "evidenceRole": "PRACTICE_CLAIM",
+          "minAnchorPercentage": 80
+        },
+        "target": {
+          "evidenceRole": "EVIDENCE_GAP"
+        }
+      },
+      "severity": "ATTENTION",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "UNVERIFIED_CLAIM",
+      "interpretation": "A strong practice claim has limited or absent supporting evidence; the claim remains neither validated nor disproved.",
+      "reviewRequired": true,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-004",
+      "ruleVersion": 1,
+      "relationshipType": "RESILIENCE_CLAIM_VS_OPERATIONAL_DISRUPTION",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "minAnchorPercentage": 80
+        },
+        "target": {
+          "maxAnchorPercentage": 40
+        }
+      },
+      "severity": "MATERIAL",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "RESILIENCE_CONSISTENCY_REVIEW",
+      "interpretation": "A strong resilience state and a low operational state coexist in the explicitly related inputs; review context and measurement period.",
+      "reviewRequired": true,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-005",
+      "ruleVersion": 1,
+      "relationshipType": "FOLLOWUP_SYSTEM_VS_FOLLOWUP_ABSENCE",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "minAnchorPercentage": 80
+        },
+        "target": {
+          "maxAnchorPercentage": 40
+        }
+      },
+      "severity": "MATERIAL",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "FOLLOWUP_CONSISTENCY_REVIEW",
+      "interpretation": "An established follow-up state is paired with a low/no-follow-up state in explicitly related inputs; review scope, timing, or segmentation.",
+      "reviewRequired": true,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-006",
+      "ruleVersion": 1,
+      "relationshipType": "MEASUREMENT_CAPABILITY_VS_OUTCOME_CLAIM",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "measurementTypeIn": [
+            "MEASUREMENT_MATURITY",
+            "EVIDENCE_STATE"
+          ]
+        },
+        "target": {
+          "measurementTypeIn": [
+            "OUTCOME_STATE"
+          ]
+        }
+      },
+      "severity": "INFO",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "MEASUREMENT_NOT_OUTCOME",
+      "interpretation": "Measurement capability is not evidence that the measured outcome has a favorable observed value.",
+      "reviewRequired": false,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-007",
+      "ruleVersion": 1,
+      "relationshipType": "CRITICAL_PRACTICE_VS_CONTEXTUAL_EXCEPTION",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "criticalityIn": [
+            "ATTENTION",
+            "CRITICAL_FINDING"
+          ],
+          "minAnchorPercentage": 80
+        },
+        "target": {
+          "contextRequired": true
+        }
+      },
+      "severity": "MATERIAL",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "CRITICAL_CONTEXT_REVIEW",
+      "interpretation": "A critical practice claim coexists with contextual/provider-dependent behavior; criticality remains a separate review channel.",
+      "reviewRequired": true,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-008",
+      "ruleVersion": 1,
+      "relationshipType": "INDIRECT_VERIFICATION_PAIR",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "scoreEligible": true
+        },
+        "target": {
+          "answered": true
+        }
+      },
+      "severity": "INFO",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "VERIFICATION_SIGNAL",
+      "interpretation": "An explicitly designated indirect-verification pair is surfaced for corroboration without labeling either response false.",
+      "reviewRequired": false,
+      "scoreEffect": "NONE"
+    },
+    {
+      "ruleId": "CR-009",
+      "ruleVersion": 1,
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "inputItems": [
+        "validator",
+        "target"
+      ],
+      "trigger": {
+        "validator": {
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "minAnchorPercentage": 100
+        },
+        "target": {
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "maxAnchorPercentage": 40
+        }
+      },
+      "severity": "MATERIAL",
+      "affectedComponents": "FROM_INPUTS",
+      "findingCode": "REALITY_CHECK_CONTRADICTION",
+      "interpretation": "A designated high-state practice claim is contradicted by its explicitly related low-state response. The validator is not declared false; its numeric contribution is capped to the configuration-declared mature anchor and the finding is retained for review.",
+      "reviewRequired": true,
+      "scoreEffect": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": null
+      }
+    }
+  ]
+}
