@@ -267,10 +267,10 @@ export function evaluateP3Consistency(
  * the strictest declared cap, not repeated/stacked penalties. The function
  * returns fresh selection objects and never mutates the input array/items.
  */
-export function applyP3ConsistencyScoreEffects(
-  selections: Array<P3ConsistencyItem & Record<string, unknown>>,
+export function applyP3ConsistencyScoreEffects<T extends P3ConsistencyItem>(
+  selections: T[],
   findings: P3ConsistencyFinding[],
-): Array<P3ConsistencyItem & Record<string, unknown>> {
+): T[] {
   const capByQuestion = new Map<string, number>();
 
   for (const finding of findings) {
