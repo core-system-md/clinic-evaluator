@@ -291,6 +291,7 @@ export function scoreP3IntegratedV1(input: {
 }): P3IntegratedResult {
   const scored = scoreP3AssessmentV1({
     assessmentSlug: input.assessmentSlug,
+    interpretationVersion: Number(input.assessmentVersion),
     selections: input.selections,
   });
 
