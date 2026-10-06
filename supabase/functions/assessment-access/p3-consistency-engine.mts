@@ -164,8 +164,15 @@ function resolveScoreEffect(
     throw new Error(`Unsupported consistency score effect mode for ${rule.ruleId}`);
   }
 
-  const cap = Number(effect.maxEffectiveAnchorScore);
-  if (!Number.isFinite(cap) || cap < 0 || cap > Number(validator.anchorMax)) {
+  const rawCap = effect.maxEffectiveAnchorScore;
+  const cap = Number(rawCap);
+  if (
+    rawCap === null ||
+    rawCap === undefined ||
+    !Number.isFinite(cap) ||
+    cap < 0 ||
+    cap > Number(validator.anchorMax)
+  ) {
     throw new Error(
       `Invalid consistency anchor cap for ${rule.ruleId}:${validator.questionCode}`,
     );
