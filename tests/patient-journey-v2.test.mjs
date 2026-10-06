@@ -23,6 +23,7 @@ function selections(pickIndex = () => 0) {
     const options = entriesByQuestion.get(question.code);
     assert.ok(options?.length, `missing registry entries for ${question.code}`);
     const index = pickIndex(question.code, options);
+    if (index === null) return null;
     const entry = options[index];
     return { questionCode: entry.questionCode, optionId: entry.optionId, optionIndex: entry.optionIndex };
   });
@@ -98,7 +99,7 @@ test("Q7 semantic-only state has no numeric effect", () => {
 
 test("missing A1 excludes the axis rather than zero-filling it", () => {
   const complete = score(selections((q) => 3));
-  const missingA1 = score(selections((q) => q.startsWith("Q") && Number(q.slice(1)) <= 5 ? null : 3).filter(Boolean));
+  const missingA1 = score(selections((q) => Number(q.slice(1)) <= 5 ? null : 3).filter(Boolean));
   const axis = missingA1.scores.axes.find((a) => a.axisCode === "A1");
   assert.equal(axis?.status, "unavailable");
   assert.equal(missingA1.scores.axes.filter((a) => a.score !== null).length, 4);
