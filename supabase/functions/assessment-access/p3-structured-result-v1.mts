@@ -36,6 +36,7 @@ export type P3StructuredResultV1 = {
   identity: {
     sessionId: string;
     assessmentFamilyId: string;
+    assessmentSlug: string;
     assessmentTypeId: string;
     assessmentVersion: string;
     resultId: string;
@@ -145,6 +146,7 @@ export type P3StructuredResultV1 = {
 export function buildP3StructuredResultV1(input: {
   sessionId: string;
   assessmentFamilyId: string;
+  assessmentSlug: string;
   assessmentTypeId: string;
   assessmentVersion: string;
   resultId: string;
@@ -172,6 +174,7 @@ export function buildP3StructuredResultV1(input: {
   const requiredStrings = [
     input.sessionId,
     input.assessmentFamilyId,
+    input.assessmentSlug,
     input.assessmentTypeId,
     input.assessmentVersion,
     input.resultId,
@@ -258,6 +261,7 @@ export function buildP3StructuredResultV1(input: {
     identity: {
       sessionId: input.sessionId,
       assessmentFamilyId: input.assessmentFamilyId,
+      assessmentSlug: input.assessmentSlug,
       assessmentTypeId: input.assessmentTypeId,
       assessmentVersion: input.assessmentVersion,
       resultId: input.resultId,
