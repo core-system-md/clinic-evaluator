@@ -50,7 +50,7 @@ export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & 
   };
 };
 
-function axisScore(items: P3ResolvedSelection[]): number | null {
+function axisMeasurement(items: P3ResolvedSelection[]) {
   const eligible = items.filter(
     (item) =>
       item.answered &&
@@ -60,21 +60,39 @@ function axisScore(items: P3ResolvedSelection[]): number | null {
       Number.isFinite(item.anchorMax) &&
       Number(item.anchorMax) > 0,
   );
+
   if (!eligible.length) return null;
-  return (
+
+  const rawScore = eligible.reduce(
+    (sum, item) => sum + Number(item.anchorScore),
+    0,
+  );
+  const maxPossible = eligible.reduce(
+    (sum, item) => sum + Number(item.anchorMax),
+    0,
+  );
+  const percentage =
     eligible.reduce(
       (sum, item) =>
         sum + (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
       0,
-    ) / eligible.length
-  );
+    ) / eligible.length;
+
+  return {
+    rawScore,
+    maxPossible,
+    percentage,
+    count: eligible.length,
+  };
 }
 
-function canonicalWeight(weight: number): number {
-  if (!Number.isFinite(weight) || weight < 0) {
-    throw new Error("Invalid axis weight");
-  }
-  return weight > 1 ? weight / 100 : weight;
+function bandCodeForScore(score: number | null): "Q1" | "Q2" | "Q3" | "Q4" | null {
+  if (!Number.isFinite(score)) return null;
+  const value = Number(score);
+  if (value >= 75) return "Q4";
+  if (value >= 50) return "Q3";
+  if (value >= 25) return "Q2";
+  return "Q1";
 }
 
 function projectRoles(
@@ -226,6 +244,7 @@ export function scoreP3IntegratedV1(input: {
   assessmentFamilyId: string;
   assessmentTypeId: string;
   assessmentVersion: string;
+  interpretationVersion: number;
   resultId: string;
   calculatedAt: string;
   scoringContractVersion: string;
@@ -252,7 +271,7 @@ export function scoreP3IntegratedV1(input: {
 }): P3IntegratedResult {
   const scored = scoreP3AssessmentV1({
     assessmentSlug: input.assessmentSlug,
-    interpretationVersion: Number(input.assessmentVersion),
+    interpretationVersion: input.interpretationVersion,
     selections: input.selections,
   });
 
@@ -279,23 +298,34 @@ export function scoreP3IntegratedV1(input: {
   }
 
   const axisResults = input.axes.map((axis) => {
-    const weight = canonicalWeight(axis.weight);
-    const score = axisScore(byAxis.get(axis.code) ?? []);
+    const weightFraction = canonicalWeight(axis.weight);
+    const weightPercentage = weightFraction * 100;
+    const measurement = axisMeasurement(byAxis.get(axis.code) ?? []);
     return {
       axisCode: axis.code,
-      score,
-      weight,
-      status: score === null ? ("unavailable" as const) : ("measured" as const),
+      rawScore: measurement?.rawScore ?? null,
+      maxPossible: measurement?.maxPossible ?? null,
+      score: measurement?.percentage ?? null,
+      weightedScore:
+        measurement === null
+          ? null
+          : measurement.percentage * weightFraction,
+      weight: weightPercentage,
+      grade: bandCodeForScore(measurement?.percentage ?? null),
+      status:
+        measurement === null
+          ? ("unavailable" as const)
+          : ("measured" as const),
     };
   });
 
   const validAxes = axisResults.filter(
     (axis) => Number.isFinite(axis.score) && axis.weight > 0,
   );
-  const weightSum = validAxes.reduce((sum, axis) => sum + axis.weight, 0);
+  const weightSum = validAxes.reduce((sum, axis) => sum + axis.weight / 100, 0);
   const overallScore = validAxes.length
     ? validAxes.reduce(
-        (sum, axis) => sum + Number(axis.score) * axis.weight,
+        (sum, axis) => sum + Number(axis.score) * (axis.weight / 100),
         0,
       ) / weightSum
     : null;
@@ -343,6 +373,7 @@ export function scoreP3IntegratedV1(input: {
   const economics = calculateP3RecursiveReferralEconomic(
     input.economicInput ?? {
       averageVisitValue: null,
+      visitsPerYear: 3,
       relationshipYears: null,
       referralPercentage: null,
     },
@@ -362,16 +393,16 @@ export function scoreP3IntegratedV1(input: {
   const structured = buildP3StructuredResultV1({
     sessionId: input.sessionId,
     assessmentFamilyId: input.assessmentFamilyId,
+    assessmentSlug: input.assessmentSlug,
     assessmentTypeId: input.assessmentTypeId,
     assessmentVersion: input.assessmentVersion,
     resultId: input.resultId,
     calculatedAt: input.calculatedAt,
-    engineIdentity:
-      input.engineIdentity ?? "P3_INTEGRATED_SCORER_V1_NONPRODUCTION",
+    engineIdentity: input.engineIdentity ?? "MD_CODE_ASSESSMENT_ENGINE",
     scoringContractVersion: input.scoringContractVersion,
     assessmentConfigDigest: input.assessmentConfigDigest,
     interpretationVersion: String(scored.interpretationVersion),
-    scoringEngineVersion: "P3_SCORER_V1",
+    scoringEngineVersion: input.engineIdentity ?? "MD_CODE_ASSESSMENT_ENGINE",
     inputLineage: effectiveSelections
       .filter((item) => item.answered && item.optionId)
       .map((item) => `${item.questionCode}:${item.optionId}`),
@@ -386,6 +417,14 @@ export function scoreP3IntegratedV1(input: {
         optionIndex: item.optionIndex!,
         sourceOptionValue: item.sourceOptionValue ?? null,
         semanticStateKey: item.semanticStateKey!,
+        axisCode: item.axisCode ?? null,
+        componentCode: item.componentCode ?? null,
+        primaryConstruct: item.primaryConstruct ?? null,
+        measurementLayer: item.measurementLayer ?? null,
+        scoreMode: item.scoreMode,
+        scoreEligible: item.scoreEligible,
+        anchorScore: item.anchorScore ?? null,
+        anchorMax: item.anchorMax ?? null,
       })),
     profile: effectiveProfile,
     overallScore,
@@ -408,60 +447,34 @@ export function scoreP3IntegratedV1(input: {
       status:
         economics.status === "available" ? "COMPUTED" : "NOT_COMPUTED",
       modelCode: economics.modelCode,
+      inputs: {
+        averageVisitValue: input.economicInput?.averageVisitValue ?? null,
+        visitsPerYear: input.economicInput?.visitsPerYear ?? 3,
+        relationshipYears: input.economicInput?.relationshipYears ?? null,
+        referralPercentage: input.economicInput?.referralPercentage ?? null,
+      },
       output: economics.output,
     },
   });
 
-  const axisPersistenceRows = axisResults.flatMap((axis) => {
-    const items = byAxis.get(axis.axisCode) ?? [];
-    const eligible = items.filter(
-      (item) =>
-        item.answered &&
-        item.scoreEligible &&
-        item.scoreMode === "DIRECT_ANCHOR" &&
-        Number.isFinite(item.anchorScore) &&
-        Number.isFinite(item.anchorMax) &&
-        Number(item.anchorMax) > 0,
-    );
-    if (!eligible.length) return [];
+  const axisPersistenceRows = structured.scores.axes
+    .filter((axis) => axis.status === "measured")
+    .map((axis) => ({
+      axis_id: axis.axisCode,
+      axis_name_ar:
+        input.axes.find((a) => a.code === axis.axisCode)?.code ??
+        axis.axisCode,
+      axis_name_en:
+        input.axes.find((a) => a.code === axis.axisCode)?.code ??
+        axis.axisCode,
+      raw_score: Number(axis.rawScore),
+      max_possible: Number(axis.maxPossible),
+      percentage: Number(axis.score),
+      weight: Number(axis.weight) / 100,
+      weighted_score: Number(axis.weightedScore),
+      grade: axis.grade,
+    }));
 
-    const rawScore = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorScore),
-      0,
-    );
-    const maxPossible = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorMax),
-      0,
-    );
-    const percentage =
-      eligible.reduce(
-        (sum, item) =>
-          sum +
-          (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
-        0,
-      ) / eligible.length;
-
-    return [
-      {
-        axis_id: axis.axisCode,
-        axis_name_ar: input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-        axis_name_en: input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-        raw_score: Math.round(rawScore),
-        max_possible: Math.round(maxPossible),
-        percentage,
-        weight: axis.weight,
-        weighted_score: percentage * axis.weight,
-        grade:
-          percentage >= 75
-            ? "Q4"
-            : percentage >= 50
-              ? "Q3"
-              : percentage >= 25
-                ? "Q2"
-                : "Q1",
-      },
-    ];
-  });
 
   return {
     ...structured,

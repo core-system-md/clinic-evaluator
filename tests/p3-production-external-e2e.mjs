@@ -183,8 +183,8 @@ async function main() {
   assert(data?.already_completed === false, "Fresh completion was not marked fresh");
   assert(data?.structuredResult?.schemaVersion === "P3_STRUCTURED_RESULT_V1", "Missing Structured Result");
   assert(data?.structuredResult?.status === "PRODUCTION", "Structured Result is not production");
-  assert(data?.structuredResult?.provenance?.engineIdentity === "P3_INTEGRATED_SCORER_V1", "Wrong P3 engine identity");
-  assert(data?.structuredResult?.provenance?.scoringEngineVersion === "P3_SCORER_V1", "Wrong scoring engine version");
+  assert(data?.structuredResult?.provenance?.engineIdentity === "MD_CODE_ASSESSMENT_ENGINE", "Wrong P3 engine identity");
+  assert(data?.structuredResult?.provenance?.scoringEngineVersion === "MD_CODE_ASSESSMENT_ENGINE", "Wrong scoring engine version");
   assert(data?.structuredResult?.provenance?.interpretationVersion === "1", "Wrong interpretation version");
   assert(typeof data?.structuredResult?.provenance?.assessmentConfigDigest === "string" && data.structuredResult.provenance.assessmentConfigDigest.length === 64, "Missing config digest");
   assert(Array.isArray(data?.structuredResult?.inputs?.responses), "Missing response lineage");

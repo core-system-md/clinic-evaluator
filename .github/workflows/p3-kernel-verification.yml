@@ -50,7 +50,7 @@ jobs:
         run: node --check assets/js/app.js
 
       - name: Run P3 kernel, ownership and contract tests
-        run: node --experimental-strip-types --test tests/p3-response-interpretation-registry.test.mjs tests/p3-aggregation-engine.test.mjs tests/p3-consistency-engine.test.mjs tests/p3-criticality-coverage-engine.test.mjs tests/p3-structured-result-v1.test.mjs tests/p3-scorer-v1.test.mjs tests/p3-integrated-scorer-v1.test.mjs tests/p3-historical-reconciliation.test.mjs tests/p3-shadow-replay-current-sessions.test.mjs tests/p3-gate-e-contract.test.mjs tests/p3-overall-score-projection.test.mjs tests/p3-production-contract.test.mjs tests/p3-engine-ownership.test.mjs tests/server-scoring-parity.test.js
+        run: node --experimental-strip-types --test tests/p3-response-interpretation-registry.test.mjs tests/p3-aggregation-engine.test.mjs tests/p3-consistency-engine.test.mjs tests/p3-criticality-coverage-engine.test.mjs tests/p3-structured-result-v1.test.mjs tests/p3-scorer-v1.test.mjs tests/p3-integrated-scorer-v1.test.mjs tests/p3-historical-reconciliation.test.mjs tests/p3-shadow-replay-current-sessions.test.mjs tests/p3-gate-e-contract.test.mjs tests/p3-overall-score-projection.test.mjs tests/p3-production-contract.test.mjs tests/p3-engine-ownership.test.mjs tests/wp03-configuration-contract.test.mjs tests/wp05-report-interpretation.test.mjs tests/server-scoring-parity.test.js
 
   full-tests:
     name: Full Node test suite (baseline audit)

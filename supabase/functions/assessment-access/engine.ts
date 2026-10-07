@@ -1,9 +1,9 @@
 /**
- * MD Code scoring engine — authoritative server runtime.
+ * MD Code central assessment engine — canonical server runtime.
  *
- * This is the single production scoring entrypoint. Assessment-specific
- * interpretation remains configuration/registry data; calculation stages are
- * composed from reusable P3 modules.
+ * This is the single official calculation entrypoint. Assessment-specific
+ * interpretation is explicitly bound to an interpretation configuration;
+ * calculation stages are composed from reusable internal modules.
  */
 import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import {
@@ -79,16 +79,9 @@ type StoredAnswer = {
   option_value: number | null;
 };
 
-export type P3ProductionComputation = {
+export type AssessmentComputation = {
   result: P3IntegratedResult;
   scoreRows: Array<Record<string, unknown>>;
-  legacyProjection: {
-    overallScore: number | null;
-    classification: string | null;
-    axisScores: Record<string, number>;
-    kpis: Record<string, number>;
-    traps: unknown[];
-  };
   provenance: {
     assessmentVersion: number;
     interpretationVersion: number;
@@ -122,6 +115,72 @@ async function sha256Hex(value: string): Promise<string> {
     .join("");
 }
 
+const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
+const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
+
+type InterpretationBinding = {
+  registry: typeof registry | typeof registryV2;
+  interpretationVersion: number;
+};
+
+/**
+ * Assessment-version to interpretation-version binding is explicit.
+ * It must not be inferred from numeric equality between the two concepts.
+ */
+const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
+  "admin-reception-assessment:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "clinic-performance:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "comprehensive-clinic-assessment:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "comprehensive-clinic-assessment:2": {
+    registry: registryV2,
+    interpretationVersion: 2,
+  },
+  "medical-team-assessment:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "patient-journey:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+};
+
+function resolveInterpretationBinding(
+  assessmentSlug: string,
+  assessmentVersion: number,
+): InterpretationBinding {
+  const binding = INTERPRETATION_BINDINGS[`${assessmentSlug}:${assessmentVersion}`];
+  if (!binding) {
+    throw new Error(
+      `No explicit interpretation binding for ${assessmentSlug}:${assessmentVersion}`,
+    );
+  }
+
+  const entries = (binding.registry.entries as Array<Record<string, unknown>>)
+    .filter((entry) => entry.assessmentSlug === assessmentSlug)
+    .filter(
+      (entry) =>
+        Number(entry.interpretationVersion) === binding.interpretationVersion,
+    );
+
+  if (!entries.length) {
+    throw new Error(
+      `Interpretation binding resolves to no registry entries for ${assessmentSlug}:${binding.interpretationVersion}`,
+    );
+  }
+
+  return binding;
+}
+
 type RuntimeConsistencyPair = {
   assessmentSlug: string;
   assessmentVersion: string;
@@ -133,6 +192,236 @@ type RuntimeConsistencyPair = {
     maxEffectiveAnchorScore?: number | null;
   };
 };
+
+function canonicalAxisConfigurations(
+  axes: AxisRow[],
+): Array<{ code: string; weight: number }> {
+  const normalized = axes.map((axis) => {
+    const raw = Number(axis.weight);
+    if (!Number.isFinite(raw) || raw <= 0 || raw > 100) {
+      throw new Error(`Invalid axis weight for ${axis.code}`);
+    }
+
+    // Legacy fractions are accepted only as a migration bridge.
+    return {
+      code: axis.code,
+      weight: raw <= 1 ? raw * 100 : raw,
+    };
+  });
+
+  const total = normalized.reduce((sum, axis) => sum + axis.weight, 0);
+  if (Math.abs(total - 100) > 0.001) {
+    throw new Error(
+      `Assessment axis weights must total 100 percentage points; got ${total}`,
+    );
+  }
+
+  return normalized;
+}
+
+function validateInterpretationCoverage(
+  runtime: Runtime,
+  binding: InterpretationBinding,
+) {
+  const runtimeVersion = String(
+    runtime.assessment.version ?? binding.interpretationVersion,
+  );
+  const registryEntries = (
+    binding.registry.entries as Array<Record<string, unknown>>
+  )
+    .filter((entry) => entry.assessmentSlug === runtime.family.slug)
+    .filter(
+      (entry) =>
+        Number(entry.interpretationVersion) === binding.interpretationVersion &&
+        String(
+          entry.assessmentVersion ?? String(binding.interpretationVersion),
+        ) === runtimeVersion,
+    );
+
+  const axisCodeById = new Map(runtime.axes.map((axis) => [axis.id, axis.code]));
+  const optionKeys = new Set<string>();
+
+  for (const question of runtime.questions) {
+    const options = runtime.options.filter(
+      (option) => option.question_id === question.id,
+    );
+    if (!options.length) {
+      throw new Error(`Question has no options: ${question.code}`);
+    }
+
+    for (const option of options) {
+      optionKeys.add(`${question.code}|${Number(option.option_index)}`);
+    }
+  }
+
+  const registryKeys = new Set(
+    registryEntries.map(
+      (entry) => `${String(entry.questionCode)}|${Number(entry.optionIndex)}`,
+    ),
+  );
+
+  if (registryKeys.size !== registryEntries.length) {
+    throw new Error("Duplicate interpretation registry entry");
+  }
+
+  const missing = [...optionKeys].filter((key) => !registryKeys.has(key));
+  const extra = [...registryKeys].filter((key) => !optionKeys.has(key));
+  if (missing.length || extra.length) {
+    throw new Error(
+      `Interpretation coverage mismatch: missing=${missing.length}, extra=${extra.length}`,
+    );
+  }
+
+  const optionMap = new Map(
+    runtime.options.map((option) => [option.id, option]),
+  );
+
+  for (const entry of registryEntries) {
+    const question = runtime.questions.find(
+      (candidate) => candidate.code === String(entry.questionCode),
+    );
+    const option = optionMap.get(String(entry.optionId));
+
+    if (!question || !option || option.question_id !== question.id) {
+      throw new Error(
+        `Interpretation option identity mismatch: ${String(entry.questionCode)}[${String(entry.optionIndex)}]`,
+      );
+    }
+
+    if (
+      Number(option.option_index) !== Number(entry.optionIndex) ||
+      Number(option.option_value) !== Number(entry.sourceOptionValue) ||
+      String(axisCodeById.get(question.axis_id)) !== String(entry.axisCode)
+    ) {
+      throw new Error(
+        `Interpretation scoring identity mismatch: ${String(entry.questionCode)}[${String(entry.optionIndex)}]`,
+      );
+    }
+  }
+}
+
+function validateRoleKpiEconomicConfiguration(
+  runtime: Runtime,
+  canonicalAxes: Array<{ code: string; weight: number }>,
+) {
+  const axisRoles = runtime.assessment.axis_roles ?? {};
+
+  for (const axis of canonicalAxes) {
+    if (!String(axisRoles[axis.code] ?? "").trim()) {
+      throw new Error(`Missing role mapping for axis ${axis.code}`);
+    }
+  }
+
+  const allowedKpis = new Set([
+    "TFI",
+    "TAP",
+    "PRP",
+    "PLI",
+    "PSI",
+    "NPI",
+    "EVI",
+    "TCI",
+    "RRI",
+  ]);
+
+  for (const [kpiCode, mapping] of Object.entries(
+    runtime.assessment.kpi_mappings ?? {},
+  )) {
+    if (!allowedKpis.has(kpiCode)) {
+      throw new Error(`Unknown KPI mapping: ${kpiCode}`);
+    }
+    if (
+      kpiCode === "RRI" &&
+      runtime.family.slug !== "admin-reception-assessment"
+    ) {
+      throw new Error("RRI is only supported for Admin & Reception");
+    }
+
+    const entries = Object.entries(mapping ?? {});
+    if (!entries.length) {
+      throw new Error(`KPI mapping is empty: ${kpiCode}`);
+    }
+
+    const weightSum = entries.reduce((sum, [role, weight]) => {
+      if (!String(role).trim()) {
+        throw new Error(`Invalid KPI role: ${kpiCode}`);
+      }
+      const value = Number(weight);
+      if (!Number.isFinite(value) || value < 0) {
+        throw new Error(`Invalid KPI weight: ${kpiCode}`);
+      }
+      return sum + value;
+    }, 0);
+
+    if (Math.abs(weightSum - 1) > 0.001) {
+      throw new Error(`KPI weights must total 1: ${kpiCode}`);
+    }
+  }
+
+  const evMapping = runtime.assessment.ev_mappings ?? {};
+  const evEntries = Object.entries(evMapping);
+
+  if (runtime.assessment.has_ev_simulator && !evEntries.length) {
+    throw new Error("EV simulator is enabled without EV mappings");
+  }
+
+  if (evEntries.length) {
+    const evTotal = evEntries.reduce((sum, [role, weight]) => {
+      if (!String(role).trim()) {
+        throw new Error("Invalid EV mapping role");
+      }
+      const value = Number(weight);
+      if (!Number.isFinite(value) || value < 0) {
+        throw new Error("Invalid EV mapping weight");
+      }
+      return sum + value;
+    }, 0);
+
+    if (Math.abs(evTotal - 1) > 0.001) {
+      throw new Error("EV mapping weights must total 1");
+    }
+  }
+
+  // KPI roles may be absent from a family and must then report partial/unavailable.
+}
+
+function validateConsistencyDependencies(
+  runtime: Runtime,
+  configuration: ReturnType<typeof scopedConsistencyConfiguration>,
+) {
+  const questionCodes = new Set(runtime.questions.map((question) => question.code));
+  const seenPairs = new Set<string>();
+  const rules = configuration.rules as Array<Record<string, unknown>>;
+  const ruleTypes = new Set(
+    rules.map((rule) => String(rule.relationshipType ?? "")).filter(Boolean),
+  );
+
+  for (const pair of configuration.pairs) {
+    if (
+      !questionCodes.has(pair.validatorQuestionCode) ||
+      !questionCodes.has(pair.targetQuestionCode)
+    ) {
+      throw new Error(
+        `Consistency pair references an unknown question: ${pair.validatorQuestionCode}|${pair.targetQuestionCode}`,
+      );
+    }
+    if (!ruleTypes.has(pair.relationshipType)) {
+      throw new Error(
+        `Consistency pair has no matching rule: ${pair.relationshipType}`,
+      );
+    }
+    const key = [
+      pair.relationshipType,
+      pair.validatorQuestionCode,
+      pair.targetQuestionCode,
+    ].join("|");
+
+    if (seenPairs.has(key)) {
+      throw new Error(`Duplicate consistency pair: ${key}`);
+    }
+    seenPairs.add(key);
+  }
+}
 
 function scopedConsistencyConfiguration(
   assessmentSlug: string,
@@ -326,7 +615,7 @@ export async function calculateAssessment(
     economicInput?: P3EconomicInput;
     answerSnapshot?: StoredAnswer[];
   },
-): Promise<P3ProductionComputation> {
+): Promise<AssessmentComputation> {
   const { data: session, error: sessionError } = await client
     .from("sessions")
     .select(
@@ -370,8 +659,13 @@ export async function calculateAssessment(
   const requiredQuestionCodes = runtime.questions
     .filter((question) => question.is_required !== false)
     .map((question) => question.code);
+  const questionCodeById = new Map(
+    runtime.questions.map((question) => [question.id, question.code]),
+  );
   const answerQuestionCodes = new Set(
-    answerRows.map((answer) => answer.question_id),
+    answerRows
+      .map((answer) => questionCodeById.get(answer.question_id))
+      .filter((code): code is string => Boolean(code)),
   );
   const missing = requiredQuestionCodes.filter(
     (questionCode) => !answerQuestionCodes.has(questionCode),
@@ -384,8 +678,14 @@ export async function calculateAssessment(
 
   const selections = buildSelections(runtime, answerRows);
 
-  const interpretationRegistry =
-    assessmentVersion === 2 ? registryV2 : registry;
+  const interpretationBinding = resolveInterpretationBinding(
+    runtime.family.slug,
+    assessmentVersion,
+  );
+  const interpretationRegistry = interpretationBinding.registry;
+  const canonicalAxes = canonicalAxisConfigurations(runtime.axes);
+  validateInterpretationCoverage(runtime, interpretationBinding);
+  validateRoleKpiEconomicConfiguration(runtime, canonicalAxes);
 
   const versionedConfig = {
     assessment: {
@@ -403,7 +703,7 @@ export async function calculateAssessment(
       .map((axis) => ({
         id: axis.id,
         code: axis.code,
-        weight: Number(axis.weight),
+        weight: canonicalAxes.find((item) => item.code === axis.code)!.weight,
         title: axis.title,
         titleAr: axis.title_ar,
       }))
@@ -432,6 +732,7 @@ export async function calculateAssessment(
       ),
     interpretation: {
       schemaVersion: interpretationRegistry.schemaVersion,
+      interpretationVersion: interpretationBinding.interpretationVersion,
       entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
         .filter((entry) => String(entry.assessmentVersion ?? String(assessmentVersion)) === String(assessmentVersion))
@@ -461,6 +762,7 @@ export async function calculateAssessment(
     runtime.family.slug,
     assessmentVersion,
   );
+  validateConsistencyDependencies(runtime, consistencyConfiguration);
 
   const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
   const resultId = crypto.randomUUID();
@@ -473,13 +775,14 @@ export async function calculateAssessment(
     assessmentVersion: String(assessmentVersion),
     resultId,
     calculatedAt,
-    scoringContractVersion: "P3_AGGREGATION_V2",
+    scoringContractVersion: SCORING_CONTRACT_ID,
     assessmentConfigDigest,
     assessmentSlug: runtime.family.slug,
+    interpretationVersion: interpretationBinding.interpretationVersion,
     selections,
     axes: runtime.axes.map((axis) => ({
       code: axis.code,
-      weight: Number(axis.weight),
+      weight: canonicalAxes.find((item) => item.code === axis.code)!.weight,
     })),
     axisRoles: runtime.assessment.axis_roles ?? {},
     kpiMappings: runtime.assessment.kpi_mappings ?? {},
@@ -492,7 +795,7 @@ export async function calculateAssessment(
     })),
     economicInput: input.economicInput,
     resultStatus: "PRODUCTION",
-    engineIdentity: "P3_INTEGRATED_SCORER_V1",
+    engineIdentity: ENGINE_IDENTITY,
   });
 
   const scoreRows = axisPersistenceRows(
@@ -500,38 +803,14 @@ export async function calculateAssessment(
     runtime.axes,
   );
 
-  const axisScores: Record<string, number> = {};
-  for (const row of scoreRows) {
-    const axisCode = String(row.axis_id);
-    const percentage = Number(row.percentage);
-    if (Number.isFinite(percentage)) axisScores[axisCode] = percentage;
-  }
-
-  const kpis: Record<string, number> = {};
-  for (const kpi of result.kpis) {
-    if (
-      kpi.status !== "unavailable" &&
-      Number.isFinite(kpi.value)
-    ) {
-      kpis[kpi.kpiCode] = Number(kpi.value);
-    }
-  }
-
   return {
     result,
     scoreRows,
-    legacyProjection: {
-      overallScore: result.scores.overallScore,
-      classification: result.classification.bandCode,
-      axisScores,
-      kpis,
-      traps: [],
-    },
     provenance: {
       assessmentVersion,
-      interpretationVersion: Number(result.provenance.interpretationVersion),
-      scoringEngineVersion: "P3_SCORER_V1",
-      scoringContractVersion: "P3_AGGREGATION_V2",
+      interpretationVersion: interpretationBinding.interpretationVersion,
+      scoringEngineVersion: ENGINE_IDENTITY,
+      scoringContractVersion: SCORING_CONTRACT_ID,
       assessmentConfigDigest,
     },
   };

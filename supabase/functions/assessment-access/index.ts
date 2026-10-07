@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment } from "./score-engine.ts";
+import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
+import { interpretAssessmentResult } from "./report-interpretation-v1.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,6 +23,33 @@ const WINDOW_MS = 60_000;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
+}
+
+function projectCompletionResponse(structuredResult: any) {
+  const axisScores: Record<string, number> = {};
+  for (const axis of structuredResult?.scores?.axes || []) {
+    if (Number.isFinite(axis?.score)) {
+      axisScores[String(axis.axisCode)] = Number(axis.score);
+    }
+  }
+
+  const kpis: Record<string, number> = {};
+  for (const kpi of structuredResult?.kpis || []) {
+    if (kpi?.status !== "unavailable" && Number.isFinite(kpi?.value)) {
+      kpis[String(kpi.kpiCode)] = Number(kpi.value);
+    }
+  }
+
+  return {
+    overallScore: Number.isFinite(structuredResult?.scores?.overallScore)
+      ? Number(structuredResult.scores.overallScore)
+      : null,
+    classification: structuredResult?.classification?.bandCode ?? null,
+    axisScores,
+    kpis,
+    evSimulator: null,
+    traps: [],
+  };
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -746,6 +774,7 @@ Deno.serve(async (req) => {
 
         if (storedResult?.result) {
           const structured = storedResult.result as any;
+          const reportInterpretation = interpretAssessmentResult(structured);
           const axisScores: Record<string, number> = {};
           for (const axis of structured?.scores?.axes || []) {
             if (Number.isFinite(axis?.score)) axisScores[String(axis.axisCode)] = Number(axis.score);
@@ -766,6 +795,7 @@ Deno.serve(async (req) => {
               evSimulator: null,
               traps: [],
               structuredResult: structured,
+              report: reportInterpretation.user,
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -805,13 +835,19 @@ Deno.serve(async (req) => {
         });
       }
 
-      const requestedEconomicInput = data.economic_input && typeof data.economic_input === "object"
-        ? {
-            averageVisitValue: data.economic_input.averageVisitValue ?? null,
-            relationshipYears: data.economic_input.relationshipYears ?? null,
-            referralPercentage: data.economic_input.referralPercentage ?? null,
-          }
-        : {};
+      const requestedEconomicInput =
+        data.economic_input && typeof data.economic_input === "object"
+          ? {
+              averageVisitValue: data.economic_input.averageVisitValue ?? null,
+              visitsPerYear:
+                data.economic_input.visitsPerYear === undefined ||
+                data.economic_input.visitsPerYear === ""
+                  ? 3
+                  : Number(data.economic_input.visitsPerYear),
+              relationshipYears: data.economic_input.relationshipYears ?? null,
+              referralPercentage: data.economic_input.referralPercentage ?? null,
+            }
+          : { visitsPerYear: 3 };
 
       const preparation = await supabase.rpc("prepare_assessment_submission", {
         p_session_id: session.id,
@@ -834,6 +870,9 @@ Deno.serve(async (req) => {
         if (storedResultError) throw storedResultError;
 
         const structured = storedResult?.result || null;
+        const reportInterpretation = structured
+          ? interpretAssessmentResult(structured)
+          : null;
         return json({
           success: true,
           data: {
@@ -854,6 +893,7 @@ Deno.serve(async (req) => {
             evSimulator: null,
             traps: [],
             structuredResult: structured,
+            report: reportInterpretation?.user ?? null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -879,14 +919,29 @@ Deno.serve(async (req) => {
         return json({ error: "Submission snapshot is unavailable" }, 409);
       }
 
-      const frozenEconomicInput = preparation.data?.submission_economic_input
-        && typeof preparation.data.submission_economic_input === "object"
-        ? {
-            averageVisitValue: preparation.data.submission_economic_input.averageVisitValue ?? null,
-            relationshipYears: preparation.data.submission_economic_input.relationshipYears ?? null,
-            referralPercentage: preparation.data.submission_economic_input.referralPercentage ?? null,
-          }
-        : undefined;
+      const frozenEconomicInput =
+        preparation.data?.submission_economic_input &&
+        typeof preparation.data.submission_economic_input === "object"
+          ? {
+              averageVisitValue:
+                preparation.data.submission_economic_input.averageVisitValue ??
+                null,
+              visitsPerYear:
+                preparation.data.submission_economic_input.visitsPerYear ===
+                  undefined ||
+                preparation.data.submission_economic_input.visitsPerYear === ""
+                  ? 3
+                  : Number(
+                      preparation.data.submission_economic_input.visitsPerYear,
+                    ),
+              relationshipYears:
+                preparation.data.submission_economic_input.relationshipYears ??
+                null,
+              referralPercentage:
+                preparation.data.submission_economic_input.referralPercentage ??
+                null,
+            }
+          : undefined;
 
       const computed = await calculateAssessment(supabase, {
         sessionId: session.id,
@@ -944,12 +999,14 @@ Deno.serve(async (req) => {
       }
 
       const storedStructured = (completed?.result || structuredResult) as any;
+      const reportInterpretation = interpretAssessmentResult(storedStructured);
 
       return json({
         success: true,
         data: {
-          ...computed.legacyProjection,
+          ...projectCompletionResponse(computed.result),
           structuredResult: storedStructured,
+          report: reportInterpretation.user,
           provenance: {
             ...computed.provenance,
             calculatedAt: storedStructured?.identity?.calculatedAt ?? null,
@@ -967,13 +1024,25 @@ Deno.serve(async (req) => {
 
       const avg = Number(data.avg);
       const years = Number(data.years);
-      const visits = data.visits === undefined || data.visits === "" ? 3 : Number(data.visits);
+      const visits =
+        data.visits === undefined || data.visits === ""
+          ? 3
+          : Number(data.visits);
       const referralRaw =
-        data.referral === undefined || data.referral === "" || data.referral === null
+        data.referral === undefined ||
+        data.referral === "" ||
+        data.referral === null
           ? null
           : Number(data.referral);
 
-      if (!(avg > 0) || !(years > 0) || !(visits > 0)) {
+      if (
+        !Number.isFinite(avg) ||
+        avg <= 0 ||
+        !Number.isFinite(years) ||
+        years <= 0 ||
+        !Number.isFinite(visits) ||
+        visits <= 0
+      ) {
         return json({ error: "Invalid economic inputs" }, 400);
       }
 
@@ -986,6 +1055,7 @@ Deno.serve(async (req) => {
 
       const economic = calculateP3RecursiveReferralEconomic({
         averageVisitValue: avg,
+        visitsPerYear: visits,
         relationshipYears: years,
         referralPercentage: referralRaw,
       });
@@ -997,7 +1067,7 @@ Deno.serve(async (req) => {
           modelCode: economic.modelCode,
           basePatientValue: economic.basePatientValue,
           referralPercentage: referralRaw,
-          visitsPerYear: 3,
+          visitsPerYear: visits,
           relationshipYears: years,
           current: economic.output?.value ?? null,
           opt20: economic.scenarios.opt20,

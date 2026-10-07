@@ -42,7 +42,7 @@ function calculateEconomicValue({ averageVisitValue, relationshipYears, referral
   const r = referralPercentage / 100;
   if (r < 0 || r >= 1) return null;
   const base = averageVisitValue * 3 * relationshipYears;
-  return base / (1 - r);
+  return base / (1 - r) - base;
 }
 
 test("overallScore uses the approved weighted arithmetic mean", () => {
@@ -100,14 +100,14 @@ test("economic referral is blank-aware and does not invent zero", () => {
   );
 });
 
-test("economic referral 0% is the base value", () => {
+test("economic referral 0% is zero opportunity", () => {
   assert.equal(
     calculateEconomicValue({
       averageVisitValue: 100,
       relationshipYears: 3,
       referralPercentage: 0,
     }),
-    900,
+    0,
   );
 });
 
@@ -118,7 +118,7 @@ test("economic referral 20% propagates recursively", () => {
       relationshipYears: 3,
       referralPercentage: 20,
     }),
-    1125,
+    225,
   );
 });
 
@@ -129,7 +129,7 @@ test("economic referral 50% doubles base value", () => {
       relationshipYears: 3,
       referralPercentage: 50,
     }),
-    1800,
+    900,
   );
 });
 

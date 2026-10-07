@@ -36,6 +36,7 @@ export type P3StructuredResultV1 = {
   identity: {
     sessionId: string;
     assessmentFamilyId: string;
+    assessmentSlug: string;
     assessmentTypeId: string;
     assessmentVersion: string;
     resultId: string;
@@ -56,6 +57,18 @@ export type P3StructuredResultV1 = {
       optionIndex: number;
       sourceOptionValue: number | null;
       semanticStateKey: string;
+      axisCode: string | null;
+      componentCode: string | null;
+      primaryConstruct: string | null;
+      measurementLayer: string | null;
+      scoreMode:
+        | "DIRECT_ANCHOR"
+        | "SEMANTIC_ONLY"
+        | "EVIDENCE_ONLY"
+        | "SIGNAL_ONLY";
+      scoreEligible: boolean;
+      anchorScore: number | null;
+      anchorMax: number | null;
     }>;
   };
   measurement: {
@@ -65,8 +78,12 @@ export type P3StructuredResultV1 = {
     overallScore: number | null;
     axes: Array<{
       axisCode: string;
+      rawScore: number | null;
+      maxPossible: number | null;
       score: number | null;
+      weightedScore: number | null;
       weight: number;
+      grade: "Q1" | "Q2" | "Q3" | "Q4" | null;
       status: "measured" | "unavailable";
     }>;
   };
@@ -91,6 +108,12 @@ export type P3StructuredResultV1 = {
   economics: {
     status: "NOT_COMPUTED" | "COMPUTED";
     modelCode: string | null;
+    inputs: {
+      averageVisitValue: number | null;
+      visitsPerYear: number | null;
+      relationshipYears: number | null;
+      referralPercentage: number | null;
+    };
     output: {
       value: number;
       unit: "currency";
@@ -123,6 +146,7 @@ export type P3StructuredResultV1 = {
 export function buildP3StructuredResultV1(input: {
   sessionId: string;
   assessmentFamilyId: string;
+  assessmentSlug: string;
   assessmentTypeId: string;
   assessmentVersion: string;
   resultId: string;
@@ -150,6 +174,7 @@ export function buildP3StructuredResultV1(input: {
   const requiredStrings = [
     input.sessionId,
     input.assessmentFamilyId,
+    input.assessmentSlug,
     input.assessmentTypeId,
     input.assessmentVersion,
     input.resultId,
@@ -163,6 +188,52 @@ export function buildP3StructuredResultV1(input: {
 
   if (requiredStrings.some((value) => !value.trim())) {
     throw new Error("Structured result provenance/identity is incomplete");
+  }
+
+  if (input.axisScores.length) {
+    const totalWeight = input.axisScores.reduce(
+      (sum, axis) => sum + Number(axis.weight),
+      0,
+    );
+    if (
+      input.axisScores.some(
+        (axis) =>
+          !Number.isFinite(axis.weight) ||
+          axis.weight <= 0 ||
+          axis.weight > 100,
+      ) ||
+      Math.abs(totalWeight - 100) > 0.001
+    ) {
+      throw new Error(
+        "Structured Result axis weights must be positive percentage points totaling 100",
+      );
+    }
+
+    for (const axis of input.axisScores) {
+      if (axis.status === "measured") {
+        if (
+          axis.rawScore === null ||
+          axis.maxPossible === null ||
+          axis.score === null ||
+          axis.weightedScore === null ||
+          axis.grade === null
+        ) {
+          throw new Error(
+            `Measured Structured Result axis is missing measurement fields: ${axis.axisCode}`,
+          );
+        }
+      } else if (
+        axis.rawScore !== null ||
+        axis.maxPossible !== null ||
+        axis.score !== null ||
+        axis.weightedScore !== null ||
+        axis.grade !== null
+      ) {
+        throw new Error(
+          `Unavailable Structured Result axis contains numeric measurement: ${axis.axisCode}`,
+        );
+      }
+    }
   }
 
   const findings = input.consistencyFindings.map((finding) => ({
@@ -190,6 +261,7 @@ export function buildP3StructuredResultV1(input: {
     identity: {
       sessionId: input.sessionId,
       assessmentFamilyId: input.assessmentFamilyId,
+      assessmentSlug: input.assessmentSlug,
       assessmentTypeId: input.assessmentTypeId,
       assessmentVersion: input.assessmentVersion,
       resultId: input.resultId,
@@ -227,6 +299,12 @@ export function buildP3StructuredResultV1(input: {
       input.economics ?? {
         status: "NOT_COMPUTED",
         modelCode: null,
+        inputs: {
+          averageVisitValue: null,
+          visitsPerYear: 3,
+          relationshipYears: null,
+          referralPercentage: null,
+        },
         output: null,
       },
     classification:
@@ -247,6 +325,7 @@ export function buildP3StructuredResultV1(input: {
         `interpretation version:${input.interpretationVersion}`,
         `scoring contract:${input.scoringContractVersion}`,
         `assessment config digest:${input.assessmentConfigDigest}`,
+        "economic inputs",
       ],
     },
   };
