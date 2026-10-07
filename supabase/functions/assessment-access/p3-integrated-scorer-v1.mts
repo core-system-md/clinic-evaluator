@@ -18,6 +18,7 @@ import {
   type P3ConsistencyFinding,
   type P3ConsistencyScoreEffect,
 } from "./p3-consistency-engine.mts";
+import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
 import {
   buildP3StructuredResultV1,
   type P3StructuredResultV1,
@@ -191,43 +192,6 @@ function projectKpis(
     });
 }
 
-function projectEconomics(input: P3EconomicInput) {
-  const { averageVisitValue, relationshipYears, referralPercentage } = input;
-
-  if (
-    !Number.isFinite(averageVisitValue) ||
-    Number(averageVisitValue) <= 0 ||
-    !Number.isFinite(relationshipYears) ||
-    Number(relationshipYears) <= 0 ||
-    referralPercentage === null ||
-    !Number.isFinite(referralPercentage) ||
-    Number(referralPercentage) < 0 ||
-    Number(referralPercentage) >= 100
-  ) {
-    return {
-      status: "unavailable" as const,
-      modelCode: "P3_RECURSIVE_REFERRAL_V1",
-      output: null,
-    };
-  }
-
-  const base = Number(averageVisitValue) * 3 * Number(relationshipYears);
-  const output = base / (1 - Number(referralPercentage) / 100);
-
-  return {
-    status: "available" as const,
-    modelCode: "P3_RECURSIVE_REFERRAL_V1",
-    output: {
-      value: output,
-      unit: "currency" as const,
-      assumptions: {
-        visitsPerYear: 3,
-        referralPercentage: Number(referralPercentage),
-      },
-    },
-  };
-}
-
 function buildConsistencyFindings(
   selections: P3ResolvedSelection[],
   rules: P3ConsistencyRule[],
@@ -379,7 +343,7 @@ export function scoreP3IntegratedV1(input: {
 
   const roles = projectRoles(axisResults, input.axisRoles);
   const kpis = projectKpis(input.kpiMappings, roles);
-  const economics = projectEconomics(
+  const economics = calculateP3RecursiveReferralEconomic(
     input.economicInput ?? {
       averageVisitValue: null,
       relationshipYears: null,
