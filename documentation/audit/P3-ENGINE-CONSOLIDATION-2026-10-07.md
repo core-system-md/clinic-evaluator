@@ -1,7 +1,7 @@
 # P3 — Authoritative Engine Consolidation & Legacy Path Disposition
 ## 2026-10-07
 
-**Status:** CLOSED / DEPLOYED
+**Status:** CLOSED / DEPLOYED / RE-VERIFIED 2026-10-07
 
 Repository: `core-system-md/clinic-evaluator`
 Branch: `fix/p3-unify-authoritative-engine-2026-10-07`
@@ -49,7 +49,7 @@ P3 isolated kernel, engine ownership, production contract, parity, and P4 protec
 
 PR #53 was merged to `main` at `2c8341f6199e4c2f00a1c18946f401d9b8c6a800`.
 
-Supabase `assessment-access` was deployed as version **31** with `verify_jwt=false`. Deployment SHA256: `4463a1cda9ac310fdcb6e7ae6e04dcb4b0085354719631042848e0576d6ec196`.
+Supabase `assessment-access` was deployed as version **32** with `verify_jwt=false`. Deployment SHA256: `950467bed27b99961ea46177e654be2cacacf4f867ad884549de9d7dc0198edb`.
 
 Live source was re-read after deployment and verified to route production completion through `./score-engine.ts` → `calculateAssessment`. The legacy scorer is not the production entrypoint, and the removed P3 production adapter is absent from the deployed function source.
 
