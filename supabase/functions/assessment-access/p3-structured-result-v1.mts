@@ -82,6 +82,7 @@ export type P3StructuredResultV1 = {
       score: number | null;
       weightedScore: number | null;
       weight: number;
+      grade: "Q1" | "Q2" | "Q3" | "Q4" | null;
       status: "measured" | "unavailable";
     }>;
   };
