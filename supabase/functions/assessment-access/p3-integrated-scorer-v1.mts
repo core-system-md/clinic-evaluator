@@ -372,7 +372,7 @@ export function scoreP3IntegratedV1(input: {
     scoringContractVersion: input.scoringContractVersion,
     assessmentConfigDigest: input.assessmentConfigDigest,
     interpretationVersion: String(scored.interpretationVersion),
-    scoringEngineVersion: "P3_SCORER_V1",
+    scoringEngineVersion: input.engineIdentity ?? "MD_CODE_ASSESSMENT_ENGINE",
     inputLineage: effectiveSelections
       .filter((item) => item.answered && item.optionId)
       .map((item) => `${item.questionCode}:${item.optionId}`),
