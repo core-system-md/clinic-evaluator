@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateP3Production } from "./p3-production-adapter.mts";
+import { calculateAssessment } from "./score-engine.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -887,7 +887,7 @@ Deno.serve(async (req) => {
           }
         : undefined;
 
-      const computed = await calculateP3Production(supabase, {
+      const computed = await calculateAssessment(supabase, {
         sessionId: session.id,
         economicInput: frozenEconomicInput,
         answerSnapshot,
