@@ -370,6 +370,7 @@ export function scoreP3IntegratedV1(input: {
   const economics = calculateP3RecursiveReferralEconomic(
     input.economicInput ?? {
       averageVisitValue: null,
+      visitsPerYear: 3,
       relationshipYears: null,
       referralPercentage: null,
     },
