@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
+import { interpretAssessmentResult } from "./report-interpretation-v1.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -773,6 +774,7 @@ Deno.serve(async (req) => {
 
         if (storedResult?.result) {
           const structured = storedResult.result as any;
+          const reportInterpretation = interpretAssessmentResult(structured);
           const axisScores: Record<string, number> = {};
           for (const axis of structured?.scores?.axes || []) {
             if (Number.isFinite(axis?.score)) axisScores[String(axis.axisCode)] = Number(axis.score);
@@ -793,6 +795,7 @@ Deno.serve(async (req) => {
               evSimulator: null,
               traps: [],
               structuredResult: structured,
+              report: reportInterpretation.user,
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -867,6 +870,9 @@ Deno.serve(async (req) => {
         if (storedResultError) throw storedResultError;
 
         const structured = storedResult?.result || null;
+        const reportInterpretation = structured
+          ? interpretAssessmentResult(structured)
+          : null;
         return json({
           success: true,
           data: {
@@ -887,6 +893,7 @@ Deno.serve(async (req) => {
             evSimulator: null,
             traps: [],
             structuredResult: structured,
+            report: reportInterpretation?.user ?? null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -992,12 +999,14 @@ Deno.serve(async (req) => {
       }
 
       const storedStructured = (completed?.result || structuredResult) as any;
+      const reportInterpretation = interpretAssessmentResult(storedStructured);
 
       return json({
         success: true,
         data: {
           ...projectCompletionResponse(computed.result),
           structuredResult: storedStructured,
+          report: reportInterpretation.user,
           provenance: {
             ...computed.provenance,
             calculatedAt: storedStructured?.identity?.calculatedAt ?? null,
