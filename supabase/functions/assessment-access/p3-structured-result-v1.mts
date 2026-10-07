@@ -109,6 +109,7 @@ export type P3StructuredResultV1 = {
     modelCode: string | null;
     inputs: {
       averageVisitValue: number | null;
+      visitsPerYear: number | null;
       relationshipYears: number | null;
       referralPercentage: number | null;
     };
@@ -250,6 +251,7 @@ export function buildP3StructuredResultV1(input: {
         modelCode: null,
         inputs: {
           averageVisitValue: null,
+          visitsPerYear: 3,
           relationshipYears: null,
           referralPercentage: null,
         },
