@@ -1,3 +1,17 @@
+> **SUPERSEDED FOR EXECUTION — 2026-10-07**
+>
+> This stage contract remains preserved as historical reconciliation evidence, but it is no longer the active implementation contract for the project correction approved on 2026-10-07.
+>
+> Active execution is governed by:
+> `documentation/architecture/FINAL-CHANGE-SET-IMPLEMENTATION-CONTRACT-2026-10-07.md`
+>
+> The previous implementation path is formally stopped by:
+> `documentation/governance/FINAL-CHANGE-SET-PREVIOUS-PLAN-SUPERSESSION-2026-10-07.md`
+>
+> Any statement in this document that identifies V2, earlier P3/P5 implementation status, or another prior execution path must be treated as historical/reference material unless explicitly revalidated under the active contract.
+
+---
+
 # Current Engineering Reconciliation Work Contract — 2026-10-07
 
 **Status:** BINDING — CURRENT STAGE  
