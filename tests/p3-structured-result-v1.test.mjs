@@ -9,7 +9,7 @@ const criticality={status:"ATTENTION",sourceItems:["Q15"],reviewRequired:true};
 
 test("structured result carries pinned identity and provenance",()=>{
  const r=buildP3StructuredResultV1({
-  sessionId:"session-1",assessmentFamilyId:"family-1",assessmentTypeId:"type-1",assessmentVersion:"3",
+  sessionId:"session-1",assessmentFamilyId:"family-1",assessmentSlug:"patient-journey",assessmentTypeId:"type-1",assessmentVersion:"3",
   resultId:"result-1",calculatedAt:"2026-10-02T00:00:00Z",engineIdentity:"MD_CODE_ASSESSMENT_ENGINE",
   scoringContractVersion:"FINAL-IMPLEMENTATION-CONTRACT-2026-10-07",assessmentConfigDigest:"sha256:test",
   interpretationVersion:"1",scoringEngineVersion:"MD_CODE_ASSESSMENT_ENGINE",inputLineage:["answers:a1"],
@@ -25,7 +25,7 @@ test("structured result carries pinned identity and provenance",()=>{
 
 test("structured result does not recompute or impute",()=>{
  const r=buildP3StructuredResultV1({
-  sessionId:"session-1",assessmentFamilyId:"family-1",assessmentTypeId:"type-1",assessmentVersion:"3",
+  sessionId:"session-1",assessmentFamilyId:"family-1",assessmentSlug:"patient-journey",assessmentTypeId:"type-1",assessmentVersion:"3",
   resultId:"result-1",calculatedAt:"2026-10-02T00:00:00Z",engineIdentity:"MD_CODE_ASSESSMENT_ENGINE",
   scoringContractVersion:"FINAL-IMPLEMENTATION-CONTRACT-2026-10-07",assessmentConfigDigest:"sha256:test",
   interpretationVersion:"1",scoringEngineVersion:"MD_CODE_ASSESSMENT_ENGINE",inputLineage:[],
@@ -37,7 +37,7 @@ test("structured result does not recompute or impute",()=>{
 
 test("criticality becomes a diagnostic finding, never a numeric mutation",()=>{
  const r=buildP3StructuredResultV1({
-  sessionId:"session-1",assessmentFamilyId:"family-1",assessmentTypeId:"type-1",assessmentVersion:"3",
+  sessionId:"session-1",assessmentFamilyId:"family-1",assessmentSlug:"patient-journey",assessmentTypeId:"type-1",assessmentVersion:"3",
   resultId:"result-1",calculatedAt:"2026-10-02T00:00:00Z",engineIdentity:"MD_CODE_ASSESSMENT_ENGINE",
   scoringContractVersion:"FINAL-IMPLEMENTATION-CONTRACT-2026-10-07",assessmentConfigDigest:"sha256:test",
   interpretationVersion:"1",scoringEngineVersion:"MD_CODE_ASSESSMENT_ENGINE",inputLineage:[],
