@@ -782,130 +782,107 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
-    const q = res.classification || 'Q2';
-    const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
-    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
+    const report = res?.report;
+    const structured = res?.structuredResult;
 
-    let trendHtml = "";
-    if (this.previousSessionData) {
-      const diff = res.overallScore - this.previousSessionData.overallScore;
-      const daysSince = Math.floor((Date.now() - new Date(this.previousSessionData.completedAt).getTime()) / (24 * 60 * 60 * 1000));
-      
-      if (diff > 0) {
-        trendHtml = `<div style="margin-top:10px; color:#10b981; font-weight:700; font-size:0.95rem;">📈 تحسن تشغيلي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
-      } else if (diff < 0) {
-        trendHtml = `<div style="margin-top:10px; color:#ef4444; font-weight:700; font-size:0.95rem;">📉 تراجع في الكفاءة بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
-      } else {
-        trendHtml = `<div style="margin-top:10px; color:#6b7280; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر ومطابق للتقييم السابق</div>`;
-      }
-      
-      trendHtml += this.renderAxisComparison(res.axisScores);
+    if (!report || !structured) {
+      throw new Error('The server returned no validated report projection.');
     }
+
+    const bandCode = report.overall.bandCode || 'Q2';
+    const bandText =
+      this.texts?.quartiles?.[bandCode] || {
+        label: 'النتيجة التشغيلية',
+      };
+    const score = Number.isFinite(report.overall.score)
+      ? Number(report.overall.score).toFixed(1)
+      : '—';
 
     const circle = document.getElementById('result-score-circle');
     if (circle) {
       circle.classList.remove('q1', 'q2', 'q3', 'q4');
-      circle.classList.add(q.toLowerCase());
+      circle.classList.add(String(bandCode).toLowerCase());
     }
+
     const scoreVal = document.getElementById('result-score-value');
-    if (scoreVal) { scoreVal.textContent = score + '%'; }
+    if (scoreVal) scoreVal.textContent = score + '%';
+
     const scoreLabel = document.getElementById('result-score-label');
-    if (scoreLabel) scoreLabel.textContent = qData.label;
+    if (scoreLabel) scoreLabel.textContent = bandText.label;
+
     const title = document.getElementById('result-title');
-    if (title) title.textContent = qData.label;
+    if (title) title.textContent = bandText.label;
+
     const body = document.getElementById('result-body');
-    
     if (body) {
-      body.innerHTML = `<div>درجتك الكلية للعيادة: ${score} من 100 — ${qData.label}</div>${trendHtml}`;
+      body.innerHTML =
+        `<div>درجتك الكلية للعيادة: ${score} من 100 — ${bandText.label}</div>`;
     }
 
     const axesContainer = document.getElementById('axes-scores');
-    if (axesContainer && res.axisScores) {
+    if (axesContainer) {
       axesContainer.innerHTML = '';
       const axes = this.assessment?.axes || [];
-      Object.entries(res.axisScores).forEach(([aid, score]) => {
-        const axis = axes.find(a => a.id === aid);
-        const qClass = score >= 75 ? 'q4' : score >= 50 ? 'q3' : score >= 25 ? 'q2' : 'q1';
+
+      for (const axis of structured.scores?.axes || []) {
+        if (axis.status !== 'measured' || !Number.isFinite(axis.score)) continue;
+
+        const axisMeta = axes.find(item => item.id === axis.axisCode);
+        const qClass = String(axis.grade || 'Q2').toLowerCase();
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
-        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis ? axis.name_ar : aid}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
+
+        const width = Math.max(0, Math.min(100, Number(axis.score)));
+        row.innerHTML =
+          `<div class="axis-score-info"><div class="axis-score-name">${axisMeta ? axisMeta.name_ar : axis.axisCode}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${width}%;"></div></div></div><div class="axis-score-value">${Number(axis.score).toFixed(1)}%</div>`;
+
         axesContainer.appendChild(row);
-      });
+      }
     }
 
-    this.renderVisualBenchmark(res);
+    this.renderVisualBenchmark(report, structured.scores?.axes || []);
 
     const trapsContainer = document.getElementById('traps-container');
     if (trapsContainer) {
-      if (res.traps?.length) {
-        trapsContainer.classList.remove('hidden');
-        trapsContainer.innerHTML = '<h3 class="card-title">🚨 نقاط الضعف وفخاخ التناقض السلوكي</h3>';
-        res.traps.forEach(t => {
-          const alert = document.createElement('div');
-          alert.className = 'trap-alert fade-in';
-          alert.innerHTML = `<div class="icon">⚠️</div><div class="content"><h4>${t.name}</h4><p>${t.message}</p></div>`;
-          trapsContainer.appendChild(alert);
-        });
-      } else trapsContainer.classList.add('hidden');
+      trapsContainer.innerHTML = '';
+      trapsContainer.classList.add('hidden');
     }
 
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
-      recContainer.classList.remove('hidden');
-      recContainer.innerHTML = '<h3 class="card-title">💡 التوجيهات الاستشارية وفرص التطوير الهيكلي</h3>';
-      if (res.axisScores) {
-        const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
-        const weakest = sorted[0];
-        const strongest = sorted[sorted.length - 1];
-        const axes = this.assessment?.axes || [];
-        const weakAxis = axes.find(x => x.id === weakest[0]);
-        const strongAxis = axes.find(x => x.id === strongest[0]);
+      recContainer.innerHTML = '';
+      const priority = report.priority;
+      if (priority.category === 'PRIORITY_AXIS_REVIEW' && priority.sourceAxisCode) {
+        recContainer.classList.remove('hidden');
+
+        const axisMeta = (this.assessment?.axes || []).find(
+          item => item.id === priority.sourceAxisCode
+        );
+        const template =
+          this.texts?.ui?.simulator?.report_priority ||
+          'الأولوية التشغيلية: {axis} — هذا هو أدنى محور مقاس حالياً بنسبة {pct}%';
+        const text = template
+          .replace('{axis}', axisMeta ? axisMeta.name_ar : priority.sourceAxisCode)
+          .replace('{pct}', Number(priority.score).toFixed(1));
+
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
-        box.innerHTML = `<h4>🎯 الأولوية التشغيلية القصوى: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4><p>هذا المحور يمثل الفجوة الأكبر ويتطلب تدخل فوري وسد منافذ التسريب بنسبة أداء (${weakest[1].toFixed(1)}%).</p><h4 style="margin-top:12px;">💪 نقطة القوة المرتكز عليها: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4><p>معيار متميز وكفاءة تشغيلية مستقرة بنسبة أداء (${strongest[1].toFixed(1)}%).</p>`;
+        box.innerHTML = `<h4>🎯 أولوية المراجعة التشغيلية</h4><p>${text}</p>`;
         recContainer.appendChild(box);
+      } else {
+        recContainer.classList.add('hidden');
       }
     }
 
     const evEnabled = this.assessment?.simulator?.enabled === true;
-    const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
+    const evSection =
+      document.getElementById('btn-ev-simulator')?.closest('.form-card');
     if (evSection) evSection.classList.toggle('hidden', !evEnabled);
-
-    const leakageEl = document.getElementById('leakage-index');
-    if (leakageEl && Number.isFinite(res.overallScore)) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
-  }
-
-  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
-
-  renderAxisComparison(currentAxisScores) {
-    if (!this.previousSessionData?.axisScores) return '';
-    
-    let html = '<div style="margin-top:16px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
-    html += '<thead><tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;text-align:right;">المحور</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الأساس</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الحالي</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">التغير</th></tr></thead><tbody>';
-    
-    const axes = this.assessment?.axes || [];
-    Object.entries(currentAxisScores).forEach(([aid, currentScore]) => {
-      const axis = axes.find(a => a.id === aid);
-      const baseline = this.previousSessionData.axisScores[aid] || 0;
-      const diff = currentScore - baseline;
-      const diffColor = diff > 0 ? '#10b981' : diff < 0 ? '#ef4444' : '#6b7280';
-      const diffIcon = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
-      
-      html += `<tr>
-        <td style="padding:8px;border:1px solid #e5e7eb;">${axis ? axis.name_ar : aid}</td>
-        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${baseline.toFixed(1)}%</td>
-        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;font-weight:700;">${currentScore.toFixed(1)}%</td>
-        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;color:${diffColor};font-weight:700;">${diffIcon} ${Math.abs(diff).toFixed(1)}%</td>
-      </tr>`;
-    });
-    
-    html += '</tbody></table></div>';
-    return html;
   }
 
   /* ─────────────── UNIFIED VISUAL BENCHMARKING ─────────────── */
 
-  renderVisualBenchmark(res) {
+  renderVisualBenchmark(report, axes) {
     const oldCharts = document.getElementById('charts-container');
     const oldKpis = document.getElementById('kpis-container');
     if (oldCharts) oldCharts.remove();
@@ -917,52 +894,62 @@ class ClinicEvaluatorApp {
       benchmarkContainer.id = 'benchmark-container';
       benchmarkContainer.className = 'form-card fade-in';
       benchmarkContainer.style.marginTop = '20px';
-      
+
       const axesContainer = document.getElementById('axes-scores');
-      axesContainer?.parentNode?.insertBefore(benchmarkContainer, axesContainer.nextSibling);
+      axesContainer?.parentNode?.insertBefore(
+        benchmarkContainer,
+        axesContainer.nextSibling
+      );
     }
-    
-    benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
-    
-    if (res.axisScores) {
-      const axes = this.assessment?.axes || [];
-      const data = Object.entries(res.axisScores).map(([aid, score]) => ({ 
-        label: axes.find(a => a.id === aid)?.name_ar || aid, 
-        value: score 
-      }));
-      
+
+    benchmarkContainer.innerHTML =
+      '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
+
+    const measuredAxes = axes.filter(
+      axis => axis.status === 'measured' && Number.isFinite(axis.score)
+    );
+
+    if (measuredAxes.length) {
       const chartDiv = document.createElement('div');
       chartDiv.style.marginBottom = '24px';
-      
-      const maxVal = Math.max(...data.map(d => d.value), 1);
-      data.forEach(item => {
-        const pct = (item.value / maxVal) * 100;
-        let qClass = 'q1';
-        if (item.value >= 75) qClass = 'q4';
-        else if (item.value >= 50) qClass = 'q3';
-        else if (item.value >= 25) qClass = 'q2';
 
+      const axisMeta = this.assessment?.axes || [];
+      measuredAxes.forEach(axis => {
+        const meta = axisMeta.find(item => item.id === axis.axisCode);
         const row = document.createElement('div');
-        row.style.cssText = 'margin-bottom:12px;';
-        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        row.style.marginBottom = '12px';
+
+        const qClass = String(axis.grade || 'Q2').toLowerCase();
+        const width = Math.max(0, Math.min(100, Number(axis.score)));
+
+        row.innerHTML =
+          `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${meta ? meta.name_ar : axis.axisCode}</span><span class="${qClass}-text">${Number(axis.score).toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${width}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+
         chartDiv.appendChild(row);
       });
-      
+
       benchmarkContainer.appendChild(chartDiv);
     }
 
-    if (res.kpis) {
+    if (report?.kpis?.length) {
       const kpiGrid = document.createElement('div');
-      kpiGrid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;';
-      
-      Object.entries(res.kpis).forEach(([k, v]) => {
-        const info = this.texts?.kpis?.[k] || { name: k, short_name: k };
+      kpiGrid.style.cssText =
+        'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;';
+
+      report.kpis.forEach(kpi => {
+        const info =
+          this.texts?.kpis?.[kpi.kpiCode] || {
+            name: kpi.kpiCode,
+            short_name: kpi.kpiCode
+          };
         const card = document.createElement('div');
-        card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
-        card.innerHTML = `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${v.toFixed(1)}</div>`;
+        card.style.cssText =
+          'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
+        card.innerHTML =
+          `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${Number(kpi.value).toFixed(1)}</div>`;
         kpiGrid.appendChild(card);
       });
-      
+
       benchmarkContainer.appendChild(kpiGrid);
     }
   }
