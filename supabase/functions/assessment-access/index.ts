@@ -832,13 +832,19 @@ Deno.serve(async (req) => {
         });
       }
 
-      const requestedEconomicInput = data.economic_input && typeof data.economic_input === "object"
-        ? {
-            averageVisitValue: data.economic_input.averageVisitValue ?? null,
-            relationshipYears: data.economic_input.relationshipYears ?? null,
-            referralPercentage: data.economic_input.referralPercentage ?? null,
-          }
-        : {};
+      const requestedEconomicInput =
+        data.economic_input && typeof data.economic_input === "object"
+          ? {
+              averageVisitValue: data.economic_input.averageVisitValue ?? null,
+              visitsPerYear:
+                data.economic_input.visitsPerYear === undefined ||
+                data.economic_input.visitsPerYear === ""
+                  ? 3
+                  : Number(data.economic_input.visitsPerYear),
+              relationshipYears: data.economic_input.relationshipYears ?? null,
+              referralPercentage: data.economic_input.referralPercentage ?? null,
+            }
+          : { visitsPerYear: 3 };
 
       const preparation = await supabase.rpc("prepare_assessment_submission", {
         p_session_id: session.id,
@@ -906,14 +912,29 @@ Deno.serve(async (req) => {
         return json({ error: "Submission snapshot is unavailable" }, 409);
       }
 
-      const frozenEconomicInput = preparation.data?.submission_economic_input
-        && typeof preparation.data.submission_economic_input === "object"
-        ? {
-            averageVisitValue: preparation.data.submission_economic_input.averageVisitValue ?? null,
-            relationshipYears: preparation.data.submission_economic_input.relationshipYears ?? null,
-            referralPercentage: preparation.data.submission_economic_input.referralPercentage ?? null,
-          }
-        : undefined;
+      const frozenEconomicInput =
+        preparation.data?.submission_economic_input &&
+        typeof preparation.data.submission_economic_input === "object"
+          ? {
+              averageVisitValue:
+                preparation.data.submission_economic_input.averageVisitValue ??
+                null,
+              visitsPerYear:
+                preparation.data.submission_economic_input.visitsPerYear ===
+                  undefined ||
+                preparation.data.submission_economic_input.visitsPerYear === ""
+                  ? 3
+                  : Number(
+                      preparation.data.submission_economic_input.visitsPerYear,
+                    ),
+              relationshipYears:
+                preparation.data.submission_economic_input.relationshipYears ??
+                null,
+              referralPercentage:
+                preparation.data.submission_economic_input.referralPercentage ??
+                null,
+            }
+          : undefined;
 
       const computed = await calculateAssessment(supabase, {
         sessionId: session.id,
@@ -994,13 +1015,25 @@ Deno.serve(async (req) => {
 
       const avg = Number(data.avg);
       const years = Number(data.years);
-      const visits = data.visits === undefined || data.visits === "" ? 3 : Number(data.visits);
+      const visits =
+        data.visits === undefined || data.visits === ""
+          ? 3
+          : Number(data.visits);
       const referralRaw =
-        data.referral === undefined || data.referral === "" || data.referral === null
+        data.referral === undefined ||
+        data.referral === "" ||
+        data.referral === null
           ? null
           : Number(data.referral);
 
-      if (!(avg > 0) || !(years > 0) || !(visits > 0)) {
+      if (
+        !Number.isFinite(avg) ||
+        avg <= 0 ||
+        !Number.isFinite(years) ||
+        years <= 0 ||
+        !Number.isFinite(visits) ||
+        visits <= 0
+      ) {
         return json({ error: "Invalid economic inputs" }, 400);
       }
 
@@ -1013,6 +1046,7 @@ Deno.serve(async (req) => {
 
       const economic = calculateP3RecursiveReferralEconomic({
         averageVisitValue: avg,
+        visitsPerYear: visits,
         relationshipYears: years,
         referralPercentage: referralRaw,
       });
@@ -1024,7 +1058,7 @@ Deno.serve(async (req) => {
           modelCode: economic.modelCode,
           basePatientValue: economic.basePatientValue,
           referralPercentage: referralRaw,
-          visitsPerYear: 3,
+          visitsPerYear: visits,
           relationshipYears: years,
           current: economic.output?.value ?? null,
           opt20: economic.scenarios.opt20,
