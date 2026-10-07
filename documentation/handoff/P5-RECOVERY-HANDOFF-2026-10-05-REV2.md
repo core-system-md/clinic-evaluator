@@ -432,6 +432,6 @@ The reusable P3 scoring modules remain internal composed dependencies of the sin
 
 The consolidation was merged to `main` as `2c8341f6199e4c2f00a1c18946f401d9b8c6a800`.
 
-P3 isolated kernel, engine ownership, production contract, parity, and P4 protected-completion checks passed. `assessment-access` was deployed to Supabase as version **31** with live deployment SHA256 `4463a1cda9ac310fdcb6e7ae6e04dcb4b0085354719631042848e0576d6ec196`. Live source was re-read and confirmed to route production scoring through `score-engine.ts` → `calculateAssessment`.
+P3 isolated kernel, engine ownership, production contract, parity, and P4 protected-completion checks passed. `assessment-access` was deployed to Supabase as version **32** with live deployment SHA256 `950467bed27b99961ea46177e654be2cacacf4f867ad884549de9d7dc0198edb`. Live source was re-read and confirmed to route production scoring through `score-engine.ts` → `calculateAssessment`.
 
 The full Node baseline audit still reports four pre-existing P5 editor-workspace failures; they are unrelated to this P3 engine correction and remain explicitly reported.
