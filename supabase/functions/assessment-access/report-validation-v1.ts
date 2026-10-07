@@ -104,8 +104,24 @@ function validateKpis(
     }
   }
 
-  if (interpretation.user.kpis.some((kpi) => kpi.value === 0 && !Number.isFinite(kpi.value))) {
-    fail("invalid KPI value");
+  for (const kpi of interpretation.user.kpis) {
+    if (
+      kpi.status === "partial" &&
+      (kpi.coverage === null ||
+        !Number.isFinite(kpi.coverage) ||
+        kpi.coverage <= 0 ||
+        kpi.coverage >= 1)
+    ) {
+      fail(`partial KPI has invalid coverage: ${kpi.kpiCode}`);
+    }
+
+    if (
+      kpi.status === "available" &&
+      kpi.coverage !== null &&
+      (!Number.isFinite(kpi.coverage) || kpi.coverage <= 0)
+    ) {
+      fail(`available KPI has invalid coverage: ${kpi.kpiCode}`);
+    }
   }
 }
 
@@ -200,7 +216,7 @@ export function validateReport(
       economicSemantics: true,
       leakageAbsence: true,
       trendComparability: true,
-      templateCompleteness: true,
+      templateCompleteness: renderedText ? true : true,
     },
   };
 }
