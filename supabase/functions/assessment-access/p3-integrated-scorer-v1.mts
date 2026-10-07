@@ -86,6 +86,15 @@ function axisMeasurement(items: P3ResolvedSelection[]) {
   };
 }
 
+function bandCodeForScore(score: number | null): "Q1" | "Q2" | "Q3" | "Q4" | null {
+  if (!Number.isFinite(score)) return null;
+  const value = Number(score);
+  if (value >= 75) return "Q4";
+  if (value >= 50) return "Q3";
+  if (value >= 25) return "Q2";
+  return "Q1";
+}
+
 function projectRoles(
   axisResults: Array<{ axisCode: string; score: number | null; weight: number }>,
   axisRoles: Record<string, string>,
@@ -299,6 +308,7 @@ export function scoreP3IntegratedV1(input: {
       weightedScore:
         measurement === null ? null : measurement.percentage * weight,
       weight,
+      grade: bandCodeForScore(measurement?.percentage ?? null),
       status:
         measurement === null
           ? ("unavailable" as const)
@@ -456,14 +466,7 @@ export function scoreP3IntegratedV1(input: {
       percentage: Number(axis.score),
       weight: Number(axis.weight),
       weighted_score: Number(axis.weightedScore),
-      grade:
-        Number(axis.score) >= 75
-          ? "Q4"
-          : Number(axis.score) >= 50
-            ? "Q3"
-            : Number(axis.score) >= 25
-              ? "Q2"
-              : "Q1",
+      grade: axis.grade,
     }));
 
 
