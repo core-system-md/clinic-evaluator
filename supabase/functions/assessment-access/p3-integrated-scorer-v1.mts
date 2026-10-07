@@ -226,6 +226,7 @@ export function scoreP3IntegratedV1(input: {
   assessmentFamilyId: string;
   assessmentTypeId: string;
   assessmentVersion: string;
+  interpretationVersion: number;
   resultId: string;
   calculatedAt: string;
   scoringContractVersion: string;
@@ -252,7 +253,7 @@ export function scoreP3IntegratedV1(input: {
 }): P3IntegratedResult {
   const scored = scoreP3AssessmentV1({
     assessmentSlug: input.assessmentSlug,
-    interpretationVersion: Number(input.assessmentVersion),
+    interpretationVersion: input.interpretationVersion,
     selections: input.selections,
   });
 
