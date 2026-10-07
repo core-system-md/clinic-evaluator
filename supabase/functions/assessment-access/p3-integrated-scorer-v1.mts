@@ -18,7 +18,10 @@ import {
   type P3ConsistencyFinding,
   type P3ConsistencyScoreEffect,
 } from "./p3-consistency-engine.mts";
-import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
+import {
+  calculateP3RecursiveReferralEconomic,
+  type P3EconomicInput,
+} from "./p3-economic-model-v1.mts";
 import {
   buildP3StructuredResultV1,
   type P3StructuredResultV1,
@@ -33,12 +36,6 @@ export type P3ConsistencyPair = {
   targetQuestionCode: string;
   scoreEffectOverride?: P3ConsistencyScoreEffect;
 };
-export type P3EconomicInput = {
-  averageVisitValue: number | null;
-  relationshipYears: number | null;
-  referralPercentage: number | null;
-};
-
 export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & {
   axisPersistenceRows: Array<Record<string, unknown>>;
   resolvedSelections: P3ResolvedSelection[];
