@@ -445,6 +445,7 @@ export function scoreP3IntegratedV1(input: {
       modelCode: economics.modelCode,
       inputs: {
         averageVisitValue: input.economicInput?.averageVisitValue ?? null,
+        visitsPerYear: input.economicInput?.visitsPerYear ?? 3,
         relationshipYears: input.economicInput?.relationshipYears ?? null,
         referralPercentage: input.economicInput?.referralPercentage ?? null,
       },
