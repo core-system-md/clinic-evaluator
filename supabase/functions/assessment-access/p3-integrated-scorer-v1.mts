@@ -298,7 +298,8 @@ export function scoreP3IntegratedV1(input: {
   }
 
   const axisResults = input.axes.map((axis) => {
-    const weight = canonicalWeight(axis.weight);
+    const weightFraction = canonicalWeight(axis.weight);
+    const weightPercentage = weightFraction * 100;
     const measurement = axisMeasurement(byAxis.get(axis.code) ?? []);
     return {
       axisCode: axis.code,
@@ -306,8 +307,10 @@ export function scoreP3IntegratedV1(input: {
       maxPossible: measurement?.maxPossible ?? null,
       score: measurement?.percentage ?? null,
       weightedScore:
-        measurement === null ? null : measurement.percentage * weight,
-      weight,
+        measurement === null
+          ? null
+          : measurement.percentage * weightFraction,
+      weight: weightPercentage,
       grade: bandCodeForScore(measurement?.percentage ?? null),
       status:
         measurement === null
@@ -319,10 +322,10 @@ export function scoreP3IntegratedV1(input: {
   const validAxes = axisResults.filter(
     (axis) => Number.isFinite(axis.score) && axis.weight > 0,
   );
-  const weightSum = validAxes.reduce((sum, axis) => sum + axis.weight, 0);
+  const weightSum = validAxes.reduce((sum, axis) => sum + axis.weight / 100, 0);
   const overallScore = validAxes.length
     ? validAxes.reduce(
-        (sum, axis) => sum + Number(axis.score) * axis.weight,
+        (sum, axis) => sum + Number(axis.score) * (axis.weight / 100),
         0,
       ) / weightSum
     : null;
@@ -466,7 +469,7 @@ export function scoreP3IntegratedV1(input: {
       raw_score: Number(axis.rawScore),
       max_possible: Number(axis.maxPossible),
       percentage: Number(axis.score),
-      weight: Number(axis.weight),
+      weight: Number(axis.weight) / 100,
       weighted_score: Number(axis.weightedScore),
       grade: axis.grade,
     }));
