@@ -134,12 +134,9 @@ $function$;
 drop trigger if exists trg_validate_assessment_result_projection
   on public.assessment_results;
 
-create constraint trigger trg_validate_assessment_result_projection
-after insert or update of result, result_status, session_id, assessment_type_id,
-  assessment_version, interpretation_version, scoring_engine_version,
-  scoring_contract_version, assessment_config_digest
+create trigger trg_validate_assessment_result_projection
+after insert or update
 on public.assessment_results
-deferrable initially immediate
 for each row
 execute function public.validate_assessment_result_projection();
 
