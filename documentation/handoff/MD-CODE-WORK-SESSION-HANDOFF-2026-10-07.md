@@ -3,7 +3,8 @@
 
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase:** `oaqpzaarppccbnepffxx`  
-**Current main verified:** `ddc981b5ed3658f23314589086b2c58a1bb66800`
+**Current main after this handoff record:** `80af21c4c944d4ff60478dbddcc2f5e046cedb4d`  
+**Prior verified implementation state:** `ddc981b5ed3658f23314589086b2c58a1bb66800`
 
 > This document records the work, findings, corrections, and outstanding work from the current conversation so the next conversation can continue without reconstructing context.
 
