@@ -1,11 +1,12 @@
 /**
  * P3 Recursive Referral Economic Model V1.
  *
- * This is the single canonical economic calculation used by both the
- * assessment result pipeline and the interactive economic endpoint.
+ * The model expresses incremental annual referral opportunity separately
+ * from baseline patient value. Visits are annual and default to 3.
  */
 export type P3EconomicInput = {
   averageVisitValue: number | null;
+  visitsPerYear: number | null;
   relationshipYears: number | null;
   referralPercentage: number | null;
 };
@@ -21,8 +22,9 @@ export type P3EconomicResult = {
   output: {
     value: number;
     unit: "currency";
+    basis: "INCREMENTAL_REFERRAL_OPPORTUNITY";
     assumptions: {
-      visitsPerYear: 3;
+      visitsPerYear: number;
       referralPercentage: number;
     };
   } | null;
@@ -31,11 +33,22 @@ export type P3EconomicResult = {
 export function calculateP3RecursiveReferralEconomic(
   input: P3EconomicInput,
 ): P3EconomicResult {
-  const { averageVisitValue, relationshipYears, referralPercentage } = input;
+  const {
+    averageVisitValue,
+    visitsPerYear,
+    relationshipYears,
+    referralPercentage,
+  } = input;
+  const annualVisits =
+    visitsPerYear === null || visitsPerYear === undefined || visitsPerYear === 0
+      ? 3
+      : Number(visitsPerYear);
 
   const validBaseInputs =
     Number.isFinite(averageVisitValue) &&
     Number(averageVisitValue) > 0 &&
+    Number.isFinite(annualVisits) &&
+    annualVisits > 0 &&
     Number.isFinite(relationshipYears) &&
     Number(relationshipYears) > 0;
 
@@ -50,12 +63,12 @@ export function calculateP3RecursiveReferralEconomic(
   }
 
   const basePatientValue =
-    Number(averageVisitValue) * 3 * Number(relationshipYears);
-  const valueAt = (referral: number) =>
-    basePatientValue / (1 - referral / 100);
+    Number(averageVisitValue) * annualVisits * Number(relationshipYears);
+  const opportunityAt = (referral: number) =>
+    basePatientValue / (1 - referral / 100) - basePatientValue;
 
-  const opt20 = valueAt(20);
-  const opt50 = valueAt(50);
+  const opt20 = opportunityAt(20);
+  const opt50 = opportunityAt(50);
 
   if (
     referralPercentage === null ||
@@ -73,7 +86,7 @@ export function calculateP3RecursiveReferralEconomic(
   }
 
   const numericReferral = Number(referralPercentage);
-  const value = valueAt(numericReferral);
+  const value = opportunityAt(numericReferral);
 
   return {
     status: "available",
