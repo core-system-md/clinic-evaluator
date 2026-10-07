@@ -16,7 +16,7 @@
 
 # Current Engineering Reconciliation Work Contract — 2026-10-07
 
-**Status:** BINDING — CURRENT STAGE  
+**Status:** SUPERSEDED — HISTORICAL REFERENCE
 **Authority:** Project-owner instruction + `AI-ENGINEERING-OPERATING-CONTRACT.md`  
 **Project:** `core-system-md/clinic-evaluator`  
 **Scope:** Reconciliation, investigation, reporting, design, implementation, verification, and closure work covered by the current owner instruction.  
@@ -427,7 +427,7 @@ The following assumptions are expressly forbidden during this stage:
 
 The first action after this contract is **not implementation**.
 
-The next action is a full evidence-based reconciliation of:
+That historical next action has been superseded. The active next action is defined in `FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md` as WP-01 source inventory and reconciliation.
 
 `PRE-2026-09-30 BASELINE → APPROVED ARCHITECTURE → POST-2026-09-30 IMPLEMENTATION → CURRENT RUNTIME`
 
