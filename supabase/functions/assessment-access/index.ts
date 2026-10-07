@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
 import { interpretAssessmentResult } from "./report-interpretation-v1.ts";
+import { validateReport } from "./report-validation-v1.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -775,6 +776,7 @@ Deno.serve(async (req) => {
         if (storedResult?.result) {
           const structured = storedResult.result as any;
           const reportInterpretation = interpretAssessmentResult(structured);
+          validateReport(structured, reportInterpretation);
           const axisScores: Record<string, number> = {};
           for (const axis of structured?.scores?.axes || []) {
             if (Number.isFinite(axis?.score)) axisScores[String(axis.axisCode)] = Number(axis.score);
@@ -873,6 +875,9 @@ Deno.serve(async (req) => {
         const reportInterpretation = structured
           ? interpretAssessmentResult(structured)
           : null;
+        if (structured && reportInterpretation) {
+          validateReport(structured, reportInterpretation);
+        }
         return json({
           success: true,
           data: {
@@ -1000,6 +1005,7 @@ Deno.serve(async (req) => {
 
       const storedStructured = (completed?.result || structuredResult) as any;
       const reportInterpretation = interpretAssessmentResult(storedStructured);
+      validateReport(storedStructured, reportInterpretation);
 
       return json({
         success: true,
