@@ -36,8 +36,17 @@ begin
   end if;
 
   v_axes := NEW.result->'scores'->'axes';
-  if jsonb_typeof(v_axes) <> 'array' then
-    raise exception using errcode = '22023', message = 'Structured Result axis measurements are missing';
+  if jsonb_typeof(v_axes) <> 'array'
+     or jsonb_typeof(NEW.result->'inputs'->'responses') <> 'array'
+     or jsonb_typeof(NEW.result->'measurement') <> 'object'
+     or jsonb_typeof(NEW.result->'coverage') <> 'object'
+     or jsonb_typeof(NEW.result->'consistency'->'findings') <> 'array'
+     or jsonb_typeof(NEW.result->'roles') <> 'array'
+     or jsonb_typeof(NEW.result->'kpis') <> 'array'
+     or jsonb_typeof(NEW.result->'economics') <> 'object'
+     or jsonb_typeof(NEW.result->'diagnostics'->'findings') <> 'array'
+     or jsonb_typeof(NEW.result->'audit'->'replayableFrom') <> 'array' then
+    raise exception using errcode = '22023', message = 'Structured Result required sections are missing';
   end if;
 
   if exists (
@@ -49,10 +58,10 @@ begin
        or (
          r.axis->>'status' = 'unavailable'
          and (
-           r.axis->'rawScore' is not null
-           or r.axis->'maxPossible' is not null
-           or r.axis->'score' is not null
-           or r.axis->'weightedScore' is not null
+           r.axis->>'rawScore' is not null
+           or r.axis->>'maxPossible' is not null
+           or r.axis->>'score' is not null
+           or r.axis->>'weightedScore' is not null
            or r.axis->>'grade' is not null
          )
        )
