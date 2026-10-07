@@ -50,7 +50,7 @@ export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & 
   };
 };
 
-function axisScore(items: P3ResolvedSelection[]): number | null {
+function axisMeasurement(items: P3ResolvedSelection[]) {
   const eligible = items.filter(
     (item) =>
       item.answered &&
@@ -60,21 +60,30 @@ function axisScore(items: P3ResolvedSelection[]): number | null {
       Number.isFinite(item.anchorMax) &&
       Number(item.anchorMax) > 0,
   );
+
   if (!eligible.length) return null;
-  return (
+
+  const rawScore = eligible.reduce(
+    (sum, item) => sum + Number(item.anchorScore),
+    0,
+  );
+  const maxPossible = eligible.reduce(
+    (sum, item) => sum + Number(item.anchorMax),
+    0,
+  );
+  const percentage =
     eligible.reduce(
       (sum, item) =>
         sum + (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
       0,
-    ) / eligible.length
-  );
-}
+    ) / eligible.length;
 
-function canonicalWeight(weight: number): number {
-  if (!Number.isFinite(weight) || weight < 0) {
-    throw new Error("Invalid axis weight");
-  }
-  return weight > 1 ? weight / 100 : weight;
+  return {
+    rawScore,
+    maxPossible,
+    percentage,
+    count: eligible.length,
+  };
 }
 
 function projectRoles(
@@ -281,12 +290,19 @@ export function scoreP3IntegratedV1(input: {
 
   const axisResults = input.axes.map((axis) => {
     const weight = canonicalWeight(axis.weight);
-    const score = axisScore(byAxis.get(axis.code) ?? []);
+    const measurement = axisMeasurement(byAxis.get(axis.code) ?? []);
     return {
       axisCode: axis.code,
-      score,
+      rawScore: measurement?.rawScore ?? null,
+      maxPossible: measurement?.maxPossible ?? null,
+      score: measurement?.percentage ?? null,
+      weightedScore:
+        measurement === null ? null : measurement.percentage * weight,
       weight,
-      status: score === null ? ("unavailable" as const) : ("measured" as const),
+      status:
+        measurement === null
+          ? ("unavailable" as const)
+          : ("measured" as const),
     };
   });
 
@@ -367,8 +383,7 @@ export function scoreP3IntegratedV1(input: {
     assessmentVersion: input.assessmentVersion,
     resultId: input.resultId,
     calculatedAt: input.calculatedAt,
-    engineIdentity:
-      input.engineIdentity ?? "P3_INTEGRATED_SCORER_V1_NONPRODUCTION",
+    engineIdentity: input.engineIdentity ?? "MD_CODE_ASSESSMENT_ENGINE",
     scoringContractVersion: input.scoringContractVersion,
     assessmentConfigDigest: input.assessmentConfigDigest,
     interpretationVersion: String(scored.interpretationVersion),
@@ -387,6 +402,14 @@ export function scoreP3IntegratedV1(input: {
         optionIndex: item.optionIndex!,
         sourceOptionValue: item.sourceOptionValue ?? null,
         semanticStateKey: item.semanticStateKey!,
+        axisCode: item.axisCode ?? null,
+        componentCode: item.componentCode ?? null,
+        primaryConstruct: item.primaryConstruct ?? null,
+        measurementLayer: item.measurementLayer ?? null,
+        scoreMode: item.scoreMode,
+        scoreEligible: item.scoreEligible,
+        anchorScore: item.anchorScore ?? null,
+        anchorMax: item.anchorMax ?? null,
       })),
     profile: effectiveProfile,
     overallScore,
@@ -409,60 +432,40 @@ export function scoreP3IntegratedV1(input: {
       status:
         economics.status === "available" ? "COMPUTED" : "NOT_COMPUTED",
       modelCode: economics.modelCode,
+      inputs: {
+        averageVisitValue: input.economicInput?.averageVisitValue ?? null,
+        relationshipYears: input.economicInput?.relationshipYears ?? null,
+        referralPercentage: input.economicInput?.referralPercentage ?? null,
+      },
       output: economics.output,
     },
   });
 
-  const axisPersistenceRows = axisResults.flatMap((axis) => {
-    const items = byAxis.get(axis.axisCode) ?? [];
-    const eligible = items.filter(
-      (item) =>
-        item.answered &&
-        item.scoreEligible &&
-        item.scoreMode === "DIRECT_ANCHOR" &&
-        Number.isFinite(item.anchorScore) &&
-        Number.isFinite(item.anchorMax) &&
-        Number(item.anchorMax) > 0,
-    );
-    if (!eligible.length) return [];
+  const axisPersistenceRows = structured.scores.axes
+    .filter((axis) => axis.status === "measured")
+    .map((axis) => ({
+      axis_id: axis.axisCode,
+      axis_name_ar:
+        input.axes.find((a) => a.code === axis.axisCode)?.code ??
+        axis.axisCode,
+      axis_name_en:
+        input.axes.find((a) => a.code === axis.axisCode)?.code ??
+        axis.axisCode,
+      raw_score: Number(axis.rawScore),
+      max_possible: Number(axis.maxPossible),
+      percentage: Number(axis.score),
+      weight: Number(axis.weight),
+      weighted_score: Number(axis.weightedScore),
+      grade:
+        Number(axis.score) >= 75
+          ? "Q4"
+          : Number(axis.score) >= 50
+            ? "Q3"
+            : Number(axis.score) >= 25
+              ? "Q2"
+              : "Q1",
+    }));
 
-    const rawScore = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorScore),
-      0,
-    );
-    const maxPossible = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorMax),
-      0,
-    );
-    const percentage =
-      eligible.reduce(
-        (sum, item) =>
-          sum +
-          (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
-        0,
-      ) / eligible.length;
-
-    return [
-      {
-        axis_id: axis.axisCode,
-        axis_name_ar: input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-        axis_name_en: input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-        raw_score: Math.round(rawScore),
-        max_possible: Math.round(maxPossible),
-        percentage,
-        weight: axis.weight,
-        weighted_score: percentage * axis.weight,
-        grade:
-          percentage >= 75
-            ? "Q4"
-            : percentage >= 50
-              ? "Q3"
-              : percentage >= 25
-                ? "Q2"
-                : "Q1",
-      },
-    ];
-  });
 
   return {
     ...structured,
