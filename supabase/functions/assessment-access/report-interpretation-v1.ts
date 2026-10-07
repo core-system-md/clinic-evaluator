@@ -146,15 +146,15 @@ function interpretKpis(
 ): UserReportProjection["kpis"] {
   const supported = new Set(model.supportedKpis);
   return result.kpis
-    .filter((kpi) => supported.has(kpi.kpiCode))
     .filter(
-      (kpi): kpi is typeof kpi & { value: number } =>
+      (kpi) =>
+        supported.has(kpi.kpiCode) &&
         (kpi.status === "available" || kpi.status === "partial") &&
         Number.isFinite(kpi.value),
     )
     .map((kpi) => ({
       kpiCode: kpi.kpiCode,
-      status: kpi.status,
+      status: kpi.status as "available" | "partial",
       value: Number(kpi.value),
       coverage: kpi.coverage,
       evidence: "STRUCTURED_RESULT_KPI" as const,
