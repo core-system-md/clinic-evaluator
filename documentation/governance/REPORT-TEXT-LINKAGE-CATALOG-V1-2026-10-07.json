@@ -1,0 +1,185 @@
+{
+  "version": "1.0.0",
+  "governingContract": "FINAL-IMPLEMENTATION-CONTRACT-2026-10-07",
+  "source": "assets/data/report_texts.json",
+  "semanticEntries": [
+    {
+      "path": "ui.simulator.title",
+      "kind": "presentation",
+      "evidence": "ECONOMIC_MODEL_V1",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.description",
+      "kind": "explanatory",
+      "evidence": "ECONOMIC_MODEL_V1",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.explanation_before",
+      "kind": "explanatory",
+      "evidence": "ECONOMIC_MODEL_V1",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.how_it_works_steps",
+      "kind": "input_instruction",
+      "evidence": "ECONOMIC_MODEL_V1_INPUTS",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.example_text",
+      "kind": "economic_example",
+      "evidence": "ECONOMIC_MODEL_V1",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.notes_items",
+      "kind": "economic_constraints",
+      "evidence": "FINAL_CONTRACT_PART_K",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.fields",
+      "kind": "input_labels",
+      "evidence": "ECONOMIC_MODEL_V1_INPUTS",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.report_current_ev",
+      "kind": "economic_output_label",
+      "evidence": "STRUCTURED_RESULT_ECONOMICS",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.report_potential_ev",
+      "kind": "economic_scenario_label",
+      "evidence": "STRUCTURED_RESULT_ECONOMICS_SCENARIO",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.report_optimized_ev",
+      "kind": "economic_scenario_label",
+      "evidence": "STRUCTURED_RESULT_ECONOMICS_SCENARIO",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.report_gap",
+      "kind": "economic_comparison_label",
+      "evidence": "STRUCTURED_RESULT_ECONOMICS",
+      "visibility": "user"
+    },
+    {
+      "path": "ui.simulator.report_priority",
+      "kind": "factual_axis_finding",
+      "evidence": "STRUCTURED_RESULT_MEASURED_AXIS",
+      "visibility": "user"
+    },
+    {
+      "path": "quartiles.Q1.label",
+      "kind": "classification_label",
+      "evidence": "STRUCTURED_RESULT_CLASSIFICATION",
+      "visibility": "user"
+    },
+    {
+      "path": "quartiles.Q2.label",
+      "kind": "classification_label",
+      "evidence": "STRUCTURED_RESULT_CLASSIFICATION",
+      "visibility": "user"
+    },
+    {
+      "path": "quartiles.Q3.label",
+      "kind": "classification_label",
+      "evidence": "STRUCTURED_RESULT_CLASSIFICATION",
+      "visibility": "user"
+    },
+    {
+      "path": "quartiles.Q4.label",
+      "kind": "classification_label",
+      "evidence": "STRUCTURED_RESULT_CLASSIFICATION",
+      "visibility": "user"
+    },
+    {
+      "path": "kpis.*.name",
+      "kind": "kpi_definition",
+      "evidence": "KPI_CATALOG",
+      "visibility": "user"
+    },
+    {
+      "path": "kpis.*.description",
+      "kind": "kpi_definition",
+      "evidence": "KPI_CATALOG",
+      "visibility": "user"
+    },
+    {
+      "path": "sections.kpis",
+      "kind": "presentation_label",
+      "evidence": "REPORT_MODEL",
+      "visibility": "user"
+    },
+    {
+      "path": "sections.axes",
+      "kind": "presentation_label",
+      "evidence": "REPORT_MODEL",
+      "visibility": "user"
+    },
+    {
+      "path": "sections.gaps",
+      "kind": "presentation_label",
+      "evidence": "REPORT_MODEL",
+      "visibility": "user"
+    },
+    {
+      "path": "sections.ev_simulator",
+      "kind": "presentation_label",
+      "evidence": "ECONOMIC_MODEL_V1",
+      "visibility": "user"
+    },
+    {
+      "path": "report.overall_score",
+      "kind": "result_label",
+      "evidence": "STRUCTURED_RESULT_SCORE",
+      "visibility": "user"
+    },
+    {
+      "path": "report.structural_diagnosis",
+      "kind": "section_label",
+      "evidence": "REPORT_MODEL",
+      "visibility": "user"
+    },
+    {
+      "path": "report.axis_summary",
+      "kind": "section_label",
+      "evidence": "STRUCTURED_RESULT_AXES",
+      "visibility": "user"
+    }
+  ],
+  "appReportPaths": [
+    {
+      "path": "assets/js/app.js::renderResults",
+      "evidence": "REPORT_INTERPRETATION_USER_PROJECTION",
+      "policy": "renderer consumes res.report and res.structuredResult"
+    },
+    {
+      "path": "assets/js/app.js::renderVisualBenchmark",
+      "evidence": "STRUCTURED_RESULT_AXES",
+      "policy": "renderer consumes measured axis score/grade; no threshold recomputation"
+    },
+    {
+      "path": "assets/js/app.js::recommendations",
+      "evidence": "REPORT_INTERPRETATION.priority",
+      "policy": "only measured lowest-axis evidence"
+    },
+    {
+      "path": "assets/js/app.js::EV",
+      "evidence": "ECONOMIC_MODEL_V1",
+      "policy": "annual visits; referral opportunity separate from assessment score"
+    }
+  ],
+  "excludedNonSemantic": [
+    "ui.buttons",
+    "ui.metadata",
+    "ui.progress",
+    "errors"
+  ]
+}
