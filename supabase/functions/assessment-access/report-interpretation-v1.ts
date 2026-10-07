@@ -23,7 +23,6 @@ export type ReportAxisInsight = {
 export type UserReportProjection = {
   modelCode: string;
   assessmentFamily: string;
-  assessmentVersion: number;
   overall: {
     score: number | null;
     bandCode: P3StructuredResultV1["classification"]["bandCode"];
@@ -44,7 +43,7 @@ export type UserReportProjection = {
         value: number;
         unit: "currency";
         basis: "INCREMENTAL_REFERRAL_OPPORTUNITY";
-        assumptions: P3StructuredResultV1["economics"]["output"]["assumptions"];
+        assumptions: NonNullable<P3StructuredResultV1["economics"]["output"]>["assumptions"];
         evidence: "STRUCTURED_RESULT_ECONOMICS";
       }
     | {
@@ -200,9 +199,13 @@ export function interpretAssessmentResult(
   result: P3StructuredResultV1,
 ): AssessmentReportInterpretation {
   const model = getAssessmentReportModel(result.identity.assessmentSlug);
-  if (result.identity.assessmentVersion !== String(model.finalVersion)) {
+  if (
+    !model.acceptedAssessmentVersions.includes(
+      Number(result.identity.assessmentVersion),
+    )
+  ) {
     throw new Error(
-      `Report model ${model.modelCode} requires final V${model.finalVersion}; received V${result.identity.assessmentVersion}`,
+      `Report model ${model.modelCode} does not accept assessment version ${result.identity.assessmentVersion}`,
     );
   }
 
@@ -214,7 +217,6 @@ export function interpretAssessmentResult(
     user: {
       modelCode: model.modelCode,
       assessmentFamily: result.identity.assessmentSlug,
-      assessmentVersion: Number(result.identity.assessmentVersion),
       overall: {
         score: result.scores.overallScore,
         bandCode: result.classification.bandCode,
