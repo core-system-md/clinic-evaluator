@@ -97,7 +97,7 @@ export function calculateP3RecursiveReferralEconomic(
       value,
       unit: "currency",
       assumptions: {
-        visitsPerYear: 3,
+        visitsPerYear: annualVisits,
         referralPercentage: numericReferral,
       },
     },
