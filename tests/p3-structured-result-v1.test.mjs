@@ -41,7 +41,7 @@ test("criticality becomes a diagnostic finding, never a numeric mutation",()=>{
   resultId:"result-1",calculatedAt:"2026-10-02T00:00:00Z",engineIdentity:"MD_CODE_ASSESSMENT_ENGINE",
   scoringContractVersion:"FINAL-IMPLEMENTATION-CONTRACT-2026-10-07",assessmentConfigDigest:"sha256:test",
   interpretationVersion:"1",scoringEngineVersion:"MD_CODE_ASSESSMENT_ENGINE",inputLineage:[],
-  responses:[],profile,coverage,consistencyFindings:[],criticality:{status:"CRITICAL_FINDING",,sourceItems:["Q15"],reviewRequired:true},
+  responses:[],profile,coverage,consistencyFindings:[],criticality:{status:"CRITICAL_FINDING",sourceItems:["Q15"],reviewRequired:true},
  });
  assert.equal(r.diagnostics.findings.length,1);assert.equal(r.diagnostics.findings[0].sourceType,"CRITICALITY");
  assert.equal(r.measurement.profile.overallComposite,null);
