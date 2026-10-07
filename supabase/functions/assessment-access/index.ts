@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./score-engine.ts";
+import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -967,7 +968,10 @@ Deno.serve(async (req) => {
       const avg = Number(data.avg);
       const years = Number(data.years);
       const visits = data.visits === undefined || data.visits === "" ? 3 : Number(data.visits);
-      const referralRaw = data.referral === undefined || data.referral === "" || data.referral === null ? null : Number(data.referral);
+      const referralRaw =
+        data.referral === undefined || data.referral === "" || data.referral === null
+          ? null
+          : Number(data.referral);
 
       if (!(avg > 0) || !(years > 0) || !(visits > 0)) {
         return json({ error: "Invalid economic inputs" }, 400);
@@ -980,22 +984,24 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid referral percentage" }, 400);
       }
 
-      const base = avg * 3 * years;
-      const valueAt = (referral: number) => base / (1 - referral / 100);
-      const current = referralRaw === null ? null : valueAt(referralRaw);
+      const economic = calculateP3RecursiveReferralEconomic({
+        averageVisitValue: avg,
+        relationshipYears: years,
+        referralPercentage: referralRaw,
+      });
 
       return json({
         success: true,
         data: {
-          status: referralRaw === null ? "NOT_COMPUTED" : "COMPUTED",
-          modelCode: "P3_RECURSIVE_REFERRAL_V1",
-          basePatientValue: base,
+          status: economic.status === "available" ? "COMPUTED" : "NOT_COMPUTED",
+          modelCode: economic.modelCode,
+          basePatientValue: economic.basePatientValue,
           referralPercentage: referralRaw,
           visitsPerYear: 3,
           relationshipYears: years,
-          current,
-          opt20: valueAt(20),
-          opt50: valueAt(50),
+          current: economic.output?.value ?? null,
+          opt20: economic.scenarios.opt20,
+          opt50: economic.scenarios.opt50,
         },
       });
     }
