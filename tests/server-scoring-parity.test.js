@@ -62,8 +62,8 @@ function toServerShape(config) {
 
 test('server scorer stays behaviorally equivalent to browser engine', async () => {
   const BrowserEngine = await loadBrowserEngine();
-  const { calculateAssessment } = await import(pathToFileURL(
-    path.join(__dirname, '../supabase/functions/assessment-access/score-engine.ts')
+  const { calculateLegacyAssessment: calculateAssessment } = await import(pathToFileURL(
+    path.join(__dirname, '../supabase/functions/assessment-access/score-engine-legacy.ts')
   ).href);
 
   const testCases = [

@@ -406,3 +406,28 @@ Start directly from this addendum.
 - PR #50
 - main commit `79dc578e7421ef8f8d5348d3eeb81690d7750444`
 - production `assessment-access` v29
+
+
+# 2026-10-07 CURRENT-STATE CORRECTION — P3 ENGINE OWNERSHIP
+
+This section supersedes any earlier statement in this handoff that identifies the preserved legacy `score-engine.ts` implementation as the current production scoring authority.
+
+## K. Authoritative scoring source
+
+The production scoring entrypoint is now:
+
+`assessment-access/index.ts` → `score-engine.ts`
+
+`score-engine.ts` is the authoritative server scoring engine and exports `calculateAssessment`.
+
+The previous legacy implementation was preserved as `score-engine-legacy.ts` for compatibility/reference and is not used by production.
+
+## L. Retired duplicate path
+
+The obsolete `assessment-access/scoring.ts` adapter was retired after dependency verification because it referenced a nonexistent RPC.
+
+The reusable P3 scoring modules remain internal composed dependencies of the single authoritative engine; they are not separate assessment-specific engines.
+
+## M. Verification state
+
+The consolidation is implemented on repair branch `fix/p3-unify-authoritative-engine-2026-10-07`. CI and live deployment verification are still required before treating this correction as fully closed.
