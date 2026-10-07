@@ -83,15 +83,15 @@ test("production structured result does not persist internal scorer-only fields"
 });
 
 
-test("production adapter is explicitly on consistency scoring contract v2", () => {
-  const adapter = fs.readFileSync(
-    "supabase/functions/assessment-access/p3-production-adapter.mts",
+test("production engine is explicitly on consistency scoring contract v2", () => {
+  const engine = fs.readFileSync(
+    "supabase/functions/assessment-access/score-engine.ts",
     "utf8",
   );
-  assert.match(adapter, /p3-consistency-rule-registry-v2\.json/);
-  assert.match(adapter, /p3-consistency-pair-registry-v1\.json/);
-  assert.match(adapter, /scoringContractVersion: "P3_AGGREGATION_V2"/);
-  assert.doesNotMatch(adapter, /scoringContractVersion: "P3_AGGREGATION_V1"/);
+  assert.match(engine, /p3-consistency-rule-registry-v2\.json/);
+  assert.match(engine, /p3-consistency-pair-registry-v1\.json/);
+  assert.match(engine, /scoringContractVersion: "P3_AGGREGATION_V2"/);
+  assert.doesNotMatch(engine, /scoringContractVersion: "P3_AGGREGATION_V1"/);
 
   const canonicalRules = JSON.parse(
     fs.readFileSync(
