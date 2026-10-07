@@ -120,5 +120,6 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
     ),
   );
   assert.deepEqual(packagedPairs, canonicalPairs);
-  assert.deepEqual(packagedPairs.pairs, []);
+  assert.equal(packagedPairs.pairs.length, 52);
+  assert.ok(packagedPairs.pairs.every((pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "2"));
 });
