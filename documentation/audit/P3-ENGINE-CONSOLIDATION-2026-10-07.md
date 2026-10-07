@@ -1,7 +1,7 @@
 # P3 — Authoritative Engine Consolidation & Legacy Path Disposition
 ## 2026-10-07
 
-**Status:** IMPLEMENTED IN REPAIR BRANCH — VERIFICATION PENDING
+**Status:** IMPLEMENTED IN REPAIR BRANCH — CI RE-RUN AFTER CANONICAL REGISTRY SYNC
 
 Repository: `core-system-md/clinic-evaluator`
 Branch: `fix/p3-unify-authoritative-engine-2026-10-07`
@@ -43,7 +43,7 @@ The production engine continues to pass the pinned assessment interpretation ver
 
 No question text, option text, assessment weights, or approved P3 scoring semantics were changed by this consolidation.
 
-### 6. Verification required
+### 6. Verification correction\n\nThe first CI run exposed that the canonical consistency-pair artifact still reflected its pre-v2 empty state while the implementation registry carried the approved v2 relationships. The canonical artifact was synchronized to the implementation-authoritative 52-pair set before the next verification run.\n\n### 7. Verification required
 
 The repair must pass:
 - engine-ownership regression test;
