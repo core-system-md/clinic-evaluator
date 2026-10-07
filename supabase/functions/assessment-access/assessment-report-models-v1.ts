@@ -9,6 +9,7 @@ export type AssessmentReportModel = {
   modelCode: string;
   familySlug: string;
   finalVersion: 1;
+  acceptedAssessmentVersions: number[];
   purpose: string;
   supportedKpis: string[];
   economicOpportunity: "supported" | "not_supported";
@@ -20,6 +21,7 @@ export const ASSESSMENT_REPORT_MODELS: Record<string, AssessmentReportModel> = {
     modelCode: "ADMIN_RECEPTION_REPORT_V1",
     familySlug: "admin-reception-assessment",
     finalVersion: 1,
+    acceptedAssessmentVersions: [1],
     purpose: "Evaluate front-desk, scheduling, coordination, communication, and administrative operating performance.",
     supportedKpis: ["EVI", "NPI", "PLI", "PRP", "PSI", "RRI", "TAP", "TCI", "TFI"],
     economicOpportunity: "supported",
@@ -38,6 +40,7 @@ export const ASSESSMENT_REPORT_MODELS: Record<string, AssessmentReportModel> = {
     modelCode: "COMPREHENSIVE_CLINIC_REPORT_V1",
     familySlug: "comprehensive-clinic-assessment",
     finalVersion: 1,
+    acceptedAssessmentVersions: [1, 2],
     purpose: "Evaluate the clinic as an integrated system across operations, patient journey, treatment conversion, follow-up, team, and growth.",
     supportedKpis: ["EVI", "NPI", "PLI", "PRP", "PSI", "TAP", "TCI", "TFI"],
     economicOpportunity: "not_supported",
