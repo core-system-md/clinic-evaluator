@@ -1,7 +1,7 @@
 # P3 — Authoritative Engine Consolidation & Legacy Path Disposition
 ## 2026-10-07
 
-**Status:** IMPLEMENTED IN REPAIR BRANCH — CI RE-RUN AFTER CANONICAL REGISTRY SYNC
+**Status:** CLOSED / DEPLOYED
 
 Repository: `core-system-md/clinic-evaluator`
 Branch: `fix/p3-unify-authoritative-engine-2026-10-07`
@@ -43,7 +43,19 @@ The production engine continues to pass the pinned assessment interpretation ver
 
 No question text, option text, assessment weights, or approved P3 scoring semantics were changed by this consolidation.
 
-### 6. Verification correction\n\nThe first CI run exposed that the canonical consistency-pair artifact still reflected its pre-v2 empty state while the implementation registry carried the approved v2 relationships. The canonical artifact was synchronized to the implementation-authoritative 52-pair set before the next verification run.\n\n### 7. Verification required
+### 6. Verification correction\n\nThe first CI run exposed that the canonical consistency-pair artifact still reflected its pre-v2 empty state while the implementation registry carried the approved v2 relationships. The canonical artifact was synchronized to the implementation-authoritative 52-pair set before the next verification run.\n\n### 7. Verification and deployment
+
+P3 isolated kernel, engine ownership, production contract, parity, and P4 protected-completion checks passed on the merged PR. The repository full Node baseline audit still reports four pre-existing P5 editor-workspace assertions; those are outside this P3 correction and remain explicitly reported, not masked.
+
+PR #53 was merged to `main` at `2c8341f6199e4c2f00a1c18946f401d9b8c6a800`.
+
+Supabase `assessment-access` was deployed as version **31** with `verify_jwt=false`. Deployment SHA256: `4463a1cda9ac310fdcb6e7ae6e04dcb4b0085354719631042848e0576d6ec196`.
+
+Live source was re-read after deployment and verified to route production completion through `./score-engine.ts` → `calculateAssessment`. The legacy scorer is not the production entrypoint, and the removed P3 production adapter is absent from the deployed function source.
+
+A read-only database verification confirmed the published assessment-version state remained unchanged; no production assessment content or result data was modified by this consolidation.
+
+### 8. Closure boundary
 
 The repair must pass:
 - engine-ownership regression test;
