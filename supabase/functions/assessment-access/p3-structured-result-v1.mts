@@ -56,6 +56,18 @@ export type P3StructuredResultV1 = {
       optionIndex: number;
       sourceOptionValue: number | null;
       semanticStateKey: string;
+      axisCode: string | null;
+      componentCode: string | null;
+      primaryConstruct: string | null;
+      measurementLayer: string | null;
+      scoreMode:
+        | "DIRECT_ANCHOR"
+        | "SEMANTIC_ONLY"
+        | "EVIDENCE_ONLY"
+        | "SIGNAL_ONLY";
+      scoreEligible: boolean;
+      anchorScore: number | null;
+      anchorMax: number | null;
     }>;
   };
   measurement: {
@@ -65,7 +77,10 @@ export type P3StructuredResultV1 = {
     overallScore: number | null;
     axes: Array<{
       axisCode: string;
+      rawScore: number | null;
+      maxPossible: number | null;
       score: number | null;
+      weightedScore: number | null;
       weight: number;
       status: "measured" | "unavailable";
     }>;
@@ -91,6 +106,11 @@ export type P3StructuredResultV1 = {
   economics: {
     status: "NOT_COMPUTED" | "COMPUTED";
     modelCode: string | null;
+    inputs: {
+      averageVisitValue: number | null;
+      relationshipYears: number | null;
+      referralPercentage: number | null;
+    };
     output: {
       value: number;
       unit: "currency";
@@ -227,6 +247,11 @@ export function buildP3StructuredResultV1(input: {
       input.economics ?? {
         status: "NOT_COMPUTED",
         modelCode: null,
+        inputs: {
+          averageVisitValue: null,
+          relationshipYears: null,
+          referralPercentage: null,
+        },
         output: null,
       },
     classification:
@@ -247,6 +272,7 @@ export function buildP3StructuredResultV1(input: {
         `interpretation version:${input.interpretationVersion}`,
         `scoring contract:${input.scoringContractVersion}`,
         `assessment config digest:${input.assessmentConfigDigest}`,
+        "economic inputs",
       ],
     },
   };
