@@ -393,6 +393,7 @@ export function scoreP3IntegratedV1(input: {
   const structured = buildP3StructuredResultV1({
     sessionId: input.sessionId,
     assessmentFamilyId: input.assessmentFamilyId,
+    assessmentSlug: input.assessmentSlug,
     assessmentTypeId: input.assessmentTypeId,
     assessmentVersion: input.assessmentVersion,
     resultId: input.resultId,
