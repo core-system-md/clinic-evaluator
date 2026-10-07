@@ -29,6 +29,7 @@ test("integrated scorer emits a production-valid structured result without chang
     assessmentFamilyId: "family-1",
     assessmentTypeId: "type-patient-journey",
     assessmentVersion: String(family.version),
+    interpretationVersion: 1,
     resultId: "00000000-0000-0000-0000-000000000002",
     calculatedAt: "2026-10-02T00:00:00Z",
     scoringContractVersion: "P3_AGGREGATION_V1",
@@ -39,14 +40,14 @@ test("integrated scorer emits a production-valid structured result without chang
     axisRoles: family.axisRoles,
     kpiMappings: config.kpiMappings,
     resultStatus: "PRODUCTION",
-    engineIdentity: "P3_INTEGRATED_SCORER_V1",
+    engineIdentity: "MD_CODE_ASSESSMENT_ENGINE",
   });
 
   assert.equal(result.status, "PRODUCTION");
   assert.equal(result.schemaVersion, "P3_STRUCTURED_RESULT_V1");
-  assert.equal(result.provenance.engineIdentity, "P3_INTEGRATED_SCORER_V1");
-  assert.equal(result.provenance.scoringEngineVersion, "P3_SCORER_V1");
-  assert.equal(result.provenance.scoringContractVersion, "P3_AGGREGATION_V1");
+  assert.equal(result.provenance.engineIdentity, "MD_CODE_ASSESSMENT_ENGINE");
+  assert.equal(result.provenance.scoringEngineVersion, "MD_CODE_ASSESSMENT_ENGINE");
+  assert.equal(result.provenance.scoringContractVersion, "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07");
   assert.equal(result.classification.bandDefinitionVersion, "P3_BANDS_V1");
   assert.ok(result.scores.overallScore !== null);
   assert.equal(result.economics.status, "NOT_COMPUTED");
@@ -59,6 +60,7 @@ test("production structured result does not persist internal scorer-only fields"
     assessmentFamilyId: "family-1",
     assessmentTypeId: "type-clinic-performance",
     assessmentVersion: String(family.version),
+    interpretationVersion: 1,
     resultId: "00000000-0000-0000-0000-000000000002",
     calculatedAt: "2026-10-02T00:00:00Z",
     scoringContractVersion: "P3_AGGREGATION_V1",
@@ -69,7 +71,7 @@ test("production structured result does not persist internal scorer-only fields"
     axisRoles: family.axisRoles,
     kpiMappings: config.kpiMappings,
     resultStatus: "PRODUCTION",
-    engineIdentity: "P3_INTEGRATED_SCORER_V1",
+    engineIdentity: "MD_CODE_ASSESSMENT_ENGINE",
   });
 
   assert.ok(Array.isArray(result.resolvedSelections));
@@ -85,13 +87,13 @@ test("production structured result does not persist internal scorer-only fields"
 
 test("production engine is explicitly on consistency scoring contract v2", () => {
   const engine = fs.readFileSync(
-    "supabase/functions/assessment-access/score-engine.ts",
+    "supabase/functions/assessment-access/engine.ts",
     "utf8",
   );
   assert.match(engine, /p3-consistency-rule-registry-v2\.json/);
   assert.match(engine, /p3-consistency-pair-registry-v1\.json/);
-  assert.match(engine, /scoringContractVersion: "P3_AGGREGATION_V2"/);
-  assert.doesNotMatch(engine, /scoringContractVersion: "P3_AGGREGATION_V1"/);
+  assert.match(engine, /scoringContractVersion: SCORING_CONTRACT_ID/);
+  assert.doesNotMatch(engine, /P3_AGGREGATION_V[12]/);
 
   const canonicalRules = JSON.parse(
     fs.readFileSync(
