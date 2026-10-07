@@ -659,8 +659,13 @@ export async function calculateAssessment(
   const requiredQuestionCodes = runtime.questions
     .filter((question) => question.is_required !== false)
     .map((question) => question.code);
+  const questionCodeById = new Map(
+    runtime.questions.map((question) => [question.id, question.code]),
+  );
   const answerQuestionCodes = new Set(
-    answerRows.map((answer) => answer.question_id),
+    answerRows
+      .map((answer) => questionCodeById.get(answer.question_id))
+      .filter((code): code is string => Boolean(code)),
   );
   const missing = requiredQuestionCodes.filter(
     (questionCode) => !answerQuestionCodes.has(questionCode),
