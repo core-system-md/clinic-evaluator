@@ -174,7 +174,7 @@ test("economics is isolated from overallScore and follows the approved referral 
     economicInput: { averageVisitValue: 100, visitsPerYear: 3, relationshipYears: 3, referralPercentage: null },
   });
   const invalid = run("clinic-performance", {
-    economicInput: { averageVisitValue: 100, relationshipYears: 3, referralPercentage: 100 },
+    economicInput: { averageVisitValue: 100, visitsPerYear: 3, relationshipYears: 3, referralPercentage: 100 },
   });
 
   assert.equal(baseline.economics.status, "COMPUTED");
@@ -218,10 +218,10 @@ test("criticality remains structured and does not enter the overallScore formula
   const result = run("patient-journey");
   const expected = result.scores.axes
     .filter((item) => item.score !== null)
-    .reduce((sum, item) => sum + item.score * item.weight, 0) /
+    .reduce((sum, item) => sum + item.score * (item.weight / 100), 0) /
     result.scores.axes
       .filter((item) => item.score !== null)
-      .reduce((sum, item) => sum + item.weight, 0);
+      .reduce((sum, item) => sum + (item.weight / 100), 0);
 
   assert.equal(result.scores.overallScore, expected);
   assert.ok(["NORMAL", "ATTENTION", "CRITICAL_FINDING", "UNVERIFIED"].includes(result.criticality.status));
