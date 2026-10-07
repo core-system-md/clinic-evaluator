@@ -31,7 +31,7 @@ function run(slug, extra = {}) {
     interpretationVersion: 1,
     resultId: "result-1",
     calculatedAt: "2026-10-02T00:00:00Z",
-    scoringContractVersion: "P3_CONTRACT_V1",
+    scoringContractVersion: "FINAL-IMPLEMENTATION-CONTRACT-2026-10-07",
     assessmentConfigDigest: "fixture-digest",
     assessmentSlug: slug,
     selections: firstSelection(slug),
@@ -59,7 +59,7 @@ test("integrated scorer propagates interpretation version 2", () => {
     assessmentConfigDigest: "fixture-digest-v2",
     assessmentSlug: "comprehensive-clinic-assessment",
     selections: [{ questionCode: entry.questionCode, optionId: entry.optionId, optionIndex: entry.optionIndex }],
-    axes: [{ code: entry.axisCode, weight: 1 }],
+    axes: [{ code: entry.axisCode, weight: 100 }],
     axisRoles: {},
     kpiMappings: {},
   });
@@ -81,8 +81,8 @@ test("all five published families execute through the single integrated path", (
     assert.ok(result.scores.overallScore !== null);
 
     const weightSum = result.scores.axes.reduce((sum, axis) => sum + axis.weight, 0);
-    assert.ok(Math.abs(weightSum - 1) < 1e-12);
-    assert.equal(result.provenance.scoringContractVersion, "P3_CONTRACT_V1");
+    assert.ok(Math.abs(weightSum - 100) < 1e-12);
+    assert.equal(result.provenance.scoringContractVersion, "FINAL-IMPLEMENTATION-CONTRACT-2026-10-07");
     assert.equal(result.schemaVersion, "P3_STRUCTURED_RESULT_V1");
     assert.equal(result.status, "NON_PRODUCTION");
   }
@@ -136,10 +136,10 @@ test("axis and overall projection exclude unavailable dimensions rather than zer
 
   const expected = missingAxis.scores.axes
     .filter((item) => item.score !== null)
-    .reduce((sum, item) => sum + item.score * item.weight, 0) /
+    .reduce((sum, item) => sum + item.score * (item.weight / 100), 0) /
     missingAxis.scores.axes
       .filter((item) => item.score !== null)
-      .reduce((sum, item) => sum + item.weight, 0);
+      .reduce((sum, item) => sum + (item.weight / 100), 0);
 
   assert.equal(missingAxis.scores.overallScore, expected);
   assert.notEqual(all.scores.overallScore, missingAxis.scores.overallScore);
@@ -162,25 +162,25 @@ test("KPI projection preserves partial availability and RRI scope", () => {
 
 test("economics is isolated from overallScore and follows the approved referral semantics", () => {
   const baseline = run("clinic-performance", {
-    economicInput: { averageVisitValue: 100, relationshipYears: 3, referralPercentage: 0 },
+    economicInput: { averageVisitValue: 100, visitsPerYear: 3, relationshipYears: 3, referralPercentage: 0 },
   });
   const twenty = run("clinic-performance", {
-    economicInput: { averageVisitValue: 100, relationshipYears: 3, referralPercentage: 20 },
+    economicInput: { averageVisitValue: 100, visitsPerYear: 3, relationshipYears: 3, referralPercentage: 20 },
   });
   const fifty = run("clinic-performance", {
-    economicInput: { averageVisitValue: 100, relationshipYears: 3, referralPercentage: 50 },
+    economicInput: { averageVisitValue: 100, visitsPerYear: 3, relationshipYears: 3, referralPercentage: 50 },
   });
   const blank = run("clinic-performance", {
-    economicInput: { averageVisitValue: 100, relationshipYears: 3, referralPercentage: null },
+    economicInput: { averageVisitValue: 100, visitsPerYear: 3, relationshipYears: 3, referralPercentage: null },
   });
   const invalid = run("clinic-performance", {
     economicInput: { averageVisitValue: 100, relationshipYears: 3, referralPercentage: 100 },
   });
 
   assert.equal(baseline.economics.status, "COMPUTED");
-  assert.equal(baseline.economics.output.value, 900);
-  assert.equal(twenty.economics.output.value, 1125);
-  assert.equal(fifty.economics.output.value, 1800);
+  assert.equal(baseline.economics.output.value, 0);
+  assert.equal(twenty.economics.output.value, 225);
+  assert.equal(fifty.economics.output.value, 900);
   assert.equal(blank.economics.status, "NOT_COMPUTED");
   assert.equal(invalid.economics.status, "NOT_COMPUTED");
 
