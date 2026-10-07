@@ -187,6 +187,52 @@ export function buildP3StructuredResultV1(input: {
     throw new Error("Structured result provenance/identity is incomplete");
   }
 
+  if (input.axisScores.length) {
+    const totalWeight = input.axisScores.reduce(
+      (sum, axis) => sum + Number(axis.weight),
+      0,
+    );
+    if (
+      input.axisScores.some(
+        (axis) =>
+          !Number.isFinite(axis.weight) ||
+          axis.weight <= 0 ||
+          axis.weight > 100,
+      ) ||
+      Math.abs(totalWeight - 100) > 0.001
+    ) {
+      throw new Error(
+        "Structured Result axis weights must be positive percentage points totaling 100",
+      );
+    }
+
+    for (const axis of input.axisScores) {
+      if (axis.status === "measured") {
+        if (
+          axis.rawScore === null ||
+          axis.maxPossible === null ||
+          axis.score === null ||
+          axis.weightedScore === null ||
+          axis.grade === null
+        ) {
+          throw new Error(
+            `Measured Structured Result axis is missing measurement fields: ${axis.axisCode}`,
+          );
+        }
+      } else if (
+        axis.rawScore !== null ||
+        axis.maxPossible !== null ||
+        axis.score !== null ||
+        axis.weightedScore !== null ||
+        axis.grade !== null
+      ) {
+        throw new Error(
+          `Unavailable Structured Result axis contains numeric measurement: ${axis.axisCode}`,
+        );
+      }
+    }
+  }
+
   const findings = input.consistencyFindings.map((finding) => ({
     findingId: `${finding.ruleId}@${finding.ruleVersion}:${finding.findingCode}`,
     sourceType: "CONSISTENCY" as const,
