@@ -33,13 +33,20 @@ export function calculateP3RecursiveReferralEconomic(
 ): P3EconomicResult {
   const { averageVisitValue, relationshipYears, referralPercentage } = input;
 
-  if (
-    !Number.isFinite(averageVisitValue) ||
-    Number(averageVisitValue) <= 0 ||
-    !Number.isFinite(relationshipYears) ||
-    Number(relationshipYears) <= 0
-  ) {
-    throw new Error("Invalid economic inputs");
+  const validBaseInputs =
+    Number.isFinite(averageVisitValue) &&
+    Number(averageVisitValue) > 0 &&
+    Number.isFinite(relationshipYears) &&
+    Number(relationshipYears) > 0;
+
+  if (!validBaseInputs) {
+    return {
+      status: "unavailable",
+      modelCode: "P3_RECURSIVE_REFERRAL_V1",
+      basePatientValue: 0,
+      scenarios: { opt20: 0, opt50: 0 },
+      output: null,
+    };
   }
 
   const basePatientValue =
