@@ -2,29 +2,88 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
+const COMP = 'comprehensive-clinic-assessment';
+const PATIENT = 'patient-journey';
+
 test('WP-08 final artifacts are V1 and preserve required content counts', () => {
-  const comp=JSON.parse(fs.readFileSync('documentation/governance/APPROVED-COMPREHENSIVE-CLINIC-V1-CONTENT-2026-10-08.json','utf8'));
-  const patient=JSON.parse(fs.readFileSync('documentation/governance/APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-08.json','utf8'));
-  assert.equal(comp.assessmentVersion,1);
-  assert.equal(comp.axes.length,6); assert.equal(comp.questions.length,36);
-  assert.equal(patient.assessmentVersion,1);
-  assert.equal(patient.axes.length,5); assert.equal(patient.questions.length,25);
-  assert.equal(patient.questions.reduce((n,q)=>n+q.options.length,0),96);
-  assert.equal(patient.questions.filter(q=>q.options.some(o=>o.scoreMode==='SEMANTIC_ONLY')).length,1);
+  const comp = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-COMPREHENSIVE-CLINIC-V1-CONTENT-2026-10-08.json', 'utf8'));
+  const patient = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-08.json', 'utf8'));
+
+  assert.equal(comp.assessmentVersion, 1);
+  assert.equal(comp.axes.length, 6);
+  assert.equal(comp.questions.length, 36);
+  assert.equal(comp.axes.reduce((sum, axis) => sum + Number(axis.weight), 0), 100);
+
+  assert.equal(patient.assessmentVersion, 1);
+  assert.equal(patient.axes.length, 5);
+  assert.equal(patient.questions.length, 25);
+  assert.equal(patient.questions.reduce((n, q) => n + q.options.length, 0), 96);
+  assert.equal(patient.questions.filter(q => q.options.some(o => o.scoreMode === 'SEMANTIC_ONLY')).length, 1);
+  assert.equal(patient.axes.reduce((sum, axis) => sum + Number(axis.weight), 0), 100);
 });
 
-test('WP-08 migration contains dependency gate, family routing, and V2 removal', () => {
-  const sql=fs.readFileSync('supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql','utf8');
-  for(const term of ['assessment_results','assessment_session_access','current_published_version_id','version=2','delete from public.assessment_types']) assert.ok(sql.includes(term),term);
+test('WP-08 migration uses canonical percentage weights and validates totals', () => {
+  const sql = fs.readFileSync('supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql', 'utf8');
+  for (const term of [
+    'assessment_results',
+    'assessment_session_access',
+    'current_published_version_id',
+    'version=2',
+    'delete from public.assessment_types',
+    'final Comprehensive V1 axis weights must total 100',
+    'final Patient Journey V1 axis weights must total 100'
+  ]) assert.ok(sql.includes(term), term);
+  assert.ok(!/a\.weight\s*\/\s*100\.0/.test(sql), 'final V1 migration must not store 0-1 axis weights');
   assert.ok(!sql.includes('update public.assessment_types set version=1'));
-  assert.match(sql,/comprehensive-clinic-assessment-v1-final/);
-  assert.match(sql,/patient-journey-v1-final/);
+  assert.match(sql, /comprehensive-clinic-assessment-v1-final/);
+  assert.match(sql, /patient-journey-v1-final/);
+});
+
+test('WP-08 V1 consistency configuration is an explicit translation of approved relationships', () => {
+  const comp = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-COMPREHENSIVE-CLINIC-V1-CONTENT-2026-10-08.json', 'utf8'));
+  const patient = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-08.json', 'utf8'));
+  const registry = JSON.parse(fs.readFileSync('supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json', 'utf8'));
+
+  const key = p => `${p.assessmentSlug}|${p.assessmentVersion}|${p.validatorQuestionCode}|${p.targetQuestionCode}|${p.relationshipType}|${p.scoreEffectOverride?.mode || ''}|${p.scoreEffectOverride?.maxEffectiveAnchorScore ?? ''}`;
+
+  const approvedComp = [];
+  for (const q of comp.questions) {
+    for (const target of q.trap_for || []) {
+      approvedComp.push({
+        assessmentSlug: COMP,
+        assessmentVersion: '1',
+        validatorQuestionCode: q.code,
+        targetQuestionCode: target,
+        relationshipType: 'HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION',
+        scoreEffectOverride: { mode: 'CAP_VALIDATOR_ANCHOR', maxEffectiveAnchorScore: 70 }
+      });
+    }
+  }
+
+  const approvedPatient = (patient.consistencyPairs || []).map(p => ({
+    assessmentSlug: PATIENT,
+    assessmentVersion: '1',
+    validatorQuestionCode: p.validatorQuestionCode,
+    targetQuestionCode: p.targetQuestionCode,
+    relationshipType: p.relationshipType,
+    scoreEffectOverride: { mode: 'CAP_VALIDATOR_ANCHOR', maxEffectiveAnchorScore: p.maxEffectiveAnchorScore }
+  }));
+
+  const v1Pairs = registry.pairs.filter(p => p.assessmentVersion === '1');
+  assert.equal(v1Pairs.filter(p => p.assessmentSlug === COMP).length, approvedComp.length);
+  assert.equal(v1Pairs.filter(p => p.assessmentSlug === PATIENT).length, approvedPatient.length);
+
+  const actualKeys = new Set(v1Pairs.map(key));
+  for (const expected of [...approvedComp, ...approvedPatient]) assert.ok(actualKeys.has(key(expected)), key(expected));
 });
 
 test('WP-08 no user-facing V2 identity is introduced by final artifacts', () => {
-  const files=[
+  const files = [
     'documentation/governance/APPROVED-COMPREHENSIVE-CLINIC-V1-CONTENT-2026-10-08.json',
     'documentation/governance/APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-08.json'
   ];
-  for(const f of files){const s=fs.readFileSync(f,'utf8');assert.doesNotMatch(s,/"assessmentVersion"\s*:\s*2/);}
+  for (const f of files) {
+    const s = fs.readFileSync(f, 'utf8');
+    assert.doesNotMatch(s, /"assessmentVersion"\s*:\s*2/);
+  }
 });
