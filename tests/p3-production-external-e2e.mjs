@@ -181,19 +181,18 @@ async function main() {
   assert(fresh && replay, "Concurrent completion did not collapse to exactly one fresh result");
   const data = fresh.body.data;
   assert(data?.already_completed === false, "Fresh completion was not marked fresh");
-  assert(data?.structuredResult?.schemaVersion === "P3_STRUCTURED_RESULT_V1", "Missing Structured Result");
-  assert(data?.structuredResult?.status === "PRODUCTION", "Structured Result is not production");
-  assert(data?.structuredResult?.provenance?.engineIdentity === "MD_CODE_ASSESSMENT_ENGINE", "Wrong P3 engine identity");
-  assert(data?.structuredResult?.provenance?.scoringEngineVersion === "MD_CODE_ASSESSMENT_ENGINE", "Wrong scoring engine version");
-  assert(data?.structuredResult?.provenance?.interpretationVersion === "1", "Wrong interpretation version");
-  assert(typeof data?.structuredResult?.provenance?.assessmentConfigDigest === "string" && data.structuredResult.provenance.assessmentConfigDigest.length === 64, "Missing config digest");
-  assert(Array.isArray(data?.structuredResult?.inputs?.responses), "Missing response lineage");
-  assert(data.structuredResult.inputs.responses.length > 0, "No interpreted responses persisted");
-  record("production completion + Structured Result", true, {
-    overall_score: data.overallScore,
-    interpretation_version: data.structuredResult.provenance.interpretationVersion,
-    result_id: data.structuredResult.identity.resultId,
-    response_count: data.structuredResult.inputs.responses.length,
+  assert(data?.reportSource?.schemaVersion === "P3_REPORT_SOURCE_V1", "Missing public report source");
+  assert(data?.reportSource?.status === "READY_FOR_USER_REPORT", "Public report source is not ready");
+  assert(data?.reportSource?.assessment?.slug === ASSESSMENT_SLUG, "Public report source family mismatch");
+  assert(Number.isFinite(data?.reportSource?.overall?.value), "Missing public overall score");
+  assert(Array.isArray(data?.reportSource?.axes) && data.reportSource.axes.length > 0, "Missing public report axes");
+  assert(Array.isArray(data?.reportSource?.kpis), "Missing public report KPI projection");
+  assert(!JSON.stringify(data).toLowerCase().includes("structuredresult"), "Raw Structured Result crossed the response boundary");
+  assert(!JSON.stringify(data).toLowerCase().includes("assessmentconfigdigest"), "Config digest crossed the response boundary");
+  assert(!JSON.stringify(data).toLowerCase().includes("inputlineage"), "Input lineage crossed the response boundary");
+  record("production completion + public report source", true, {
+    overall_score: data.reportSource.overall.value,
+    family: data.reportSource.assessment.slug,
   });
 
   const retry = await call("complete", {
@@ -210,12 +209,12 @@ async function main() {
   );
   assert(retry.body?.data?.already_completed === true, "Retry was not idempotent");
   assert(
-    retry.body?.data?.structuredResult?.identity?.resultId === data.structuredResult.identity.resultId,
-    "Retry returned a different result identity",
+    retry.body?.data?.reportSource?.schemaVersion === "P3_REPORT_SOURCE_V1",
+    "Retry did not return the public report source",
   );
   assert(
-    JSON.stringify(retry.body?.data?.structuredResult) === JSON.stringify(data.structuredResult),
-    "Retry returned a different Structured Result after changing economic input",
+    JSON.stringify(retry.body?.data?.reportSource) === JSON.stringify(data.reportSource),
+    "Retry returned a different public report source after changing economic input",
   );
   record("idempotent completion retry", true, {
     same_result_id: true,
@@ -224,8 +223,9 @@ async function main() {
   const completedSession = await call("get_session", { token });
   assert(completedSession.status === 200 && completedSession.body?.success === true, "Completed session reload failed");
   assert(completedSession.body?.data?.session?.status === "completed", "Completed session state not returned");
-  assert(completedSession.body?.data?.result?.result?.schemaVersion === "P3_STRUCTURED_RESULT_V1", "Completed stored result was not returned");
-  record("completed result survives session reopen", true, { result_returned: true });
+  assert(completedSession.body?.data?.reportSource?.schemaVersion === "P3_REPORT_SOURCE_V1", "Completed public report source was not returned");
+  assert(!JSON.stringify(completedSession.body?.data).toLowerCase().includes("structuredresult"), "Completed session leaked Structured Result");
+  record("completed report source survives session reopen", true, { result_returned: true });
 
   const lateAnswer = await call("save_answer", {
     token,
