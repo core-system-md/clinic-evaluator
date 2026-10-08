@@ -1,0 +1,33 @@
+name: WP-06 report validation gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "assets/js/report-interpretation.js"
+      - "assets/js/report-validation.js"
+      - "assets/js/app.js"
+      - "*.html"
+      - "tests/wp-06-report-validation.test.mjs"
+      - ".github/workflows/wp-06-local-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-06-report-validation:
+    name: WP-06 report validation gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/wp-06-report-validation.test.mjs
+      - run: node --check assets/js/report-validation.js
+      - run: node --check assets/js/report-interpretation.js
+      - run: node --check assets/js/app.js

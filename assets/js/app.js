@@ -12,7 +12,6 @@ class ClinicEvaluatorApp {
   constructor() {
     this.config = null;
     this.texts = null;
-    this.engine = null;
     this.supabase = null;
     this.assessmentAccessToken = null;
     this.assessmentAccessUser = null;
@@ -807,7 +806,13 @@ class ClinicEvaluatorApp {
       structuredResult: structured
     };
 
-    if (report.trend?.status !== 'available') this.previousSessionData = null;
+    try {
+      window.MDReportValidation.assertValidUserReport(structured, report);
+    } catch (error) {
+      console.error('[app] report validation failed before render:', error);
+      this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من سلامة النتيجة أو محتوى التقرير.');
+      return;
+    }
 
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
@@ -817,19 +822,19 @@ class ClinicEvaluatorApp {
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
 
     let trendHtml = "";
-    if (this.previousSessionData) {
-      const diff = res.overallScore - this.previousSessionData.overallScore;
-      const daysSince = Math.floor((Date.now() - new Date(this.previousSessionData.completedAt).getTime()) / (24 * 60 * 60 * 1000));
-      
+    if (report.trend?.status === 'available') {
+      const diff = Number(report.trend.delta);
+      const daysSince = report.trend.completedAt
+        ? Math.max(0, Math.floor((Date.now() - new Date(report.trend.completedAt).getTime()) / (24 * 60 * 60 * 1000)))
+        : null;
+      const suffix = daysSince === null ? '' : ` (${daysSince} يوم)`;
       if (diff > 0) {
-        trendHtml = `<div style="margin-top:10px; color:#10b981; font-weight:700; font-size:0.95rem;">📈 تحسن تشغيلي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
+        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">📈 تغير إيجابي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق${suffix}</div>`;
       } else if (diff < 0) {
-        trendHtml = `<div style="margin-top:10px; color:#ef4444; font-weight:700; font-size:0.95rem;">📉 تراجع في الكفاءة بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق (${daysSince} يوم)</div>`;
+        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">📉 تغير بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق${suffix}</div>`;
       } else {
-        trendHtml = `<div style="margin-top:10px; color:#6b7280; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر ومطابق للتقييم السابق</div>`;
+        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر مقارنة بالتقييم السابق${suffix}</div>`;
       }
-      
-      trendHtml += this.renderAxisComparison(res.axisScores);
     }
 
     const circle = document.getElementById('result-score-circle');
@@ -887,8 +892,14 @@ class ClinicEvaluatorApp {
     const evSection = document.getElementById('btn-ev-simulator')?.closest('.form-card');
     if (evSection) evSection.classList.toggle('hidden', !evEnabled);
 
-    const leakageEl = document.getElementById('leakage-index');
-    if (leakageEl) leakageEl.textContent = '';
+    const renderedText = document.getElementById('view-results')?.innerText || '';
+    try {
+      window.MDReportValidation.assertValidUserReport(structured, report, renderedText);
+    } catch (error) {
+      console.error('[app] rendered report validation failed:', error);
+      this.hideView('view-results');
+      this.showFatalError('تعذر اعتماد التقرير النهائي: فشل بوابة التحقق.');
+    }
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
