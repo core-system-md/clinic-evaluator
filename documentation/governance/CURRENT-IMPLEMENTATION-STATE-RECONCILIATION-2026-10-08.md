@@ -98,28 +98,31 @@ The implementation-stage contract boundary was to prepare, test, verify, documen
 | WP | Current status |
 |---|---|
 | WP-01 | Complete |
-| WP-02 | Complete |
-| WP-03 | Previously declared complete; detailed fresh evidence may be rechecked if needed |
-| WP-04 | **Pass / Closed / Merged** |
-| WP-05 | **Pass / Closed / Merged** |
-| WP-06 | **Pass / Closed / Merged** |
-| WP-07 | **Pass / Closed / Merged** |
-| WP-08 | **Pass / Closed / Merged — production rollout not executed** |
-| WP-09–WP-12 | Not started as implementation stages |
+| WP-02 | Complete within scoped engine-establishment boundary |
+| WP-03 | Complete; a duplicate architecture document still requires documentary reconciliation |
+| WP-04 | Pass / Closed / Merged within persistence-authority scope |
+| WP-05 | **POST-CLOSURE RECONCILIATION REQUIRED** — report-model completeness and history-provenance integration gaps |
+| WP-06 | **POST-CLOSURE RECONCILIATION REQUIRED** — transport/privacy boundary is not enforced by the report-validation layer |
+| WP-07 | **POST-CLOSURE RECONCILIATION REQUIRED** — semantic strings remain outside the linkage catalog |
+| WP-08 | **Pass / Closed / Merged after corrective reconciliation — production rollout not executed** |
+| WP-09 | Pass / Closed / Merged |
+| WP-10–WP-12 | Not started as implementation stages |
 
 ## 6. Correct current transition point
 
-The project is **not** at “WP-08 pre-implementation”.
+The project is **not** at “WP-08 pre-implementation”, and it is also **not yet contract-clean for Production rollout**.
 
-That statement is superseded.
+The WP-08 implementation has now been corrected and closed, but the post-closure forensic audit identified unresolved contract deviations in the report stages:
 
-The implementation sequence through WP-08 is complete.
+- WP-05 report-model completeness and normal-history provenance integration;
+- WP-06 transport/privacy enforcement for Structured Result;
+- WP-07 full semantic ownership/linkage coverage.
 
-The current point is:
+Therefore the current point is:
 
-**POST-WP-08 PRODUCTION ROLLOUT / RELEASE DECISION GATE**
+**POST-WP-08 CORRECTIVE RECONCILIATION GATE — NOT PRODUCTION-READY**
 
-This is a controlled gate, not an authorization to mutate Production.
+No Production rollout decision may be treated as cleared until these reconciliation items are separately corrected and verified.
 
 Before any Production action, the following must be independently verified against the governing contract and current Production state:
 
@@ -137,15 +140,16 @@ Before any Production action, the following must be independently verified again
 
 ## 7. Explicit stop condition
 
-Until the Production rollout/release decision gate is explicitly resolved:
+Until the corrective reconciliation gate is resolved:
 
 - do not execute the WP-08 production migration;
 - do not delete superseded production assessment versions;
 - do not switch production routing;
 - do not mutate production assessment content;
-- do not start WP-09.
+- do not start WP-10;
+- do not treat WP-05, WP-06, or WP-07 as contract-clean merely because their historical dedicated workflows passed.
 
-**The repository implementation is closed at WP-08; Production rollout remains a separate controlled gate.**
+**WP-08 is corrected and closed. The next implementation work must address the earliest outstanding reconciliation item one WP at a time, then stop. Production remains blocked.**
 
 ## 8. Source of truth
 
@@ -165,3 +169,40 @@ This revision supersedes the earlier statement in this file that WP-08 was “No
 It does **not** authorize a Production migration or other Production mutation.
 
 **No production database or Edge Function mutation is performed by this documentation correction.**
+
+
+## 10. Post-closure forensic recalibration — 2026-10-08
+
+The prior stage records remain historical evidence of their executed implementations and dedicated test runs. A later contract audit, however, found that several closure claims were broader than the actual implementation boundaries.
+
+### WP-05 — reconciliation required
+
+The current report model registry provides purpose, KPI allow-list, and an economic flag, but it does not independently encode all required assessment-family semantics listed in contract §15: measured constructs, axes/components, diagnostic meanings, permitted user-facing conclusions, and text/template catalog.
+
+The normal history adapter also returns only score/axis/date fields, while the report trend compatibility contract requires family, version, engine, contract, and configuration provenance. The dedicated fixture test proves compatibility logic with synthetic provenance but does not prove that the production history path supplies it.
+
+### WP-06 — reconciliation required
+
+The report validation layer correctly rejects forbidden fields from the user projection, but the assessment-access completion response still carries the full persisted Structured Result to the browser. This is a transport-boundary violation of the user-content policy even though the projected report itself is sanitized.
+
+### WP-07 — reconciliation required
+
+The linkage catalog audits the live `report_texts.json` leaves, but semantic report/presentation strings remain hardcoded in `assets/js/app.js`. Those statements are therefore outside the declared semantic ownership catalog and require reconciliation with contract §16.
+
+### WP-03 — documentary contradiction only
+
+The architecture duplicate `documentation/architecture/FINAL-CHANGE-SET-IMPLEMENTATION-CONTRACT-2026-10-07.md` contains a conflicting 0–1 storage statement. The active governance contract and owner-approved Change Set require canonical 0–100 percentage-point storage. No independent WP-03 code defect has been established from this contradiction alone; the file should be reconciled before final closure.
+
+### WP-08 — corrected and closed
+
+PR #65 corrected the two proven WP-08 defects: final V1 Consistency mapping and Patient Journey canonical weight storage. The corrected dedicated workflow passed, and the correction was merged as:
+
+`ebd375e883e9faeb8659fc5bef312f343f0aa504`
+
+No Production mutation occurred.
+
+### Corrective execution order
+
+The next implementation work is **not authorized automatically**. When authorized, the earliest unresolved implementation-stage reconciliation should be handled independently, with dedicated verification and closure before moving onward.
+
+**Current overall status: implementation is blocked from Production rollout until the unresolved reconciliation items are closed.**
