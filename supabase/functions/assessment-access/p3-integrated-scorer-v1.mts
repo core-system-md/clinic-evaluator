@@ -29,7 +29,7 @@ import {
   type P3StructuredRole,
 } from "./p3-structured-result-v1.mts";
 
-export type P3AxisConfig = { code: string; weight: number };
+export type P3AxisConfig = { code: string; weight: number; nameAr?: string; nameEn?: string };
 export type P3ConsistencyPair = {
   relationshipType: string;
   validatorQuestionCode: string;
@@ -291,6 +291,8 @@ export function scoreP3IntegratedV1(input: {
     const measurement = axisMeasurement(byAxis.get(axis.code) ?? []);
     return {
       axisCode: axis.code,
+      axisNameAr: axis.nameAr ?? axis.code,
+      axisNameEn: axis.nameEn ?? axis.code,
       score: measurement.score,
       rawScore: measurement.rawScore,
       maxPossible: measurement.maxPossible,
