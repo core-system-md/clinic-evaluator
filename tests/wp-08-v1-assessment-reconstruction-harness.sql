@@ -32,7 +32,7 @@ begin
  assert (select count(*) from public.questions where assessment_type_id=comp)=36, 'Comprehensive question count';
  assert (select count(*) from public.options where question_id in (select id from public.questions where assessment_type_id=comp))=152, 'Comprehensive option count';
  assert (select count(*) from public.questions where assessment_type_id=patient)=25, 'Patient question count';
- assert (select count(*) from public.options where question_id in (select id from public.questions where assessment_type_id=patient))=75, 'Patient option count';
+ assert (select count(*) from public.options where question_id in (select id from public.questions where assessment_type_id=patient))=96, 'Patient option count';
  assert not exists(select 1 from public.assessment_types where version=2 and status='published'), 'Published V2 remains';
  assert (select count(*) from public.assessment_types where version=1 and status='published')=2, 'Published final V1 count';
 end $$;
