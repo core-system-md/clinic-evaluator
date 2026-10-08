@@ -4,7 +4,7 @@
 **Work package:** WP-02 — Establish `engine.ts`  
 **Governing contract:** `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`  
 **Branch:** `wp-02/establish-engine-ts-2026-10-07`  
-**Status:** IMPLEMENTED — VERIFICATION NOT YET CLOSED  
+**Status:** IMPLEMENTED — CODE/CI VERIFICATION PASSED; PRODUCTION CUTOVER DEFERRED  
 **Production mutation:** NO  
 **Production deployment:** NO
 
@@ -159,17 +159,34 @@ No production database mutation was made.
 
 ---
 
-## 10. Verification still required
+## 10. Verification checkpoint
 
-WP-02 is not marked fully closed because the following verification has not been executed successfully in this environment:
+The WP-02 branch was verified through GitHub Actions run `37734003629` after the WP-02 fixture correction.
 
-- complete Node test suite execution;
-- runtime TypeScript/Deno execution of the new `engine.ts`;
-- deployed Edge Function verification after cutover.
+Verified successfully:
 
-The GitHub workflow/status interface did not expose a completed run for the current WP-02 head during this checkpoint.
+- P3 isolated kernel + ownership + production-contract + parity tests: **SUCCESS**.
+- P4 protected completion disposable-PostgreSQL verification: **SUCCESS**.
+- Browser runtime syntax check: **SUCCESS**.
 
-These are verification limitations, not evidence of failure.
+The P3 isolated run completed with the full selected kernel/ownership/contract/parity set passing.
+
+The repository-wide Node baseline remains **RED** on four pre-existing P5 editor-workspace assertions:
+
+- inline EV creation missing;
+- Draft action branch missing;
+- stop-public family-id call missing;
+- public back-navigation guard missing.
+
+These failures are outside WP-02 and are not to be fixed by importing later WP work into this branch.
+
+A direct local execution from the current assistant runtime was not possible because the execution container has no outbound GitHub network access; therefore the GitHub-hosted execution above is recorded as CI verification evidence, not mislabeled as local execution.
+
+Production deployment remains intentionally deferred. No Supabase production mutation or Edge Function cutover was performed.
+
+### Remaining verification boundary
+
+Before production release, the integrated release point must additionally verify the deployed artifact against the tested source and perform runtime Edge Function verification. This is deliberately deferred until the contract sequence reaches the appropriate integrated release gate.
 
 ---
 
