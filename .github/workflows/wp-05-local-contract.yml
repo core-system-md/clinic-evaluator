@@ -29,3 +29,5 @@ jobs:
       - run: node --test tests/wp-05-report-interpretation.test.mjs
       - run: node --check assets/js/report-interpretation.js
       - run: node --check assets/js/app.js
+      - run: node --check supabase/functions/assessment-access/engine.ts
+      - run: node --check supabase/functions/assessment-access/index.ts
