@@ -44,26 +44,49 @@ function resultFixture(overrides = {}) {
     ...overrides
   };
 }
+function publicSourceFixture(overrides = {}) {
+  return {
+    schemaVersion: 'P3_REPORT_SOURCE_V1',
+    status: 'READY_FOR_USER_REPORT',
+    assessment: { slug: 'clinic-performance', version: 1 },
+    overall: { value: 72, bandCode: 'Q3' },
+    axes: [
+      { axisCode: 'A1', axisNameAr: 'محور 1', axisNameEn: 'Axis 1', percentage: 60, status: 'measured' },
+      { axisCode: 'A2', axisNameAr: 'محور 2', axisNameEn: 'Axis 2', percentage: 84, status: 'measured' },
+      { axisCode: 'A3', axisNameAr: 'محور 3', axisNameEn: 'Axis 3', percentage: 72, status: 'measured' }
+    ],
+    kpis: [
+      { kpiCode: 'TFI', status: 'available', value: 70 },
+      { kpiCode: 'NPI', status: 'partial', value: 50 }
+    ],
+    economics: {
+      status: 'COMPUTED',
+      output: { value: 1500, assumptions: { visitsPerYear: 3, referralPercentage: 0 } }
+    },
+    coverage: { coverageStatus: 'FULL', coverageRatio: 1 },
+    ...overrides
+  };
+}
 
 test('WP-06 validates a clean user projection against Structured Result', () => {
-  const structured = resultFixture();
-  const report = interpretation.projectUserReport(structured, null, 'clinic-performance');
-  assert.deepEqual(validation.validateUserReport(structured, report), { ok: true, issues: [] });
+  const source = publicSourceFixture();
+  const report = interpretation.projectUserReport(source, null, 'clinic-performance');
+  assert.deepEqual(validation.validateUserReport(source, report), { ok: true, issues: [] });
 });
 
 test('WP-06 rejects factual mismatch and ineligible KPI', () => {
-  const structured = resultFixture();
-  const report = interpretation.projectUserReport(structured, null, 'clinic-performance');
+  const source = publicSourceFixture();
+  const report = interpretation.projectUserReport(source, null, 'clinic-performance');
   report.overall.value = 71;
   report.kpis.push({ code: 'NPI', value: 50 });
-  const result = validation.validateUserReport(structured, report);
+  const result = validation.validateUserReport(source, report);
   assert.equal(result.ok, false);
   assert.ok(result.issues.some(x => x.code === 'OVERALL_MISMATCH'));
   assert.ok(result.issues.some(x => x.code === 'KPI_INELIGIBLE'));
 });
 
 test('WP-06 fails closed on incompatible trend', () => {
-  const structured = resultFixture();
+  const source = publicSourceFixture();
   const previous = {
     assessmentFamilyId: 'other-family',
     assessmentVersion: 1,
@@ -72,18 +95,18 @@ test('WP-06 fails closed on incompatible trend', () => {
     assessmentConfigDigest: structured.provenance.assessmentConfigDigest,
     overallScore: 60
   };
-  const report = interpretation.projectUserReport(structured, previous, 'clinic-performance');
+  const report = interpretation.projectUserReport(source, previous, 'clinic-performance');
   assert.equal(report.trend.status, 'unavailable');
-  assert.equal(validation.validateUserReport(structured, report).ok, true);
+  assert.equal(validation.validateUserReport(source, report).ok, true);
 });
 
 test('WP-06 preserves annual economic semantics and rejects tampering', () => {
-  const structured = resultFixture();
-  const report = interpretation.projectUserReport(structured, null, 'clinic-performance');
+  const source = publicSourceFixture();
+  const report = interpretation.projectUserReport(source, null, 'clinic-performance');
   assert.equal(report.economicOpportunity.visitsPerYear, 3);
   assert.equal(report.economicOpportunity.referralPercentage, 0);
   report.economicOpportunity.visitsPerYear = 30;
-  const result = validation.validateUserReport(structured, report);
+  const result = validation.validateUserReport(source, report);
   assert.equal(result.ok, false);
   assert.ok(result.issues.some(x => x.code === 'ECONOMIC_ANNUAL_VISITS'));
 });
@@ -103,6 +126,16 @@ test('WP-06 admin projection retains audit evidence', () => {
   assert.deepEqual(result, { ok: true, issues: [] });
 });
 
+test('WP-06 public report source is the only report result transport contract', () => {
+  const access = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
+  assert.match(access, /schemaVersion: "P3_REPORT_SOURCE_V1"/);
+  assert.match(access, /reportSource: projectPublicReportSource/);
+  assert.doesNotMatch(access, /structuredResult:\s*storedStructured/);
+  assert.doesNotMatch(access, /structuredResult:\s*structured/);
+  assert.doesNotMatch(access, /provenance:\s*\{/);
+  assert.match(access, /data: \{ session, answers, reportSource \}/);
+});
+
 test('WP-06 renderer is wired through interpretation and validation, not browser scoring', () => {
   const app = fs.readFileSync('assets/js/app.js', 'utf8');
   assert.match(app, /MDReportInterpretation\.projectUserReport/);
@@ -110,6 +143,9 @@ test('WP-06 renderer is wired through interpretation and validation, not browser
   assert.doesNotMatch(app, /100\s*[-−]\s*res\.overallScore/);
   assert.doesNotMatch(app, /calculate.*score/i);
   assert.doesNotMatch(app, /this\.engine/);
+  assert.match(app, /res\?\.reportSource/);
+  assert.doesNotMatch(app, /res\?\.structuredResult/);
+  assert.doesNotMatch(app, /projectStoredResult/);
 });
 
 test('WP-06 assessment pages load both report layers before app.js', () => {
