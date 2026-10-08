@@ -779,6 +779,36 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
+    const structured = res?.structuredResult;
+    if (!structured || typeof window.MDReportInterpretation?.projectUserReport !== 'function') {
+      this.showFatalError('تعذر بناء التقرير: النتيجة المنظمة الرسمية غير متاحة.');
+      return;
+    }
+
+    let report;
+    try {
+      report = window.MDReportInterpretation.projectUserReport(
+        structured,
+        this.previousSessionData,
+        this.currentAssessmentKey
+      );
+    } catch (error) {
+      console.error('[app] report interpretation failed:', error);
+      this.showFatalError('تعذر بناء التقرير من النتيجة المنظمة الرسمية.');
+      return;
+    }
+
+    res = {
+      ...res,
+      overallScore: report.overall.value,
+      classification: report.overall.bandCode,
+      axisScores: Object.fromEntries(report.axes.map((axis) => [axis.code, axis.percentage])),
+      kpis: Object.fromEntries(report.kpis.map((kpi) => [kpi.code, kpi.value])),
+      structuredResult: structured
+    };
+
+    if (report.trend?.status !== 'available') this.previousSessionData = null;
+
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
@@ -835,20 +865,6 @@ class ClinicEvaluatorApp {
 
     this.renderVisualBenchmark(res);
 
-    const trapsContainer = document.getElementById('traps-container');
-    if (trapsContainer) {
-      if (res.traps?.length) {
-        trapsContainer.classList.remove('hidden');
-        trapsContainer.innerHTML = '<h3 class="card-title">🚨 نقاط الضعف وفخاخ التناقض السلوكي</h3>';
-        res.traps.forEach(t => {
-          const alert = document.createElement('div');
-          alert.className = 'trap-alert fade-in';
-          alert.innerHTML = `<div class="icon">⚠️</div><div class="content"><h4>${t.name}</h4><p>${t.message}</p></div>`;
-          trapsContainer.appendChild(alert);
-        });
-      } else trapsContainer.classList.add('hidden');
-    }
-
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
@@ -862,7 +878,7 @@ class ClinicEvaluatorApp {
         const strongAxis = axes.find(x => x.id === strongest[0]);
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
-        box.innerHTML = `<h4>🎯 الأولوية التشغيلية القصوى: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4><p>هذا المحور يمثل الفجوة الأكبر ويتطلب تدخل فوري وسد منافذ التسريب بنسبة أداء (${weakest[1].toFixed(1)}%).</p><h4 style="margin-top:12px;">💪 نقطة القوة المرتكز عليها: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4><p>معيار متميز وكفاءة تشغيلية مستقرة بنسبة أداء (${strongest[1].toFixed(1)}%).</p>`;
+        box.innerHTML = `<h4>🎯 الأولوية التشغيلية القصوى: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4><p>بلغت النتيجة المقاسة لهذا المحور (${weakest[1].toFixed(1)}%).</p><h4 style="margin-top:12px;">💪 أعلى محور مقاس: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4><p>بلغت النتيجة المقاسة لهذا المحور (${strongest[1].toFixed(1)}%).</p>`;
         recContainer.appendChild(box);
       }
     }
@@ -872,7 +888,7 @@ class ClinicEvaluatorApp {
     if (evSection) evSection.classList.toggle('hidden', !evEnabled);
 
     const leakageEl = document.getElementById('leakage-index');
-    if (leakageEl && Number.isFinite(res.overallScore)) leakageEl.textContent = Math.round(100 - res.overallScore) + '%';
+    if (leakageEl) leakageEl.textContent = '';
   }
 
   /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
