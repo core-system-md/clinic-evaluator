@@ -17,7 +17,7 @@ Published V1/V2 rows are not mutated in place. Final V1 rows are created, valida
 ## Acceptance
 - Comprehensive Clinic final V1 = exact approved V2 content with identity reset only.
 - Patient Journey final V1 = approved corrected-content artifact.
-- 36/152 and 25/75 content counts are preserved.
+- 36/152 and 25/96 content counts are preserved.
 - Axis weights remain canonical.
 - Patient Journey semantic-only question remains non-scoreable.
 - No V2 product identity remains after reconstruction.
