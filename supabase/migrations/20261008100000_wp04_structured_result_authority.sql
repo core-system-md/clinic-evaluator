@@ -88,14 +88,20 @@ begin
      or nullif(btrim(coalesce(p_result->'provenance'->>'scoringContractVersion','')), '') is null
      or nullif(btrim(coalesce(p_result->'provenance'->>'assessmentConfigDigest','')), '') is null
      or jsonb_typeof(p_result->'provenance'->'inputLineage') <> 'array'
+     or jsonb_array_length(p_result->'provenance'->'inputLineage') = 0
      or jsonb_typeof(p_result->'scores'->'axes') <> 'array'
+     or jsonb_typeof(p_result->'inputs'->'responses') <> 'array'
+     or jsonb_typeof(p_result->'measurement') <> 'object'
      or jsonb_typeof(p_result->'coverage') <> 'object'
      or jsonb_typeof(p_result->'consistency') <> 'object'
-     or jsonb_typeof(p_result->'roles') <> 'array'
-     or jsonb_typeof(p_result->'kpis') <> 'array'
-     or jsonb_typeof(p_result->'economics') <> 'object'
-     or jsonb_typeof(p_result->'diagnostics') <> 'object'
-     or jsonb_typeof(p_result->'audit') <> 'object' then
+     or jsonb_typeof(p_result->roles) <> 'array'
+     or jsonb_typeof(p_result.kpis) <> 'array'
+     or jsonb_typeof(p_result.economics) <> 'object'
+     or jsonb_typeof(p_result.classification) <> 'object'
+     or jsonb_typeof(p_result.diagnostics) <> 'object'
+     or jsonb_typeof(p_result.audit) <> 'object'
+     or p_result ? 'resolvedSelections'
+     or p_result ? 'axisPersistenceRows' then
     raise exception using errcode = '22023', message = 'Incomplete Structured Result';
   end if;
 
@@ -324,7 +330,20 @@ begin
      or nullif(btrim(coalesce(v_contract_version,'')), '') is null
      or nullif(btrim(coalesce(v_config_digest,'')), '') is null
      or jsonb_typeof(p_result->'provenance'->'inputLineage') <> 'array'
-     or jsonb_typeof(p_result->'scores'->'axes') <> 'array' then
+     or jsonb_array_length(p_result->'provenance'->'inputLineage') = 0
+     or jsonb_typeof(p_result->'scores'->'axes') <> 'array'
+     or jsonb_typeof(p_result->'inputs'->'responses') <> 'array'
+     or jsonb_typeof(p_result->'measurement') <> 'object'
+     or jsonb_typeof(p_result->'coverage') <> 'object'
+     or jsonb_typeof(p_result->'consistency') <> 'object'
+     or jsonb_typeof(p_result->roles) <> 'array'
+     or jsonb_typeof(p_result.kpis) <> 'array'
+     or jsonb_typeof(p_result.economics) <> 'object'
+     or jsonb_typeof(p_result.classification) <> 'object'
+     or jsonb_typeof(p_result.diagnostics) <> 'object'
+     or jsonb_typeof(p_result.audit) <> 'object'
+     or p_result ? 'resolvedSelections'
+     or p_result ? 'axisPersistenceRows' then
     raise exception using errcode = '22023', message = 'Incomplete Structured Result identity/provenance';
   end if;
   if v_session.assessment_version is distinct from v_assessment_version then
