@@ -234,7 +234,7 @@ begin
      'token-tamper','fp-tamper',v_payload
    );
    raise exception 'tampered internal field was accepted';
- exception when sqlstate = '22023' then
+ exception when sqlstate '22023' then
    null;
  end;
 end $tamper$;
