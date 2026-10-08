@@ -476,6 +476,8 @@ export async function calculateAssessment(
     axes: runtime.axes.map((axis) => ({
       code: axis.code,
       weight: Number(axis.weight),
+      nameAr: axis.title_ar || axis.title,
+      nameEn: axis.title,
     })),
     axisRoles: runtime.assessment.axis_roles ?? {},
     kpiMappings: runtime.assessment.kpi_mappings ?? {},
