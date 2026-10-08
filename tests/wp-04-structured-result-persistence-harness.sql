@@ -126,7 +126,8 @@ insert into public.assessment_session_access(
   null,
   '99999999-9999-4999-8999-999999999999','token-tamper',now()+interval '1 day');
 
-\set result_payload '{
+create temporary table wp04_fixture(result jsonb);
+insert into wp04_fixture values ($${
   "schemaVersion":"P3_STRUCTURED_RESULT_V1",
   "status":"PRODUCTION",
   "identity":{
@@ -166,18 +167,18 @@ insert into public.assessment_session_access(
   "classification":{"bandCode":"Q3","numericBasis":70,"bandDefinitionVersion":"P3_BANDS_V1","provenance":"test"},
   "diagnostics":{"findings":[]},
   "audit":{"replayableFrom":["pinned assessment version","stored answers","interpretation version:1","scoring contract:FINAL_IMPLEMENTATION_CONTRACT-2026-10-07","assessment config digest:sha256:wp04"]}
-}';
+}$$::jsonb);
 
 select public.complete_p4_assessment_from_result(
  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
  'token-protected','33333333-3333-4333-8333-333333333333'::uuid,
- 'fp-protected', :'result_payload'::jsonb
+ 'fp-protected', (select result from wp04_fixture)
 );
 
 select public.complete_p4_assessment_from_result(
  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
  'token-protected','33333333-3333-4333-8333-333333333333'::uuid,
- 'fp-protected', :'result_payload'::jsonb
+ 'fp-protected', (select result from wp04_fixture)
 );
 
 do $test$
@@ -199,17 +200,28 @@ begin
  end if;
 end $test$;
 
-\set public_payload :'result_payload'
 select public.complete_p4_public_assessment_from_result(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,
  'token-public','fp-public',
- jsonb_set(
-   :'public_payload'::jsonb,
-   '{identity,sessionId}',
-   '"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"'
- ) || jsonb_build_object(
-   'identity',
-   (:'public_payload'::jsonb->'identity') || '{"sessionId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","resultId":"66666666-6666-4666-8666-666666666666"}'::jsonb
+ ((select result from wp04_fixture)->'identity') ||
+ jsonb_build_object('sessionId','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','resultId','66666666-6666-4666-8666-666666666666')
+ || jsonb_build_object(
+   'schemaVersion',(select result->'schemaVersion' from wp04_fixture),
+   'status',(select result->'status' from wp04_fixture),
+   'provenance',(select result->'provenance' from wp04_fixture),
+   'inputs',(select result->'inputs' from wp04_fixture),
+   'measurement',(select result->'measurement' from wp04_fixture),
+   'scores',(select result->'scores' from wp04_fixture),
+   'coverage',(select result->'coverage' from wp04_fixture),
+   'consistency',(select result->'consistency' from wp04_fixture),
+   'criticality',(select result->'criticality' from wp04_fixture),
+   'development',(select result->'development' from wp04_fixture),
+   'roles',(select result->'roles' from wp04_fixture),
+   'kpis',(select result->'kpis' from wp04_fixture),
+   'economics',(select result->'economics' from wp04_fixture),
+   'classification',(select result->'classification' from wp04_fixture),
+   'diagnostics',(select result->'diagnostics' from wp04_fixture),
+   'audit',(select result->'audit' from wp04_fixture)
  )
 );
 
@@ -223,7 +235,7 @@ begin
 end $test$;
 
 do $tamper$
-declare v_payload jsonb := :'result_payload'::jsonb;
+declare v_payload jsonb := (select result from wp04_fixture);
 begin
  v_payload := jsonb_set(v_payload,'{identity,sessionId}','"cccccccc-cccc-4ccc-8ccc-cccccccccccc"');
  v_payload := jsonb_set(v_payload,'{identity,resultId}','"77777777-7777-4777-8777-777777777777"');
