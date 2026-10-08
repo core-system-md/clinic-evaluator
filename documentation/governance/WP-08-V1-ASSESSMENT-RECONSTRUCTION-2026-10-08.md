@@ -61,3 +61,39 @@ No production Edge Function deployment was executed.
 Next canonical stage:
 
 **WP-09 — Obsolete engine references**
+
+## Post-closure reconciliation correction — 2026-10-08
+
+A forensic reconciliation performed after the original WP-08 closure identified two contract-boundary defects that were not covered by the original WP-08 verification boundary:
+
+1. Final V1 Consistency configuration was not installed in the runtime pair registry:
+   - Comprehensive Clinic V1: 52 approved relationships were present in the approved content relationship declarations but were scoped only to the existing V2 registry.
+   - Patient Journey V1: 4 approved Consistency pairs were not present in the runtime registry.
+   Because the canonical engine scopes Consistency configuration by assessment family and version, this would have removed approved V1 Consistency behavior.
+
+2. Patient Journey V1 axis weights were written as fractions (20/100, 15/100, etc.) in the reconstruction migration instead of the canonical percentage-point representation required by the Final Implementation Contract.
+
+The corrective reconciliation was implemented in PR #65 on branch `reconciliation-corrections-2026-10-08`:
+
+- V1 runtime Consistency registry now contains the exact approved 52 Comprehensive V1 relationships plus the 4 approved Patient Journey V1 relationships.
+- Existing Comprehensive Clinic V2 relationships remain unchanged.
+- Patient Journey V1 migration now persists canonical 0–100 weights.
+- Migration assertions prove both final V1 families total 100%.
+- Dedicated tests prove exact approved-relationship parity and canonical weight semantics.
+- Disposable PostgreSQL harness validates the corrected migration.
+
+Dedicated corrected verification:
+
+- GitHub Actions workflow **37776556545 — SUCCESS**
+- Node contract tests — SUCCESS
+- PostgreSQL migration harness — SUCCESS
+
+No Production database migration, routing change, content mutation, or Edge Function deployment was performed.
+
+### Corrected stage decision
+
+**WP-08 reconciliation correction = PASS**  
+**WP-08 = STAGE CLOSED after correction**  
+**Correction merged through PR #65**
+
+The prior WP-08 PASS record remains historical evidence of the original stage execution; PR #65 is the authoritative corrective closure for the two subsequently discovered deviations.
