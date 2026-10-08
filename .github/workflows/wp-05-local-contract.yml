@@ -1,0 +1,31 @@
+name: WP-05 report interpretation contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "assets/js/report-interpretation.js"
+      - "assets/js/app.js"
+      - "*.html"
+      - "tests/wp-05-report-interpretation.test.mjs"
+      - ".github/workflows/wp-05-local-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-05-report-contract:
+    name: WP-05 report interpretation
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/wp-05-report-interpretation.test.mjs
+      - run: node --check assets/js/report-interpretation.js
+      - run: node --check assets/js/app.js
