@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
 import reportApi from "../assets/js/report-interpretation.js";
-const { projectUserReport, projectAdminReport, compatibleTrend } = reportApi;
+const { REPORT_MODELS, projectUserReport, projectAdminReport, compatibleTrend } = reportApi;
 
 function makeResult() {
   return {
@@ -37,7 +37,7 @@ function makeResult() {
 }
 
 test("WP-05 user report projection", () => {
-  const report = projectUserReport(makeResult(), null, "patient-journey");
+  const report = projectUserReport(makeResult(), null, "clinic-performance");
   assert.equal(report.audience, "user");
   assert.equal(report.overall.value, 68);
   assert.equal(report.overall.bandCode, "Q3");
@@ -52,7 +52,53 @@ test("WP-05 user report projection", () => {
   }
 });
 
-test("WP-05 admin report projection", () => {
+
+
+test("WP-05 report models explicitly define every required family boundary", () => {
+  const expected = {
+    "admin-reception-assessment": ["AX85a6e9", "AX765ca8", "AXa23fa3", "AXc39190"],
+    "clinic-performance": ["A1", "A2", "A3"],
+    "comprehensive-clinic-assessment": ["AX6f5aa5", "AX80c09a", "AXaadfb4", "AX2572cc", "AX6a52b4", "AX15afd8"],
+    "medical-team-assessment": ["A1", "A2", "A3", "A4"],
+    "patient-journey": ["A1", "A2", "A3", "A4", "A5"]
+  };
+
+  for (const [family, axisCodes] of Object.entries(expected)) {
+    const model = REPORT_MODELS[family];
+    assert.ok(model, family);
+    assert.equal(model.modelVersion, "REPORT_MODEL_V1");
+    assert.ok(model.purpose);
+    assert.deepEqual(model.measuredConstructs.map(x => x.axisCode), axisCodes);
+    assert.ok(Array.isArray(model.supportedKpis) && model.supportedKpis.length > 0);
+    assert.ok(model.diagnosticMeanings?.priority);
+    assert.ok(model.diagnosticMeanings?.strength);
+    assert.ok(Array.isArray(model.permittedConclusions));
+    assert.ok(model.textCatalog?.overallBand);
+    assert.ok(model.textCatalog?.kpi);
+    assert.equal(model.economic.annualVisits, 3);
+  }
+});
+
+test("WP-05 family economic policy follows the explicit model", () => {
+  const comprehensive = projectUserReport(makeResult(), null, "comprehensive-clinic-assessment");
+  assert.equal(comprehensive.economicOpportunity, null);
+
+  const clinic = projectUserReport(makeResult(), null, "clinic-performance");
+  assert.equal(clinic.economicOpportunity.visitsPerYear, 3);
+});
+
+test("WP-05 trend accepts only a server-verified compatible comparison", () => {
+  const current = makeResult();
+  assert.equal(
+    compatibleTrend(current, { comparisonStatus: "compatible", overallScore: 60 }).status,
+    "available"
+  );
+  assert.equal(
+    compatibleTrend(current, { comparisonStatus: "incompatible", overallScore: 60 }).status,
+    "unavailable"
+  );
+});
+\ntest("WP-05 admin report projection", () => {
   const report = projectAdminReport(makeResult(), null, "patient-journey");
   assert.equal(report.audience, "admin");
   assert.equal(report.consistency.findings.length, 1);
@@ -73,4 +119,7 @@ test("WP-05 app uses the report interpretation layer", () => {
   const app = fs.readFileSync("assets/js/app.js", "utf8");
   assert.match(app, /MDReportInterpretation\.projectUserReport/);
   assert.ok(!app.includes("100 - res.overallScore"));
+  assert.ok(!app.includes("this.texts?.quartiles"));
+  assert.ok(!app.includes("Object.entries(res.axisScores).sort"));
+  assert.ok(!app.includes("previousSessionData.axisScores"));
 });
