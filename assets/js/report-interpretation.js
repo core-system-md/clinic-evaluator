@@ -183,7 +183,8 @@
         overallBand: 'quartiles.{bandCode}.label',
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
-      }
+      },
+      presentation: COMMON_PRESENTATION
     }
   };
 
