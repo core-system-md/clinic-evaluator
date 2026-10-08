@@ -85,8 +85,24 @@ test("WP-03 configuration contract: EV capability is separate from EV input basi
 
 test("WP-03 configuration contract: explicit consistency pairs are version-scoped and linked to registered relationship types", () => {
   const ruleTypes = new Set(rules.rules.map((rule) => rule.relationshipType));
-  assert.equal(pairs.pairs.length, 52);
-  assert.ok(pairs.pairs.every((pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "2"));
+  assert.equal(pairs.pairs.length, 108);
+
+  const v2Pairs = pairs.pairs.filter(
+    (pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "2",
+  );
+  const comprehensiveV1Pairs = pairs.pairs.filter(
+    (pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "1",
+  );
+  const patientV1Pairs = pairs.pairs.filter(
+    (pair) => pair.assessmentSlug === "patient-journey" && pair.assessmentVersion === "1",
+  );
+
+  assert.equal(v2Pairs.length, 52);
+  assert.equal(comprehensiveV1Pairs.length, 52);
+  assert.equal(patientV1Pairs.length, 4);
+  assert.ok(v2Pairs.every((pair) => pair.assessmentVersion === "2"));
+  assert.ok(comprehensiveV1Pairs.every((pair) => pair.assessmentVersion === "1"));
+  assert.ok(patientV1Pairs.every((pair) => pair.assessmentVersion === "1"));
   assert.ok(pairs.pairs.every((pair) => ruleTypes.has(pair.relationshipType)));
   assert.ok(pairs.pairs.every((pair) => pair.scoreEffectOverride?.mode === "CAP_VALIDATOR_ANCHOR"));
 });
