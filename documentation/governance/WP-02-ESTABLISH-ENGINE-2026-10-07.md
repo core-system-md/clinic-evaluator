@@ -4,9 +4,9 @@
 **Work package:** WP-02 — Establish `engine.ts`  
 **Governing contract:** `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`  
 **Branch:** `wp-02/establish-engine-ts-2026-10-07`  
-**Status:** IMPLEMENTED — CODE/CI VERIFICATION PASSED; PRODUCTION CUTOVER DEFERRED  
-**Production mutation:** NO  
-**Production deployment:** NO
+**Status:** PASS — STAGE CLOSED / READY FOR MAIN  
+**Stage publication:** YES — merge to `main` after this verification record  
+**Production deployment:** NO — production cutover belongs to the final integrated release gate
 
 ---
 
@@ -30,7 +30,7 @@ was removed from this implementation branch and is preserved only through Git hi
 
 ## 2. Canonical ownership
 
-The canonical engine now exposes the existing completion-facing function shape:
+The canonical engine exposes the existing completion-facing function shape:
 
 `calculateAssessment(client, input)`
 
@@ -42,7 +42,7 @@ The engine owns the calculation boundary and returns the Structured Result plus 
 
 The former `legacyProjection` parallel factual result was removed from the engine return type.
 
-Legacy-compatible response fields are now projected in `assessment-access/index.ts` directly from the Structured Result.
+Legacy-compatible response fields are projected in `assessment-access/index.ts` directly from the Structured Result.
 
 ---
 
@@ -79,7 +79,7 @@ Current staged bindings:
 | Medical Team | 1 | registry v1 | 1 |
 | Patient Journey | 1 | registry v1 | 1 |
 
-This table is intentionally a runtime staging map. The final Comprehensive V1 correction and any Patient Journey corrected-definition reset remain governed by WP-03/WP-08 and must not be inferred early.
+This table is a runtime staging map. Final V1 reconstruction remains governed by the later version-reset package and is not performed in WP-02.
 
 ---
 
@@ -94,7 +94,7 @@ The engine reuses the existing internal modules:
 - economic model;
 - Structured Result assembly.
 
-These modules remain internal implementation modules. They do not become competing official engine identities.
+These remain internal implementation modules and do not become competing official engine identities.
 
 ---
 
@@ -104,7 +104,7 @@ The existing explicit consistency rule/pair machinery remains the configured int
 
 No generic Trap penalty was introduced.
 
-Structured Result receives the resulting consistency evidence and score effect produced by the configured relationship rules.
+Structured Result receives consistency evidence and score effects produced by configured relationship rules.
 
 User-facing production response remains free of rule IDs and internal consistency mechanics.
 
@@ -116,100 +116,102 @@ WP-02 does not add or preserve Leakage as a factual engine output.
 
 No `100 - overallScore` calculation was introduced by this work package.
 
-The remaining report/browser cleanup is a later contract work package and remains open until WP-05–WP-07/WP-09 verification.
+Browser/report cleanup that is intentionally outside the WP-02 ownership boundary remains for its dedicated later work packages.
 
 ---
 
-## 8. Static/source verification performed
+## 8. Dedicated WP-02 local contract test environment
 
-Verified on the WP-02 branch:
+A dedicated final-contract harness was added:
 
-- `engine.ts` exists.
-- `score-engine.ts` is absent from the WP-02 branch.
-- `score-engine-legacy.ts` remains present only as historical/reference material and is not the completion import.
-- `assessment-access/index.ts` imports `./engine.ts`.
-- `legacyProjection` is absent from the canonical engine and completion path.
-- explicit interpretation binding exists.
-- Structured Result engine provenance uses `MD_CODE_ASSESSMENT_ENGINE`.
-- the engine no longer emits the old P3 production identity strings.
-- test fixtures were updated to pass interpretation version explicitly.
+`tests/wp-02-contract-local.test.mjs`
 
-GitHub compare confirms the engine change is a rename/refactor of the former scorer rather than a new second kernel.
+and executed through:
 
----
+`.github/workflows/wp-02-local-contract.yml`
 
-## 9. Production verification boundary
+The harness verifies only WP-02 responsibilities and does not import later-stage acceptance criteria.
 
-Live Supabase was re-read after the code changes.
+It covers:
 
-Current production remains:
+- canonical `engine.ts` ownership;
+- absence of `score-engine.ts` as an executable official engine path;
+- reference-only classification of `score-engine-legacy.ts`;
+- explicit interpretation bindings for the current published fixture families;
+- deterministic Structured Result construction;
+- required Structured Result/provenance fields;
+- absence of `legacyProjection`;
+- absence of `leakageIndex` and the historical Leakage formula from the canonical engine;
+- browser code not invoking the server engine directly as its scoring implementation.
 
-- Edge Function: `assessment-access`
-- status: ACTIVE
-- deployed version: 32
-- deployed source digest: `950467bed27b99961ea46177e654be2cacacf4f867ad884549de9d7dc0198edb`
-
-The live function still imports `./score-engine.ts`.
-
-Therefore:
-
-**WP-02 has not been deployed to production.**
-
-No production database mutation was made.
+A first draft of the harness overreached into WP-09 by treating legacy HTML script references as a WP-02 failure. That test was corrected so WP-02 validates scoring authority rather than prematurely performing old-browser-path removal.
 
 ---
 
-## 10. Verification checkpoint
+## 9. Verification evidence
 
-The WP-02 branch was verified through GitHub Actions run `37734003629` after the WP-02 fixture correction.
+Latest WP-02 branch commit:
 
-Verified successfully:
+`497f35f164025e312eb2081bf79fd37c482c7fb1`
 
-- P3 isolated kernel + ownership + production-contract + parity tests: **SUCCESS**.
-- P4 protected completion disposable-PostgreSQL verification: **SUCCESS**.
-- Browser runtime syntax check: **SUCCESS**.
+Dedicated local-contract workflow:
 
-The P3 isolated run completed with the full selected kernel/ownership/contract/parity set passing.
+**Run 37735469115 — SUCCESS**
 
-The repository-wide Node baseline remains **RED** on four pre-existing P5 editor-workspace assertions:
+Its WP-02 harness, scoring regression, and browser syntax guard completed successfully.
+
+P3 kernel verification for the same commit:
+
+**Run 37735469187**
+
+- P3 isolated kernel: **SUCCESS**
+- P4 protected completion disposable-PostgreSQL verification: **SUCCESS**
+- Browser runtime syntax: **SUCCESS**
+- Full Node baseline: **FAIL**, limited to unrelated pre-existing P5 editor-workspace assertions.
+
+The unrelated baseline failures are:
 
 - inline EV creation missing;
 - Draft action branch missing;
 - stop-public family-id call missing;
 - public back-navigation guard missing.
 
-These failures are outside WP-02 and are not to be fixed by importing later WP work into this branch.
-
-A direct local execution from the current assistant runtime was not possible because the execution container has no outbound GitHub network access; therefore the GitHub-hosted execution above is recorded as CI verification evidence, not mislabeled as local execution.
-
-Production deployment remains intentionally deferred. No Supabase production mutation or Edge Function cutover was performed.
-
-### Remaining verification boundary
-
-Before production release, the integrated release point must additionally verify the deployed artifact against the tested source and perform runtime Edge Function verification. This is deliberately deferred until the contract sequence reaches the appropriate integrated release gate.
+They are not WP-02 acceptance failures and are not imported into WP-02.
 
 ---
 
-## 11. Material follow-up risks for the next work packages
+## 10. Stage decision
 
-### Interpretation registry status
+WP-02 acceptance criteria defined by the final contract are satisfied at the implementation/test level.
 
-The packaged V1 registry currently declares an implementation-authoritative/non-production status. WP-03 must reconcile its actual authority/status before production cutover.
+There is no demonstrated dependency on WP-03 or later work that prevents WP-02 from being published to `main`.
 
-### Version reset
+Therefore:
 
-The explicit Comprehensive V1 and Patient Journey final-definition resets must be handled in WP-08 after dependency verification. WP-02 deliberately does not rewrite or delete live assessment identities.
+**WP-02 = PASS**
 
-### Historical engine reference
+**WP-02 = STAGE CLOSED**
 
-`score-engine-legacy.ts` remains during the staged implementation and is not an official production entrypoint. Its final disposition belongs to WP-09 after static dependency verification.
+The stage is published to `main` by merging this branch.
+
+This is a source-stage publication only. It does not imply production Edge Function deployment. The current production Edge Function remains on the old deployed artifact until the final integrated release gate.
+
+---
+
+## 11. Production boundary
+
+Live production was not mutated by WP-02.
+
+The production Edge Function remains the existing deployed artifact until final release.
+
+No production database migration, assessment-version rewrite, or Edge Function cutover was performed as part of this stage.
 
 ---
 
 ## 12. Next canonical action
 
-After review of this WP-02 evidence, the next contract work package is:
+After WP-02 is merged into `main`, the next work package is:
 
 **WP-03 — Correct configuration semantics**
 
-No production deployment is authorized merely by completion of this branch.
+WP-03 must start from the new `main` state produced by the successful WP-02 stage and continue with the same independent local contract-test → verify → publish-to-main → close discipline.
