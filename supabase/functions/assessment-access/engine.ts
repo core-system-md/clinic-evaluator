@@ -1,9 +1,9 @@
 /**
- * MD Code scoring engine — authoritative server runtime.
+ * MD Code central assessment engine — canonical server runtime.
  *
- * This is the single production scoring entrypoint. Assessment-specific
- * interpretation remains configuration/registry data; calculation stages are
- * composed from reusable P3 modules.
+ * This is the single official calculation entrypoint. Assessment-specific
+ * interpretation is explicitly bound to an interpretation configuration;
+ * calculation stages are composed from reusable internal modules.
  */
 import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import {
@@ -79,16 +79,9 @@ type StoredAnswer = {
   option_value: number | null;
 };
 
-export type P3ProductionComputation = {
+export type AssessmentComputation = {
   result: P3IntegratedResult;
   scoreRows: Array<Record<string, unknown>>;
-  legacyProjection: {
-    overallScore: number | null;
-    classification: string | null;
-    axisScores: Record<string, number>;
-    kpis: Record<string, number>;
-    traps: unknown[];
-  };
   provenance: {
     assessmentVersion: number;
     interpretationVersion: number;
@@ -120,6 +113,72 @@ async function sha256Hex(value: string): Promise<string> {
   return Array.from(new Uint8Array(digest))
     .map((b) => b.toString(16).padStart(2, "0"))
     .join("");
+}
+
+const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
+const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
+
+type InterpretationBinding = {
+  registry: typeof registry | typeof registryV2;
+  interpretationVersion: number;
+};
+
+/**
+ * Assessment-version to interpretation-version binding is explicit.
+ * It must not be inferred from numeric equality between the two concepts.
+ */
+const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
+  "admin-reception-assessment:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "clinic-performance:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "comprehensive-clinic-assessment:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "comprehensive-clinic-assessment:2": {
+    registry: registryV2,
+    interpretationVersion: 2,
+  },
+  "medical-team-assessment:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+  "patient-journey:1": {
+    registry,
+    interpretationVersion: 1,
+  },
+};
+
+function resolveInterpretationBinding(
+  assessmentSlug: string,
+  assessmentVersion: number,
+): InterpretationBinding {
+  const binding = INTERPRETATION_BINDINGS[`${assessmentSlug}:${assessmentVersion}`];
+  if (!binding) {
+    throw new Error(
+      `No explicit interpretation binding for ${assessmentSlug}:${assessmentVersion}`,
+    );
+  }
+
+  const entries = (binding.registry.entries as Array<Record<string, unknown>>)
+    .filter((entry) => entry.assessmentSlug === assessmentSlug)
+    .filter(
+      (entry) =>
+        Number(entry.interpretationVersion) === binding.interpretationVersion,
+    );
+
+  if (!entries.length) {
+    throw new Error(
+      `Interpretation binding resolves to no registry entries for ${assessmentSlug}:${binding.interpretationVersion}`,
+    );
+  }
+
+  return binding;
 }
 
 type RuntimeConsistencyPair = {
@@ -326,7 +385,7 @@ export async function calculateAssessment(
     economicInput?: P3EconomicInput;
     answerSnapshot?: StoredAnswer[];
   },
-): Promise<P3ProductionComputation> {
+): Promise<AssessmentComputation> {
   const { data: session, error: sessionError } = await client
     .from("sessions")
     .select(
@@ -384,8 +443,11 @@ export async function calculateAssessment(
 
   const selections = buildSelections(runtime, answerRows);
 
-  const interpretationRegistry =
-    assessmentVersion === 2 ? registryV2 : registry;
+  const interpretationBinding = resolveInterpretationBinding(
+    runtime.family.slug,
+    assessmentVersion,
+  );
+  const interpretationRegistry = interpretationBinding.registry;
 
   const versionedConfig = {
     assessment: {
@@ -432,6 +494,7 @@ export async function calculateAssessment(
       ),
     interpretation: {
       schemaVersion: interpretationRegistry.schemaVersion,
+      interpretationVersion: interpretationBinding.interpretationVersion,
       entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
         .filter((entry) => String(entry.assessmentVersion ?? String(assessmentVersion)) === String(assessmentVersion))
@@ -473,9 +536,10 @@ export async function calculateAssessment(
     assessmentVersion: String(assessmentVersion),
     resultId,
     calculatedAt,
-    scoringContractVersion: "P3_AGGREGATION_V2",
+    scoringContractVersion: SCORING_CONTRACT_ID,
     assessmentConfigDigest,
     assessmentSlug: runtime.family.slug,
+    interpretationVersion: interpretationBinding.interpretationVersion,
     selections,
     axes: runtime.axes.map((axis) => ({
       code: axis.code,
@@ -492,7 +556,7 @@ export async function calculateAssessment(
     })),
     economicInput: input.economicInput,
     resultStatus: "PRODUCTION",
-    engineIdentity: "P3_INTEGRATED_SCORER_V1",
+    engineIdentity: ENGINE_IDENTITY,
   });
 
   const scoreRows = axisPersistenceRows(
@@ -500,38 +564,14 @@ export async function calculateAssessment(
     runtime.axes,
   );
 
-  const axisScores: Record<string, number> = {};
-  for (const row of scoreRows) {
-    const axisCode = String(row.axis_id);
-    const percentage = Number(row.percentage);
-    if (Number.isFinite(percentage)) axisScores[axisCode] = percentage;
-  }
-
-  const kpis: Record<string, number> = {};
-  for (const kpi of result.kpis) {
-    if (
-      kpi.status !== "unavailable" &&
-      Number.isFinite(kpi.value)
-    ) {
-      kpis[kpi.kpiCode] = Number(kpi.value);
-    }
-  }
-
   return {
     result,
     scoreRows,
-    legacyProjection: {
-      overallScore: result.scores.overallScore,
-      classification: result.classification.bandCode,
-      axisScores,
-      kpis,
-      traps: [],
-    },
     provenance: {
       assessmentVersion,
-      interpretationVersion: Number(result.provenance.interpretationVersion),
-      scoringEngineVersion: "P3_SCORER_V1",
-      scoringContractVersion: "P3_AGGREGATION_V2",
+      interpretationVersion: interpretationBinding.interpretationVersion,
+      scoringEngineVersion: ENGINE_IDENTITY,
+      scoringContractVersion: SCORING_CONTRACT_ID,
       assessmentConfigDigest,
     },
   };

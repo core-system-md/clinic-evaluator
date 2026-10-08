@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment } from "./score-engine.ts";
+import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
 
 const corsHeaders = {
@@ -22,6 +22,33 @@ const WINDOW_MS = 60_000;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
+}
+
+function projectCompletionResponse(structuredResult: any) {
+  const axisScores: Record<string, number> = {};
+  for (const axis of structuredResult?.scores?.axes || []) {
+    if (Number.isFinite(axis?.score)) {
+      axisScores[String(axis.axisCode)] = Number(axis.score);
+    }
+  }
+
+  const kpis: Record<string, number> = {};
+  for (const kpi of structuredResult?.kpis || []) {
+    if (kpi?.status !== "unavailable" && Number.isFinite(kpi?.value)) {
+      kpis[String(kpi.kpiCode)] = Number(kpi.value);
+    }
+  }
+
+  return {
+    overallScore: Number.isFinite(structuredResult?.scores?.overallScore)
+      ? Number(structuredResult.scores.overallScore)
+      : null,
+    classification: structuredResult?.classification?.bandCode ?? null,
+    axisScores,
+    kpis,
+    evSimulator: null,
+    traps: [],
+  };
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -948,7 +975,7 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          ...computed.legacyProjection,
+          ...projectCompletionResponse(computed.result),
           structuredResult: storedStructured,
           provenance: {
             ...computed.provenance,
