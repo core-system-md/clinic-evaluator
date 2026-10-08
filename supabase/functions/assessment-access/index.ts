@@ -24,30 +24,65 @@ function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
 }
 
-function projectCompletionResponse(structuredResult: any) {
-  const axisScores: Record<string, number> = {};
-  for (const axis of structuredResult?.scores?.axes || []) {
-    if (Number.isFinite(axis?.score)) {
-      axisScores[String(axis.axisCode)] = Number(axis.score);
-    }
-  }
+function projectPublicReportSource(structuredResult: any) {
+  const assessmentSlug =
+    structuredResult?.provenance?.assessmentSlug ||
+    structuredResult?.identity?.assessmentSlug ||
+    null;
+  const assessmentVersion = structuredResult?.identity?.assessmentVersion ?? null;
 
-  const kpis: Record<string, number> = {};
-  for (const kpi of structuredResult?.kpis || []) {
-    if (kpi?.status !== "unavailable" && Number.isFinite(kpi?.value)) {
-      kpis[String(kpi.kpiCode)] = Number(kpi.value);
-    }
-  }
+  const axes = (structuredResult?.scores?.axes || [])
+    .filter((axis: any) => axis?.status === "measured" && Number.isFinite(axis?.percentage))
+    .map((axis: any) => ({
+      axisCode: String(axis.axisCode),
+      axisNameAr: axis.axisNameAr || axis.axisCode,
+      axisNameEn: axis.axisNameEn || axis.axisCode,
+      percentage: Number(axis.percentage),
+      status: "measured",
+    }));
+
+  const kpis = (structuredResult?.kpis || [])
+    .filter((kpi: any) => kpi?.status !== "unavailable" && Number.isFinite(kpi?.value))
+    .map((kpi: any) => ({
+      kpiCode: String(kpi.kpiCode),
+      status: String(kpi.status),
+      value: Number(kpi.value),
+    }));
+
+  const economic = structuredResult?.economics || {};
+  const economicSource =
+    economic.status === "COMPUTED" && economic.output
+      ? {
+          status: "COMPUTED",
+          output: {
+            value: Number(economic.output.value),
+            assumptions: {
+              visitsPerYear: Number(economic.output.assumptions?.visitsPerYear),
+              referralPercentage: Number(economic.output.assumptions?.referralPercentage),
+            },
+          },
+        }
+      : { status: String(economic.status || "NOT_COMPUTED") };
 
   return {
-    overallScore: Number.isFinite(structuredResult?.scores?.overallScore)
-      ? Number(structuredResult.scores.overallScore)
-      : null,
-    classification: structuredResult?.classification?.bandCode ?? null,
-    axisScores,
+    schemaVersion: "P3_REPORT_SOURCE_V1",
+    status: "READY_FOR_USER_REPORT",
+    assessment: { slug: assessmentSlug, version: assessmentVersion },
+    overall: {
+      value: Number.isFinite(structuredResult?.scores?.overallScore)
+        ? Number(structuredResult.scores.overallScore)
+        : null,
+      bandCode: structuredResult?.classification?.bandCode ?? null,
+    },
+    axes,
     kpis,
-    evSimulator: null,
-    traps: [],
+    economics: economicSource,
+    coverage: {
+      coverageStatus: structuredResult?.coverage?.coverageStatus || "UNKNOWN",
+      coverageRatio: Number.isFinite(structuredResult?.coverage?.coverageRatio)
+        ? Number(structuredResult.coverage.coverageRatio)
+        : null,
+    },
   };
 }
 
@@ -716,18 +751,18 @@ Deno.serve(async (req) => {
 
       await supabase.from("assessment_session_access").update({ last_seen_at: new Date().toISOString() }).eq("id", access.id);
 
-      let storedResult: any = null;
+      let reportSource: any = null;
       if (session.status === "completed") {
         const { data: resultRow, error: resultError } = await supabase
           .from("assessment_results")
-          .select("result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at, result_status")
+          .select("result")
           .eq("session_id", session.id)
           .maybeSingle();
         if (resultError) throw resultError;
-        storedResult = resultRow;
+        reportSource = resultRow?.result ? projectPublicReportSource(resultRow.result) : null;
       }
 
-      return json({ success: true, data: { session, answers, result: storedResult } });
+      return json({ success: true, data: { session, answers, reportSource } });
     }
 
     if (action === "save_answer") {
@@ -817,38 +852,11 @@ Deno.serve(async (req) => {
         if (resultError) throw resultError;
 
         if (storedResult?.result) {
-          const structured = storedResult.result as any;
-          const axisScores: Record<string, number> = {};
-          for (const axis of structured?.scores?.axes || []) {
-            if (Number.isFinite(axis?.score)) axisScores[String(axis.axisCode)] = Number(axis.score);
-          }
-          const kpis: Record<string, number> = {};
-          for (const kpi of structured?.kpis || []) {
-            if (kpi?.status !== "unavailable" && Number.isFinite(kpi?.value)) {
-              kpis[String(kpi.kpiCode)] = Number(kpi.value);
-            }
-          }
           return json({
             success: true,
             data: {
-              overallScore: Number.isFinite(structured?.scores?.overallScore) ? Number(structured.scores.overallScore) : null,
-              classification: structured?.classification?.bandCode ?? null,
-              axisScores,
-              kpis,
-              evSimulator: null,
-              traps: [],
-              structuredResult: structured,
-              provenance: {
-                assessmentVersion: storedResult.assessment_version,
-                interpretationVersion: storedResult.interpretation_version,
-                scoringEngineVersion: storedResult.scoring_engine_version,
-                scoringContractVersion: storedResult.scoring_contract_version,
-                assessmentConfigDigest: storedResult.assessment_config_digest,
-                calculatedAt: storedResult.calculated_at,
-              },
+              reportSource: projectPublicReportSource(storedResult.result),
               already_completed: true,
-              session_id: session.id,
-              assessment_version: session.assessment_version,
             },
           });
         }
@@ -868,11 +876,8 @@ Deno.serve(async (req) => {
             kpis: {},
             evSimulator: null,
             traps: [],
-            structuredResult: null,
-            provenance: null,
+            reportSource: null,
             already_completed: true,
-            session_id: session.id,
-            assessment_version: session.assessment_version,
           },
         });
       }
@@ -909,36 +914,8 @@ Deno.serve(async (req) => {
         return json({
           success: true,
           data: {
-            overallScore: Number.isFinite(structured?.scores?.overallScore)
-              ? Number(structured.scores.overallScore)
-              : null,
-            classification: structured?.classification?.bandCode ?? null,
-            axisScores: Object.fromEntries(
-              (structured?.scores?.axes || [])
-                .filter((axis: any) => Number.isFinite(axis?.score))
-                .map((axis: any) => [String(axis.axisCode), Number(axis.score)]),
-            ),
-            kpis: Object.fromEntries(
-              (structured?.kpis || [])
-                .filter((kpi: any) => kpi?.status !== "unavailable" && Number.isFinite(kpi?.value))
-                .map((kpi: any) => [String(kpi.kpiCode), Number(kpi.value)]),
-            ),
-            evSimulator: null,
-            traps: [],
-            structuredResult: structured,
-            provenance: storedResult
-              ? {
-                  assessmentVersion: storedResult.assessment_version,
-                  interpretationVersion: storedResult.interpretation_version,
-                  scoringEngineVersion: storedResult.scoring_engine_version,
-                  scoringContractVersion: storedResult.scoring_contract_version,
-                  assessmentConfigDigest: storedResult.assessment_config_digest,
-                  calculatedAt: storedResult.calculated_at,
-                }
-              : null,
+            reportSource: structured ? projectPublicReportSource(structured) : null,
             already_completed: true,
-            session_id: session.id,
-            assessment_version: session.assessment_version,
           },
         });
       }
@@ -1004,15 +981,8 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          ...projectCompletionResponse(structuredResult),
-          structuredResult: storedStructured,
-          provenance: {
-            ...computed.provenance,
-            calculatedAt: storedStructured?.identity?.calculatedAt ?? null,
-          },
+          reportSource: projectPublicReportSource(storedStructured),
           already_completed: Boolean(completed?.already_completed),
-          session_id: session.id,
-          assessment_version: computed.provenance.assessmentVersion,
         },
       });
     }
