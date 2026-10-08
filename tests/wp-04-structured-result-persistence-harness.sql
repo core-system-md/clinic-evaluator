@@ -49,7 +49,8 @@ create table public.assessment_session_access (
   token_hash text unique not null,
   assessment_type_id uuid,
   expires_at timestamptz not null,
-  revoked_at timestamptz
+  revoked_at timestamptz,
+  last_seen_at timestamptz
 );
 
 create table public.scores (
