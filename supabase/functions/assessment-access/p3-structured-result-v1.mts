@@ -65,8 +65,14 @@ export type P3StructuredResultV1 = {
     overallScore: number | null;
     axes: Array<{
       axisCode: string;
+      axisNameAr: string;
+      axisNameEn: string;
       score: number | null;
+      rawScore: number | null;
+      maxPossible: number | null;
+      percentage: number | null;
       weight: number;
+      weightedScore: number | null;
       status: "measured" | "unavailable";
     }>;
   };

@@ -11,7 +11,7 @@ import {
   type P3EconomicInput,
   type P3IntegratedResult,
 } from "./p3-integrated-scorer-v1.mts";
-import { type P3ResolvedSelection } from "./p3-scorer-v1.mts";
+import { projectScoreRowsFromStructuredResult } from "./p3-result-persistence-v1.mts";
 import { type P3ConsistencyRule } from "./p3-consistency-engine.mts";
 import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./p3-response-interpretation-registry-v2.json" with { type: "json" };
@@ -209,74 +209,6 @@ function scopedConsistencyConfiguration(
     rules,
     pairs,
   };
-}
-
-function bandFor(score: number | null): string | null {
-  if (!Number.isFinite(score)) return null;
-  const value = Number(score);
-  if (value >= 75) return "Q4";
-  if (value >= 50) return "Q3";
-  if (value >= 25) return "Q2";
-  return "Q1";
-}
-
-function axisPersistenceRows(
-  selections: P3ResolvedSelection[],
-  axes: AxisRow[],
-): Array<Record<string, unknown>> {
-  const byAxis = new Map<string, P3ResolvedSelection[]>();
-
-  for (const item of selections) {
-    if (!item.axisCode) continue;
-    const bucket = byAxis.get(item.axisCode) ?? [];
-    bucket.push(item);
-    byAxis.set(item.axisCode, bucket);
-  }
-
-  return axes.flatMap((axis) => {
-    const items = byAxis.get(axis.code) ?? [];
-    const eligible = items.filter(
-      (item) =>
-        item.answered &&
-        item.scoreEligible &&
-        item.scoreMode === "DIRECT_ANCHOR" &&
-        Number.isFinite(item.anchorScore) &&
-        Number.isFinite(item.anchorMax) &&
-        Number(item.anchorMax) > 0,
-    );
-
-    if (!eligible.length) return [];
-
-    const rawScore = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorScore),
-      0,
-    );
-    const maxPossible = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorMax),
-      0,
-    );
-    const percentage =
-      eligible.reduce(
-        (sum, item) =>
-          sum + (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
-        0,
-      ) / eligible.length;
-    const weight = axis.weight > 1 ? axis.weight / 100 : axis.weight;
-
-    return [
-      {
-        axis_id: axis.code,
-        axis_name_ar: axis.title_ar || axis.title,
-        axis_name_en: axis.title,
-        raw_score: Math.round(rawScore),
-        max_possible: Math.round(maxPossible),
-        percentage,
-        weight,
-        weighted_score: percentage * weight,
-        grade: bandFor(percentage),
-      },
-    ];
-  });
 }
 
 async function loadRuntime(
@@ -544,6 +476,8 @@ export async function calculateAssessment(
     axes: runtime.axes.map((axis) => ({
       code: axis.code,
       weight: Number(axis.weight),
+      nameAr: axis.title_ar || axis.title,
+      nameEn: axis.title,
     })),
     axisRoles: runtime.assessment.axis_roles ?? {},
     kpiMappings: runtime.assessment.kpi_mappings ?? {},
@@ -559,10 +493,8 @@ export async function calculateAssessment(
     engineIdentity: ENGINE_IDENTITY,
   });
 
-  const scoreRows = axisPersistenceRows(
-    result.resolvedSelections,
-    runtime.axes,
-  );
+  const { resolvedSelections: _resolvedSelections, axisPersistenceRows: _legacyAxisRows, ...structuredResult } = result;
+  const scoreRows = projectScoreRowsFromStructuredResult(structuredResult);
 
   return {
     result,

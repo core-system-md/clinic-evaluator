@@ -29,7 +29,7 @@ import {
   type P3StructuredRole,
 } from "./p3-structured-result-v1.mts";
 
-export type P3AxisConfig = { code: string; weight: number };
+export type P3AxisConfig = { code: string; weight: number; nameAr?: string; nameEn?: string };
 export type P3ConsistencyPair = {
   relationshipType: string;
   validatorQuestionCode: string;
@@ -39,18 +39,9 @@ export type P3ConsistencyPair = {
 export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & {
   axisPersistenceRows: Array<Record<string, unknown>>;
   resolvedSelections: P3ResolvedSelection[];
-  scores: {
-    overallScore: number | null;
-    axes: Array<{
-      axisCode: string;
-      score: number | null;
-      weight: number;
-      status: "measured" | "unavailable";
-    }>;
-  };
 };
 
-function axisScore(items: P3ResolvedSelection[]): number | null {
+function axisMeasurement(items: P3ResolvedSelection[]) {
   const eligible = items.filter(
     (item) =>
       item.answered &&
@@ -60,14 +51,30 @@ function axisScore(items: P3ResolvedSelection[]): number | null {
       Number.isFinite(item.anchorMax) &&
       Number(item.anchorMax) > 0,
   );
-  if (!eligible.length) return null;
-  return (
+  if (!eligible.length) {
+    return {
+      score: null as number | null,
+      rawScore: null as number | null,
+      maxPossible: null as number | null,
+      percentage: null as number | null,
+    };
+  }
+
+  const rawScore = eligible.reduce((sum, item) => sum + Number(item.anchorScore), 0);
+  const maxPossible = eligible.reduce((sum, item) => sum + Number(item.anchorMax), 0);
+  const percentage =
     eligible.reduce(
       (sum, item) =>
         sum + (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
       0,
-    ) / eligible.length
-  );
+    ) / eligible.length;
+
+  return {
+    score: percentage,
+    rawScore,
+    maxPossible,
+    percentage,
+  };
 }
 
 function canonicalWeight(weight: number): number {
@@ -281,12 +288,24 @@ export function scoreP3IntegratedV1(input: {
 
   const axisResults = input.axes.map((axis) => {
     const weight = canonicalWeight(axis.weight);
-    const score = axisScore(byAxis.get(axis.code) ?? []);
+    const measurement = axisMeasurement(byAxis.get(axis.code) ?? []);
     return {
       axisCode: axis.code,
-      score,
+      axisNameAr: axis.nameAr ?? axis.code,
+      axisNameEn: axis.nameEn ?? axis.code,
+      score: measurement.score,
+      rawScore: measurement.rawScore,
+      maxPossible: measurement.maxPossible,
+      percentage: measurement.percentage,
       weight,
-      status: score === null ? ("unavailable" as const) : ("measured" as const),
+      weightedScore:
+        measurement.percentage === null
+          ? null
+          : measurement.percentage * weight,
+      status:
+        measurement.score === null
+          ? ("unavailable" as const)
+          : ("measured" as const),
     };
   });
 
@@ -414,55 +433,35 @@ export function scoreP3IntegratedV1(input: {
   });
 
   const axisPersistenceRows = axisResults.flatMap((axis) => {
-    const items = byAxis.get(axis.axisCode) ?? [];
-    const eligible = items.filter(
-      (item) =>
-        item.answered &&
-        item.scoreEligible &&
-        item.scoreMode === "DIRECT_ANCHOR" &&
-        Number.isFinite(item.anchorScore) &&
-        Number.isFinite(item.anchorMax) &&
-        Number(item.anchorMax) > 0,
-    );
-    if (!eligible.length) return [];
+    if (
+      axis.rawScore === null ||
+      axis.maxPossible === null ||
+      axis.percentage === null ||
+      axis.weightedScore === null
+    ) return [];
 
-    const rawScore = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorScore),
-      0,
-    );
-    const maxPossible = eligible.reduce(
-      (sum, item) => sum + Number(item.anchorMax),
-      0,
-    );
-    const percentage =
-      eligible.reduce(
-        (sum, item) =>
-          sum +
-          (Number(item.anchorScore) / Number(item.anchorMax)) * 100,
-        0,
-      ) / eligible.length;
-
-    return [
-      {
-        axis_id: axis.axisCode,
-        axis_name_ar: input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-        axis_name_en: input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-        raw_score: Math.round(rawScore),
-        max_possible: Math.round(maxPossible),
-        percentage,
-        weight: axis.weight,
-        weighted_score: percentage * axis.weight,
-        grade:
-          percentage >= 75
-            ? "Q4"
-            : percentage >= 50
-              ? "Q3"
-              : percentage >= 25
-                ? "Q2"
-                : "Q1",
-      },
-    ];
+    return [{
+      axis_id: axis.axisCode,
+      axis_name_ar:
+        input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
+      axis_name_en:
+        input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
+      raw_score: Math.round(axis.rawScore),
+      max_possible: Math.round(axis.maxPossible),
+      percentage: axis.percentage,
+      weight: axis.weight,
+      weighted_score: axis.weightedScore,
+      grade:
+        axis.percentage >= 75
+          ? "Q4"
+          : axis.percentage >= 50
+            ? "Q3"
+            : axis.percentage >= 25
+              ? "Q2"
+              : "Q1",
+    }];
   });
+
 
   return {
     ...structured,
