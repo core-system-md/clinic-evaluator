@@ -37,6 +37,30 @@ function makeResult() {
   };
 }
 
+function makePublicSource() {
+  return {
+    schemaVersion: "P3_REPORT_SOURCE_V1",
+    status: "READY_FOR_USER_REPORT",
+    assessment: { slug: "patient-journey", version: "1" },
+    overall: { value: 68, bandCode: "Q3" },
+    axes: [
+      { axisCode: "A1", axisNameAr: "الثقة", axisNameEn: "Trust", percentage: 55, status: "measured" },
+      { axisCode: "A2", axisNameAr: "التواصل", axisNameEn: "Communication", percentage: 80, status: "measured" },
+      { axisCode: "A3", axisNameAr: "الاستبقاء", axisNameEn: "Retention", percentage: 60, status: "measured" }
+    ],
+    kpis: [
+      { kpiCode: "TFI", status: "available", value: 74 },
+      { kpiCode: "PSI", status: "partial", value: 50 },
+      { kpiCode: "RRI", status: "unavailable", value: null }
+    ],
+    economics: {
+      status: "COMPUTED",
+      output: { value: 1800, assumptions: { visitsPerYear: 3, referralPercentage: 20 } }
+    },
+    coverage: { coverageRatio: 1, coverageStatus: "FULL" }
+  };
+}
+
 test("WP-05 user report projection", () => {
   const report = projectUserReport(makeResult(), null, "clinic-performance");
   assert.equal(report.audience, "user");
@@ -81,36 +105,33 @@ test("WP-05 report models explicitly define every required family boundary", () 
 });
 
 test("WP-05 family economic policy follows the explicit model", () => {
-  const comprehensiveResult = makeResult();
-  comprehensiveResult.scores.axes = [
+  const comprehensiveResult = makePublicSource();
+  comprehensiveResult.axes = [
     "AX6f5aa5", "AX80c09a", "AXaadfb4", "AX2572cc", "AX6a52b4", "AX15afd8"
-  ].map((code, index) => ({
-    axisCode: code,
-    axisNameAr: code,
-    axisNameEn: code,
+  ].map((axisCode, index) => ({
+    axisCode,
+    axisNameAr: axisCode,
+    axisNameEn: axisCode,
     percentage: 60 + index,
-    score: 60 + index,
-    rawScore: 60 + index,
-    maxPossible: 100,
-    weight: [0.2, 0.2, 0.2, 0.15, 0.15, 0.1][index],
-    weightedScore: 0,
     status: "measured"
   }));
   const comprehensive = projectUserReport(comprehensiveResult, null, "comprehensive-clinic-assessment");
   assert.equal(comprehensive.economicOpportunity, null);
 
-  const clinic = projectUserReport(makeResult(), null, "clinic-performance");
+  const clinicSource = makePublicSource();
+  clinicSource.assessment.slug = "clinic-performance";
+  const clinic = projectUserReport(clinicSource, null, "clinic-performance");
   assert.equal(clinic.economicOpportunity.visitsPerYear, 3);
 });
 
 test("WP-05 trend accepts only a server-verified compatible comparison", () => {
   const current = makeResult();
   assert.equal(
-    compatibleTrend(current, { comparisonStatus: "compatible", overallScore: 60 }).status,
+    compatibleTrend(makePublicSource(), { comparisonStatus: "compatible", overallScore: 60 }).status,
     "available"
   );
   assert.equal(
-    compatibleTrend(current, { comparisonStatus: "incompatible", overallScore: 60 }).status,
+    compatibleTrend(makePublicSource(), { comparisonStatus: "incompatible", overallScore: 60 }).status,
     "unavailable"
   );
 });
@@ -138,12 +159,17 @@ test("WP-05 admin report projection", () => {
   assert.equal(report.provenance.engineIdentity, "MD_CODE_ASSESSMENT_ENGINE");
 });
 
-test("WP-05 trend comparison requires compatible basis", () => {
-  const current = makeResult();
-  const previous = { assessmentFamilyId: "family-1", assessmentVersion: "1", scoringEngineVersion: "MD_CODE_ASSESSMENT_ENGINE", scoringContractVersion: "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07", assessmentConfigDigest: "digest-1", overallScore: 60, completedAt: "2026-10-01T00:00:00Z" };
-  assert.equal(compatibleTrend(current, previous).status, "available");
-  assert.equal(compatibleTrend(current, { ...previous, assessmentConfigDigest: "digest-2" }).status, "unavailable");
-  assert.equal(compatibleTrend(current, { ...previous, assessmentFamilyId: "family-2" }).status, "unavailable");
+test("WP-05 browser trend accepts only the server-verified comparison contract", () => {
+  const source = makePublicSource();
+  assert.equal(compatibleTrend(source, { comparisonStatus: "compatible", overallScore: 60 }).status, "available");
+  assert.equal(compatibleTrend(source, {
+    assessmentFamilyId: "family-1",
+    assessmentVersion: "1",
+    scoringEngineVersion: "MD_CODE_ASSESSMENT_ENGINE",
+    scoringContractVersion: "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07",
+    assessmentConfigDigest: "digest-1",
+    overallScore: 60
+  }).status, "unavailable");
 });
 
 test("WP-05 app uses the report interpretation layer", () => {
@@ -153,4 +179,6 @@ test("WP-05 app uses the report interpretation layer", () => {
   assert.ok(!app.includes("this.texts?.quartiles"));
   assert.ok(!app.includes("Object.entries(res.axisScores).sort"));
   assert.ok(!app.includes("previousSessionData.axisScores"));
+  assert.ok(!app.includes("res?.structuredResult"));
+  assert.ok(!app.includes("structuredResult:"));
 });
