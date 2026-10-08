@@ -122,6 +122,22 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
     ),
   );
   assert.deepEqual(packagedPairs, canonicalPairs);
-  assert.equal(packagedPairs.pairs.length, 52);
-  assert.ok(packagedPairs.pairs.every((pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "2"));
+  assert.equal(packagedPairs.pairs.length, 108);
+
+  const v2Pairs = packagedPairs.pairs.filter(
+    (pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "2",
+  );
+  const comprehensiveV1Pairs = packagedPairs.pairs.filter(
+    (pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "1",
+  );
+  const patientV1Pairs = packagedPairs.pairs.filter(
+    (pair) => pair.assessmentSlug === "patient-journey" && pair.assessmentVersion === "1",
+  );
+
+  assert.equal(v2Pairs.length, 52);
+  assert.equal(comprehensiveV1Pairs.length, 52);
+  assert.equal(patientV1Pairs.length, 4);
+  assert.ok(v2Pairs.every((pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "2"));
+  assert.ok(comprehensiveV1Pairs.every((pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "1"));
+  assert.ok(patientV1Pairs.every((pair) => pair.assessmentSlug === "patient-journey" && pair.assessmentVersion === "1"));
 });
