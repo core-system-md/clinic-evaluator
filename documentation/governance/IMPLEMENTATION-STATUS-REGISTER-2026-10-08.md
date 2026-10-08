@@ -40,10 +40,10 @@ This is the authoritative correction. The earlier conversational claim was a rep
 | WP-02 | Canonical `engine.ts` | `wp-02/establish-engine-ts-2026-10-07` | #55 | dedicated P3/contract/browser checks; recorded in WP-02 doc | merge commit `dc00a4cdf4014fa9edc76e6c3133303bda3fe668` | NO | CLOSED |
 | WP-03 | Configuration semantics | `wp-03/correct-configuration-semantics-2026-10-08` | #57 | Run `37739494944` | merge commit `8550b982d5c933c0948e42d70265b43685d990c5` | NO | CLOSED |
 | WP-04 | Structured Result authority/persistence | `wp-04/result-model-persistence-2026-10-08` | #58 | Run `37741449245` | merge commit `e4d582bb51b74fe9e4dbf5251504deed4a558505` | NO | CLOSED |
-| WP-05 | Report interpretation | `wp-05-report-interpretation-2026-10-08` | #59 | Run `37742137612` | merge commit `ee357a4e23d0c006783da9cdf236da3491c77c97` | NO | CLOSED |
-| WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | CLOSED |
-| WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | CLOSED |
-| WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 | Run `37748440553` | merge commit `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c` | NO | CLOSED |
+| WP-05 | Report interpretation | `wp-05-report-interpretation-2026-10-08` | #59 | Run `37742137612` | merge commit `ee357a4e23d0c006783da9cdf236da3491c77c97` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
+| WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
+| WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
+| WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 + corrective #65 | Original run `37748440553`; corrected run `37776556545` | original `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`; corrective merge `ebd375e883e9faeb8659fc5bef312f343f0aa504` | NO | **CLOSED AFTER CORRECTION** |
 | WP-09 | Obsolete engine/runtime references | `wp-09-remove-obsolete-engine-references-2026-10-08` | #64 | Runs `37762105060`, `37762220883`; final job `113261161511` | merge commit `74b2c269511b27d80b3cbc957aba80c3c4167929` | NO | CLOSED |
 
 ## 4. WP-01 — what was done
@@ -391,3 +391,19 @@ No content, version, routing, deletion or production decision may be inferred as
 - WP-06: `documentation/governance/WP-06-REPORT-VALIDATION-2026-10-08.md`
 - WP-07: `documentation/governance/WP-07-REPORT-TEXT-MODEL-LINKAGE-2026-10-08.md`
 - WP-08: `documentation/governance/WP-08-V1-ASSESSMENT-RECONSTRUCTION-2026-10-08.md`
+
+## 16. Post-closure forensic recalibration — 2026-10-08
+
+The later contract audit distinguishes historical stage PASS from current contract-clean status.
+
+**WP-05:** historical implementation/test PASS remains valid as execution evidence, but current contract reconciliation is required for complete assessment-specific report models and normal-history provenance integration.
+
+**WP-06:** historical implementation/test PASS remains valid for report projection validation, but current contract reconciliation is required for transport-level prevention of raw Structured Result exposure to the browser.
+
+**WP-07:** historical implementation/test PASS remains valid for the cataloged text asset, but current contract reconciliation is required because semantic report/presentation strings remain outside the declared linkage catalog.
+
+**WP-08:** corrective PR #65 restored the missing V1 Consistency configuration and canonical 0–100 Patient Journey weights. Corrected dedicated workflow **37776556545 = SUCCESS**; corrective merge **ebd375e883e9faeb8659fc5bef312f343f0aa504**. WP-08 is therefore closed after correction.
+
+**WP-03:** a conflicting duplicate architecture document is a documentation contradiction, not by itself proof of an implementation defect. The governing Final Implementation Contract remains authoritative and requires canonical 0–100 storage.
+
+No production mutation is authorized by this recalibration. The next corrective implementation must be handled as a separate one-WP stage and must not be started automatically.
