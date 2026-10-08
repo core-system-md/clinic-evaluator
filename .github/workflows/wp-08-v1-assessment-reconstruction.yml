@@ -1,0 +1,34 @@
+name: WP-08 V1 assessment reconstruction
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "documentation/governance/APPROVED-*-V1-CONTENT-2026-10-08.json"
+      - "supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql"
+      - "tests/wp-08-v1-assessment-reconstruction.test.mjs"
+      - ".github/workflows/wp-08-v1-assessment-reconstruction.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-08-contract:
+    name: WP-08 V1 reconstruction contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env: { POSTGRES_PASSWORD: postgres }
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s --health-timeout 5s --health-retries 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm }
+      - run: npm ci
+      - run: node --test tests/wp-08-v1-assessment-reconstruction.test.mjs
+      - run: psql "postgresql://postgres:postgres@localhost:5432/postgres" -v ON_ERROR_STOP=1 -f tests/wp-08-v1-assessment-reconstruction-harness.sql
