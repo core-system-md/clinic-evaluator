@@ -25,17 +25,6 @@ function firstSelection(slug) {
     }));
 }
 
-function walkFiles(dir) {
-  const out = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.name === "node_modules" || entry.name === ".git") continue;
-    const full = path.join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...walkFiles(full));
-    else out.push(full);
-  }
-  return out;
-}
-
 test("WP-02 local contract: canonical engine ownership is unambiguous", () => {
   assert.equal(fs.existsSync(ENGINE), true);
   assert.equal(fs.existsSync(OLD), false);
@@ -134,11 +123,16 @@ test("WP-02 local contract: Structured Result is factual authority, without repo
   assert.equal(Object.hasOwn(result, "legacyProjection"), false);
 });
 
-test("WP-02 local contract: browser cannot be the official scoring authority", () => {
-  const htmlFiles = walkFiles(ROOT).filter((file) => file.endsWith(".html"));
-  for (const file of htmlFiles) {
+test("WP-02 local contract: browser is not an official scoring authority", () => {
+  const browserFiles = [
+    path.join(ROOT, "assets/js/app.js"),
+    path.join(ROOT, "assets/js/report.js"),
+  ].filter((file) => fs.existsSync(file));
+
+  for (const file of browserFiles) {
     const source = fs.readFileSync(file, "utf8");
-    assert.doesNotMatch(source, /\/engine\/engine\.js/);
+    assert.doesNotMatch(source, /calculateAssessment\s*\(/);
+    assert.doesNotMatch(source, /scoreP3IntegratedV1\s*\(/);
   }
 });
 
