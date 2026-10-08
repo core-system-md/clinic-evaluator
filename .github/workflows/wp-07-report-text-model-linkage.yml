@@ -1,0 +1,30 @@
+name: WP-07 report text and model linkage
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "assets/data/report_texts.json"
+      - "assets/js/report-interpretation.js"
+      - "documentation/governance/REPORT-TEXT-LINKAGE-CATALOG-V1-2026-10-08.json"
+      - "tests/wp-07-report-text-linkage.test.mjs"
+      - ".github/workflows/wp-07-report-text-model-linkage.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-07-report-text-linkage:
+    name: WP-07 report text/model linkage
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/wp-07-report-text-linkage.test.mjs
+      - run: node --check assets/js/report-interpretation.js
