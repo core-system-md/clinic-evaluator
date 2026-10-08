@@ -830,7 +830,7 @@ class ClinicEvaluatorApp {
             '<strong>' + this.escapeHtml(report.priority.axisNameAr) + '</strong> (' +
             Number(report.priority.percentage).toFixed(1) + '%).</p>' +
           (report.strength
-            ? '<h4 style="margin-top:12px;">💪 أعلى محور مقاس</h4>' +
+            ? '<h4 style="margin-top:12px;">' + this.escapeHtml(report.presentation?.strengthHeading || '') + '</h4>' +
               '<p>' + this.escapeHtml(report.strength.statement) + ' ' +
               '<strong>' + this.escapeHtml(report.strength.axisNameAr) + '</strong> (' +
               Number(report.strength.percentage).toFixed(1) + '%).</p>'
