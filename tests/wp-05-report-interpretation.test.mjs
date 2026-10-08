@@ -16,7 +16,8 @@ function makeResult() {
       overallScore: 68,
       axes: [
         { axisCode: "A1", axisNameAr: "الثقة", axisNameEn: "Trust", percentage: 55, score: 55, rawScore: 55, maxPossible: 100, weight: 0.2, weightedScore: 11, status: "measured" },
-        { axisCode: "A2", axisNameAr: "التواصل", axisNameEn: "Communication", percentage: 80, score: 80, rawScore: 80, maxPossible: 100, weight: 0.8, weightedScore: 64, status: "measured" }
+        { axisCode: "A2", axisNameAr: "التواصل", axisNameEn: "Communication", percentage: 80, score: 80, rawScore: 80, maxPossible: 100, weight: 0.5, weightedScore: 40, status: "measured" },
+        { axisCode: "A3", axisNameAr: "الاستبقاء", axisNameEn: "Retention", percentage: 60, score: 60, rawScore: 60, maxPossible: 100, weight: 0.3, weightedScore: 18, status: "measured" }
       ]
     },
     coverage: { coverageRatio: 1, coverageStatus: "FULL" },
@@ -41,8 +42,8 @@ test("WP-05 user report projection", () => {
   assert.equal(report.audience, "user");
   assert.equal(report.overall.value, 68);
   assert.equal(report.overall.bandCode, "Q3");
-  assert.deepEqual(report.axes.map(a => a.code), ["A1", "A2"]);
-  assert.deepEqual(report.kpis, [{ code: "TFI", value: 74 }]);
+  assert.deepEqual(report.axes.map(a => a.code), ["A1", "A3", "A2"]);
+  assert.deepEqual(report.kpis, [{ code: "TFI", value: 74, textKey: "kpis.TFI" }]);
   assert.equal(report.priority.axisCode, "A1");
   assert.equal(report.strength.axisCode, "A2");
   assert.equal(report.economicOpportunity.visitsPerYear, 3);
@@ -80,7 +81,22 @@ test("WP-05 report models explicitly define every required family boundary", () 
 });
 
 test("WP-05 family economic policy follows the explicit model", () => {
-  const comprehensive = projectUserReport(makeResult(), null, "comprehensive-clinic-assessment");
+  const comprehensiveResult = makeResult();
+  comprehensiveResult.scores.axes = [
+    "AX6f5aa5", "AX80c09a", "AXaadfb4", "AX2572cc", "AX6a52b4", "AX15afd8"
+  ].map((code, index) => ({
+    axisCode: code,
+    axisNameAr: code,
+    axisNameEn: code,
+    percentage: 60 + index,
+    score: 60 + index,
+    rawScore: 60 + index,
+    maxPossible: 100,
+    weight: [0.2, 0.2, 0.2, 0.15, 0.15, 0.1][index],
+    weightedScore: 0,
+    status: "measured"
+  }));
+  const comprehensive = projectUserReport(comprehensiveResult, null, "comprehensive-clinic-assessment");
   assert.equal(comprehensive.economicOpportunity, null);
 
   const clinic = projectUserReport(makeResult(), null, "clinic-performance");
