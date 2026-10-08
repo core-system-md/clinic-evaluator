@@ -407,3 +407,14 @@ The later contract audit distinguishes historical stage PASS from current contra
 **WP-03:** a conflicting duplicate architecture document is a documentation contradiction, not by itself proof of an implementation defect. The governing Final Implementation Contract remains authoritative and requires canonical 0–100 storage.
 
 No production mutation is authorized by this recalibration. The next corrective implementation must be handled as a separate one-WP stage and must not be started automatically.
+
+
+## Final WP-08 reconciliation evidence — 2026-10-08
+
+PR #65 corrected the proven V1 Consistency and canonical weight deviations. PR #67 then reconciled the canonical pair-registry artifact and stale P3/WP-03 contract-test expectations exposed by that correction.
+
+Final corrective merge: be6214e4f8fb9382ccdf8150d34491a061887b97.
+
+Verification evidence: WP-08 run 37777401435 SUCCESS; P3 isolated kernel job 113312306760 SUCCESS; WP-03 configuration semantics job 113312305582 SUCCESS; WP-03 disposable PostgreSQL contract job 113312305836 SUCCESS. The broad Full Node baseline still reports unrelated P5 editor assertions and is not evidence against this WP-08 reconciliation.
+
+Production remains unchanged; WP-08 migration is not present in Production migration history.
