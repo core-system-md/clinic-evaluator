@@ -1,0 +1,359 @@
+# Implementation Status Register — 2026-10-08
+
+**Repository:** `core-system-md/clinic-evaluator`  
+**Supabase:** `oaqpzaarppccbnepffxx`  
+**Governing contract:** `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`  
+**Purpose:** Canonical engineering record of completed work packages and their evidence at the transition point of 2026-10-08.
+
+## 1. Mandatory interpretation of this register
+
+This file is the consolidated status record. Individual WP documents remain the detailed source records for each stage.
+
+A work package is considered **implemented and stage-closed** here only when its own record contains an implementation boundary, dedicated verification evidence, documentation, and publication status.
+
+Production deployment is a separate boundary and is explicitly recorded below.
+
+The next WP must never start automatically from this document. The process remains:
+
+**one WP → implement → dedicated verify → document → close → report to owner → stop → owner authorizes next WP.**
+
+## 2. Critical correction to the previous conversation handoff
+
+The previous conversational Handoff incorrectly stated that WP-05 had not been officially completed and that WP-08 had not been executed.
+
+The repository history proves otherwise:
+
+- WP-05 PR #59 was merged into `main` at `ee357a4e23d0c006783da9cdf236da3491c77c97`.
+- WP-06 PR #60 was then merged at `219ba205194ccae6dcd2e828d7895f3dd77ce368`.
+- WP-07 PR #61 was then merged at `a075803e24a7c6ccda803d3ceb58fd603d793ccd`.
+- WP-08 PR #62 was then merged at `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`.
+
+Therefore the actual Git sequence is consistent for WP-05 → WP-06 → WP-07 → WP-08.
+
+This is the authoritative correction. The earlier conversational claim was a reporting/context error and must not be carried into the next conversation.
+
+## 3. Stage register
+
+| WP | Scope | Branch | PR | Dedicated verification | Merge / publication | Production mutation | State |
+|---|---|---|---:|---|---|---|---|
+| WP-01 | Source inventory & reconciliation | `wp-01/source-inventory-reconciliation-2026-10-07` | — | Recorded in WP-01 stage document | commit `514255b8f68ca48e0499de5c378ad311150d1f03` | NO | CLOSED |
+| WP-02 | Canonical `engine.ts` | `wp-02/establish-engine-ts-2026-10-07` | #55 | dedicated P3/contract/browser checks; recorded in WP-02 doc | merge commit `dc00a4cdf4014fa9edc76e6c3133303bda3fe668` | NO | CLOSED |
+| WP-03 | Configuration semantics | `wp-03/correct-configuration-semantics-2026-10-08` | #57 | Run `37739494944` | merge commit `8550b982d5c933c0948e42d70265b43685d990c5` | NO | CLOSED |
+| WP-04 | Structured Result authority/persistence | `wp-04/result-model-persistence-2026-10-08` | #58 | Run `37741449245` | merge commit `e4d582bb51b74fe9e4dbf5251504deed4a558505` | NO | CLOSED |
+| WP-05 | Report interpretation | `wp-05-report-interpretation-2026-10-08` | #59 | Run `37742137612` | merge commit `ee357a4e23d0c006783da9cdf236da3491c77c97` | NO | CLOSED |
+| WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | CLOSED |
+| WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | CLOSED |
+| WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 | Run `37748440553` | merge commit `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c` | NO | CLOSED |
+
+## 4. WP-01 — what was done
+
+**Detailed record:** `documentation/governance/WP-01-SOURCE-INVENTORY-RECONCILIATION-2026-10-07.md`
+
+The stage produced the reconciled inventory before implementation mutation.
+
+Confirmed inventory included:
+
+- 5 assessment families;
+- 6 live versions including archived Comprehensive V1;
+- 93 questions / 349 options / 22 published axes;
+- 129 questions / 457 options / 28 axes including archived version;
+- mixed DB weight storage conventions;
+- V1 and V2 interpretation registries;
+- consistency engines and registries;
+- KPI catalog and mappings;
+- Economic Opportunity mappings;
+- current scoring/persistence/runtime entry points;
+- stale browser engine references;
+- Leakage presentation references;
+- authoritative `assessment_results` table;
+- legacy `public.calculate_session_score(uuid)` status;
+- production baseline with zero sessions, answers, scores, results and leads.
+
+No production mutation.
+
+## 5. WP-02 — what was done
+
+**Detailed record:** `documentation/governance/WP-02-ESTABLISH-ENGINE-2026-10-07.md`
+
+The scoring ownership boundary was moved to:
+
+`supabase/functions/assessment-access/engine.ts`
+
+Key changes:
+
+- canonical engine identity established as `engine.ts`;
+- completion routed through `calculateAssessment(client,input)`;
+- explicit assessment-version → interpretation-version bindings;
+- `MD_CODE_ASSESSMENT_ENGINE` provenance;
+- removal of factual parallel `legacyProjection`;
+- compatibility projections derived from Structured Result;
+- old `score-engine.ts` path removed from active authority;
+- production contract/ownership/E2E expectations updated;
+- Leakage removed from factual result output.
+
+Verification recorded:
+
+- P3 isolated kernel SUCCESS;
+- P4 protected completion SUCCESS;
+- browser syntax SUCCESS;
+- broader baseline failures were unrelated pre-existing P5 editor tests.
+
+No production deployment.
+
+## 6. WP-03 — what was done
+
+**Detailed record:** `documentation/governance/WP-03-CORRECT-CONFIGURATION-SEMANTICS-2026-10-08.md`
+
+The stage reconciled:
+
+- axis weight representation;
+- question/option interpretation semantics;
+- impact/layer metadata;
+- axis-to-role mappings;
+- KPI mapping coefficients/scope;
+- EV capability vs mappings;
+- consistency dependencies.
+
+Canonical weights were fixed as percentage points summing to 100.
+
+Guarded migration created:
+
+`supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql`
+
+Dedicated verification:
+
+- Node contract suite;
+- disposable PostgreSQL migration harness;
+- Run `37739494944` SUCCESS.
+
+The production migration was not executed.
+
+## 7. WP-04 — what was done
+
+**Detailed record:** `documentation/governance/WP-04-RESULT-MODEL-PERSISTENCE-2026-10-08.md`
+
+Structured Result became the sole factual persistence authority.
+
+Key changes:
+
+- axis identity/raw/max/percentage/normalized weight/weighted contribution stored in Structured Result;
+- persistence projection derives compatibility score rows only from Structured Result;
+- canonical completion functions accept a single Structured Result payload;
+- exact Structured Result JSONB persists to `assessment_results`;
+- identity/version/provenance/lineage/schema/axis/value validation added;
+- internal engine-only fields are rejected;
+- protected completion idempotency verified;
+- disposable PostgreSQL harness covered protected/public completion, retry idempotency, projection and tamper rejection.
+
+Dedicated run `37741449245` SUCCESS.
+
+No production migration or Edge Function deployment.
+
+## 8. WP-05 — what was done
+
+**Detailed record:** `documentation/governance/WP-05-REPORT-INTERPRETATION-2026-10-08.md`
+
+This stage was in fact completed and published. It is important that the next conversation does not revert to the incorrect prior handoff claim.
+
+Implementation:
+
+- added `assets/js/report-interpretation.js`;
+- defined assessment-family report models;
+- deterministic band interpretation;
+- measured-axis selection;
+- user KPI eligibility policy;
+- Economic Opportunity projection;
+- compatible trend evaluation;
+- separate user/admin projections;
+- browser report ownership routed through Structured Result → interpretation → projection → renderer;
+- Trap/Consistency removed from user projection;
+- Leakage no longer rendered;
+- unsupported causal/financial priority wording removed;
+- user KPI output limited to configured/available numeric KPIs;
+- admin projection retains technical evidence;
+- trend fails closed when family/version/engine/contract/config provenance is incompatible;
+- loaded interpretation module on all assessment pages before renderer.
+
+Dedicated artifacts:
+
+- `tests/wp-05-report-interpretation.test.mjs`
+- `.github/workflows/wp-05-local-contract.yml`
+
+Verification:
+
+**Run `37742137612` — SUCCESS**
+
+Reported checks:
+
+- WP-05 report interpretation: SUCCESS;
+- Node tests: SUCCESS;
+- report module syntax: SUCCESS;
+- browser renderer syntax: SUCCESS.
+
+Production boundary:
+
+- no production DB mutation;
+- no production Edge Function deployment.
+
+**WP-05 = PASS / STAGE CLOSED**
+
+## 9. WP-06 — what was done
+
+**Detailed record:** `documentation/governance/WP-06-REPORT-VALIDATION-2026-10-08.md`
+
+Implementation:
+
+- added `assets/js/report-validation.js`;
+- validation of Structured Result identity/status;
+- overall/classification parity;
+- measured-axis completeness/factual parity;
+- KPI eligibility/value parity;
+- annual EV/currency/referral assumptions;
+- coverage;
+- fail-closed trend;
+- user/admin separation;
+- prohibition of internal consistency/trap/provenance/scoring fields in user projection;
+- prohibition of Leakage/internal report language;
+- validation before final rendering and against rendered user-report text;
+- report display blocked on validation failure;
+- interpretation + validation scripts loaded before `app.js` on all five assessment pages;
+- obsolete browser engine state removed.
+
+Dedicated verification:
+
+Run `37746669959`, job `113209672293` — SUCCESS.
+
+Final tested head:
+
+`8663d335974637bcf55d255464c300990fd7a83e`
+
+Published via PR #60.
+
+No production mutation.
+
+## 10. WP-07 — what was done
+
+**Detailed record:** `documentation/governance/WP-07-REPORT-TEXT-MODEL-LINKAGE-2026-10-08.md`
+
+Implementation:
+
+- reconciled `assets/data/report_texts.json` to version 2.2.0;
+- removed live Leakage label;
+- removed live Trap badge;
+- removed legacy Revenue Gap;
+- removed score-derived financial priority language;
+- rewrote Economic Opportunity copy to annual semantics;
+- made the 3 visits/year assumption explicit;
+- removed monthly-visit wording;
+- removed unsupported optimization framing;
+- added `documentation/governance/REPORT-TEXT-LINKAGE-CATALOG-V1-2026-10-08.json`;
+- catalog audits all 94 live text leaves;
+- preserved semantic ownership in `assets/js/report-interpretation.js`.
+
+Dedicated Run `37747138706` — SUCCESS.
+
+Published via PR #61.
+
+No production mutation.
+
+## 11. WP-08 — what was actually done
+
+**Detailed record:** `documentation/governance/WP-08-V1-ASSESSMENT-RECONSTRUCTION-2026-10-08.md`
+
+Contrary to the previous conversational Handoff, WP-08 was implemented, verified and merged.
+
+Scope:
+
+- freeze approved Comprehensive Clinic V1 content snapshot;
+- freeze approved Patient Journey corrected-content snapshot;
+- create new final V1 rows rather than mutating published rows in place;
+- validate before routing;
+- route stable families to final V1;
+- delete superseded versions only after dependency checks;
+- ensure no published V2 product identity remains.
+
+Verified acceptance:
+
+- Comprehensive Clinic final V1 = verified corrected V2 content with identity reset;
+- Comprehensive Clinic: 36 questions / 152 options / 6 axes;
+- Patient Journey final V1: 25 questions / 96 options / 5 axes;
+- canonical weights preserved;
+- Patient Journey semantic-only question marked non-scoreable at content layer;
+- stable family slugs retained;
+- deletion guarded by dependency checks;
+- no final published V2 identity remains.
+
+Dedicated Run `37748440553` — SUCCESS.
+
+The isolated PostgreSQL harness was corrected during the stage for:
+
+1. service-port exposure;
+2. production family timestamp column alignment;
+3. case-sensitive approved Patient Journey fields;
+4. corrected Patient Journey count from 25/75 inventory to verified 25/96 corrected artifact.
+
+These were test/harness corrections, not production mutations.
+
+PR #62 merged at:
+
+`aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`
+
+No production DB migration or Edge Function deployment was executed.
+
+## 12. Draft / historical branch that must not be treated as execution authority
+
+PR #56 remains an open draft:
+
+`wp-05-report-interpretation-engine-2026-10-07`
+
+It is a stacked historical implementation branch. It is not the canonical published WP-05 path.
+
+Canonical WP-05 is PR #59 and merge `ee357a4e23d0c006783da9cdf236da3491c77c97`.
+
+Do not revive PR #56 as a new execution path.
+
+## 13. Current state at handoff
+
+The actual repository main sequence has reached WP-08.
+
+Current latest published work in this sequence:
+
+`aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`
+
+WP-01 through WP-08 have independent stage records and merged implementation history.
+
+Production remains outside this implementation sequence:
+
+- no production DB reset migration executed by these WPs;
+- no production Edge Function deployment executed by these WPs.
+
+The next contract-defined package is WP-09, but this register **does not authorize starting WP-09**.
+
+The owner must review/authorize the next WP before any new implementation begins.
+
+## 14. Mandatory owner-stop rule
+
+At the end of each WP:
+
+- report exact implementation;
+- report tests and evidence;
+- report production boundary;
+- report unresolved decisions/risks;
+- publish/merge the completed stage;
+- STOP.
+
+No later WP may be started because a previous WP appears technically straightforward.
+
+No content, version, routing, deletion or production decision may be inferred as approved merely because code/harness work exists.
+
+## 15. Canonical references
+
+- Final contract: `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`
+- WP-01: `documentation/governance/WP-01-SOURCE-INVENTORY-RECONCILIATION-2026-10-07.md`
+- WP-02: `documentation/governance/WP-02-ESTABLISH-ENGINE-2026-10-07.md`
+- WP-03: `documentation/governance/WP-03-CORRECT-CONFIGURATION-SEMANTICS-2026-10-08.md`
+- WP-04: `documentation/governance/WP-04-RESULT-MODEL-PERSISTENCE-2026-10-08.md`
+- WP-05: `documentation/governance/WP-05-REPORT-INTERPRETATION-2026-10-08.md`
+- WP-06: `documentation/governance/WP-06-REPORT-VALIDATION-2026-10-08.md`
+- WP-07: `documentation/governance/WP-07-REPORT-TEXT-MODEL-LINKAGE-2026-10-08.md`
+- WP-08: `documentation/governance/WP-08-V1-ASSESSMENT-RECONSTRUCTION-2026-10-08.md`
