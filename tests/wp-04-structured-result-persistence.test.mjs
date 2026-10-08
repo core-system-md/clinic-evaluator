@@ -72,7 +72,7 @@ test("WP-04 completion entrypoint sends Structured Result as the only factual co
 test("WP-04 engine persists only a projection of the Structured Result", () => {
   const source=fs.readFileSync("supabase/functions/assessment-access/engine.ts","utf8");
   assert.match(source,/projectScoreRowsFromStructuredResult/);
-  assert.doesNotMatch(source,/axisPersistenceRows\\(\\s*result\\.resolvedSelections/);
+  assert.ok(!source.includes("axisPersistenceRows(\n    result.resolvedSelections"));
 });
 
 test("WP-04 persistence migration rejects obsolete internal result fields", () => {
