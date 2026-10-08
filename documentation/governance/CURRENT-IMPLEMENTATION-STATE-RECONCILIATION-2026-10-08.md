@@ -206,3 +206,12 @@ No Production mutation occurred.
 The next implementation work is **not authorized automatically**. When authorized, the earliest unresolved implementation-stage reconciliation should be handled independently, with dedicated verification and closure before moving onward.
 
 **Current overall status: implementation is blocked from Production rollout until the unresolved reconciliation items are closed.**
+
+
+## Final WP-08 reconciliation record — 2026-10-08
+
+The post-closure V1 Consistency correction was followed by reconciliation of stale canonical/test expectations exposed by the corrected registry scope. PR #67 brought the architecture registry and P3/WP-03 contract tests into exact version-scoped parity and merged to main at be6214e4f8fb9382ccdf8150d34491a061887b97.
+
+The dedicated WP-08 verification remained successful (37777401435), the P3 isolated kernel succeeded (113312306760), and the WP-03 configuration semantics contract succeeded (113312305582). The WP-03 disposable PostgreSQL contract also succeeded (113312305836). The full Node baseline remains red on existing P5 editor assertions unrelated to this reconciliation.
+
+Production remains unchanged and the WP-08 migration remains unapplied in Production.

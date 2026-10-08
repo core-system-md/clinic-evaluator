@@ -94,6 +94,22 @@ No Production database migration, routing change, content mutation, or Edge Func
 
 **WP-08 reconciliation correction = PASS**  
 **WP-08 = STAGE CLOSED after correction**  
-**Correction merged through PR #65**
+**Correction merged through PR #65, with canonical/test reconciliation merged through PR #67**
 
 The prior WP-08 PASS record remains historical evidence of the original stage execution; PR #65 is the authoritative corrective closure for the two subsequently discovered deviations.
+
+
+## Canonical/test follow-up — PR #67
+
+The V1 Consistency runtime expansion exposed stale cross-stage assumptions in the canonical architecture artifact and P3/WP-03 contract tests. PR #67 reconciled them without changing scoring behavior:
+
+- canonical P3-CONSISTENCY-PAIR-REGISTRY-V1.json now matches the runtime registry;
+- registry scope is versioned: Comprehensive V2 = 52, Comprehensive V1 = 52, Patient Journey V1 = 4;
+- P3 production-contract and WP-03 configuration tests validate those version-scoped counts;
+- dedicated WP-08 workflow 37777401435 = SUCCESS;
+- P3 isolated kernel job 113312306760 = SUCCESS;
+- WP-03 configuration semantics job 113312305582 = SUCCESS;
+- WP-03 disposable PostgreSQL contract job 113312305836 = SUCCESS;
+- the full Node baseline remains red only on existing P5 editor assertions unrelated to this reconciliation.
+
+PR #67 merged to main as be6214e4f8fb9382ccdf8150d34491a061887b97.
