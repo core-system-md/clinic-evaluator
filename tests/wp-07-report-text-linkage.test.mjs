@@ -39,6 +39,30 @@ test('WP-07 linkage sources are constrained and audited', () => {
   assert.ok(catalog.removed.some(x => x.path === 'badges.layer_trap'));
 });
 
+test('WP-07 every report family owns presentation semantics used by the renderer', async () => {
+  const interpretation = await import('../assets/js/report-interpretation.js');
+  const models = interpretation.REPORT_MODELS || interpretation.default?.REPORT_MODELS;
+  assert.ok(models);
+  for (const [family, model] of Object.entries(models)) {
+    assert.ok(model.presentation?.resultSummary, family + ': resultSummary');
+    assert.ok(model.presentation?.priorityHeading, family + ': priorityHeading');
+    assert.ok(model.presentation?.strengthHeading, family + ': strengthHeading');
+    assert.ok(model.presentation?.benchmarkHeading, family + ': benchmarkHeading');
+  }
+});
+
+test('WP-07 app contains no hardcoded report-semantic presentation strings', () => {
+  const app = fs.readFileSync('assets/js/app.js','utf8');
+  for (const term of [
+    'درجتك الكلية للعيادة',
+    'المحور ذي الأولوية في القراءة',
+    'أعلى محور مقاس',
+    'التحليل البصري الشامل'
+  ]) assert.equal(app.includes(term), false, term);
+  assert.doesNotMatch(app, /res\?\.structuredResult/);
+  assert.doesNotMatch(app, /100\s*[-−]\s*res\.overallScore/);
+});
+
 test('WP-07 report interpretation remains the semantic report-model boundary', () => {
   const interpretation = fs.readFileSync('assets/js/report-interpretation.js','utf8');
   assert.match(interpretation, /REPORT_MODELS/);
