@@ -25,6 +25,17 @@ function firstSelection(slug) {
     }));
 }
 
+function walkFiles(dir) {
+  const out = [];
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === "node_modules" || entry.name === ".git") continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) out.push(...walkFiles(full));
+    else out.push(full);
+  }
+  return out;
+}
+
 test("WP-02 local contract: canonical engine ownership is unambiguous", () => {
   assert.equal(fs.existsSync(ENGINE), true);
   assert.equal(fs.existsSync(OLD), false);
@@ -48,18 +59,19 @@ test("WP-02 local contract: canonical engine ownership is unambiguous", () => {
   assert.match(legacy, /compatibility\/reference only/);
 });
 
-test("WP-02 local contract: all currently published fixture families have explicit version/interpretation coverage", () => {
+test("WP-02 local contract: every current published fixture family has explicit interpretation coverage", () => {
   const engine = fs.readFileSync(ENGINE, "utf8");
   for (const [slug, family] of Object.entries(config.families)) {
-    assert.ok(engine.includes(\`"\${slug}:\${family.version}"\`), \`missing binding for \${slug}:\${family.version}\`);
+    const binding = '"' + slug + ":" + family.version + '"';
+    assert.ok(engine.includes(binding), "missing binding for " + binding);
     const entries = registry.entries.filter(
       (entry) => entry.assessmentSlug === slug && Number(entry.interpretationVersion) === 1,
     );
-    assert.ok(entries.length > 0, \`missing interpretation entries for \${slug}\`);
+    assert.ok(entries.length > 0, "missing interpretation entries for " + slug);
   }
 });
 
-test("WP-02 local contract: deterministic Structured Result construction is stable for identical inputs", () => {
+test("WP-02 local contract: deterministic Structured Result construction is stable", () => {
   const slug = "patient-journey";
   const family = config.families[slug];
   const input = {
@@ -91,7 +103,7 @@ test("WP-02 local contract: deterministic Structured Result construction is stab
   assert.ok(Array.isArray(a.scores.axes));
 });
 
-test("WP-02 local contract: Structured Result carries factual result fields and report-only fields are absent", () => {
+test("WP-02 local contract: Structured Result is factual authority, without report-only leakage/projection fields", () => {
   const slug = "clinic-performance";
   const family = config.families[slug];
   const result = scoreP3IntegratedV1({
@@ -122,11 +134,8 @@ test("WP-02 local contract: Structured Result carries factual result fields and 
   assert.equal(Object.hasOwn(result, "legacyProjection"), false);
 });
 
-test("WP-02 local contract: browser is not an official scoring authority", () => {
-  const htmlFiles = fs.readdirSync(ROOT)
-    .filter((name) => name.endsWith(".html"))
-    .map((name) => path.join(ROOT, name));
-
+test("WP-02 local contract: browser cannot be the official scoring authority", () => {
+  const htmlFiles = walkFiles(ROOT).filter((file) => file.endsWith(".html"));
   for (const file of htmlFiles) {
     const source = fs.readFileSync(file, "utf8");
     assert.doesNotMatch(source, /\/engine\/engine\.js/);
