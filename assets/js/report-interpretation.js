@@ -356,14 +356,18 @@
 
   function trendPresentation(trend) {
     if (!trend || trend.status !== 'available') return trend;
+
+    const deltaText = Math.abs(Number(trend.delta)).toFixed(1) + '%';
+    const statement =
+      trend.direction === 'up'
+        ? 'تغير إيجابي بمقدار +' + deltaText + ' مقارنة بالتقييم السابق.'
+        : trend.direction === 'down'
+          ? 'تغير بمقدار -' + deltaText + ' مقارنة بالتقييم السابق.'
+          : 'أداء مستقر مقارنة بالتقييم السابق.';
+
     return {
       ...trend,
-      statementKey:
-        trend.direction === 'up'
-          ? 'trend.up'
-          : trend.direction === 'down'
-            ? 'trend.down'
-            : 'trend.stable'
+      statement
     };
   }
 
