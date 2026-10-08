@@ -9,6 +9,7 @@ test('WP-08 final artifacts are V1 and preserve required content counts', () => 
   assert.equal(comp.axes.length,6); assert.equal(comp.questions.length,36);
   assert.equal(patient.assessmentVersion,1);
   assert.equal(patient.axes.length,5); assert.equal(patient.questions.length,25);
+  assert.equal(patient.questions.reduce((n,q)=>n+q.options.length,0),96);
   assert.equal(patient.questions.filter(q=>q.options.some(o=>o.scoreMode==='SEMANTIC_ONLY')).length,1);
 });
 
