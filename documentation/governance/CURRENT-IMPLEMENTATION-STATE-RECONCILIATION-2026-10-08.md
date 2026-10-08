@@ -402,7 +402,7 @@ Their stage labels serve auditability and do not by themselves create a runtime 
 
 **High priority:** establish a migration-provenance map before any migration filename cleanup or new migration sequencing.
 
-**Direct naming cleanup candidates:** the 12 unapplied/current runtime-config artifacts and the three unapplied WP-named migration files, subject to ownership/dependency review.
+**Direct naming cleanup candidates:** the 12 current runtime/config artifacts and the three unapplied WP-named migration files, subject to ownership/dependency review.
 
 ### 12.4 Investigation conclusion
 
@@ -415,3 +415,24 @@ The repository currently violates that boundary in runtime/config filenames, new
 No implementation correction was authorized or performed by this checkpoint. The next engineering action, when authorized, must be one coordinated ownership-preserving reconciliation: inspect consumers and live dependencies, modify the existing owner where possible, rename only safe/unapplied artifacts, and disposition legacy duplicates without creating replacement parallel paths.
 
 **Production state remains unchanged.**
+
+
+### 12.5 Production/runtime deployment divergence discovered during the investigation
+
+**PROVEN — Production does not currently run the repository canonical engine path**
+
+Read-only retrieval of the live Supabase `assessment-access` Edge Function shows:
+
+- live Edge Function version: **32**;
+- deployed digest: `950467bed27b99961ea46177e654be2cacacf4f867ad884549de9d7dc0198edb`;
+- live `index.ts` imports `./score-engine.ts`;
+- live completion selection uses `complete_p4_assessment_session` / `complete_p4_public_assessment_session`;
+- live function bundle still contains `score-engine.ts` and the stage-named `p3-*` calculation modules.
+
+This is inconsistent with the current repository target, where `assessment-access/index.ts` imports `./engine.ts` and the canonical ownership contract states that `engine.ts` is the sole official calculation entrypoint.
+
+The live database also contains no `complete_p4_*_from_result` functions in the inspected public function inventory, while the repository branch code calls those names. This confirms a repository-to-production deployment/API drift that must be resolved before any claim that the current repository ownership architecture is production-effective.
+
+**Engineering consequence:** this is not a cosmetic filename issue. It is a release/ownership boundary issue. No production deployment or database aliasing should be used as a shortcut. The repository runtime owner, database completion boundary, deployed Edge Function bundle, and migration state must be reconciled as one controlled change.
+
+**Production state:** no mutation was performed by this investigation.
