@@ -1,0 +1,508 @@
+{
+  "catalogVersion": "WP07_TEXT_LINKAGE_V1",
+  "status": "AUDITED",
+  "purpose": "Trace every live report-text entry to its permitted evidence/ownership source. report_texts.json is presentation copy, not semantic authority.",
+  "sources": {
+    "presentation": "UI/presentation copy only; no independent measurement or business claim.",
+    "structured_result_classification": "Structured Result classification.bandCode.",
+    "structured_result_scores": "Structured Result scores and measured axes.",
+    "structured_result_diagnostics": "Structured Result diagnostics/findings.",
+    "kpi_catalog": "Approved KPI catalog and Structured Result kpis[] eligibility/value.",
+    "economic_model": "Approved economic model and Structured Result economics output/assumptions.",
+    "report_model": "Assessment-family report model in assets/js/report-interpretation.js."
+  },
+  "entries": [
+    {
+      "path": "version",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "project",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.buttons.submit",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.buttons.print",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.buttons.new_assessment",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.buttons.processing",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.metadata.specialty_label",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.metadata.specialty_placeholder",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.metadata.years_label",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.metadata.years_placeholder",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.metadata.team_label",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.metadata.team_placeholder",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.progress.of",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "ui.simulator.title",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.description",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.explanation_before",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.how_it_works_title",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.how_it_works_steps[0]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.how_it_works_steps[1]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.how_it_works_steps[2]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.how_it_works_steps[3]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.how_it_works_steps[4]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.example_title",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.example_text",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.notes_title",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.notes_items[0]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.notes_items[1]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.notes_items[2]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.notes_items[3]",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.avg_label",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.avg_placeholder",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.visits_label",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.visits_placeholder",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.years_label",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.years_placeholder",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.referral_label",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.fields.referral_placeholder",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.report_current_ev",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.report_potential_ev",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.report_optimized_ev",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.btn_calculate",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "ui.simulator.btn_back",
+      "type": "string",
+      "source": "economic_model"
+    },
+    {
+      "path": "quartiles.Q1.label",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q1.color",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q2.label",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q2.color",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q3.label",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q3.color",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q4.label",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "quartiles.Q4.color",
+      "type": "string",
+      "source": "structured_result_classification"
+    },
+    {
+      "path": "kpis.TFI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TFI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TFI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TAP.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TAP.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TAP.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PRP.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PRP.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PRP.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PLI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PLI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PLI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PSI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PSI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.PSI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.NPI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.NPI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.NPI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.EVI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.EVI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.EVI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TCI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TCI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.TCI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.RRI.name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.RRI.short_name",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "kpis.RRI.description",
+      "type": "string",
+      "source": "kpi_catalog"
+    },
+    {
+      "path": "sections.kpis",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "sections.axes",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "sections.gaps",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "sections.ev_simulator",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "sections.ev_current",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "sections.ev_potential",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "sections.ev_gap",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "badges.impact_high",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "badges.impact_medium",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "badges.impact_low",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.overall_score",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.structural_diagnosis",
+      "type": "string",
+      "source": "structured_result_diagnostics"
+    },
+    {
+      "path": "report.axis_summary",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "errors.init_failed",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "errors.missing_answers",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "errors.processing_error",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "errors.assessment_not_found",
+      "type": "string",
+      "source": "presentation"
+    }
+  ],
+  "removed": [
+    {
+      "path": "ui.simulator.explanation_before",
+      "reason": "Legacy Leakage framing replaced."
+    },
+    {
+      "path": "ui.simulator.report_gap",
+      "reason": "Legacy Revenue Gap presentation removed."
+    },
+    {
+      "path": "ui.simulator.report_priority",
+      "reason": "Unsupported score-derived financial/causal statement removed."
+    },
+    {
+      "path": "badges.layer_trap",
+      "reason": "Internal Trap terminology removed from user copy."
+    },
+    {
+      "path": "report.leakage_label",
+      "reason": "Leakage metric removed by final contract."
+    }
+  ]
+}
