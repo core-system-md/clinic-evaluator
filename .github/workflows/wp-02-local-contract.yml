@@ -1,0 +1,41 @@
+name: WP-02 final-contract local gate
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "supabase/functions/assessment-access/**"
+      - "tests/wp-02-contract-local.test.mjs"
+      - "tests/p3-integrated-scorer-v1.test.mjs"
+      - "tests/fixtures/**"
+      - "documentation/architecture/**"
+      - ".github/workflows/wp-02-local-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-02-contract:
+    name: WP-02 contract-local verification
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Run WP-02 local contract harness
+        run: node --experimental-strip-types --test tests/wp-02-contract-local.test.mjs
+
+      - name: Run WP-02 scoring regression
+        run: node --experimental-strip-types --test tests/p3-integrated-scorer-v1.test.mjs tests/p3-production-contract.test.mjs tests/p3-engine-ownership.test.mjs
+
+      - name: Browser syntax guard
+        run: node --check assets/js/app.js
