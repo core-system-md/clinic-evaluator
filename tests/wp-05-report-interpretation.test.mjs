@@ -1,7 +1,8 @@
-const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const test = require("node:test");
-const { projectUserReport, projectAdminReport, compatibleTrend } = require("../assets/js/report-interpretation.js");
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import test from "node:test";
+import reportApi from "../assets/js/report-interpretation.js";
+const { projectUserReport, projectAdminReport, compatibleTrend } = reportApi;
 
 function makeResult() {
   return {
