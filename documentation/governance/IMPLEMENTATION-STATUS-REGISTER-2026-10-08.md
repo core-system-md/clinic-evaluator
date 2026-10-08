@@ -44,6 +44,7 @@ This is the authoritative correction. The earlier conversational claim was a rep
 | WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | CLOSED |
 | WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | CLOSED |
 | WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 | Run `37748440553` | merge commit `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c` | NO | CLOSED |
+| WP-09 | Obsolete engine/runtime references | `wp-09-remove-obsolete-engine-references-2026-10-08` | #64 | Run `37762105060`; job `113260773915` | pending final PR merge | NO | PASS / STAGE CLOSED |
 
 ## 4. WP-01 — what was done
 
@@ -299,6 +300,39 @@ PR #62 merged at:
 `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`
 
 No production DB migration or Edge Function deployment was executed.
+
+## 12. WP-09 — what was done
+
+**Detailed record:** `documentation/governance/WP-09-OBSOLETE-ENGINE-REFERENCES-2026-10-08.md`
+
+WP-09 removed the stale browser runtime reference to the deleted `/engine/engine.js` path from all five assessment pages.
+
+Implementation:
+- `patient-journey.html`
+- `clinic-performance.html`
+- `medical-team-assessment.html`
+- `admin-reception-assessment.html`
+- `comprehensive-clinic-assessment.html`
+
+Dedicated verification artifacts:
+- `tests/wp-09-obsolete-engine-references.test.mjs`
+- `.github/workflows/wp-09-obsolete-engine-references.yml`
+
+Dedicated verification:
+- Run **37762105060 — SUCCESS**
+- Job **113260773915 — SUCCESS**
+- `npm ci` — SUCCESS
+- WP-09 test suite — SUCCESS
+
+The explicitly classified `score-engine-legacy.ts` reference implementation was retained; no SQL legacy scorer disposition was performed in this WP.
+
+Production boundary:
+- no production database mutation;
+- no production Edge Function deployment;
+- no assessment content/version routing change.
+
+**WP-09 = PASS / STAGE CLOSED**
+
 
 ## 12. Draft / historical branch that must not be treated as execution authority
 
