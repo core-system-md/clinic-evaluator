@@ -59,7 +59,7 @@ begin
   if (select coalesce(sum(weight),0) from public.axes where assessment_type_id=new_type) <> 100 then
     raise exception 'WP08 final Comprehensive V1 axis weights must total 100%%';
   end if;
-end $;
+end $$;
 
 delete from public.options where question_id in (select id from public.questions where assessment_type_id in ('0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'));
 delete from public.questions where assessment_type_id in ('0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a');
