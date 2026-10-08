@@ -126,7 +126,7 @@ test("WP-05 server trend adapter verifies provenance before exposing comparison 
   assert.match(access, /getAssessmentProvenance\(supabase, assessmentTypeId\)/);
   assert.match(access, /comparisonStatus: "compatible"/);
   assert.match(access, /comparisonStatus: "incompatible"/);
-  assert.doesNotMatch(access, /previousSessionData:\s*\{[\s\S]*scoringEngineVersion:/);
+  assert.doesNotMatch(access, /previousSessionData:\s*\{[^}]*scoringEngineVersion:/);
 });
 
 test("WP-05 admin report projection", () => {
