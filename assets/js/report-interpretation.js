@@ -32,7 +32,12 @@
     resultSummary: 'درجتك الكلية للعيادة: {score} من 100 — {label}',
     priorityHeading: '🎯 المحور ذي الأولوية في القراءة',
     strengthHeading: '💪 أعلى محور مقاس',
-    benchmarkHeading: '📊 التحليل البصري الشامل'
+    benchmarkHeading: '📊 التحليل البصري الشامل',
+    priorityStatement: 'هذا المحور هو الأقل ضمن المحاور المقاسة في هذا التقييم.',
+    strengthStatement: 'هذا المحور هو الأعلى ضمن المحاور المقاسة في هذا التقييم.',
+    trendUp: 'تغير إيجابي بمقدار +{delta} مقارنة بالتقييم السابق.',
+    trendDown: 'تغير بمقدار -{delta} مقارنة بالتقييم السابق.',
+    trendStable: 'أداء مستقر مقارنة بالتقييم السابق.'
   };
 
   /*
@@ -66,7 +71,7 @@
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
       },
-      presentation: COMMON_PRESENTATION
+      presentation: { ...COMMON_PRESENTATION }
     },
 
     'clinic-performance': {
@@ -94,7 +99,7 @@
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
       },
-      presentation: COMMON_PRESENTATION
+      presentation: { ...COMMON_PRESENTATION }
     },
 
     'comprehensive-clinic-assessment': {
@@ -125,7 +130,7 @@
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
       },
-      presentation: COMMON_PRESENTATION
+      presentation: { ...COMMON_PRESENTATION }
     },
 
     'medical-team-assessment': {
@@ -154,7 +159,7 @@
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
       },
-      presentation: COMMON_PRESENTATION
+      presentation: { ...COMMON_PRESENTATION }
     },
 
     'patient-journey': {
@@ -184,7 +189,7 @@
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
       },
-      presentation: COMMON_PRESENTATION
+      presentation: { ...COMMON_PRESENTATION }
     }
   };
 
@@ -321,38 +326,32 @@
     };
   }
 
-  function interpretConclusion(axis, type) {
+  function interpretConclusion(axis, type, presentation) {
     if (!axis) return null;
-    if (type === 'priority') {
-      return {
-        axisCode: axis.code,
-        axisNameAr: axis.nameAr,
-        percentage: axis.percentage,
-        statement: 'هذا المحور هو الأقل ضمن المحاور المقاسة في هذا التقييم.'
-      };
-    }
     return {
       axisCode: axis.code,
       axisNameAr: axis.nameAr,
       percentage: axis.percentage,
-      statement: 'هذا المحور هو الأعلى ضمن المحاور المقاسة في هذا التقييم.'
+      statement: type === 'priority'
+        ? presentation.priorityStatement
+        : presentation.strengthStatement
     };
   }
 
-  function trendPresentation(trend) {
+  function trendPresentation(trend, presentation) {
     if (!trend || trend.status !== 'available') return trend;
 
     const deltaText = Math.abs(Number(trend.delta)).toFixed(1) + '%';
-    const statement =
+    const template =
       trend.direction === 'up'
-        ? 'تغير إيجابي بمقدار +' + deltaText + ' مقارنة بالتقييم السابق.'
+        ? presentation.trendUp
         : trend.direction === 'down'
-          ? 'تغير بمقدار -' + deltaText + ' مقارنة بالتقييم السابق.'
-          : 'أداء مستقر مقارنة بالتقييم السابق.';
+          ? presentation.trendDown
+          : presentation.trendStable;
 
     return {
       ...trend,
-      statement
+      statement: String(template || '').replace('{delta}', deltaText)
     };
   }
 
@@ -370,7 +369,7 @@
       throw new Error('Public report source classification is not mapped to a report text template.');
     }
 
-    const trend = trendPresentation(compatibleTrend(current, previousSession));
+    const trend = trendPresentation(compatibleTrend(current, previousSession), model.presentation);
 
     return {
       audience: 'user',
@@ -387,8 +386,8 @@
         labelKey: model.textCatalog.overallBand.replace('{bandCode}', bandCode)
       },
       axes,
-      priority: interpretConclusion(lowest, 'priority'),
-      strength: interpretConclusion(highest, 'strength'),
+      priority: interpretConclusion(lowest, 'priority', model.presentation),
+      strength: interpretConclusion(highest, 'strength', model.presentation),
       kpis: userKpis(current, model),
       economicOpportunity: economicProjection(current, model),
       trend,
