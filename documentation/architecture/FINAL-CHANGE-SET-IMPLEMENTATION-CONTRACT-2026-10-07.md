@@ -135,6 +135,20 @@ Legacy tables/functions do not become competing authorities.
 
 ---
 
+## 5.1 Technical ownership and functional naming
+
+The repository must preserve one clear technical owner for each responsibility.
+
+- Production/runtime technical files must be named for their responsibility/function, not for P0–P5, WP-01–WP-n, or another work-plan stage.
+- Stage labels may remain in documentation and deliberate traceability artifacts such as stage-specific tests and CI when they serve auditability rather than technical ownership.
+- Before creating a new technical file, inspect and verify the existing owner. Repair/refactor by modifying or extending that owner whenever it already owns the responsibility.
+- A new technical file is permitted only for a genuinely independent responsibility with an explicit ownership boundary. It must not be a replacement/parallel implementation created merely to avoid modifying the existing owner.
+- After extraction or replacement, reconcile all imports, callers, exports, tests, workflows, runtime entrypoints, and deployment references. No abandoned, disabled, dead, or duplicate implementation may remain without an explicitly documented temporary compatibility/reference purpose.
+- New database migrations must use functional names. Previously applied migration filenames are migration-history identities and must not be renamed as a cosmetic cleanup; any migration-name reconciliation requires live-history, dependency, and provenance verification.
+- P0–P5/WP labels in branch names, PR titles, commits, tests, or CI do not authorize treating the referenced runtime responsibility as a stage-named subsystem.
+
+This is an engineering ownership and technical-debt rule, not a cosmetic naming preference.
+
 # 6. Assessment identity reset
 
 ## 6.1 Final identity rule
