@@ -104,7 +104,7 @@ After the reconciliation, read-only Supabase verification confirms:
 **WP-06 = PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**  
 **WP-07 = PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
 
-The three post-closure contract deviations identified at the start of this workstream are resolved at the implementation, dedicated-verification, integrated-verification, and documentation boundaries.
+The three post-closure contract deviations identified at the start of this workstream are resolved at the implementation, dedicated-verification, integrated-verification, and documentation boundaries. The documentation consolidation is committed on top of the verified code head.
 
 This does **not** authorize Production rollout or any Production data/schema/function mutation.
 
@@ -113,3 +113,5 @@ This does **not** authorize Production rollout or any Production data/schema/fun
 This integrated reconciliation workstream is complete.
 
 **No WP-08 or later implementation work was started.**
+
+Documentation consolidation commit follows the verified code head and preserves all reconciliation code/test changes.
