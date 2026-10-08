@@ -552,49 +552,7 @@ class ClinicEvaluatorApp {
   }
 
 
-  projectStoredResult(row) {
-    const structured = row?.result;
-    if (!structured) return null;
 
-    const axisScores = {};
-    for (const axis of structured?.scores?.axes || []) {
-      if (Number.isFinite(axis?.score)) {
-        axisScores[String(axis.axisCode)] = Number(axis.score);
-      }
-    }
-
-    const kpis = {};
-    for (const kpi of structured?.kpis || []) {
-      if (kpi?.status !== 'unavailable' && Number.isFinite(kpi?.value)) {
-        kpis[String(kpi.kpiCode)] = Number(kpi.value);
-      }
-    }
-
-    return {
-      overallScore: Number.isFinite(structured?.scores?.overallScore)
-        ? Number(structured.scores.overallScore)
-        : null,
-      classification: structured?.classification?.bandCode || null,
-      axisScores,
-      kpis,
-      evSimulator: null,
-      traps: [],
-      structuredResult: structured,
-      provenance: row
-        ? {
-            assessmentVersion: row.assessment_version,
-            interpretationVersion: row.interpretation_version,
-            scoringEngineVersion: row.scoring_engine_version,
-            scoringContractVersion: row.scoring_contract_version,
-            assessmentConfigDigest: row.assessment_config_digest,
-            calculatedAt: row.calculated_at,
-          }
-        : null,
-      already_completed: true,
-      session_id: this.currentSessionId,
-      assessment_version: this.assessment?.version || structured?.identity?.assessmentVersion || null,
-    };
-  }
 
   async checkExistingSession() {
     const key = 'assessment_access_' + this.currentAssessmentKey;
@@ -624,8 +582,8 @@ class ClinicEvaluatorApp {
       }
 
       this.completedResult = null;
-      if (result.session?.status === 'completed' && result.result?.result) {
-        this.completedResult = this.projectStoredResult(result.result);
+      if (result.session?.status === 'completed' && result.reportSource) {
+        this.completedResult = { reportSource: result.reportSource };
       }
 
       return Boolean(this.currentSessionId);
@@ -778,16 +736,16 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
-    const structured = res?.structuredResult;
-    if (!structured || typeof window.MDReportInterpretation?.projectUserReport !== 'function') {
-      this.showFatalError('تعذر بناء التقرير: النتيجة المنظمة الرسمية غير متاحة.');
+    const reportSource = res?.reportSource;
+    if (!reportSource || typeof window.MDReportInterpretation?.projectUserReport !== 'function') {
+      this.showFatalError('تعذر بناء التقرير: مصدر التقرير العام الآمن غير متاح.');
       return;
     }
 
     let report;
     try {
       report = window.MDReportInterpretation.projectUserReport(
-        structured,
+        reportSource,
         this.previousSessionData,
         this.currentAssessmentKey
       );
@@ -798,7 +756,7 @@ class ClinicEvaluatorApp {
     }
 
     try {
-      window.MDReportValidation.assertValidUserReport(structured, report);
+      window.MDReportValidation.assertValidUserReport(reportSource, report);
     } catch (error) {
       console.error('[app] report validation failed before render:', error);
       this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من سلامة النتيجة أو محتوى التقرير.');
@@ -832,9 +790,11 @@ class ClinicEvaluatorApp {
       const trendHtml = report.trend?.status === 'available'
         ? '<div style="margin-top:10px;font-weight:700;font-size:0.95rem;">' + this.escapeHtml(report.trend.statement || '') + '</div>'
         : '';
-      body.innerHTML =
-        '<div>درجتك الكلية للعيادة: ' + score + ' من 100 — ' + this.escapeHtml(qData.label) + '</div>' +
-        trendHtml;
+      const summaryTemplate = report.presentation?.resultSummary || '{label}';
+      const summary = summaryTemplate
+        .replace('{score}', score)
+        .replace('{label}', qData.label);
+      body.innerHTML = '<div>' + this.escapeHtml(summary) + '</div>' + trendHtml;
     }
 
     const axesContainer = document.getElementById('axes-scores');
@@ -865,7 +825,7 @@ class ClinicEvaluatorApp {
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
         box.innerHTML =
-          '<h4>🎯 المحور ذي الأولوية في القراءة</h4>' +
+          '<h4>' + this.escapeHtml(report.presentation?.priorityHeading || '') + '</h4>' +
           '<p>' + this.escapeHtml(report.priority.statement) + ' ' +
             '<strong>' + this.escapeHtml(report.priority.axisNameAr) + '</strong> (' +
             Number(report.priority.percentage).toFixed(1) + '%).</p>' +
@@ -885,7 +845,7 @@ class ClinicEvaluatorApp {
 
     const renderedText = document.getElementById('view-results')?.innerText || '';
     try {
-      window.MDReportValidation.assertValidUserReport(structured, report, renderedText);
+      window.MDReportValidation.assertValidUserReport(reportSource, report, renderedText);
     } catch (error) {
       console.error('[app] rendered report validation failed:', error);
       this.hideView('view-results');
@@ -910,7 +870,9 @@ class ClinicEvaluatorApp {
       axesContainer?.parentNode?.insertBefore(benchmarkContainer, axesContainer.nextSibling);
     }
 
-    benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
+    benchmarkContainer.innerHTML = '<h3 class="card-title">' +
+      this.escapeHtml(report.presentation?.benchmarkHeading || '') +
+      '</h3>';
 
     const axisData = Array.isArray(report?.axes) ? report.axes : [];
     if (axisData.length) {
