@@ -62,7 +62,7 @@ function makePublicSource() {
 }
 
 test("WP-05 user report projection", () => {
-  const report = projectUserReport(makeResult(), null, "clinic-performance");
+  const report = projectUserReport(makePublicSource(), null, "clinic-performance");
   assert.equal(report.audience, "user");
   assert.equal(report.overall.value, 68);
   assert.equal(report.overall.bandCode, "Q3");
