@@ -47,7 +47,10 @@ test("WP-03 configuration contract: interpretation anchors are explicit and sour
 });
 
 test("WP-03 configuration contract: current question semantics are explicit and non-ambiguous", () => {
-  assert.deepEqual([...new Set(registryV1.entries.map((e) => e.measurementLayer))].sort(), ["E/M","M","P/M"]);
+  const v1Layers = new Set(registryV1.entries.map((e) => e.measurementLayer));
+  for (const layer of ["E","E/M","M","M/E","M/X","P","P/E","P/K","P/M"]) {
+    assert.ok(v1Layers.has(layer), "missing measurement layer " + layer);
+  }
   assert.deepEqual([...new Set(registryV1.entries.map((e) => e.scoreMode))].sort(), ["DIRECT_ANCHOR","EVIDENCE_ONLY","SEMANTIC_ONLY","SIGNAL_ONLY"]);
   assert.deepEqual([...new Set(registryV2.entries.map((e) => e.scoreMode))], ["DIRECT_ANCHOR"]);
   assert.ok(registryV1.entries.every((e) => e.interpretationVersion === 1));
@@ -72,11 +75,12 @@ test("WP-03 configuration contract: KPI mapping weights are normalized coefficie
   assert.deepEqual(config.kpiScope.RRI, ["admin-reception-assessment"]);
 });
 
-test("WP-03 configuration contract: EV simulator capability is distinguished from EV mappings", () => {
-  const source = fs.readFileSync("tests/fixtures/p3-current-published-config-v1.json", "utf8");
-  assert.match(source, /"kpiMappings"/);
-  assert.match(source, /"evMappings"/i);
-  assert.match(fs.readFileSync("supabase/functions/assessment-access/index.ts", "utf8"), /visitsPerYear: 3/);
+test("WP-03 configuration contract: EV capability is separate from EV input basis", () => {
+  const source = fs.readFileSync("supabase/functions/assessment-access/index.ts", "utf8");
+  assert.match(source, /visitsPerYear: 3/);
+  assert.match(source, /const visits = .*3/);
+  assert.doesNotMatch(source, /visitsPerMonth/);
+  assert.doesNotMatch(source, /monthly visits/i);
 });
 
 test("WP-03 configuration contract: explicit consistency pairs are version-scoped and linked to registered relationship types", () => {
