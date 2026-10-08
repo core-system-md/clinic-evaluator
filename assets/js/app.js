@@ -12,7 +12,6 @@ class ClinicEvaluatorApp {
   constructor() {
     this.config = null;
     this.texts = null;
-    this.engine = null;
     this.supabase = null;
     this.assessmentAccessToken = null;
     this.assessmentAccessUser = null;
