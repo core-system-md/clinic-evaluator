@@ -436,3 +436,36 @@ The live database also contains no `complete_p4_*_from_result` functions in the 
 **Engineering consequence:** this is not a cosmetic filename issue. It is a release/ownership boundary issue. No production deployment or database aliasing should be used as a shortcut. The repository runtime owner, database completion boundary, deployed Edge Function bundle, and migration state must be reconciled as one controlled change.
 
 **Production state:** no mutation was performed by this investigation.
+
+
+### 12.6 Production artifact is also carrying superseded ownership/transport semantics
+
+**PROVEN — live Edge Function v32 is not the current repository implementation**
+
+The live `assessment-access` bundle contains `index.ts` importing `./score-engine.ts`, while the current repository canonical entrypoint is `engine.ts`.
+
+The live bundle also contains:
+
+- `score-engine.ts` with a `legacyProjection` compatibility-shaped return;
+- `P3_INTEGRATED_SCORER_V1` as the engine identity inside the live calculation;
+- `P3_SCORER_V1` as the reported scoring-engine version;
+- `P3_AGGREGATION_V2` as the live scoring-contract version;
+- stage-named `p3-*` implementation modules.
+
+The live completion response also returns:
+
+- `...computed.legacyProjection`;
+- the full `structuredResult`;
+- a technical `provenance` object.
+
+This means the currently deployed runtime still reflects the superseded ownership/transport architecture that the current repository reconciliation was designed to correct.
+
+**PROVEN — repository production-boundary code and live database API are not yet aligned**
+
+Current repository code calls `complete_p4_assessment_from_result` / `complete_p4_public_assessment_from_result`, but the inspected live `public` function inventory contains no functions with those names. The live database instead contains the older `complete_p4_assessment_session` / `complete_p4_public_assessment_session` pair.
+
+This is a deployment/migration synchronization gap. It must be resolved as one controlled release boundary; it must not be “fixed” by creating indefinite aliases or parallel completion paths merely to make the branch executable against production.
+
+**Engineering consequence:** the naming/debt investigation has exposed a production-correctness boundary: repository ownership, deployed Edge Function source, database completion API, Structured Result transport policy, and migration state currently describe different generations of the system.
+
+**No production mutation was made during this investigation.**
