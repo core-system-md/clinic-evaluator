@@ -90,9 +90,9 @@ test('WP-06 fails closed on incompatible trend', () => {
   const previous = {
     assessmentFamilyId: 'other-family',
     assessmentVersion: 1,
-    scoringEngineVersion: structured.provenance.scoringEngineVersion,
-    scoringContractVersion: structured.provenance.scoringContractVersion,
-    assessmentConfigDigest: structured.provenance.assessmentConfigDigest,
+    scoringEngineVersion: 'legacy',
+    scoringContractVersion: 'legacy',
+    assessmentConfigDigest: 'legacy',
     overallScore: 60
   };
   const report = interpretation.projectUserReport(source, previous, 'clinic-performance');
@@ -112,9 +112,9 @@ test('WP-06 preserves annual economic semantics and rejects tampering', () => {
 });
 
 test('WP-06 blocks prohibited internal user language', () => {
-  const structured = resultFixture();
-  const report = interpretation.projectUserReport(structured, null, 'clinic-performance');
-  const result = validation.validateUserReport(structured, report, 'نتيجة Leakage داخل التقرير');
+  const source = publicSourceFixture();
+  const report = interpretation.projectUserReport(source, null, 'clinic-performance');
+  const result = validation.validateUserReport(source, report, 'نتيجة Leakage داخل التقرير');
   assert.equal(result.ok, false);
   assert.ok(result.issues.some(x => x.code === 'PROHIBITED_LANGUAGE'));
 });
