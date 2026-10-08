@@ -928,8 +928,8 @@ Deno.serve(async (req) => {
       } = computed.result;
 
       const rpcName = access.assessment_user_id
-        ? "complete_p4_assessment_session"
-        : "complete_p4_public_assessment_session";
+        ? "complete_p4_assessment_from_result"
+        : "complete_p4_public_assessment_from_result";
 
       const rpcPayload = access.assessment_user_id
         ? {
@@ -937,28 +937,12 @@ Deno.serve(async (req) => {
             p_access_token_hash: access.tokenHash,
             p_assessment_user_id: access.assessment_user_id,
             p_submission_fingerprint: submissionFingerprint,
-            p_overall_score: computed.result.scores.overallScore,
-            p_classification: computed.result.classification.bandCode ?? "",
-            p_score_rows: computed.scoreRows,
-            p_assessment_version: computed.provenance.assessmentVersion,
-            p_interpretation_version: computed.provenance.interpretationVersion,
-            p_scoring_engine_version: computed.provenance.scoringEngineVersion,
-            p_scoring_contract_version: computed.provenance.scoringContractVersion,
-            p_assessment_config_digest: computed.provenance.assessmentConfigDigest,
             p_result: structuredResult,
           }
         : {
             p_session_id: session.id,
             p_access_token_hash: access.tokenHash,
             p_submission_fingerprint: submissionFingerprint,
-            p_overall_score: computed.result.scores.overallScore,
-            p_classification: computed.result.classification.bandCode ?? "",
-            p_score_rows: computed.scoreRows,
-            p_assessment_version: computed.provenance.assessmentVersion,
-            p_interpretation_version: computed.provenance.interpretationVersion,
-            p_scoring_engine_version: computed.provenance.scoringEngineVersion,
-            p_scoring_contract_version: computed.provenance.scoringContractVersion,
-            p_assessment_config_digest: computed.provenance.assessmentConfigDigest,
             p_result: structuredResult,
           };
 
@@ -975,7 +959,7 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          ...projectCompletionResponse(computed.result),
+          ...projectCompletionResponse(structuredResult),
           structuredResult: storedStructured,
           provenance: {
             ...computed.provenance,
