@@ -39,6 +39,16 @@ test('WP-08 migration uses canonical percentage weights and validates totals', (
   assert.match(sql, /patient-journey-v1-final/);
 });
 
+test('WP-08 canonical and packaged Consistency registries remain identical', () => {
+  const canonical = JSON.parse(fs.readFileSync('documentation/architecture/P3-CONSISTENCY-PAIR-REGISTRY-V1.json', 'utf8'));
+  const packaged = JSON.parse(fs.readFileSync('supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json', 'utf8'));
+  assert.deepEqual(packaged, canonical);
+  assert.equal(packaged.pairs.length, 108);
+  assert.equal(packaged.pairs.filter(p => p.assessmentSlug === 'comprehensive-clinic-assessment' && p.assessmentVersion === '2').length, 52);
+  assert.equal(packaged.pairs.filter(p => p.assessmentSlug === 'comprehensive-clinic-assessment' && p.assessmentVersion === '1').length, 52);
+  assert.equal(packaged.pairs.filter(p => p.assessmentSlug === 'patient-journey' && p.assessmentVersion === '1').length, 4);
+});
+
 test('WP-08 V1 consistency configuration is an explicit translation of approved relationships', () => {
   const comp = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-COMPREHENSIVE-CLINIC-V1-CONTENT-2026-10-08.json', 'utf8'));
   const patient = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-08.json', 'utf8'));
