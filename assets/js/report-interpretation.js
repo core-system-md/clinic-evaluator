@@ -28,6 +28,13 @@
     'trend_when_server_verified_compatible'
   ];
 
+  const COMMON_PRESENTATION = {
+    resultSummary: 'درجتك الكلية للعيادة: {score} من 100 — {label}',
+    priorityHeading: '🎯 المحور ذي الأولوية في القراءة',
+    strengthHeading: '💪 أعلى محور مقاس',
+    benchmarkHeading: '📊 التحليل البصري الشامل'
+  };
+
   /*
    * Each family owns an explicit report model. The model describes the
    * measured scope and the claims the report layer may make; it never scores.
@@ -58,7 +65,8 @@
         overallBand: 'quartiles.{bandCode}.label',
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
-      }
+      },
+      presentation: COMMON_PRESENTATION
     },
 
     'clinic-performance': {
@@ -85,7 +93,8 @@
         overallBand: 'quartiles.{bandCode}.label',
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
-      }
+      },
+      presentation: COMMON_PRESENTATION
     },
 
     'comprehensive-clinic-assessment': {
@@ -115,7 +124,8 @@
         overallBand: 'quartiles.{bandCode}.label',
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
-      }
+      },
+      presentation: COMMON_PRESENTATION
     },
 
     'medical-team-assessment': {
@@ -143,7 +153,8 @@
         overallBand: 'quartiles.{bandCode}.label',
         kpi: 'kpis.{kpiCode}',
         sections: ['report.overall_score', 'report.axis_summary', 'report.structural_diagnosis']
-      }
+      },
+      presentation: COMMON_PRESENTATION
     },
 
     'patient-journey': {
@@ -177,23 +188,27 @@
   };
 
   function assertStructuredResult(result) {
-    if (!result || result.schemaVersion !== 'P3_STRUCTURED_RESULT_V1') {
-      throw new Error('Report interpretation requires a P3 structured result.');
-    }
-    if (result.status !== 'PRODUCTION') {
-      throw new Error('Only production Structured Results may produce a final report.');
-    }
-    if (!result.identity || !result.identity.assessmentFamilyId || !result.identity.assessmentVersion) {
-      throw new Error('Structured Result identity is incomplete.');
-    }
-    if (!result.classification || !result.scores || !Array.isArray(result.scores.axes)) {
-      throw new Error('Structured Result report fields are incomplete.');
+    if (!result || result.schemaVersion !== 'P3_STRUCTURED_RESULT_V1' || result.status !== 'PRODUCTION') {
+      throw new Error('Internal Structured Result is required for admin projection.');
     }
     return result;
   }
 
-  function resolveAssessmentSlug(result, assessmentSlug) {
-    const slug = assessmentSlug || result?.provenance?.assessmentSlug || result?.identity?.assessmentSlug;
+  function assertReportSource(source) {
+    if (!source || source.schemaVersion !== 'P3_REPORT_SOURCE_V1' || source.status !== 'READY_FOR_USER_REPORT') {
+      throw new Error('User report requires a validated public report source.');
+    }
+    if (!source.assessment?.slug || !source.assessment?.version) {
+      throw new Error('Public report source assessment identity is incomplete.');
+    }
+    if (!source.overall || !Array.isArray(source.axes) || !Array.isArray(source.kpis)) {
+      throw new Error('Public report source measurement fields are incomplete.');
+    }
+    return source;
+  }
+
+  function resolveAssessmentSlug(source, assessmentSlug) {
+    const slug = assessmentSlug || source?.assessment?.slug;
     if (!slug || !REPORT_MODELS[slug]) {
       throw new Error('No explicit report model for assessment family: ' + String(slug || 'unknown'));
     }
@@ -211,14 +226,14 @@
     return 'Q1';
   }
 
-  function measuredAxes(result, model) {
+  function measuredAxes(source, model) {
     const expected = new Set(model.measuredConstructs.map(item => item.axisCode));
-    const measured = result.scores.axes
+    const measured = source.axes
       .filter((axis) => axis?.status === 'measured' && Number.isFinite(axis?.percentage))
       .map((axis) => {
         const code = String(axis.axisCode);
         if (!expected.has(code)) {
-          throw new Error('Structured Result contains an axis outside the report model: ' + code);
+          throw new Error('Public report source contains an axis outside the report model: ' + code);
         }
         return {
           code,
@@ -241,9 +256,9 @@
     return measured;
   }
 
-  function userKpis(result, model) {
+  function userKpis(source, model) {
     const allowed = new Set(model.supportedKpis);
-    return (result.kpis || [])
+    return (source.kpis || [])
       .filter((kpi) => allowed.has(kpi.kpiCode) && kpi.status === 'available' && Number.isFinite(kpi.value))
       .map((kpi) => ({
         code: String(kpi.kpiCode),
@@ -252,8 +267,8 @@
       }));
   }
 
-  function economicProjection(result, model) {
-    const economic = result.economics || {};
+  function economicProjection(source, model) {
+    const economic = source.economics || {};
     if (
       !model.economic.enabled ||
       economic.status !== 'COMPUTED' ||
@@ -308,17 +323,6 @@
       };
     }
 
-    // Unit-test/reference compatibility path. Technical provenance is never
-    // copied into the user projection.
-    const sameFamily = String(previous.assessmentFamilyId || '') === String(current.identity.assessmentFamilyId || '');
-    const sameVersion = String(previous.assessmentVersion || '') === String(current.identity.assessmentVersion || '');
-    const sameEngine = String(previous.scoringEngineVersion || '') === String(current.provenance?.scoringEngineVersion || '');
-    const sameContract = String(previous.scoringContractVersion || '') === String(current.provenance?.scoringContractVersion || '');
-    const sameConfig = String(previous.assessmentConfigDigest || '') === String(current.provenance?.assessmentConfigDigest || '');
-    if (!(sameFamily && sameVersion && sameEngine && sameContract && sameConfig)) {
-      return { status: 'unavailable', reason: 'incompatible_comparison_basis' };
-    }
-
     const previousScore = Number(previous.overallScore);
     const currentScore = Number(current.scores.overallScore);
     if (!Number.isFinite(previousScore) || !Number.isFinite(currentScore)) {
@@ -371,18 +375,18 @@
     };
   }
 
-  function projectUserReport(result, previousSession, assessmentSlug) {
-    const current = assertStructuredResult(result);
+  function projectUserReport(source, previousSession, assessmentSlug) {
+    const current = assertReportSource(source);
     const model = modelFor(current, assessmentSlug);
     const resolvedSlug = resolveAssessmentSlug(current, assessmentSlug);
     const axes = measuredAxes(current, model);
     const lowest = axes[0] || null;
     const highest = axes.length ? axes[axes.length - 1] : null;
-    const overall = Number.isFinite(current.scores.overallScore) ? Number(current.scores.overallScore) : null;
-    const bandCode = current.classification.bandCode || null;
+    const overall = Number.isFinite(current.overall?.value) ? Number(current.overall.value) : null;
+    const bandCode = current.overall?.bandCode || null;
 
     if (!bandCode || !BAND_LABEL_KEYS[bandCode]) {
-      throw new Error('Structured Result classification is not mapped to a report text template.');
+      throw new Error('Public report source classification is not mapped to a report text template.');
     }
 
     const trend = trendPresentation(compatibleTrend(current, previousSession));
@@ -391,11 +395,11 @@
       audience: 'user',
       modelVersion: model.modelVersion,
       assessment: {
-        familyId: current.identity.assessmentFamilyId,
-        version: current.identity.assessmentVersion,
+        version: current.assessment.version,
         slug: resolvedSlug,
         purpose: model.purpose
       },
+      presentation: model.presentation,
       overall: {
         value: overall,
         bandCode,
@@ -462,6 +466,7 @@
     REPORT_MODELS,
     AXIS_BAND_RULES,
     assertStructuredResult,
+    assertReportSource,
     projectUserReport,
     projectAdminReport,
     compatibleTrend
