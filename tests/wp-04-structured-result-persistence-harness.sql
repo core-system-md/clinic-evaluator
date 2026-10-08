@@ -203,25 +203,12 @@ end $test$;
 select public.complete_p4_public_assessment_from_result(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,
  'token-public','fp-public',
- ((select result from wp04_fixture)->'identity') ||
- jsonb_build_object('sessionId','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','resultId','66666666-6666-4666-8666-666666666666')
- || jsonb_build_object(
-   'schemaVersion',(select result->'schemaVersion' from wp04_fixture),
-   'status',(select result->'status' from wp04_fixture),
-   'provenance',(select result->'provenance' from wp04_fixture),
-   'inputs',(select result->'inputs' from wp04_fixture),
-   'measurement',(select result->'measurement' from wp04_fixture),
-   'scores',(select result->'scores' from wp04_fixture),
-   'coverage',(select result->'coverage' from wp04_fixture),
-   'consistency',(select result->'consistency' from wp04_fixture),
-   'criticality',(select result->'criticality' from wp04_fixture),
-   'development',(select result->'development' from wp04_fixture),
-   'roles',(select result->'roles' from wp04_fixture),
-   'kpis',(select result->'kpis' from wp04_fixture),
-   'economics',(select result->'economics' from wp04_fixture),
-   'classification',(select result->'classification' from wp04_fixture),
-   'diagnostics',(select result->'diagnostics' from wp04_fixture),
-   'audit',(select result->'audit' from wp04_fixture)
+ jsonb_set(
+   (select result from wp04_fixture),
+   '{identity}',
+   (select (result->'identity') ||
+      '{"sessionId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","resultId":"66666666-6666-4666-8666-666666666666"}'::jsonb
+    from wp04_fixture)
  )
 );
 
