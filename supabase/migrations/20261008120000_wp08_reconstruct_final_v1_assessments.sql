@@ -1,5 +1,6 @@
 -- WP-08 final V1 reconstruction. No in-place mutation of published content.
 begin;
+-- WP-08: approved V1 Consistency relationships are version-scoped in the canonical/runtime pair registry; question trap_for is retained only as migration/source lineage.
 do $$
 declare old_type uuid; n bigint;
 begin
