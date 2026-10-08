@@ -792,6 +792,14 @@ class ClinicEvaluatorApp {
         this.previousSessionData,
         this.currentAssessmentKey
       );
+      if (typeof window.MDReportValidation?.validateUserReport === 'function') {
+        const validation = window.MDReportValidation.validateUserReport(structured, report);
+        if (!validation.ok) {
+          console.error('[app] report validation failed:', validation.issues);
+          this.showFatalError('تعذر اعتماد التقرير لأن نتيجة العرض لا تطابق النتيجة المنظمة الرسمية.');
+          return;
+        }
+      }
     } catch (error) {
       console.error('[app] report interpretation failed:', error);
       this.showFatalError('تعذر بناء التقرير من النتيجة المنظمة الرسمية.');
