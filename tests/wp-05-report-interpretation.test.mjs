@@ -41,7 +41,7 @@ function makePublicSource() {
   return {
     schemaVersion: "P3_REPORT_SOURCE_V1",
     status: "READY_FOR_USER_REPORT",
-    assessment: { slug: "patient-journey", version: "1" },
+    assessment: { slug: "clinic-performance", version: "1" },
     overall: { value: 68, bandCode: "Q3" },
     axes: [
       { axisCode: "A1", axisNameAr: "الثقة", axisNameEn: "Trust", percentage: 55, status: "measured" },
