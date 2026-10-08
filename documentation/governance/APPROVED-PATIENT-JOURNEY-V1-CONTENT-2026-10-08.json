@@ -1,0 +1,1224 @@
+{
+  "schemaVersion": "FINAL_PATIENT_JOURNEY_V1_CONTENT_2026-10-08",
+  "assessmentSlug": "patient-journey",
+  "assessmentVersion": 1,
+  "axes": [
+    {
+      "code": "A1",
+      "title_ar": "التواصل والانطباع الأول",
+      "weight": 20,
+      "questionCodes": [
+        "Q1",
+        "Q2",
+        "Q3",
+        "Q4",
+        "Q5"
+      ],
+      "display_order": 1
+    },
+    {
+      "code": "A2",
+      "title_ar": "الوصول والأمان العاطفي",
+      "weight": 15,
+      "questionCodes": [
+        "Q6",
+        "Q7",
+        "Q8",
+        "Q9",
+        "Q10"
+      ],
+      "display_order": 2
+    },
+    {
+      "code": "A3",
+      "title_ar": "بناء الثقة داخل الاستشارة",
+      "weight": 25,
+      "questionCodes": [
+        "Q11",
+        "Q12",
+        "Q13",
+        "Q14",
+        "Q15"
+      ],
+      "display_order": 3
+    },
+    {
+      "code": "A4",
+      "title_ar": "الالتزام بالخطة العلاجية",
+      "weight": 25,
+      "questionCodes": [
+        "Q16",
+        "Q17",
+        "Q18",
+        "Q19",
+        "Q20"
+      ],
+      "display_order": 4
+    },
+    {
+      "code": "A5",
+      "title_ar": "الاستمرارية والولاء",
+      "weight": 15,
+      "questionCodes": [
+        "Q21",
+        "Q22",
+        "Q23",
+        "Q24",
+        "Q25"
+      ],
+      "display_order": 5
+    }
+  ],
+  "axisRoles": {
+    "A1": "TRUST",
+    "A2": "COMMUNICATION",
+    "A3": "CONVERSION",
+    "A4": "RETENTION",
+    "A5": "LOYALTY"
+  },
+  "kpiMappings": {
+    "EVI": {
+      "ADMIN": 0.3,
+      "SCHEDULING": 0.3,
+      "COORDINATION": 0.2,
+      "COMMUNICATION": 0.2
+    },
+    "NPI": {
+      "TRUST": 0.1,
+      "LOYALTY": 0.4,
+      "RECEPTION": 0.5
+    },
+    "PLI": {
+      "LOYALTY": 0.5,
+      "RECEPTION": 0.5
+    },
+    "PRP": {
+      "RETENTION": 0.6,
+      "SCHEDULING": 0.4
+    },
+    "PSI": {
+      "ADMIN": 0.3,
+      "RECEPTION": 0.3,
+      "COORDINATION": 0.2,
+      "COMMUNICATION": 0.2
+    },
+    "TAP": {
+      "RETENTION": 0.3,
+      "CONVERSION": 0.5,
+      "SCHEDULING": 0.2
+    },
+    "TCI": {
+      "ADMIN": 0.3,
+      "CONVERSION": 0.3,
+      "SCHEDULING": 0.4
+    },
+    "TFI": {
+      "TRUST": 0.4,
+      "RECEPTION": 0.2,
+      "COMMUNICATION": 0.4
+    }
+  },
+  "evMappings": {
+    "LOYALTY": 0.2,
+    "RETENTION": 0.4,
+    "CONVERSION": 0.4
+  },
+  "questions": [
+    {
+      "code": "Q1",
+      "axisCode": "A1",
+      "required": true,
+      "questionTextAr": "عندما يرسل مريض عبر واتساب يسأل عن سعر إجراء معين، ما هو الأسلوب المعتمد للرد؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "إرسال السعر مباشرة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "إرسال السعر مع مزايا الخدمة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "إرسال السعر ثم طرح أسئلة عن حاجة المريض",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "طرح أسئلة عن حاجة المريض ثم تقديم السعر",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q2",
+      "axisCode": "A1",
+      "required": true,
+      "questionTextAr": "شخص استفسر عن الخدمة وأبدى اهتماماً لكنه لم يحجز موعداً، كيف يتم التعامل معه عادة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "لا يتم التواصل معه لاحقاً",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم إدراجه في الرسائل أو العروض العامة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم التواصل معه لاحقاً بشكل مباشر",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم التواصل معه لاحقاً بناءً على استفساره واحتياجه",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q3",
+      "axisCode": "A1",
+      "required": true,
+      "questionTextAr": "إذا راجعت آخر 10 محادثات جديدة في العيادة، ما الصيغة الأكثر تكراراً؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يبدأ الحديث بالسعر",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يبدأ الحديث بالسعر مع مزايا الخدمة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يبدأ الحديث بالسعر ثم تُطرح أسئلة عن حاجة المريض",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يبدأ الحديث بأسئلة عن حاجة المريض",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q4",
+      "axisCode": "A1",
+      "required": true,
+      "questionTextAr": "كيف يتم التعامل مع المرضى الذين يتواصلون خارج أوقات الدوام؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "لا توجد إمكانية للتواصل بعد انتهاء الدوام",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يحصل المريض على رد آلي",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "تتم مراجعة الرسائل والرد عليها لاحقاً",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يحصل المريض على توجيه واضح ويتم استكمال التواصل في الوقت المناسب له",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q5",
+      "axisCode": "A1",
+      "required": true,
+      "questionTextAr": "إذا سألنا عن أسباب عدم حجز بعض الأشخاص بعد التواصل الأول، ما مدى وضوح الصورة لديكم؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "لا نعرف الأسباب بشكل واضح",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "لدينا انطباعات عامة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "نعرف الأسباب بشكل واضح ومتكرر",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q6",
+      "axisCode": "A2",
+      "required": true,
+      "questionTextAr": "ما هي الطريقة المعتمدة لضمان وصول المريض الجديد إلى العيادة بسهولة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "نعتمد على الموقع واسم العيادة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم شرح الموقع عند الحاجة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يحصل المريض مسبقاً على معلومات الوصول",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يحصل المريض مسبقاً على معلومات وإرشادات واضحة للوصول",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q7",
+      "axisCode": "A2",
+      "required": true,
+      "questionTextAr": "ما هي التجربة الأولى التي يمر بها المريض فور دخوله العيادة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يبدأ بإجراءات التسجيل والدفع",
+          "sourceOptionValue": 0,
+          "anchorScore": null,
+          "scoreMode": "SEMANTIC_ONLY",
+          "scoreEligible": false,
+          "anchorMax": null
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم استقباله ثم ينتظر دوره",
+          "sourceOptionValue": 40,
+          "anchorScore": null,
+          "scoreMode": "SEMANTIC_ONLY",
+          "scoreEligible": false,
+          "anchorMax": null
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم الترحيب به بطريقة مرتبطة بسبب زيارته",
+          "sourceOptionValue": 100,
+          "anchorScore": null,
+          "scoreMode": "SEMANTIC_ONLY",
+          "scoreEligible": false,
+          "anchorMax": null
+        }
+      ]
+    },
+    {
+      "code": "Q8",
+      "axisCode": "A2",
+      "required": true,
+      "questionTextAr": "ما نوع المعلومات التي تكون متوفرة عادة عن المريض قبل دخوله للطبيب؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "المعلومات الشخصية الأساسية فقط",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "سبب الزيارة أو الشكوى الرئيسية",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "سبب الزيارة مع المعلومات ذات الصلة",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "سبب الزيارة مع المعلومات المتعلقة باحتياجاته وتوقعاته أو مخاوفه",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q9",
+      "axisCode": "A2",
+      "required": true,
+      "questionTextAr": "إذا تجاوز وقت الانتظار المتوقع، كيف يتم التعامل مع الموقف؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "ينتظر المريض دون تحديث",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم الاعتذار له عند ملاحظة انزعاجه",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم إبلاغه بالتأخير",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم إبلاغه بالتأخير والوقت المتوقع والخيارات المتاحة",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q10",
+      "axisCode": "A2",
+      "required": true,
+      "questionTextAr": "إذا اضطر المريض للانتظار لفترة أطول من المتوقع، كيف تتم إدارة تجربة الانتظار؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "ينتظر دون تحديث",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم التواصل معه عند الحاجة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم تحديثه بشأن الانتظار",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم تحديثه بشأن الوقت وأي تغيير أو خيار متاح",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q11",
+      "axisCode": "A3",
+      "required": true,
+      "questionTextAr": "كيف يبدأ الطبيب عادة الدقائق الأولى من المقابلة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يبدأ بالفحص أو التشخيص مباشرة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يبدأ بالمشكلة الطبية الحالية",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يبدأ بالمشكلة وسياق الزيارة",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يبدأ بحوار عن حالة المريض ومخاوفه وتوقعاته",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q12",
+      "axisCode": "A3",
+      "required": true,
+      "questionTextAr": "كيف يتم الحفاظ على خصوصية المريض أثناء الجلسة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "تحدث مقاطعات أو دخول دون ضوابط واضحة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم الحد من المقاطعات قدر الإمكان",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "توجد ضوابط واضحة للخصوصية والسرية",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q13",
+      "axisCode": "A3",
+      "required": true,
+      "questionTextAr": "إذا كان شخص يجلس خارج غرفة الكشف، ماذا يمكنه أن يسمع عادة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "أجزاء واضحة من الحديث",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "أصوات أو أحاديث غير واضحة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "لا يسمع ما يمكن ربطه بالمريض أو حالته",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q14",
+      "axisCode": "A3",
+      "required": true,
+      "questionTextAr": "كيف يتم تقديم الخطة العلاجية للمريض؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "شرح الإجراءات والتكاليف",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "شرح الخطة الطبية",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "شرح الخطة وهدفها والنتيجة المتوقعة",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "شرح المشكلة والحل والنتيجة المتوقعة بصورة مترابطة",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q15",
+      "axisCode": "A3",
+      "required": true,
+      "questionTextAr": "بعد شرح الخطة العلاجية، كيف يتأكد الطبيب من فهم المريض لها؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يُعطى المريض فرصة لطرح الأسئلة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم شرح الخطة بطريقة مبسطة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم التحقق من فهم النقاط الأساسية",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يشرح المريض الخطة بأسلوبه الخاص",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q16",
+      "axisCode": "A4",
+      "required": true,
+      "questionTextAr": "إذا قال المريض: \"أحتاج إلى التفكير بالأمر\"، كيف يتم التعامل مع الموقف؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يُترك القرار له دون مناقشة سبب التردد",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم إعادة شرح مزايا الخطة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم السؤال عما يحتاج إلى التفكير فيه",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم تحديد النقطة غير المحسومة ومناقشتها معه",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q17",
+      "axisCode": "A4",
+      "required": true,
+      "questionTextAr": "عندما يتردد المريض في البدء بالخطة العلاجية رغم اقتناعه المبدئي، كيف يتم التعامل مع الموقف؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يُترك التردد دون معرفة سببه",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم إعادة شرح مزايا العلاج",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم السؤال عن سبب التردد والعائق",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم تحديد العائق ومناقشة ما يساعد على البدء",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q18",
+      "axisCode": "A4",
+      "required": true,
+      "questionTextAr": "عندما يقرر المريض عدم البدء بالخطة العلاجية حالياً، كيف يتم التعامل مع الحالة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "لا يتم اتخاذ إجراء إضافي",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم التواصل معه لاحقاً بشكل عام",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم تحديد سبب التأجيل والمتابعة بناءً عليه",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم الاتفاق على الخطوة التالية أو موعد المتابعة",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q19",
+      "axisCode": "A4",
+      "required": true,
+      "questionTextAr": "قبل مغادرة المريض، كيف يتم التعامل مع الخطوة القادمة في رحلته العلاجية؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يقرر المريض لاحقاً ما يريد فعله",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم اقتراح الخطوة القادمة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم تحديد الخطوة وموعدها",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم تحديد الخطوة وموعدها وطريقة تنفيذها",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q20",
+      "axisCode": "A4",
+      "required": true,
+      "questionTextAr": "كيف يتم الحفاظ على استمرارية العلاقة مع المريض بين الزيارات؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "لا توجد آلية واضحة لاستمرار التواصل",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم التواصل بشكل عام",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "يتم التواصل بناءً على حالة المريض أو مرحلته العلاجية",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "يتم التواصل وفق احتياج المريض وطريقة ووقت التواصل المناسبين له",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q21",
+      "axisCode": "A5",
+      "required": true,
+      "questionTextAr": "كيف يتم الاطمئنان على المرضى بعد الزيارة أو الإجراء الطبي عندما تكون المتابعة مطلوبة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "يُترك للمريض التواصل عند الحاجة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "تتم المتابعة مع بعض المرضى",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "توجد حالات محددة تستدعي المتابعة",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "توجد آلية تحدد متى ومن وكيف تتم المتابعة",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q22",
+      "axisCode": "A5",
+      "required": true,
+      "questionTextAr": "إذا تغيب المريض عن موعده دون إشعار مسبق، ما الذي يحدث عادة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "ننتظر أن يتواصل بنفسه",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "نتواصل لإعادة جدولة الموعد",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "نتواصل لمعرفة سبب عدم الحضور",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "نعرف السبب ونعمل على استكمال الرحلة وإعادة الجدولة",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q23",
+      "axisCode": "A5",
+      "required": true,
+      "questionTextAr": "كيف يتم تحديد توقيت التواصل مع المريض ضمن رحلته؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "عند توفر الوقت أو تذكر الحاجة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "بناءً على الحالة والمواعيد السابقة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "بناءً على نقاط محددة في رحلة المريض",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "بناءً على نقاط واحتياجات واضحة مع مراعاة الوقت ووسيلة التواصل المناسبة للمريض",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q24",
+      "axisCode": "A5",
+      "required": true,
+      "questionTextAr": "كيف يتم التعامل مع المرضى الذين انقطعوا عن زيارة العيادة لفترة طويلة؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "لا توجد آلية لإعادة التواصل",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "يتم إرسال رسائل أو عروض عامة",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "تتم مراجعة حالة المريض قبل إعادة التواصل",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "تتم إعادة التواصل بناءً على احتياج المريض ومرحلته العلاجية وتفضيلاته",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    },
+    {
+      "code": "Q25",
+      "axisCode": "A5",
+      "required": true,
+      "questionTextAr": "كيف تقيس العيادة تجربة المرضى ورضاهم واستعدادهم للتوصية بها؟",
+      "options": [
+        {
+          "index": 0,
+          "labelAr": "نعتمد على الانطباعات العامة",
+          "sourceOptionValue": 0,
+          "anchorScore": 0,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 1,
+          "labelAr": "نجمع التعليقات أو التقييمات",
+          "sourceOptionValue": 40,
+          "anchorScore": 40,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 2,
+          "labelAr": "نستخدم أسئلة أو أدوات محددة للقياس",
+          "sourceOptionValue": 70,
+          "anchorScore": 70,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        },
+        {
+          "index": 3,
+          "labelAr": "نستخدم قياساً منظماً ومنتظماً ونراجع نتائجه",
+          "sourceOptionValue": 100,
+          "anchorScore": 100,
+          "scoreMode": "DIRECT_ANCHOR",
+          "scoreEligible": true,
+          "anchorMax": 100
+        }
+      ]
+    }
+  ],
+  "consistencyPairs": [
+    {
+      "validatorQuestionCode": "Q1",
+      "targetQuestionCode": "Q3",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "maxEffectiveAnchorScore": 70
+    },
+    {
+      "validatorQuestionCode": "Q10",
+      "targetQuestionCode": "Q9",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "maxEffectiveAnchorScore": 70
+    },
+    {
+      "validatorQuestionCode": "Q12",
+      "targetQuestionCode": "Q13",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "maxEffectiveAnchorScore": 70
+    },
+    {
+      "validatorQuestionCode": "Q21",
+      "targetQuestionCode": "Q23",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "maxEffectiveAnchorScore": 70
+    }
+  ],
+  "idStrategy": {
+    "type": "uuid-v5",
+    "namespace": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
+    "nameFormat": "patient-journey|1|{questionCode}|{optionIndex}"
+  },
+  "sourceArtifact": "APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-07"
+}
