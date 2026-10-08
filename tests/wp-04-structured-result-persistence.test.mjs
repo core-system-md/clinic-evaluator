@@ -77,8 +77,8 @@ test("WP-04 engine persists only a projection of the Structured Result", () => {
 
 test("WP-04 persistence migration rejects obsolete internal result fields", () => {
   const sql=fs.readFileSync("supabase/migrations/20261008100000_wp04_structured_result_authority.sql","utf8");
-  assert.match(sql,/p_result \\? 'resolvedSelections'/);
-  assert.match(sql,/p_result \\? 'axisPersistenceRows'/);
+  assert.ok(sql.includes("p_result ? 'resolvedSelections'"));
+  assert.ok(sql.includes("p_result ? 'axisPersistenceRows'"));
   assert.match(sql,/assessment_results/);
-  assert.match(sql,/jsonb_to_recordset\\(p_result->'scores'->'axes'\\)/);
+  assert.ok(sql.includes("jsonb_to_recordset(p_result->'scores'->'axes')"));
 });
