@@ -418,3 +418,35 @@ Final corrective merge: be6214e4f8fb9382ccdf8150d34491a061887b97.
 Verification evidence: WP-08 run 37777401435 SUCCESS; P3 isolated kernel job 113312306760 SUCCESS; WP-03 configuration semantics job 113312305582 SUCCESS; WP-03 disposable PostgreSQL contract job 113312305836 SUCCESS. The broad Full Node baseline still reports unrelated P5 editor assertions and is not evidence against this WP-08 reconciliation.
 
 Production remains unchanged; WP-08 migration is not present in Production migration history.
+
+## 17. Final post-closure reconciliation status — 2026-10-08
+
+The three report-stage reconciliation findings identified by the later contract audit are resolved.
+
+| WP | Historical implementation | Post-closure reconciliation | Current state |
+|---|---|---|---|
+| WP-05 | PASS / MERGED | Run **37812228830 — SUCCESS** | **CLOSED / VERIFIED / DOCUMENTED** |
+| WP-06 | PASS / MERGED | Run **37812228983 — SUCCESS** | **CLOSED / VERIFIED / DOCUMENTED** |
+| WP-07 | PASS / MERGED | Run **37812228856 — SUCCESS** | **CLOSED / VERIFIED / DOCUMENTED** |
+
+### Reconciliation branch
+
+`reconciliation-wp05-report-interpretation-2026-10-08`
+
+Final head:
+
+`b3b67a11fe50f27f6acf3dfc9c8349a7d59ef7d3`
+
+### Integrated evidence
+
+- P3 isolated kernel job **113431739662 — SUCCESS**
+- P4 protected completion job **113431739528 — SUCCESS**
+- Full Node baseline job **113431739621 — FAILURE**, matching the already recorded unrelated P5 editor-workspace baseline failures. Those failures were not masked or weakened.
+
+### Current interpretation
+
+The earlier register entries that marked WP-05, WP-06, and WP-07 as "historical PASS — reconciliation required" are superseded by this final reconciliation record.
+
+No production deployment or database mutation was performed.
+
+The owner-stop rule still applies: this reconciliation closes WP-05/06/07 only; it does not authorize the next WP or any production rollout.

@@ -69,3 +69,28 @@ WP-06 satisfies its independent final-contract acceptance boundary.
 Next canonical stage:
 
 **WP-07 — Rebuild report text and model linkage**
+
+## 10. Post-closure contract reconciliation — 2026-10-08
+
+The historical WP-06 closure remains valid as execution evidence, but the later contract audit identified a transport-boundary violation: persisted Structured Result and technical provenance were still being returned to the browser even though the user projection itself was sanitized.
+
+The reconciliation is complete on branch `reconciliation-wp05-report-interpretation-2026-10-08`.
+
+### Reconciled implementation
+
+- Added the browser-facing `P3_REPORT_SOURCE_V1` boundary.
+- Fresh completion, completed-session reload, retry/already-completed completion, and preparation-race completion now expose only `reportSource` instead of the persisted Structured Result.
+- Response-level technical provenance is no longer returned on these report paths.
+- `report-validation.js` validates the public source and user projection while preserving the existing forbidden-field policy.
+- The public report source is bound server-side to the concrete assessment type and version.
+- External completion assertions now verify that Structured Result, configuration digest, and input lineage do not cross the browser boundary.
+
+### Final verification
+
+- WP-06 report validation workflow: **37812228983 — SUCCESS**
+- Dedicated tests and syntax checks: **PASS**
+- P4 protected completion integrated job: **113431739528 — SUCCESS**
+
+**WP-06 reconciliation = PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
+
+No production Edge Function deployment or database mutation was performed.

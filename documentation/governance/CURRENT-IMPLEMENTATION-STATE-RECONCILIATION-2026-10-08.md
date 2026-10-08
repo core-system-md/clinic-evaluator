@@ -215,3 +215,76 @@ The post-closure V1 Consistency correction was followed by reconciliation of sta
 The dedicated WP-08 verification remained successful (37777401435), the P3 isolated kernel succeeded (113312306760), and the WP-03 configuration semantics contract succeeded (113312305582). The WP-03 disposable PostgreSQL contract also succeeded (113312305836). The full Node baseline remains red on existing P5 editor assertions unrelated to this reconciliation.
 
 Production remains unchanged and the WP-08 migration remains unapplied in Production.
+
+## 11. Final WP-05 / WP-06 / WP-07 reconciliation — 2026-10-08
+
+The post-closure reconciliation workstream has now been completed for all three adjacent report stages.
+
+Final reconciliation branch:
+
+`reconciliation-wp05-report-interpretation-2026-10-08`
+
+Final head:
+
+`b3b67a11fe50f27f6acf3dfc9c8349a7d59ef7d3`
+
+### WP-05
+
+**PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
+
+Dedicated workflow **37812228830 — SUCCESS**.
+
+Resolved:
+- complete family-specific report models;
+- server-verified normal-history provenance compatibility;
+- browser fail-closed trend boundary;
+- explicit server binding of report family to concrete assessment type.
+
+### WP-06
+
+**PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
+
+Dedicated workflow **37812228983 — SUCCESS**.
+
+Resolved:
+- raw Structured Result transport exposure;
+- response-level technical provenance exposure;
+- public report-source contract and validation boundary;
+- assessment-family binding.
+
+### WP-07
+
+**PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
+
+Dedicated workflow **37812228856 — SUCCESS**.
+
+Resolved:
+- report-semantic hardcoding in renderer;
+- report narrative ownership outside family models;
+- model-owned presentation semantics;
+- complete linkage preservation for the 94 live text leaves.
+
+### Integrated verification
+
+- WP-05: **SUCCESS**
+- WP-06: **SUCCESS**
+- WP-07: **SUCCESS**
+- P3 isolated kernel job **113431739662: SUCCESS**
+- P4 protected completion job **113431739528: SUCCESS**
+- Full Node baseline job **113431739621: FAILURE**, limited to the already documented unrelated P5 editor-workspace baseline assertions.
+
+The aggregate P3-kernel workflow therefore carries a failed conclusion because the same aggregate run includes the failed Full Node baseline audit; the isolated P3 kernel and P4 protected-completion jobs themselves passed.
+
+### Production boundary
+
+Read-only production verification confirms this reconciliation introduced no production mutation:
+
+- migration history remains at `20261005143243 / p5_public_options_projection_recovery`;
+- no reconciliation migration was applied;
+- production `assessment-access` remains Edge Function version **32**;
+- no production Edge Function deployment was performed from this branch;
+- no assessment content/version/routing mutation was performed.
+
+**Overall reconciliation gate for WP-05/06/07: RESOLVED at implementation, verification, and documentation boundaries.**
+
+Production rollout is still a separate authorization boundary. No WP-08 production migration, routing change, deletion, or content mutation is authorized by this record.

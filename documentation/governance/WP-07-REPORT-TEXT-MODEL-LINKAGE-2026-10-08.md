@@ -53,3 +53,26 @@ No production Edge Function deployment was executed.
 Next canonical stage:
 
 **WP-08 — Assessment V1 reconstruction**
+
+## 6. Post-closure contract reconciliation — 2026-10-08
+
+The historical WP-07 closure remains valid as execution evidence, but the later contract audit found report-semantic presentation strings outside the intended assessment-family model boundary.
+
+The reconciliation is complete on branch `reconciliation-wp05-report-interpretation-2026-10-08`.
+
+### Reconciled implementation
+
+- All five report families now own explicit presentation semantics through their `REPORT_MODEL_V1.presentation` objects.
+- Result summary, priority heading, strength heading, benchmark heading, priority/strength statements, and trend wording are model-owned.
+- `app.js` no longer contains the audited hardcoded report-semantic presentation strings.
+- `report_texts.json` remains a presentation catalog only and is not treated as semantic authority.
+- The linkage catalog remains complete for all **94** live text leaves.
+
+### Final verification
+
+- WP-07 report text/model linkage workflow: **37812228856 — SUCCESS**
+- Dedicated tests and syntax check: **PASS**
+
+**WP-07 reconciliation = PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
+
+Production remains unchanged.

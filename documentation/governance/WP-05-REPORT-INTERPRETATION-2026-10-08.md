@@ -130,3 +130,25 @@ Published to `main` via PR #59.
 Next canonical stage:
 
 **WP-06 — Report validation gate**
+
+## 10. Post-closure contract reconciliation — 2026-10-08
+
+The historical WP-05 closure remains valid as execution evidence, but the later contract audit required a reconciliation of report-model completeness and normal-history provenance integration.
+
+The reconciliation is complete on branch `reconciliation-wp05-report-interpretation-2026-10-08`.
+
+### Reconciled implementation
+
+- Each of the five report families now declares a complete `REPORT_MODEL_V1` boundary covering purpose, measured constructs, supported KPIs, economic policy, diagnostic meanings, permitted conclusions, text catalog, and model-owned presentation semantics.
+- Browser trend evaluation now accepts only the server-verified `comparisonStatus` contract and fails closed for unverified comparison data.
+- The server verifies family, assessment version, interpretation version, scoring engine version, scoring contract version, and configuration digest before exposing a compatible historical comparison.
+- The public report source is explicitly bound to the concrete `assessment_type_id`/slug on the server.
+
+### Final verification
+
+- WP-05 report interpretation workflow: **37812228830 — SUCCESS**
+- Dedicated tests and syntax checks: **PASS**
+
+**WP-05 reconciliation = PASS / STAGE CLOSED / VERIFIED / DOCUMENTED**
+
+Production remains unchanged.

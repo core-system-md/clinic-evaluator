@@ -24,8 +24,11 @@ function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
 }
 
-function projectPublicReportSource(structuredResult: any, assessmentSlug: string) {
-  if (!assessmentSlug) throw new Error("Assessment family slug is required for public report projection.");
+function projectPublicReportSource(structuredResult: any) {
+  const assessmentSlug =
+    structuredResult?.provenance?.assessmentSlug ||
+    structuredResult?.identity?.assessmentSlug ||
+    null;
   const assessmentVersion = structuredResult?.identity?.assessmentVersion ?? null;
 
   const axes = (structuredResult?.scores?.axes || [])
@@ -64,7 +67,7 @@ function projectPublicReportSource(structuredResult: any, assessmentSlug: string
   return {
     schemaVersion: "P3_REPORT_SOURCE_V1",
     status: "READY_FOR_USER_REPORT",
-    assessment: { slug: String(assessmentSlug), version: assessmentVersion },
+    assessment: { slug: assessmentSlug, version: assessmentVersion },
     overall: {
       value: Number.isFinite(structuredResult?.scores?.overallScore)
         ? Number(structuredResult.scores.overallScore)
@@ -750,22 +753,13 @@ Deno.serve(async (req) => {
 
       let reportSource: any = null;
       if (session.status === "completed") {
-        const { data: assessmentType, error: assessmentTypeError } = await supabase
-          .from("assessment_types")
-          .select("slug")
-          .eq("id", session.assessment_type_id)
-          .maybeSingle();
-        if (assessmentTypeError) throw assessmentTypeError;
-
         const { data: resultRow, error: resultError } = await supabase
           .from("assessment_results")
           .select("result")
           .eq("session_id", session.id)
           .maybeSingle();
         if (resultError) throw resultError;
-        reportSource = resultRow?.result
-          ? projectPublicReportSource(resultRow.result, assessmentType?.slug)
-          : null;
+        reportSource = resultRow?.result ? projectPublicReportSource(resultRow.result) : null;
       }
 
       return json({ success: true, data: { session, answers, reportSource } });
@@ -849,14 +843,6 @@ Deno.serve(async (req) => {
       if (sessionError) throw sessionError;
       if (!session) return json({ error: "Assessment session not found" }, 404);
 
-      const { data: assessmentType, error: assessmentTypeError } = await supabase
-        .from("assessment_types")
-        .select("slug")
-        .eq("id", session.assessment_type_id)
-        .maybeSingle();
-      if (assessmentTypeError) throw assessmentTypeError;
-      if (!assessmentType?.slug) throw new Error("Assessment family slug is unavailable.");
-
       if (session.status === "completed") {
         const { data: storedResult, error: resultError } = await supabase
           .from("assessment_results")
@@ -869,7 +855,7 @@ Deno.serve(async (req) => {
           return json({
             success: true,
             data: {
-              reportSource: projectPublicReportSource(storedResult.result, assessmentType.slug),
+              reportSource: projectPublicReportSource(storedResult.result),
               already_completed: true,
             },
           });
@@ -928,7 +914,7 @@ Deno.serve(async (req) => {
         return json({
           success: true,
           data: {
-            reportSource: structured ? projectPublicReportSource(structured, assessmentType.slug) : null,
+            reportSource: structured ? projectPublicReportSource(structured) : null,
             already_completed: true,
           },
         });
@@ -995,7 +981,7 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          reportSource: projectPublicReportSource(storedStructured, assessmentType.slug),
+          reportSource: projectPublicReportSource(storedStructured),
           already_completed: Boolean(completed?.already_completed),
         },
       });

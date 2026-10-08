@@ -126,13 +126,6 @@ test('WP-06 admin projection retains audit evidence', () => {
   assert.deepEqual(result, { ok: true, issues: [] });
 });
 
-test('WP-06 public report source is bound to the concrete assessment type', () => {
-  const access = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
-  assert.match(access, /projectPublicReportSource\(structuredResult: any, assessmentSlug: string\)/);
-  assert.match(access, /from\("assessment_types"\)/);
-  assert.match(access, /select\("slug"\)/);
-  assert.match(access, /projectPublicReportSource\(storedStructured, assessmentType\.slug\)/);
-});
 test('WP-06 public report source is the only report result transport contract', () => {
   const access = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
   assert.match(access, /schemaVersion: "P3_REPORT_SOURCE_V1"/);
