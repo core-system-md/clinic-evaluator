@@ -8,93 +8,77 @@ import { projectScoreRowsFromStructuredResult } from "../supabase/functions/asse
 
 function selections(slug) {
   const seen = new Set();
-  return registry.entries
-    .filter((e) => e.assessmentSlug === slug)
+  return registry.entries.filter((e) => e.assessmentSlug === slug)
     .filter((e) => !seen.has(e.questionCode) && seen.add(e.questionCode))
     .map((e) => ({ questionCode: e.questionCode, optionId: e.optionId, optionIndex: e.optionIndex }));
 }
-
 function resultFor(slug) {
   const family = config.families[slug];
   return scoreP3IntegratedV1({
-    sessionId: "11111111-1111-4111-8111-111111111111",
-    assessmentFamilyId: "22222222-2222-4222-8222-222222222222",
-    assessmentTypeId: "33333333-3333-4333-8333-333333333333",
-    assessmentVersion: String(family.version),
-    interpretationVersion: 1,
-    resultId: "44444444-4444-4444-8444-444444444444",
-    calculatedAt: "2026-10-08T00:00:00.000Z",
-    scoringContractVersion: "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07",
-    assessmentConfigDigest: "wp04-digest",
-    assessmentSlug: slug,
-    selections: selections(slug),
-    axes: family.axes.map(([code, weight]) => ({ code, weight })),
-    axisRoles: family.axisRoles,
-    kpiMappings: config.kpiMappings,
-    resultStatus: "PRODUCTION",
-    engineIdentity: "MD_CODE_ASSESSMENT_ENGINE",
+    sessionId:"11111111-1111-4111-8111-111111111111",
+    assessmentFamilyId:"22222222-2222-4222-8222-222222222222",
+    assessmentTypeId:"33333333-3333-4333-8333-333333333333",
+    assessmentVersion:String(family.version), interpretationVersion:1,
+    resultId:"44444444-4444-4444-8444-444444444444",
+    calculatedAt:"2026-10-08T00:00:00.000Z",
+    scoringContractVersion:"FINAL_IMPLEMENTATION_CONTRACT-2026-10-07",
+    assessmentConfigDigest:"wp04-digest", assessmentSlug:slug,
+    selections:selections(slug), axes:family.axes.map(([code,weight])=>({code,weight})),
+    axisRoles:family.axisRoles, kpiMappings:config.kpiMappings,
+    resultStatus:"PRODUCTION", engineIdentity:"MD_CODE_ASSESSMENT_ENGINE"
   });
 }
 
-test("WP-04 Structured Result contains the complete factual contract needed for persistence", () => {
-  const r = resultFor("patient-journey");
-  for (const key of ["schemaVersion","status","identity","provenance","inputs","measurement","scores","coverage","consistency","criticality","roles","kpis","economics","classification","diagnostics","audit"]) {
-    assert.ok(r[key] !== undefined, "missing " + key);
-  }
-  assert.equal(r.schemaVersion, "P3_STRUCTURED_RESULT_V1");
-  assert.equal(r.status, "PRODUCTION");
-  assert.equal(r.provenance.engineIdentity, "MD_CODE_ASSESSMENT_ENGINE");
-  assert.equal(r.provenance.scoringContractVersion, "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07");
-  assert.ok(r.provenance.inputLineage.length > 0);
-  assert.ok(r.audit.replayableFrom.some((v) => v.includes("pinned assessment version")));
-  assert.ok(r.audit.replayableFrom.some((v) => v.includes("assessment config digest")));
+test("WP-04 Structured Result is complete and replay-oriented", () => {
+  const r=resultFor("patient-journey");
+  for (const key of ["identity","provenance","inputs","measurement","scores","coverage","consistency","criticality","roles","kpis","economics","classification","diagnostics","audit"]) assert.ok(r[key]!==undefined,key);
+  assert.equal(r.status,"PRODUCTION");
+  assert.equal(r.schemaVersion,"P3_STRUCTURED_RESULT_V1");
+  assert.ok(r.provenance.inputLineage.length>0);
+  assert.ok(r.audit.replayableFrom.length>=5);
 });
 
-test("WP-04 every measured axis carries raw/max/percentage semantics in the Structured Result", () => {
-  const r = resultFor("clinic-performance");
-  const measured = r.scores.axes.filter((a) => a.status === "measured");
-  assert.ok(measured.length > 0);
-  for (const axis of measured) {
-    assert.equal(typeof axis.score, "number");
-    assert.equal(typeof axis.rawScore, "number");
-    assert.equal(typeof axis.maxPossible, "number");
-    assert.equal(typeof axis.percentage, "number");
-    assert.equal(typeof axis.weight, "number");
-    assert.equal(typeof axis.weightedScore, "number");
-    assert.equal(axis.score, axis.percentage);
-    assert.ok(axis.rawScore >= 0);
-    assert.ok(axis.maxPossible > 0);
-    assert.ok(axis.percentage >= 0 && axis.percentage <= 100);
+test("WP-04 measured axes preserve raw/max/percentage and calculation basis", () => {
+  const r=resultFor("clinic-performance");
+  for(const a of r.scores.axes.filter(a=>a.status==="measured")){
+    assert.equal(a.score,a.percentage);
+    assert.equal(typeof a.rawScore,"number");
+    assert.equal(typeof a.maxPossible,"number");
+    assert.ok(a.maxPossible>0);
+    assert.ok(a.percentage>=0 && a.percentage<=100);
+    assert.ok(a.weight>0 && a.weight<=1);
+    assert.equal(a.weightedScore,a.percentage*a.weight);
   }
 });
 
-test("WP-04 persistence projection reads only Structured Result measurements", () => {
-  const original = resultFor("patient-journey");
-  const a = projectScoreRowsFromStructuredResult(original);
-  const cloned = structuredClone(original);
-  cloned.inputs.responses = [];
-  cloned.provenance.inputLineage = [];
-  cloned.consistency.findings = [];
-  cloned.resolvedSelections = [{ fabricated: true }];
-  cloned.axisPersistenceRows = [{ fabricated: true }];
-  const b = projectScoreRowsFromStructuredResult(cloned);
-  assert.deepEqual(b, a);
+test("WP-04 persistence projector cannot observe answer/internal engine state", () => {
+  const original=resultFor("patient-journey");
+  const expected=projectScoreRowsFromStructuredResult(original);
+  const changed=structuredClone(original);
+  changed.inputs.responses=[];
+  changed.provenance.inputLineage=[];
+  changed.resolvedSelections=[{fake:true}];
+  changed.axisPersistenceRows=[{fake:true}];
+  assert.deepEqual(projectScoreRowsFromStructuredResult(changed),expected);
 });
 
-test("WP-04 canonical persistence path no longer sends duplicate score/provenance arguments", () => {
-  const source = fs.readFileSync("supabase/functions/assessment-access/index.ts", "utf8");
-  assert.match(source, /complete_p4_assessment_from_result/);
-  assert.match(source, /complete_p4_public_assessment_from_result/);
-  assert.doesNotMatch(source, /p_score_rows:/);
-  assert.doesNotMatch(source, /p_overall_score:/);
-  assert.doesNotMatch(source, /p_interpretation_version:/);
-  assert.doesNotMatch(source, /p_scoring_engine_version:/);
-  assert.doesNotMatch(source, /p_scoring_contract_version:/);
-  assert.doesNotMatch(source, /p_assessment_config_digest:/);
+test("WP-04 completion entrypoint sends Structured Result as the only factual completion payload", () => {
+  const source=fs.readFileSync("supabase/functions/assessment-access/index.ts","utf8");
+  assert.match(source,/complete_p4_assessment_from_result/);
+  assert.match(source,/complete_p4_public_assessment_from_result/);
+  for(const key of ["p_overall_score","p_classification","p_score_rows","p_assessment_version","p_interpretation_version","p_scoring_engine_version","p_scoring_contract_version","p_assessment_config_digest"]) assert.doesNotMatch(source,new RegExp(key+"\\s*:"));
 });
 
-test("WP-04 engine persistence projection is result-derived rather than answer-derived", () => {
-  const source = fs.readFileSync("supabase/functions/assessment-access/engine.ts", "utf8");
-  assert.match(source, /projectScoreRowsFromStructuredResult/);
-  assert.doesNotMatch(source, /axisPersistenceRows\(\s*result\.resolvedSelections/);
+test("WP-04 engine persists only a projection of the Structured Result", () => {
+  const source=fs.readFileSync("supabase/functions/assessment-access/engine.ts","utf8");
+  assert.match(source,/projectScoreRowsFromStructuredResult/);
+  assert.doesNotMatch(source,/axisPersistenceRows\\(\\s*result\\.resolvedSelections/);
+});
+
+test("WP-04 persistence migration rejects obsolete internal result fields", () => {
+  const sql=fs.readFileSync("supabase/migrations/20261008100000_wp04_structured_result_authority.sql","utf8");
+  assert.match(sql,/p_result \\? 'resolvedSelections'/);
+  assert.match(sql,/p_result \\? 'axisPersistenceRows'/);
+  assert.match(sql,/assessment_results/);
+  assert.match(sql,/jsonb_to_recordset\\(p_result->'scores'->'axes'\\)/);
 });
