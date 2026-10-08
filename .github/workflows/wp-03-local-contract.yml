@@ -1,0 +1,53 @@
+name: WP-03 configuration contract
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "tests/wp-03-configuration-semantics.test.mjs"
+      - "tests/wp-03-axis-weight-migration-harness.sql"
+      - "tests/fixtures/p3-current-published-config-v1.json"
+      - "supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql"
+      - "supabase/functions/assessment-access/index.ts"
+      - "documentation/architecture/**"
+      - ".github/workflows/wp-03-local-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-03-node-contract:
+    name: WP-03 configuration semantics
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types --test tests/wp-03-configuration-semantics.test.mjs
+
+  wp-03-sql-contract:
+    name: WP-03 disposable PostgreSQL migration contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/wp-03-axis-weight-migration-harness.sql
