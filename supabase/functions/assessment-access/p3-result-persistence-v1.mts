@@ -17,8 +17,8 @@ export function projectScoreRowsFromStructuredResult(
 
     return [{
       axis_id: axis.axisCode,
-      axis_name_ar: axis.axisCode,
-      axis_name_en: axis.axisCode,
+      axis_name_ar: axis.axisNameAr,
+      axis_name_en: axis.axisNameEn,
       raw_score: Math.round(axis.rawScore),
       max_possible: Math.round(axis.maxPossible),
       percentage: axis.percentage,
