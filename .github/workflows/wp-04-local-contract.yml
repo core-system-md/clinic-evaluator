@@ -1,0 +1,50 @@
+name: WP-04 Structured Result persistence contract
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/functions/assessment-access/**"
+      - "supabase/migrations/20261008100000_wp04_structured_result_authority.sql"
+      - "tests/wp-04-structured-result-persistence.test.mjs"
+      - "tests/wp-04-structured-result-persistence-harness.sql"
+      - ".github/workflows/wp-04-local-contract.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  wp-04-node:
+    name: WP-04 Structured Result authority
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --experimental-strip-types --test tests/wp-04-structured-result-persistence.test.mjs
+
+  wp-04-postgres:
+    name: WP-04 disposable PostgreSQL persistence gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/wp-04-structured-result-persistence-harness.sql
