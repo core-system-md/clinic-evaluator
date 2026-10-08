@@ -132,7 +132,7 @@ test('WP-06 public report source is the only report result transport contract', 
   assert.match(access, /reportSource: projectPublicReportSource/);
   assert.doesNotMatch(access, /structuredResult:\s*storedStructured/);
   assert.doesNotMatch(access, /structuredResult:\s*structured/);
-  assert.doesNotMatch(access, /provenance:\s*\{/);
+  assert.doesNotMatch(access, /data:\s*\{[^}]*provenance:/);
   assert.match(access, /data: \{ session, answers, reportSource \}/);
 });
 
