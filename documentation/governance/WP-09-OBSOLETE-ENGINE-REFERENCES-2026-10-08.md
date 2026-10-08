@@ -65,7 +65,7 @@ These remain separate contract boundaries.
 
 ## Verification
 
-**Status:** PENDING DEDICATED CI VERIFICATION.
+**Status:** PASS — DEDICATED CI VERIFIED.
 
 Required command:
 
@@ -80,6 +80,29 @@ CI workflow:
 No production database mutation.  
 No production Edge Function deployment.
 
+## Verification result
+
+Dedicated GitHub Actions run **37762105060** completed successfully.
+
+Job **113260773915**:
+- checkout: SUCCESS
+- Node 22 setup: SUCCESS
+- `npm ci`: SUCCESS
+- `node --test tests/wp-09-obsolete-engine-references.test.mjs`: SUCCESS
+
+The dedicated WP-09 contract test therefore passed on head:
+
+`2771467bd6c181a1e618df0a45b37a9d267811d8`
+
+## Production boundary
+
+No production database mutation.  
+No production Edge Function deployment.
+
 ## Stage decision
 
-**WP-09 = NOT YET CLOSED — awaiting dedicated verification.**
+**WP-09 = PASS**  
+**WP-09 = STAGE CLOSED**  
+**WP-09 = IMPLEMENTED / VERIFIED / DOCUMENTED**
+
+Final publication/merge to `main` remains the publication step for this stage; no WP-10 implementation is included.
