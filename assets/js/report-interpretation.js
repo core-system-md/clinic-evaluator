@@ -294,37 +294,17 @@
   function compatibleTrend(current, previous) {
     if (!previous) return { status: 'unavailable', reason: 'no_comparison' };
 
-    /*
-     * The server may verify the comparison basis before crossing the browser
-     * boundary. That safe result uses comparisonStatus instead of exposing the
-     * technical provenance required to make the decision.
-     */
-    if (previous.comparisonStatus === 'compatible') {
-      const previousScore = Number(previous.overallScore);
-      const currentScore = Number(current.scores.overallScore);
-      if (!Number.isFinite(previousScore) || !Number.isFinite(currentScore)) {
-        return { status: 'unavailable', reason: 'missing_score' };
-      }
-      const delta = currentScore - previousScore;
-      return {
-        status: 'available',
-        delta,
-        previousScore,
-        currentScore,
-        completedAt: previous.completedAt || null,
-        direction: delta > 0 ? 'up' : delta < 0 ? 'down' : 'stable'
-      };
-    }
-
-    if (previous.comparisonStatus && previous.comparisonStatus !== 'compatible') {
+    if (previous.comparisonStatus !== 'compatible') {
       return {
         status: 'unavailable',
-        reason: previous.comparisonReason || 'incompatible_comparison_basis'
+        reason: previous.comparisonStatus
+          ? previous.comparisonReason || 'incompatible_comparison_basis'
+          : 'unverified_comparison_basis'
       };
     }
 
     const previousScore = Number(previous.overallScore);
-    const currentScore = Number(current.scores.overallScore);
+    const currentScore = Number(current.overall?.value);
     if (!Number.isFinite(previousScore) || !Number.isFinite(currentScore)) {
       return { status: 'unavailable', reason: 'missing_score' };
     }
