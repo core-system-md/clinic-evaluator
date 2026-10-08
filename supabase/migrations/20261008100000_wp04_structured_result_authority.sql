@@ -95,11 +95,11 @@ begin
      or jsonb_typeof(p_result->'coverage') <> 'object'
      or jsonb_typeof(p_result->'consistency') <> 'object'
      or jsonb_typeof(p_result->roles) <> 'array'
-     or jsonb_typeof(p_result.kpis) <> 'array'
-     or jsonb_typeof(p_result.economics) <> 'object'
-     or jsonb_typeof(p_result.classification) <> 'object'
-     or jsonb_typeof(p_result.diagnostics) <> 'object'
-     or jsonb_typeof(p_result.audit) <> 'object'
+     or jsonb_typeof(p_result->'kpis') <> 'array'
+     or jsonb_typeof(p_result->'economics') <> 'object'
+     or jsonb_typeof(p_result->'classification') <> 'object'
+     or jsonb_typeof(p_result->'diagnostics') <> 'object'
+     or jsonb_typeof(p_result->'audit') <> 'object'
      or p_result ? 'resolvedSelections'
      or p_result ? 'axisPersistenceRows' then
     raise exception using errcode = '22023', message = 'Incomplete Structured Result';
@@ -337,11 +337,11 @@ begin
      or jsonb_typeof(p_result->'coverage') <> 'object'
      or jsonb_typeof(p_result->'consistency') <> 'object'
      or jsonb_typeof(p_result->roles) <> 'array'
-     or jsonb_typeof(p_result.kpis) <> 'array'
-     or jsonb_typeof(p_result.economics) <> 'object'
-     or jsonb_typeof(p_result.classification) <> 'object'
-     or jsonb_typeof(p_result.diagnostics) <> 'object'
-     or jsonb_typeof(p_result.audit) <> 'object'
+     or jsonb_typeof(p_result->'kpis') <> 'array'
+     or jsonb_typeof(p_result->'economics') <> 'object'
+     or jsonb_typeof(p_result->'classification') <> 'object'
+     or jsonb_typeof(p_result->'diagnostics') <> 'object'
+     or jsonb_typeof(p_result->'audit') <> 'object'
      or p_result ? 'resolvedSelections'
      or p_result ? 'axisPersistenceRows' then
     raise exception using errcode = '22023', message = 'Incomplete Structured Result identity/provenance';
