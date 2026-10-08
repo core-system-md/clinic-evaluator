@@ -44,7 +44,7 @@ This is the authoritative correction. The earlier conversational claim was a rep
 | WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | CLOSED |
 | WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | CLOSED |
 | WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 | Run `37748440553` | merge commit `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c` | NO | CLOSED |
-| WP-09 | Obsolete engine/runtime references | `wp-09-remove-obsolete-engine-references-2026-10-08` | #64 | Run `37762105060`; job `113260773915` | pending final PR merge | NO | PASS / STAGE CLOSED |
+| WP-09 | Obsolete engine/runtime references | `wp-09-remove-obsolete-engine-references-2026-10-08` | #64 | Runs `37762105060`, `37762220883`; final job `113261161511` | merge commit `74b2c269511b27d80b3cbc957aba80c3c4167929` | NO | CLOSED |
 
 ## 4. WP-01 — what was done
 
