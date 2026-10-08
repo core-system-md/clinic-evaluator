@@ -114,7 +114,8 @@ test("WP-05 trend accepts only a server-verified compatible comparison", () => {
     "unavailable"
   );
 });
-\n
+
+
 
 test("WP-05 server trend adapter verifies provenance before exposing comparison state", () => {
   const engine = fs.readFileSync("supabase/functions/assessment-access/engine.ts", "utf8");
@@ -127,7 +128,8 @@ test("WP-05 server trend adapter verifies provenance before exposing comparison 
   assert.match(access, /comparisonStatus: "incompatible"/);
   assert.doesNotMatch(access, /previousSessionData:\s*\{[\s\S]*scoringEngineVersion:/);
 });
-\ntest("WP-05 admin report projection", () => {
+
+test("WP-05 admin report projection", () => {
   const report = projectAdminReport(makeResult(), null, "patient-journey");
   assert.equal(report.audience, "admin");
   assert.equal(report.consistency.findings.length, 1);
