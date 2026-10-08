@@ -198,7 +198,15 @@ end $test$;
 \set public_payload :'result_payload'
 select public.complete_p4_public_assessment_from_result(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,
- 'token-public','fp-public', :'public_payload'::jsonb
+ 'token-public','fp-public',
+ jsonb_set(
+   :'public_payload'::jsonb,
+   '{identity,sessionId}',
+   '"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"'
+ ) || jsonb_build_object(
+   'identity',
+   (:'public_payload'::jsonb->'identity') || '{"sessionId":"bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb","resultId":"66666666-6666-4666-8666-666666666666"}'::jsonb
+ )
 );
 
 do $test$
