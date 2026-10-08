@@ -310,78 +310,13 @@ function buildSelections(
   return selections;
 }
 
-export async function calculateAssessment(
-  client: SupabaseClient,
-  input: {
-    sessionId: string;
-    economicInput?: P3EconomicInput;
-    answerSnapshot?: StoredAnswer[];
-  },
-): Promise<AssessmentComputation> {
-  const { data: session, error: sessionError } = await client
-    .from("sessions")
-    .select(
-      "id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status",
-    )
-    .eq("id", input.sessionId)
-    .maybeSingle();
-
-  if (sessionError) throw sessionError;
-  if (!session) throw new Error("Assessment session not found");
-  if (session.status !== "in_progress" && session.status !== "completed") {
-    throw new Error("Assessment session is not completable");
-  }
-
-  const runtime = await loadRuntime(client, session.assessment_type_id);
-  const assessmentVersion = Number(
-    runtime.assessment.version ??
-      runtime.assessment.config_version ??
-      1,
-  );
-
-  if (Number(session.assessment_version ?? 1) !== assessmentVersion) {
-    throw new Error(
-      "Assessment version changed; this session must be completed with its pinned version",
-    );
-  }
-
-  let answerRows: StoredAnswer[];
-  if (input.answerSnapshot !== undefined) {
-    answerRows = input.answerSnapshot;
-  } else {
-    const { data: dbAnswers, error: answersError } = await client
-      .from("answers")
-      .select("question_id, option_index, option_value")
-      .eq("session_id", session.id);
-
-    if (answersError) throw answersError;
-    answerRows = (dbAnswers || []) as StoredAnswer[];
-  }
-
-  const requiredQuestionCodes = runtime.questions
-    .filter((question) => question.is_required !== false)
-    .map((question) => question.code);
-  const answerQuestionCodes = new Set(
-    answerRows.map((answer) => answer.question_id),
-  );
-  const missing = requiredQuestionCodes.filter(
-    (questionCode) => !answerQuestionCodes.has(questionCode),
-  );
-  if (missing.length) {
-    throw new Error(
-      "Assessment incomplete",
-    );
-  }
-
-  const selections = buildSelections(runtime, answerRows);
-
-  const interpretationBinding = resolveInterpretationBinding(
-    runtime.family.slug,
-    assessmentVersion,
-  );
+function buildVersionedConfig(
+  runtime: Runtime,
+  interpretationBinding: InterpretationBinding,
+  assessmentVersion: number,
+) {
   const interpretationRegistry = interpretationBinding.registry;
-
-  const versionedConfig = {
+  return {
     assessment: {
       id: runtime.assessment.id,
       familyId: runtime.family.id,
@@ -429,7 +364,11 @@ export async function calculateAssessment(
       interpretationVersion: interpretationBinding.interpretationVersion,
       entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
-        .filter((entry) => String(entry.assessmentVersion ?? String(assessmentVersion)) === String(assessmentVersion))
+        .filter(
+          (entry) =>
+            String(entry.assessmentVersion ?? String(assessmentVersion)) ===
+            String(assessmentVersion),
+        )
         .sort(
           (a, b) =>
             String(a.questionCode).localeCompare(String(b.questionCode)) ||
@@ -440,7 +379,9 @@ export async function calculateAssessment(
     consistency: {
       schemaVersion: consistencyRuleRegistry.schemaVersion,
       ruleRegistryVersion: consistencyRuleRegistry.schemaVersion,
-      rules: (consistencyRuleRegistry.rules as Array<Record<string, unknown>>).map((rule) => ({ ...rule })),
+      rules: (consistencyRuleRegistry.rules as Array<Record<string, unknown>>).map(
+        (rule) => ({ ...rule }),
+      ),
       pairRegistryVersion: consistencyPairRegistry.schemaVersion,
       pairs: (consistencyPairRegistry.pairs as RuntimeConsistencyPair[])
         .filter(
@@ -451,13 +392,122 @@ export async function calculateAssessment(
         .map((pair) => ({ ...pair })),
     },
   };
+}
 
+async function buildAssessmentComputationContext(runtime: Runtime) {
+  const assessmentVersion = Number(
+    runtime.assessment.version ??
+      runtime.assessment.config_version ??
+      1,
+  );
+  const interpretationBinding = resolveInterpretationBinding(
+    runtime.family.slug,
+    assessmentVersion,
+  );
   const consistencyConfiguration = scopedConsistencyConfiguration(
     runtime.family.slug,
     assessmentVersion,
   );
-
+  const versionedConfig = buildVersionedConfig(
+    runtime,
+    interpretationBinding,
+    assessmentVersion,
+  );
   const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
+
+  return {
+    assessmentVersion,
+    interpretationBinding,
+    consistencyConfiguration,
+    assessmentConfigDigest,
+  };
+}
+
+export async function getAssessmentProvenance(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const context = await buildAssessmentComputationContext(runtime);
+
+  return {
+    assessmentFamilyId: runtime.family.id,
+    assessmentSlug: runtime.family.slug,
+    assessmentVersion: context.assessmentVersion,
+    interpretationVersion: context.interpretationBinding.interpretationVersion,
+    scoringEngineVersion: ENGINE_IDENTITY,
+    scoringContractVersion: SCORING_CONTRACT_ID,
+    assessmentConfigDigest: context.assessmentConfigDigest,
+  };
+}
+
+export async function calculateAssessment(
+  client: SupabaseClient,
+  input: {
+    sessionId: string;
+    economicInput?: P3EconomicInput;
+    answerSnapshot?: StoredAnswer[];
+  },
+): Promise<AssessmentComputation> {
+  const { data: session, error: sessionError } = await client
+    .from("sessions")
+    .select(
+      "id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status",
+    )
+    .eq("id", input.sessionId)
+    .maybeSingle();
+
+  if (sessionError) throw sessionError;
+  if (!session) throw new Error("Assessment session not found");
+  if (session.status !== "in_progress" && session.status !== "completed") {
+    throw new Error("Assessment session is not completable");
+  }
+
+  const runtime = await loadRuntime(client, session.assessment_type_id);
+  const context = await buildAssessmentComputationContext(runtime);
+  const {
+    assessmentVersion,
+    interpretationBinding,
+    consistencyConfiguration,
+    assessmentConfigDigest,
+  } = context;
+
+  if (Number(session.assessment_version ?? 1) !== assessmentVersion) {
+    throw new Error(
+      "Assessment version changed; this session must be completed with its pinned version",
+    );
+  }
+
+  let answerRows: StoredAnswer[];
+  if (input.answerSnapshot !== undefined) {
+    answerRows = input.answerSnapshot;
+  } else {
+    const { data: dbAnswers, error: answersError } = await client
+      .from("answers")
+      .select("question_id, option_index, option_value")
+      .eq("session_id", session.id);
+
+    if (answersError) throw answersError;
+    answerRows = (dbAnswers || []) as StoredAnswer[];
+  }
+
+  const requiredQuestionCodes = runtime.questions
+    .filter((question) => question.is_required !== false)
+    .map((question) => question.code);
+  const answerQuestionCodes = new Set(
+    answerRows.map((answer) => answer.question_id),
+  );
+  const missing = requiredQuestionCodes.filter(
+    (questionCode) => !answerQuestionCodes.has(questionCode),
+  );
+  if (missing.length) {
+    throw new Error(
+      "Assessment incomplete",
+    );
+  }
+
+  const selections = buildSelections(runtime, answerRows);
+
   const resultId = crypto.randomUUID();
   const calculatedAt = new Date().toISOString();
 
