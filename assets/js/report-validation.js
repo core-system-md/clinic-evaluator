@@ -21,14 +21,24 @@
     return { code, message, path };
   }
 
-  function validateUserReport(structured, report, renderedText = '') {
+  function validateUserReport(source, report, renderedText = '') {
     const issues = [];
 
-    if (!structured || structured.schemaVersion !== 'P3_STRUCTURED_RESULT_V1' || structured.status !== 'PRODUCTION') {
-      return { ok: false, issues: [issue('RESULT_NOT_PRODUCTION', 'User report requires a production Structured Result.')] };
+    if (!source || source.schemaVersion !== 'P3_REPORT_SOURCE_V1' || source.status !== 'READY_FOR_USER_REPORT') {
+      return { ok: false, issues: [issue('REPORT_SOURCE_INVALID', 'User report requires the approved public report source.')] };
+    }
+    if (!source.assessment?.slug || !source.assessment?.version) {
+      issues.push(issue('SOURCE_IDENTITY_INCOMPLETE', 'Public report source assessment identity is incomplete.', 'assessment'));
     }
     if (!report || report.audience !== 'user') {
       return { ok: false, issues: [issue('PROJECTION_INVALID', 'User report projection is invalid.')] };
+    }
+
+    const sourceSerialized = JSON.stringify(source).toLowerCase();
+    for (const key of USER_FORBIDDEN_KEYS) {
+      if (sourceSerialized.includes(key.toLowerCase())) {
+        issues.push(issue('INTERNAL_FIELD_VISIBLE', 'Public report source contains a prohibited internal field.', key));
+      }
     }
 
     const serialized = JSON.stringify(report).toLowerCase();
@@ -45,17 +55,18 @@
       }
     }
 
-    if (report.overall?.value !== structured.scores?.overallScore) {
-      issues.push(issue('OVERALL_MISMATCH', 'Overall value differs from Structured Result.', 'overall.value'));
+    if (report.overall?.value !== source.overall?.value) {
+      issues.push(issue('OVERALL_MISMATCH', 'Overall value differs from public report source.', 'overall.value'));
     }
-    if (report.overall?.bandCode !== (structured.classification?.bandCode || null)) {
-      issues.push(issue('BAND_MISMATCH', 'Band differs from Structured Result.', 'overall.bandCode'));
+    if (report.overall?.bandCode !== (source.overall?.bandCode || null)) {
+      issues.push(issue('BAND_MISMATCH', 'Band differs from public report source.', 'overall.bandCode'));
     }
-    if (!report.assessment?.familyId || !report.assessment?.version) {
-      issues.push(issue('IDENTITY_INCOMPLETE', 'Report assessment identity is incomplete.', 'assessment'));
+    if (report.assessment?.slug !== source.assessment?.slug ||
+        Number(report.assessment?.version) !== Number(source.assessment?.version)) {
+      issues.push(issue('IDENTITY_MISMATCH', 'Report assessment identity differs from public report source.', 'assessment'));
     }
 
-    const sourceAxes = (structured.scores?.axes || []).filter(
+    const sourceAxes = (source.axes || []).filter(
       axis => axis?.status === 'measured' && Number.isFinite(axis?.percentage)
     );
     const reportAxes = Array.isArray(report.axes) ? report.axes : [];
@@ -78,7 +89,7 @@
     }
 
     const expectedKpis = new Map(
-      (structured.kpis || [])
+      (source.kpis || [])
         .filter(kpi => kpi.status === 'available' && Number.isFinite(kpi.value))
         .map(kpi => [String(kpi.kpiCode), Number(kpi.value)])
     );
@@ -95,7 +106,7 @@
       }
     }
 
-    const sourceEconomic = structured.economics || {};
+    const sourceEconomic = source.economics || {};
     const economic = report.economicOpportunity;
     if (economic) {
       if (sourceEconomic.status !== 'COMPUTED' || !sourceEconomic.output) {
@@ -161,8 +172,8 @@
     return { ok: issues.length === 0, issues };
   }
 
-  function assertValidUserReport(structured, report, renderedText = '') {
-    const result = validateUserReport(structured, report, renderedText);
+  function assertValidUserReport(source, report, renderedText = '') {
+    const result = validateUserReport(source, report, renderedText);
     if (!result.ok) {
       const detail = result.issues.map(item => item.code + (item.path ? ':' + item.path : '')).join(', ');
       throw new Error('REPORT_VALIDATION_FAILED: ' + detail);
