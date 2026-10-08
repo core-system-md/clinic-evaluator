@@ -32,7 +32,7 @@ test("integrated scorer emits a production-valid structured result without chang
     interpretationVersion: 1,
     resultId: "00000000-0000-0000-0000-000000000002",
     calculatedAt: "2026-10-02T00:00:00Z",
-    scoringContractVersion: "P3_AGGREGATION_V1",
+    scoringContractVersion: "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07",
     assessmentConfigDigest: "fixture-digest",
     assessmentSlug: "patient-journey",
     selections: firstSelection("patient-journey"),
