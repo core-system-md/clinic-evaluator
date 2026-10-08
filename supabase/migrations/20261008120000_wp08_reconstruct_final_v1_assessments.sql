@@ -36,6 +36,9 @@ begin
     end loop;
   end loop;
   update public.assessment_families set current_published_version_id=new_type,updated_at=now() where id=family_id;
+  if (select coalesce(sum(weight),0) from public.axes where assessment_type_id=new_type) <> 100 then
+    raise exception 'WP08 final Comprehensive V1 axis weights must total 100%%';
+  end if;
 
   select id into family_id from public.assessment_families where slug='patient-journey';
   insert into public.assessment_types(slug,title_ar,title_en,description,question_count,axis_count,has_traps,has_ev_simulator,config_version,is_active,status,version,published_at,family_id,axis_roles,kpi_mappings,ev_mappings)
@@ -57,7 +60,7 @@ begin
   end loop;
   update public.assessment_families set current_published_version_id=new_type,updated_at=now() where id=family_id;
   if (select coalesce(sum(weight),0) from public.axes where assessment_type_id=new_type) <> 100 then
-    raise exception 'WP08 final Comprehensive V1 axis weights must total 100%%';
+    raise exception 'WP08 final Patient Journey V1 axis weights must total 100%%';
   end if;
 end $$;
 
