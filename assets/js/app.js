@@ -797,15 +797,6 @@ class ClinicEvaluatorApp {
       return;
     }
 
-    res = {
-      ...res,
-      overallScore: report.overall.value,
-      classification: report.overall.bandCode,
-      axisScores: Object.fromEntries(report.axes.map((axis) => [axis.code, axis.percentage])),
-      kpis: Object.fromEntries(report.kpis.map((kpi) => [kpi.code, kpi.value])),
-      structuredResult: structured
-    };
-
     try {
       window.MDReportValidation.assertValidUserReport(structured, report);
     } catch (error) {
@@ -817,73 +808,73 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
-    const q = res.classification || 'Q2';
-    const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
-    const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
-
-    let trendHtml = "";
-    if (report.trend?.status === 'available') {
-      const diff = Number(report.trend.delta);
-      const daysSince = report.trend.completedAt
-        ? Math.max(0, Math.floor((Date.now() - new Date(report.trend.completedAt).getTime()) / (24 * 60 * 60 * 1000)))
-        : null;
-      const suffix = daysSince === null ? '' : ` (${daysSince} يوم)`;
-      if (diff > 0) {
-        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">📈 تغير إيجابي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق${suffix}</div>`;
-      } else if (diff < 0) {
-        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">📉 تغير بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق${suffix}</div>`;
-      } else {
-        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر مقارنة بالتقييم السابق${suffix}</div>`;
-      }
-    }
+    const score = Number.isFinite(report.overall.value) ? report.overall.value.toFixed(1) : '—';
+    const q = report.overall.bandCode || 'Q2';
+    const qData = { label: this.t(report.overall.labelKey) || 'النتيجة' };
 
     const circle = document.getElementById('result-score-circle');
     if (circle) {
       circle.classList.remove('q1', 'q2', 'q3', 'q4');
       circle.classList.add(q.toLowerCase());
     }
+
     const scoreVal = document.getElementById('result-score-value');
-    if (scoreVal) { scoreVal.textContent = score + '%'; }
+    if (scoreVal) scoreVal.textContent = score + '%';
+
     const scoreLabel = document.getElementById('result-score-label');
     if (scoreLabel) scoreLabel.textContent = qData.label;
+
     const title = document.getElementById('result-title');
     if (title) title.textContent = qData.label;
+
     const body = document.getElementById('result-body');
-    
     if (body) {
-      body.innerHTML = `<div>درجتك الكلية للعيادة: ${score} من 100 — ${qData.label}</div>${trendHtml}`;
+      const trendHtml = report.trend?.status === 'available'
+        ? '<div style="margin-top:10px;font-weight:700;font-size:0.95rem;">' + this.escapeHtml(report.trend.statement || '') + '</div>'
+        : '';
+      body.innerHTML =
+        '<div>درجتك الكلية للعيادة: ' + score + ' من 100 — ' + this.escapeHtml(qData.label) + '</div>' +
+        trendHtml;
     }
 
     const axesContainer = document.getElementById('axes-scores');
-    if (axesContainer && res.axisScores) {
+    if (axesContainer) {
       axesContainer.innerHTML = '';
-      const axes = this.assessment?.axes || [];
-      Object.entries(res.axisScores).forEach(([aid, score]) => {
-        const axis = axes.find(a => a.id === aid);
-        const qClass = score >= 75 ? 'q4' : score >= 50 ? 'q3' : score >= 25 ? 'q2' : 'q1';
+      report.axes.forEach((axis) => {
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
-        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis ? axis.name_ar : aid}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
+        row.innerHTML =
+          '<div class="axis-score-info">' +
+            '<div class="axis-score-name">' + this.escapeHtml(axis.nameAr) + '</div>' +
+            '<div class="axis-score-bar-bg"><div class="' + axis.bandCode.toLowerCase() + '" style="width:' + axis.percentage + '%;"></div></div>' +
+          '</div>' +
+          '<div class="axis-score-value">' + axis.percentage.toFixed(1) + '%</div>';
         axesContainer.appendChild(row);
       });
     }
 
-    this.renderVisualBenchmark(res);
+    this.renderVisualBenchmark(report);
 
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
-      recContainer.innerHTML = '<h3 class="card-title">💡 التوجيهات الاستشارية وفرص التطوير الهيكلي</h3>';
-      if (res.axisScores) {
-        const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
-        const weakest = sorted[0];
-        const strongest = sorted[sorted.length - 1];
-        const axes = this.assessment?.axes || [];
-        const weakAxis = axes.find(x => x.id === weakest[0]);
-        const strongAxis = axes.find(x => x.id === strongest[0]);
+      recContainer.innerHTML =
+        '<h3 class="card-title">' + this.escapeHtml(this.t('report.structural_diagnosis') || 'قراءة النتيجة') + '</h3>';
+
+      if (report.priority) {
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
-        box.innerHTML = `<h4>🎯 الأولوية التشغيلية القصوى: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4><p>بلغت النتيجة المقاسة لهذا المحور (${weakest[1].toFixed(1)}%).</p><h4 style="margin-top:12px;">💪 أعلى محور مقاس: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4><p>بلغت النتيجة المقاسة لهذا المحور (${strongest[1].toFixed(1)}%).</p>`;
+        box.innerHTML =
+          '<h4>🎯 المحور ذي الأولوية في القراءة</h4>' +
+          '<p>' + this.escapeHtml(report.priority.statement) + ' ' +
+            '<strong>' + this.escapeHtml(report.priority.axisNameAr) + '</strong> (' +
+            Number(report.priority.percentage).toFixed(1) + '%).</p>' +
+          (report.strength
+            ? '<h4 style="margin-top:12px;">💪 أعلى محور مقاس</h4>' +
+              '<p>' + this.escapeHtml(report.strength.statement) + ' ' +
+              '<strong>' + this.escapeHtml(report.strength.axisNameAr) + '</strong> (' +
+              Number(report.strength.percentage).toFixed(1) + '%).</p>'
+            : '');
         recContainer.appendChild(box);
       }
     }
@@ -902,37 +893,7 @@ class ClinicEvaluatorApp {
     }
   }
 
-  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */
-
-  renderAxisComparison(currentAxisScores) {
-    if (!this.previousSessionData?.axisScores) return '';
-    
-    let html = '<div style="margin-top:16px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
-    html += '<thead><tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;text-align:right;">المحور</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الأساس</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الحالي</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">التغير</th></tr></thead><tbody>';
-    
-    const axes = this.assessment?.axes || [];
-    Object.entries(currentAxisScores).forEach(([aid, currentScore]) => {
-      const axis = axes.find(a => a.id === aid);
-      const baseline = this.previousSessionData.axisScores[aid] || 0;
-      const diff = currentScore - baseline;
-      const diffColor = diff > 0 ? '#10b981' : diff < 0 ? '#ef4444' : '#6b7280';
-      const diffIcon = diff > 0 ? '↑' : diff < 0 ? '↓' : '→';
-      
-      html += `<tr>
-        <td style="padding:8px;border:1px solid #e5e7eb;">${axis ? axis.name_ar : aid}</td>
-        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${baseline.toFixed(1)}%</td>
-        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;font-weight:700;">${currentScore.toFixed(1)}%</td>
-        <td style="padding:8px;border:1px solid #e5e7eb;text-align:center;color:${diffColor};font-weight:700;">${diffIcon} ${Math.abs(diff).toFixed(1)}%</td>
-      </tr>`;
-    });
-    
-    html += '</tbody></table></div>';
-    return html;
-  }
-
-  /* ─────────────── UNIFIED VISUAL BENCHMARKING ─────────────── */
-
-  renderVisualBenchmark(res) {
+  renderVisualBenchmark(report) {
     const oldCharts = document.getElementById('charts-container');
     const oldKpis = document.getElementById('kpis-container');
     if (oldCharts) oldCharts.remove();
@@ -944,52 +905,53 @@ class ClinicEvaluatorApp {
       benchmarkContainer.id = 'benchmark-container';
       benchmarkContainer.className = 'form-card fade-in';
       benchmarkContainer.style.marginTop = '20px';
-      
+
       const axesContainer = document.getElementById('axes-scores');
       axesContainer?.parentNode?.insertBefore(benchmarkContainer, axesContainer.nextSibling);
     }
-    
+
     benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
-    
-    if (res.axisScores) {
-      const axes = this.assessment?.axes || [];
-      const data = Object.entries(res.axisScores).map(([aid, score]) => ({ 
-        label: axes.find(a => a.id === aid)?.name_ar || aid, 
-        value: score 
-      }));
-      
+
+    const axisData = Array.isArray(report?.axes) ? report.axes : [];
+    if (axisData.length) {
       const chartDiv = document.createElement('div');
       chartDiv.style.marginBottom = '24px';
-      
-      const maxVal = Math.max(...data.map(d => d.value), 1);
-      data.forEach(item => {
-        const pct = (item.value / maxVal) * 100;
-        let qClass = 'q1';
-        if (item.value >= 75) qClass = 'q4';
-        else if (item.value >= 50) qClass = 'q3';
-        else if (item.value >= 25) qClass = 'q2';
 
+      const maxVal = Math.max(...axisData.map(axis => axis.percentage), 1);
+      axisData.forEach(axis => {
+        const pct = (axis.percentage / maxVal) * 100;
         const row = document.createElement('div');
         row.style.cssText = 'margin-bottom:12px;';
-        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        row.innerHTML =
+          '<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;">' +
+            '<span>' + this.escapeHtml(axis.nameAr) + '</span>' +
+            '<span class="' + axis.bandCode.toLowerCase() + '-text">' + axis.percentage.toFixed(1) + '%</span>' +
+          '</div>' +
+          '<div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;">' +
+            '<div class="' + axis.bandCode.toLowerCase() + '" style="width:' + pct + '%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div>' +
+          '</div>';
         chartDiv.appendChild(row);
       });
-      
+
       benchmarkContainer.appendChild(chartDiv);
     }
 
-    if (res.kpis) {
+    const kpis = Array.isArray(report?.kpis) ? report.kpis : [];
+    if (kpis.length) {
       const kpiGrid = document.createElement('div');
       kpiGrid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;';
-      
-      Object.entries(res.kpis).forEach(([k, v]) => {
-        const info = this.texts?.kpis?.[k] || { name: k, short_name: k };
+
+      kpis.forEach(kpi => {
+        const info = this.t(kpi.textKey) || { name: kpi.code, short_name: kpi.code };
         const card = document.createElement('div');
         card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
-        card.innerHTML = `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${v.toFixed(1)}</div>`;
+        card.innerHTML =
+          '<div style="font-size:0.85rem;color:#6b7280;">' + this.escapeHtml(info.name || kpi.code) + '</div>' +
+          '<div style="font-size:0.8rem;color:#9ca3af;">' + this.escapeHtml(info.short_name || kpi.code) + '</div>' +
+          '<div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">' + Number(kpi.value).toFixed(1) + '</div>';
         kpiGrid.appendChild(card);
       });
-      
+
       benchmarkContainer.appendChild(kpiGrid);
     }
   }
