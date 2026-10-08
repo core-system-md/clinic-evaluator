@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment } from "./engine.ts";
+import { calculateAssessment, getAssessmentProvenance } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
 
 const corsHeaders = {
@@ -300,22 +300,67 @@ async function findLeadHistory(assessmentTypeId: string, lead: any) {
   if (sessionError) throw sessionError;
   if (!previousSession) return { allowed: true, previousSessionData: null };
 
-  const { data: previousScores, error: scoreError } = await supabase
-    .from("scores")
-    .select("axis_id, percentage")
-    .eq("session_id", previousSession.id);
+  const { data: previousResult, error: resultError } = await supabase
+    .from("assessment_results")
+    .select("result, assessment_version, interpretation_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at")
+    .eq("session_id", previousSession.id)
+    .maybeSingle();
 
-  if (scoreError) throw scoreError;
+  if (resultError) throw resultError;
 
-  const axisScores: Record<string, number> = {};
-  for (const row of previousScores || []) axisScores[row.axis_id] = Number(row.percentage) || 0;
+  const currentProvenance = await getAssessmentProvenance(supabase, assessmentTypeId);
+  const previousStructured = previousResult?.result;
+  const previousIdentity = previousStructured?.identity || {};
+  const previousProvenance = previousStructured?.provenance || {};
+
+  const compatible =
+    previousStructured?.schemaVersion === "P3_STRUCTURED_RESULT_V1" &&
+    previousStructured?.status === "PRODUCTION" &&
+    String(previousIdentity.assessmentFamilyId || "") === String(currentProvenance.assessmentFamilyId) &&
+    String(previousIdentity.assessmentVersion || "") === String(currentProvenance.assessmentVersion) &&
+    String(previousResult?.assessment_version || "") === String(currentProvenance.assessmentVersion) &&
+    String(previousResult?.interpretation_version || previousProvenance.interpretationVersion || "") === String(currentProvenance.interpretationVersion) &&
+    String(previousResult?.scoring_engine_version || previousProvenance.scoringEngineVersion || "") === String(currentProvenance.scoringEngineVersion) &&
+    String(previousResult?.scoring_contract_version || previousProvenance.scoringContractVersion || "") === String(currentProvenance.scoringContractVersion) &&
+    String(previousResult?.assessment_config_digest || previousProvenance.assessmentConfigDigest || "") === String(currentProvenance.assessmentConfigDigest);
+
+  if (!compatible) {
+    return {
+      allowed: true,
+      previousSessionData: {
+        comparisonStatus: "incompatible",
+        comparisonReason: "incompatible_comparison_basis",
+        completedAt: previousResult?.calculated_at || last.completed_at || previousSession.completed_at || previousSession.created_at
+      }
+    };
+  }
+
+  const previousScore = Number(previousStructured?.scores?.overallScore);
+  if (!Number.isFinite(previousScore)) {
+    return {
+      allowed: true,
+      previousSessionData: {
+        comparisonStatus: "incompatible",
+        comparisonReason: "missing_score",
+        completedAt: previousResult?.calculated_at || last.completed_at || previousSession.completed_at || previousSession.created_at
+      }
+    };
+  }
+
+  const previousAxisScores: Record<string, number> = {};
+  for (const axis of previousStructured?.scores?.axes || []) {
+    if (axis?.status === "measured" && Number.isFinite(axis?.percentage)) {
+      previousAxisScores[String(axis.axisCode)] = Number(axis.percentage);
+    }
+  }
 
   return {
     allowed: true,
     previousSessionData: {
-      overallScore: Number(last.score_percentage) || 0,
-      axisScores,
-      completedAt: last.completed_at || previousSession.completed_at || previousSession.created_at
+      comparisonStatus: "compatible",
+      overallScore: previousScore,
+      axisScores: previousAxisScores,
+      completedAt: previousResult?.calculated_at || last.completed_at || previousSession.completed_at || previousSession.created_at
     }
   };
 }
