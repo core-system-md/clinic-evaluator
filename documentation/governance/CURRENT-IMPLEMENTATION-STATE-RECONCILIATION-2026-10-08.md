@@ -288,3 +288,130 @@ Read-only production verification confirms this reconciliation introduced no pro
 **Overall reconciliation gate for WP-05/06/07: RESOLVED at implementation, verification, and documentation boundaries.**
 
 Production rollout is still a separate authorization boundary. No WP-08 production migration, routing change, deletion, or content mutation is authorized by this record.
+
+
+## 12. Functional naming and technical-ownership forensic investigation — 2026-10-08
+
+This investigation was restarted from repository/runtime evidence after the owner reaffirmed the following engineering rule:
+
+- technical files and behavior-defining components are named by responsibility/function, not by work-plan stage;
+- stage labels remain permitted in documentation and deliberate traceability artifacts;
+- existing responsibilities are repaired by modifying/extending their established owner;
+- a new technical file requires an independently justified responsibility and explicit ownership boundary;
+- no abandoned, disabled, dead, or duplicate implementation may be left as an unintended second owner;
+- migration filenames are executable migration identities and must be reconciled against live history before any rename/delete action.
+
+**Scope of this checkpoint:** forensic investigation only. No rename, deletion, migration mutation, Edge Function deployment, or production mutation was performed.
+
+### 12.1 Classification of repository artifacts
+
+**PROVEN — direct technical naming violations**
+
+The current repository contains **12 stage-named runtime/config artifacts** under the assessment-access calculation boundary:
+
+- `p3-scorer-v1.mts`
+- `p3-aggregation-engine.mts`
+- `p3-consistency-engine.mts`
+- `p3-criticality-coverage-engine.mts`
+- `p3-integrated-scorer-v1.mts`
+- `p3-structured-result-v1.mts`
+- `p3-result-persistence-v1.mts`
+- `p3-economic-model-v1.mts`
+- `p3-consistency-rule-registry-v2.json`
+- `p3-consistency-pair-registry-v1.json`
+- `p3-response-interpretation-registry-v1.json`
+- `p3-response-interpretation-registry-v2.json`
+
+These are not all separate authorities: the repository evidence shows that they are composed dependencies beneath the canonical `engine.ts`. The defect is their use of the work-plan stage as part of technical identity, not automatic proof that each is a competing engine.
+
+**UNVERIFIED / reference-only candidate**
+
+`p3-historical-reconciliation.mts` is stage-named but no active runtime import was found. Its current use is through dedicated test/documentation evidence. It must not be deleted or renamed until its complete dependency/usage boundary is verified.
+
+**PROVEN — new executable migrations carry stage names**
+
+The repository contains three current, unapplied migrations whose executable filenames use WP stage identities:
+
+- `20261008090000_wp03_canonical_axis_weights.sql`
+- `20261008100000_wp04_structured_result_authority.sql`
+- `20261008120000_wp08_reconstruct_final_v1_assessments.sql`
+
+Production migration history currently ends at `20261005143243 / p5_public_options_projection_recovery`; therefore these three files are not applied in Production. They are direct functional-naming violations and are technically safer rename candidates than already-applied migrations, but no rename was performed in this investigation.
+
+**PROVEN — stage-named live database completion identities**
+
+Live Supabase still contains stage-named completion functions:
+
+- `complete_p4_assessment_session`
+- `complete_p4_public_assessment_session`
+- `complete_p3_assessment_session`
+- `complete_p3_public_assessment_session`
+
+The current repository `assessment-access/index.ts` completion path selects the `complete_p4_*_from_result` boundary after submission preparation. The older `complete_p3_*` functions remain present in the live database with `service_role`-only ACLs and are not shown as current repository call targets.
+
+This proves a technical-identity/ownership problem at the database API layer, but it does **not** by itself authorize deletion or renaming. Complete dependency verification is still required.
+
+**PROVEN — stage identity leaks into runtime result/schema contracts**
+
+The runtime still uses identifiers such as:
+
+- `P3_STRUCTURED_RESULT_V1`
+- `P3_SCORER_V1`
+- `P3_AGGREGATION_V1`
+- `P3_RECURSIVE_REFERRAL_V1`
+- `P3_BANDS_V1`
+- `P3_REPORT_SOURCE_V1`
+
+The most significant finding is that the P3 label is not limited to filenames: it crosses the Structured Result, report transport/projection, scoring provenance, and persistence/DB validation boundaries.
+
+This is a deeper technical identity issue than filename style. Reconciliation would require a coordinated contract/code/test/DB plan rather than text replacement.
+
+**PROVEN — legacy executable scorer remains an active CI dependency**
+
+`supabase/functions/assessment-access/score-engine-legacy.ts` remains an executable scoring implementation. It is explicitly marked compatibility/reference-only, but `tests/server-scoring-parity.test.js` imports and executes it, and the P3 verification workflow includes that test.
+
+Therefore the repository currently retains a second executable scoring implementation for parity/reference purposes. It is not the official runtime authority, but it is a concrete technical-debt surface and requires an explicit lifetime/disposition. The current user rule does not permit indefinite accumulation of such parallel executable implementations.
+
+**PROVEN — migration filename/live-history divergence**
+
+Production currently reports **27 P5 migration history rows**, while only **15 repository P5 migration files** were found by normalized stage-name matching. Multiple live migration versions use the same migration name with a repository filename carrying a different leading timestamp.
+
+Additionally, repository filenames currently contain duplicate leading migration timestamps:
+
+- `20261003233000_*` — two files;
+- `20261004150000_*` — two files.
+
+Historical commits already document migration filename/history reconciliation. This is a migration-provenance integrity issue, not a cosmetic naming issue, and must be handled separately from ordinary file renaming.
+
+### 12.2 Artifacts that are NOT a naming problem
+
+The following are intentionally permitted for traceability and do not constitute the same defect:
+
+- governance/audit/handoff documentation named by WP/P stage;
+- dedicated stage-specific tests;
+- CI workflows;
+- branch names, PR titles, commit messages, and tracking records.
+
+Their stage labels serve auditability and do not by themselves create a runtime technical owner.
+
+### 12.3 Current technical-debt priorities
+
+**Highest priority:** eliminate ambiguity around executable ownership: canonical `engine.ts`, legacy scorer lifetime, and the stage-named live completion API surface.
+
+**High priority:** reconcile stage-coded runtime/result identities such as `P3_STRUCTURED_RESULT_V1` and related model IDs without breaking stored-result compatibility or creating aliases that perpetuate duplicate ownership.
+
+**High priority:** establish a migration-provenance map before any migration filename cleanup or new migration sequencing.
+
+**Direct naming cleanup candidates:** the 12 unapplied/current runtime-config artifacts and the three unapplied WP-named migration files, subject to ownership/dependency review.
+
+### 12.4 Investigation conclusion
+
+The confirmed problem is **not** “all files containing P/WP are wrong.” The actual boundary is:
+
+**stage labels are valid traceability; stage labels are not valid runtime technical identities.**
+
+The repository currently violates that boundary in runtime/config filenames, new unapplied migration filenames, live database completion identities, and several cross-layer result/model identifiers.
+
+No implementation correction was authorized or performed by this checkpoint. The next engineering action, when authorized, must be one coordinated ownership-preserving reconciliation: inspect consumers and live dependencies, modify the existing owner where possible, rename only safe/unapplied artifacts, and disposition legacy duplicates without creating replacement parallel paths.
+
+**Production state remains unchanged.**
