@@ -2,8 +2,10 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 
-const interpretation = await import('../assets/js/report-interpretation.js');
-const validation = await import('../assets/js/report-validation.js');
+const interpretationModule = await import('../assets/js/report-interpretation.js');
+const interpretation = interpretationModule.default || interpretationModule;
+const validationModule = await import('../assets/js/report-validation.js');
+const validation = validationModule.default || validationModule;
 
 function resultFixture(overrides = {}) {
   return {
