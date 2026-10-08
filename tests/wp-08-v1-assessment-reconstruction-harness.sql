@@ -1,5 +1,5 @@
 create extension if not exists pgcrypto;
-create table public.assessment_families(id uuid primary key,slug text unique,current_published_version_id uuid);
+create table public.assessment_families(id uuid primary key,slug text unique,current_published_version_id uuid,updated_at timestamptz default now());
 create table public.assessment_types(id uuid primary key default gen_random_uuid(),slug text unique,title_ar text,title_en text,description text,question_count int,axis_count int,has_traps bool,has_ev_simulator bool,config_version int,is_active bool,status text,version int,published_at timestamptz,family_id uuid,axis_roles jsonb,kpi_mappings jsonb,ev_mappings jsonb);
 create table public.axes(id uuid primary key default gen_random_uuid(),assessment_type_id uuid,code text,title text,title_ar text,description text,weight numeric,display_order int,status text);
 create table public.questions(id uuid primary key default gen_random_uuid(),axis_id uuid,assessment_type_id uuid,code text,question_text text,question_text_ar text,question_type text,display_order int,is_required bool,trap_index int,status text,impact text,layer text,trap_for jsonb);
