@@ -56,8 +56,8 @@
     return result;
   }
 
-  function modelFor(result) {
-    const slug = result?.provenance?.assessmentSlug || result?.identity?.assessmentSlug;
+  function modelFor(result, assessmentSlug) {
+    const slug = assessmentSlug || result?.provenance?.assessmentSlug || result?.identity?.assessmentSlug;
     return REPORT_MODELS[slug] || {
       purpose: 'نتيجة التقييم',
       userKpis: [],
@@ -125,9 +125,9 @@
     };
   }
 
-  function projectUserReport(result, previousSession) {
+  function projectUserReport(result, previousSession, assessmentSlug) {
     const current = assertStructuredResult(result);
-    const model = modelFor(current);
+    const model = modelFor(current, assessmentSlug);
     const axes = measuredAxes(current);
     const lowest = axes[0] || null;
     const highest = axes.length ? axes[axes.length - 1] : null;
@@ -167,14 +167,16 @@
     };
   }
 
-  function projectAdminReport(result, previousSession) {
+  function projectAdminReport(result, previousSession, assessmentSlug) {
     const current = assertStructuredResult(result);
+    const model = modelFor(current, assessmentSlug);
     return {
       audience: 'admin',
       assessment: {
         familyId: current.identity.assessmentFamilyId,
         typeId: current.identity.assessmentTypeId,
-        version: current.identity.assessmentVersion
+        version: current.identity.assessmentVersion,
+        modelPurpose: model.purpose
       },
       identity: current.identity,
       provenance: current.provenance,
