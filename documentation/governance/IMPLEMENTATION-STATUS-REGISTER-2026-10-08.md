@@ -450,3 +450,24 @@ The earlier register entries that marked WP-05, WP-06, and WP-07 as "historical 
 No production deployment or database mutation was performed.
 
 The owner-stop rule still applies: this reconciliation closes WP-05/06/07 only; it does not authorize the next WP or any production rollout.
+
+
+## 18. Functional naming / single-owner investigation handoff — 2026-10-09
+
+| Gate / item | Status | Evidence / note |
+|---|---|---|
+| Rule documented in existing engineering contract | **UPDATED — BRANCH ONLY** | `AI-ENGINEERING-OPERATING-CONTRACT.md` §6.1 |
+| Rule documented in current implementation contract | **UPDATED — BRANCH ONLY** | `FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md` §4.1 |
+| Handoff record | **RECORDED** | `CURRENT-IMPLEMENTATION-STATE-RECONCILIATION-2026-10-08.md` §12.7 |
+| Full repository path inventory | **OPEN** | Initial search results identify executable stage-prefixed modules and migration filenames; exhaustive path-by-path inventory remains required |
+| Runtime owner / duplicate implementation audit | **OPEN** | Stage-named calculation modules are imported by the canonical repository engine/tests; duplicate or dead ownership has not been proven solely from naming |
+| Repository vs production engine reconciliation | **OPEN — HIGH RISK** | Live Edge Function v32 imports `score-engine.ts`; repository target identifies `engine.ts` as canonical owner |
+| Migration provenance and filename reconciliation | **OPEN — HIGH RISK** | Live migration history includes applied stage-named identities; no rename or migration was performed |
+| Code remediation | **NOT STARTED** | No source/runtime changes made as part of this investigation checkpoint |
+| Tests for remediation | **NOT RUN** | No code changes were made; no test result is claimed |
+| Production changes | **NONE** | No DB migration or Edge Function deployment performed |
+| Final closure | **NOT CLOSED** | Must complete ownership/dependency inventory, coordinate safe remediation, verify tests/runtime and update handoff evidence |
+
+### Required next transition
+
+Continue the same investigation until the repository inventory is exhaustive and each candidate is classified by technical responsibility, canonical owner, references/reachability, duplication/deadness evidence, and migration/runtime safety. Only then implement a coordinated, reviewable remediation. Preserve the single-WP stop rule: this handoff does not authorize starting a new WP or production deployment.
