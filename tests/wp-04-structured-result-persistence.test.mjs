@@ -64,8 +64,8 @@ test("WP-04 persistence projector cannot observe answer/internal engine state", 
 
 test("WP-04 completion entrypoint sends Structured Result as the only factual completion payload", () => {
   const source=fs.readFileSync("supabase/functions/assessment-access/index.ts","utf8");
-  assert.match(source,/complete_p4_assessment_from_result/);
-  assert.match(source,/complete_p4_public_assessment_from_result/);
+  assert.match(source,/complete_protected_assessment_from_result/);
+  assert.match(source,/complete_public_assessment_from_result/);
   for(const key of ["p_overall_score","p_classification","p_score_rows","p_assessment_version","p_interpretation_version","p_scoring_engine_version","p_scoring_contract_version","p_assessment_config_digest"]) assert.doesNotMatch(source,new RegExp(key+"\\s*:"));
 });
 
@@ -76,7 +76,7 @@ test("WP-04 engine persists only a projection of the Structured Result", () => {
 });
 
 test("WP-04 persistence migration rejects obsolete internal result fields", () => {
-  const sql=fs.readFileSync("supabase/migrations/20261008100000_wp04_structured_result_authority.sql","utf8");
+  const sql=fs.readFileSync("supabase/migrations/20261008100000_structured_result_authority.sql","utf8");
   assert.ok(sql.includes("p_result ? 'resolvedSelections'"));
   assert.ok(sql.includes("p_result ? 'axisPersistenceRows'"));
   assert.match(sql,/assessment_results/);
