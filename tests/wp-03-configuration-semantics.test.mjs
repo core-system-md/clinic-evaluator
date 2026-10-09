@@ -114,3 +114,11 @@ test("WP-03 migration source uses guarded fraction-to-percentage conversion", ()
   assert.match(sql, /expected 12 normalized axis rows/);
   assert.match(sql, /commit;/);
 });
+
+test('WP-03 published-weight migration uses only a transaction-scoped postgres exception', () => {
+ const sql = fs.readFileSync('supabase/migrations/20261008090000_canonical_axis_weights.sql','utf8');
+ assert.match(sql, /current_user = 'postgres'/);
+ assert.match(sql, /current_setting\('app\.canonical_axis_weight_migration', true\) = 'on'/);
+ assert.match(sql, /set local app\.canonical_axis_weight_migration = 'on'/);
+ assert.match(sql, /NEW\.weight is distinct from OLD\.weight and not/);
+});
