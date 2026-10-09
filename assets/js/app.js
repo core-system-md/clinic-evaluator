@@ -813,11 +813,17 @@ class ClinicEvaluatorApp {
 
   renderResults(res) {
     let report = res?.userReport || null;
+    // Rolling-deploy compatibility only: interpret the previous Edge payload
+    // before rendering; never pass raw result fields directly to report markup.
     const legacyStructured = !report && res?.structuredResult?.schemaVersion === 'P3_STRUCTURED_RESULT_V1'
       ? res.structuredResult : null;
     if (legacyStructured) {
       try {
-        report = window.MDReportInterpretation.projectUserReport(legacyStructured, this.previousSessionData, this.currentAssessmentKey);
+        report = window.MDReportInterpretation.projectUserReport(
+          legacyStructured,
+          this.previousSessionData,
+          this.currentAssessmentKey
+        );
       } catch (error) {
         console.error('[app] legacy result projection failed:', error);
       }
@@ -830,7 +836,7 @@ class ClinicEvaluatorApp {
       if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report);
       else window.MDReportValidation.assertValidUserProjection(report);
     } catch (error) {
-      console.error('[app] server user projection validation failed:', error);
+      console.error('[app] report projection validation failed:', error);
       this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من إسقاط المستخدم.');
       return;
     }
@@ -841,25 +847,34 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
-    const q = res.classification || 'Q2';
-    const qData = this.texts?.quartiles?.[q] || { label: 'تذبذب ملحوظ', color: '#C67D47' };
+    const q = ['Q1', 'Q2', 'Q3', 'Q4'].includes(res.classification) ? res.classification : null;
+    const qData = q
+      ? (this.texts?.quartiles?.[q] || { label: report.overall?.label || 'غير متاح', color: '#C67D47' })
+      : { label: report.overall?.label || 'غير متاح', color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
 
     let trendHtml = "";
     if (report.trend?.status === 'available') {
-      const diff = Number(report.trend.delta);
-      const daysSince = report.trend.completedAt
-        ? Math.max(0, Math.floor((Date.now() - new Date(report.trend.completedAt).getTime()) / (24 * 60 * 60 * 1000)))
-        : null;
-      const suffix = daysSince === null ? '' : this.t('report.trend_days', { days: daysSince });
-      const trendPath = diff > 0 ? 'report.trend_positive' : diff < 0 ? 'report.trend_negative' : 'report.trend_stable';
-      trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">${this.t(trendPath, { delta: Math.abs(diff).toFixed(1), suffix })}</div>`;
+      const trendPaths = {
+        up: 'report.trend_positive',
+        down: 'report.trend_negative',
+        stable: 'report.trend_stable'
+      };
+      const trendPath = trendPaths[report.trend.direction];
+      if (trendPath) {
+        const diff = Number(report.trend.delta);
+        const daysSince = report.trend.completedAt
+          ? Math.max(0, Math.floor((Date.now() - new Date(report.trend.completedAt).getTime()) / (24 * 60 * 60 * 1000)))
+          : null;
+        const suffix = daysSince === null ? '' : this.t('report.trend_days', { days: daysSince });
+        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">${this.t(trendPath, { delta: Math.abs(diff).toFixed(1), suffix })}</div>`;
+      }
     }
 
     const circle = document.getElementById('result-score-circle');
     if (circle) {
       circle.classList.remove('q1', 'q2', 'q3', 'q4');
-      circle.classList.add(q.toLowerCase());
+      if (q) circle.classList.add(q.toLowerCase());
     }
     const scoreVal = document.getElementById('result-score-value');
     if (scoreVal) { scoreVal.textContent = score + '%'; }
@@ -874,35 +889,36 @@ class ClinicEvaluatorApp {
     }
 
     const axesContainer = document.getElementById('axes-scores');
-    if (axesContainer && res.axisScores) {
+    if (axesContainer && Array.isArray(report.axes)) {
       axesContainer.innerHTML = '';
-      const axes = this.assessment?.axes || [];
-      Object.entries(res.axisScores).forEach(([aid, score]) => {
-        const axis = axes.find(a => a.id === aid);
-        const qClass = score >= 75 ? 'q4' : score >= 50 ? 'q3' : score >= 25 ? 'q2' : 'q1';
+      report.axes.forEach((axis) => {
+        const score = Number(axis.percentage);
+        const qClass = String(axis.bandCode || '').toLowerCase();
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
-        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis ? axis.name_ar : aid}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
+        row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis.nameAr || axis.code}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
         axesContainer.appendChild(row);
       });
     }
 
-    this.renderVisualBenchmark(res);
+    this.renderVisualBenchmark(report);
 
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
       recContainer.innerHTML = `<h3 class="card-title">${this.t('report.recommendations_title')}</h3>`;
-      if (res.axisScores) {
-        const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
-        const weakest = sorted[0];
-        const strongest = sorted[sorted.length - 1];
-        const axes = this.assessment?.axes || [];
-        const weakAxis = axes.find(x => x.id === weakest[0]);
-        const strongAxis = axes.find(x => x.id === strongest[0]);
+      if (report.priority || report.strength) {
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
-        box.innerHTML = `<h4>${this.t('report.priority_heading', { axis: weakAxis ? weakAxis.name_ar : weakest[0] })}</h4><p>${this.t('report.measured_axis_sentence', { score: weakest[1].toFixed(1) })}</p><h4 style="margin-top:12px;">${this.t('report.highest_axis_heading', { axis: strongAxis ? strongAxis.name_ar : strongest[0] })}</h4><p>${this.t('report.measured_axis_sentence', { score: strongest[1].toFixed(1) })}</p>`;
+        const priority = report.priority;
+        const strength = report.strength;
+        const priorityHtml = priority
+          ? `<h4>${this.t('report.priority_heading', { axis: priority.axisNameAr || priority.nameAr || priority.axisCode })}</h4><p>${this.t('report.measured_axis_sentence', { score: Number(priority.percentage).toFixed(1) })}</p>`
+          : '';
+        const strengthHtml = strength
+          ? `<h4 style="margin-top:12px;">${this.t('report.highest_axis_heading', { axis: strength.axisNameAr || strength.nameAr || strength.axisCode })}</h4><p>${this.t('report.measured_axis_sentence', { score: Number(strength.percentage).toFixed(1) })}</p>`
+          : '';
+        box.innerHTML = priorityHtml + strengthHtml;
         recContainer.appendChild(box);
       }
     }
@@ -952,7 +968,7 @@ class ClinicEvaluatorApp {
 
   /* ─────────────── UNIFIED VISUAL BENCHMARKING ─────────────── */
 
-  renderVisualBenchmark(res) {
+  renderVisualBenchmark(report) {
     const oldCharts = document.getElementById('charts-container');
     const oldKpis = document.getElementById('kpis-container');
     if (oldCharts) oldCharts.remove();
@@ -971,45 +987,44 @@ class ClinicEvaluatorApp {
     
     benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
     
-    if (res.axisScores) {
-      const axes = this.assessment?.axes || [];
-      const data = Object.entries(res.axisScores).map(([aid, score]) => ({ 
-        label: axes.find(a => a.id === aid)?.name_ar || aid, 
-        value: score 
+    if (Array.isArray(report.axes)) {
+      const data = report.axes.map((axis) => ({
+        label: axis.nameAr || axis.code,
+        value: Number(axis.percentage),
+        bandCode: axis.bandCode
       }));
-      
+
       const chartDiv = document.createElement('div');
       chartDiv.style.marginBottom = '24px';
-      
-      const maxVal = Math.max(...data.map(d => d.value), 1);
-      data.forEach(item => {
+
+      const maxVal = Math.max(...data.map((item) => item.value), 1);
+      data.forEach((item) => {
         const pct = (item.value / maxVal) * 100;
-        let qClass = 'q1';
-        if (item.value >= 75) qClass = 'q4';
-        else if (item.value >= 50) qClass = 'q3';
-        else if (item.value >= 25) qClass = 'q2';
+        const qClass = String(item.bandCode || '').toLowerCase();
 
         const row = document.createElement('div');
         row.style.cssText = 'margin-bottom:12px;';
         row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
         chartDiv.appendChild(row);
       });
-      
+
       benchmarkContainer.appendChild(chartDiv);
     }
 
-    if (res.kpis) {
+    if (Array.isArray(report.kpis) && report.kpis.length) {
       const kpiGrid = document.createElement('div');
       kpiGrid.style.cssText = 'display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px;padding-top:16px;border-top:1px solid #e5e7eb;';
-      
-      Object.entries(res.kpis).forEach(([k, v]) => {
+
+      report.kpis.forEach((kpi) => {
+        const k = String(kpi.code);
+        const v = Number(kpi.value);
         const info = this.texts?.kpis?.[k] || { name: k, short_name: k };
         const card = document.createElement('div');
         card.style.cssText = 'background:#f8fafc;border-radius:12px;padding:16px;text-align:center;border:1px solid #e5e7eb;';
         card.innerHTML = `<div style="font-size:0.85rem;color:#6b7280;">${info.name}</div><div style="font-size:0.8rem;color:#9ca3af;">${info.short_name}</div><div style="font-size:1.5rem;font-weight:800;color:#134e4a;margin-top:4px;">${v.toFixed(1)}</div>`;
         kpiGrid.appendChild(card);
       });
-      
+
       benchmarkContainer.appendChild(kpiGrid);
     }
   }

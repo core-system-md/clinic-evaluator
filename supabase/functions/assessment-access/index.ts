@@ -1,6 +1,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
+import { projectCompletionResponse } from "./report-interpretation.mjs";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -22,52 +23,6 @@ const WINDOW_MS = 60_000;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
-}
-
-const USER_KPIS_BY_ASSESSMENT: Record<string, string[]> = {
-  "admin-reception-assessment": ["RRI", "TFI", "PSI", "TCI", "EVI", "NPI", "PLI", "PRP", "TAP"],
-  "clinic-performance": ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"],
-  "comprehensive-clinic-assessment": ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"],
-  "medical-team-assessment": ["TFI", "TAP", "TCI", "PSI", "NPI"],
-  "patient-journey": ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"],
-};
-const ASSESSMENT_PURPOSE: Record<string, string> = {
-  "admin-reception-assessment": "جاهزية الإدارة والاستقبال وتنسيق التشغيل",
-  "clinic-performance": "أداء العيادة في التحويل والتواصل والاستبقاء",
-  "comprehensive-clinic-assessment": "الصورة التشغيلية الشاملة للعيادة",
-  "medical-team-assessment": "أداء الفريق الطبي في الثقة والتواصل والتحويل والعمل الجماعي",
-  "patient-journey": "جودة رحلة المريض من الثقة إلى الولاء",
-};
-function projectCompletionResponse(structuredResult: any, previousSession: any = null) {
-  const slug = String(structuredResult?.provenance?.assessmentSlug || structuredResult?.identity?.assessmentSlug || "");
-  const allowedKpis = new Set(USER_KPIS_BY_ASSESSMENT[slug] || []);
-  const axes = (structuredResult?.scores?.axes || [])
-    .filter((axis: any) => axis?.status === "measured" && Number.isFinite(axis?.percentage))
-    .map((axis: any) => ({ code: String(axis.axisCode), nameAr: String(axis.axisNameAr || axis.axisCode), nameEn: String(axis.axisNameEn || axis.axisCode), percentage: Number(axis.percentage), status: "measured" }))
-    .sort((a: any, b: any) => a.percentage - b.percentage || a.code.localeCompare(b.code));
-  const availableKpis = (structuredResult?.kpis || [])
-    .filter((kpi: any) => allowedKpis.has(String(kpi?.kpiCode)) && kpi?.status === "available" && Number.isFinite(kpi?.value))
-    .map((kpi: any) => ({ code: String(kpi.kpiCode), value: Number(kpi.value) }));
-  const lowest = axes[0] || null, highest = axes.length ? axes[axes.length - 1] : null;
-  const economic = structuredResult?.economics || {};
-  const economicOpportunity = economic.status === "COMPUTED" && economic.output && USER_KPIS_BY_ASSESSMENT[slug]
-    ? { status: "available", value: Number(economic.output.value), unit: "currency", visitsPerYear: Number(economic.output.assumptions?.visitsPerYear), referralPercentage: Number(economic.output.assumptions?.referralPercentage) }
-    : null;
-  const bandCode = structuredResult?.classification?.bandCode || null;
-  const labels: Record<string, string> = { Q1: "مرحلة التأسيس", Q2: "مرحلة التفعيل", Q3: "مرحلة النمو", Q4: "مرحلة الريادة" };
-  const userReport = {
-    audience: "user",
-    assessment: { familyId: structuredResult?.identity?.assessmentFamilyId || null, version: structuredResult?.identity?.assessmentVersion ?? null, purpose: ASSESSMENT_PURPOSE[slug] || "نتيجة التقييم" },
-    overall: { value: Number.isFinite(structuredResult?.scores?.overallScore) ? Number(structuredResult.scores.overallScore) : null, bandCode, label: bandCode ? (labels[bandCode] || bandCode) : "غير متاح" },
-    axes, priority: lowest ? { axisCode: lowest.code, axisNameAr: lowest.nameAr, percentage: lowest.percentage } : null,
-    strength: highest ? { axisCode: highest.code, axisNameAr: highest.nameAr, percentage: highest.percentage } : null,
-    kpis: availableKpis, economicOpportunity,
-    trend: { status: "unavailable", reason: previousSession ? "comparison_basis_unverified" : "no_comparison" },
-    coverage: { status: ["FULL", "PARTIAL", "UNKNOWN"].includes(structuredResult?.coverage?.coverageStatus) ? structuredResult.coverage.coverageStatus : "UNKNOWN", ratio: Number.isFinite(structuredResult?.coverage?.coverageRatio) ? Number(structuredResult.coverage.coverageRatio) : null },
-  };
-  return { overallScore: userReport.overall.value, classification: userReport.overall.bandCode,
-    axisScores: Object.fromEntries(axes.map((axis: any) => [axis.code, axis.percentage])),
-    kpis: Object.fromEntries(availableKpis.map((kpi: any) => [kpi.code, kpi.value])), evSimulator: null, traps: [], userReport };
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -273,17 +228,24 @@ function sessionFilter(query: any, access: any) {
     : base.eq("assessment_user_id", access.assessment_user_id);
 }
 
-async function findLeadHistory(assessmentTypeId: string, lead: any) {
+async function findLeadHistory(
+  assessmentTypeId: string,
+  lead: any,
+  enforceCooldown = true,
+  excludeLeadId: string | null = null,
+) {
   const field = lead.email ? "email" : lead.phone ? "phone" : lead.full_name ? "full_name" : null;
   const value = field ? String(lead[field]).trim() : "";
   if (!field || !value) return { allowed: true, previousSessionData: null };
 
-  const { data: leads, error } = await supabase
+  let leadQuery = supabase
     .from("leads")
     .select("id, created_at, completed, score_percentage, completed_at, assessment_type_id")
     .eq("assessment_type_id", assessmentTypeId)
     .eq(field, value)
-    .eq("completed", true)
+    .eq("completed", true);
+  if (excludeLeadId) leadQuery = leadQuery.neq("id", excludeLeadId);
+  const { data: leads, error } = await leadQuery
     .order("created_at", { ascending: false })
     .limit(20);
 
@@ -291,12 +253,10 @@ async function findLeadHistory(assessmentTypeId: string, lead: any) {
   if (!leads?.length) return { allowed: true, previousSessionData: null };
 
   const last = leads[0];
-  if (leads.length < 2) return { allowed: true, previousSessionData: null };
-
   const createdAt = new Date(last.created_at).getTime();
   const elapsed = Date.now() - createdAt;
   const cooldown = 7 * 24 * 60 * 60 * 1000;
-  if (elapsed < cooldown) {
+  if (enforceCooldown && leads.length >= 2 && elapsed < cooldown) {
     const remaining = Math.max(0, cooldown - elapsed);
     return {
       allowed: false,
@@ -357,6 +317,25 @@ async function findLeadHistory(assessmentTypeId: string, lead: any) {
       completedAt: resultRow?.calculated_at || last.completed_at || previousSession.completed_at || previousSession.created_at
     }
   };
+}
+
+
+async function getPreviousAssessmentSessionData(session: any) {
+  if (!session?.lead_id || !session?.assessment_type_id) return null;
+  const { data: lead, error: leadError } = await supabase
+    .from("leads")
+    .select("id, full_name, email, phone")
+    .eq("id", session.lead_id)
+    .maybeSingle();
+  if (leadError) throw leadError;
+  if (!lead) return null;
+  const history = await findLeadHistory(
+    session.assessment_type_id,
+    lead,
+    false,
+    String(session.lead_id),
+  );
+  return history.previousSessionData || null;
 }
 
 async function issuePublicAccess(assessmentKey: string) {
@@ -722,7 +701,7 @@ Deno.serve(async (req) => {
       }
 
       const safeStoredResult = storedResult?.result
-        ? { userReport: projectCompletionResponse(storedResult.result).userReport,
+        ? { userReport: projectCompletionResponse(storedResult.result, await getPreviousAssessmentSessionData(session)).userReport,
             assessment_version: storedResult.assessment_version, interpretation_version: storedResult.interpretation_version,
             scoring_engine_version: storedResult.scoring_engine_version, scoring_contract_version: storedResult.scoring_contract_version,
             assessment_config_digest: storedResult.assessment_config_digest, calculated_at: storedResult.calculated_at,
@@ -808,6 +787,7 @@ Deno.serve(async (req) => {
       const { data: session, error: sessionError } = await sessionQuery.maybeSingle();
       if (sessionError) throw sessionError;
       if (!session) return json({ error: "Assessment session not found" }, 404);
+      const previousSessionData = await getPreviousAssessmentSessionData(session);
 
       if (session.status === "completed") {
         const { data: storedResult, error: resultError } = await supabase
@@ -838,7 +818,7 @@ Deno.serve(async (req) => {
               kpis,
               evSimulator: null,
               traps: [],
-              userReport: projectCompletionResponse(structured).userReport,
+              ...projectCompletionResponse(structured, previousSessionData),
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -926,7 +906,7 @@ Deno.serve(async (req) => {
             ),
             evSimulator: null,
             traps: [],
-            userReport: structured ? projectCompletionResponse(structured).userReport : null,
+            userReport: structured ? projectCompletionResponse(structured, previousSessionData).userReport : null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -1005,8 +985,7 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          ...projectCompletionResponse(structuredResult),
-          userReport: projectCompletionResponse(storedStructured, null).userReport,
+          ...projectCompletionResponse(storedStructured, previousSessionData),
           provenance: {
             ...computed.provenance,
             calculatedAt: storedStructured?.identity?.calculatedAt ?? null,

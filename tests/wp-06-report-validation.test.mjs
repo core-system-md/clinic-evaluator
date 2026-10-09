@@ -136,7 +136,7 @@ test('WP-06 assessment pages load both report layers before app.js', () => {
 
 test('WP-06 user transport returns a projected report rather than raw Structured Result', () => {
  const edge = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
- assert.match(edge, /projectCompletionResponse\(storedStructured, null\)\.userReport/);
+ assert.match(edge, /projectCompletionResponse\(storedResult\.result, await getPreviousAssessmentSessionData\(session\)\)\.userReport/);
  assert.match(edge, /safeStoredResult/);
  assert.match(fs.readFileSync('assets/js/report-validation.js','utf8'), /assertValidUserProjection/);
 });

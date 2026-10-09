@@ -7,6 +7,8 @@ on:
       - "assets/js/report-interpretation.js"
       - "assets/js/app.js"
       - "*.html"
+      - "supabase/functions/assessment-access/index.ts"
+      - "supabase/functions/assessment-access/report-interpretation.mjs"
       - "tests/wp-05-report-interpretation.test.mjs"
       - ".github/workflows/wp-05-local-contract.yml"
   workflow_dispatch:
@@ -29,3 +31,6 @@ jobs:
       - run: node --test tests/wp-05-report-interpretation.test.mjs
       - run: node --check assets/js/report-interpretation.js
       - run: node --check assets/js/app.js
+      - run: node --check supabase/functions/assessment-access/report-interpretation.mjs
+      # Scope syntax validation to the touched TypeScript entry point; full-graph Deno typecheck is currently blocked by pre-existing unrelated errors in assessment-calculation-pipeline.mts.
+      - run: node --experimental-strip-types --check supabase/functions/assessment-access/index.ts
