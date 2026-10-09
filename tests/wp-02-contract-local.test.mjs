@@ -5,7 +5,7 @@ import test from "node:test";
 
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
-import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/p3-integrated-scorer-v1.mts";
+import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
 const ROOT = process.cwd();
 const ENGINE = path.join(ROOT, "supabase/functions/assessment-access/engine.ts");
