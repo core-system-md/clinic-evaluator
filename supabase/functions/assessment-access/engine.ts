@@ -10,13 +10,13 @@ import {
   scoreP3IntegratedV1,
   type P3EconomicInput,
   type P3IntegratedResult,
-} from "./p3-integrated-scorer-v1.mts";
-import { projectScoreRowsFromStructuredResult } from "./p3-result-persistence-v1.mts";
-import { type P3ConsistencyRule } from "./p3-consistency-engine.mts";
-import registry from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
-import registryV2 from "./p3-response-interpretation-registry-v2.json" with { type: "json" };
-import consistencyRuleRegistry from "./p3-consistency-rule-registry-v2.json" with { type: "json" };
-import consistencyPairRegistry from "./p3-consistency-pair-registry-v1.json" with { type: "json" };
+} from "./assessment-calculation-pipeline.mts";
+import { projectScoreRowsFromStructuredResult } from "./result-persistence-projection.mts";
+import { type P3ConsistencyRule } from "./consistency-engine.mts";
+import registry from "./response-interpretation-registry-v1.json" with { type: "json" };
+import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
+import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
+import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
 
 type AssessmentRow = {
   id: string;
