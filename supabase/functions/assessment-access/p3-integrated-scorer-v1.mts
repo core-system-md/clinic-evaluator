@@ -37,7 +37,6 @@ export type P3ConsistencyPair = {
   scoreEffectOverride?: P3ConsistencyScoreEffect;
 };
 export type P3IntegratedResult = ReturnType<typeof buildP3StructuredResultV1> & {
-  axisPersistenceRows: Array<Record<string, unknown>>;
   resolvedSelections: P3ResolvedSelection[];
 };
 
@@ -432,40 +431,8 @@ export function scoreP3IntegratedV1(input: {
     },
   });
 
-  const axisPersistenceRows = axisResults.flatMap((axis) => {
-    if (
-      axis.rawScore === null ||
-      axis.maxPossible === null ||
-      axis.percentage === null ||
-      axis.weightedScore === null
-    ) return [];
-
-    return [{
-      axis_id: axis.axisCode,
-      axis_name_ar:
-        input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-      axis_name_en:
-        input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-      raw_score: Math.round(axis.rawScore),
-      max_possible: Math.round(axis.maxPossible),
-      percentage: axis.percentage,
-      weight: axis.weight,
-      weighted_score: axis.weightedScore,
-      grade:
-        axis.percentage >= 75
-          ? "Q4"
-          : axis.percentage >= 50
-            ? "Q3"
-            : axis.percentage >= 25
-              ? "Q2"
-              : "Q1",
-    }];
-  });
-
-
   return {
     ...structured,
-    axisPersistenceRows,
     resolvedSelections: effectiveSelections,
   };
 }
