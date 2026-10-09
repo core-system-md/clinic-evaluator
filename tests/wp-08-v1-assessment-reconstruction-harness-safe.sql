@@ -26,7 +26,7 @@ update public.assessment_families set current_published_version_id='d58150e6-9a8
 update public.assessment_families set current_published_version_id='97663a83-52cf-4251-a3bc-667e47fb591a' where slug='patient-journey';
 create table public._wp08_old_content_marker(id int);
 insert into public._wp08_old_content_marker values(1);
-\i supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql
+\i supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql
 do $$
 declare n int; comp uuid; patient uuid;
 begin
