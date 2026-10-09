@@ -62,7 +62,7 @@ function projectCompletionResponse(structuredResult: any, previousSession: any =
     axes, priority: lowest ? { axisCode: lowest.code, axisNameAr: lowest.nameAr, percentage: lowest.percentage } : null,
     strength: highest ? { axisCode: highest.code, axisNameAr: highest.nameAr, percentage: highest.percentage } : null,
     kpis: availableKpis, economicOpportunity,
-    trend: { status: "unavailable", reason: previousSession ? "server_provenance_not_verified_for_response" : "no_comparison" },
+    trend: { status: "unavailable", reason: previousSession ? "comparison_basis_unverified" : "no_comparison" },
     coverage: { status: ["FULL", "PARTIAL", "UNKNOWN"].includes(structuredResult?.coverage?.coverageStatus) ? structuredResult.coverage.coverageStatus : "UNKNOWN", ratio: Number.isFinite(structuredResult?.coverage?.coverageRatio) ? Number(structuredResult.coverage.coverageRatio) : null },
   };
   return { overallScore: userReport.overall.value, classification: userReport.overall.bandCode,
