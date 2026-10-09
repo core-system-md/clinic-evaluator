@@ -964,8 +964,8 @@ Deno.serve(async (req) => {
       } = computed.result;
 
       const rpcName = access.assessment_user_id
-        ? "complete_p4_assessment_from_result"
-        : "complete_p4_public_assessment_from_result";
+        ? "complete_protected_assessment_from_result"
+        : "complete_public_assessment_from_result";
 
       const rpcPayload = access.assessment_user_id
         ? {
