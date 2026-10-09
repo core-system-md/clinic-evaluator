@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
-import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
+import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -24,31 +24,50 @@ function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
 }
 
-function projectCompletionResponse(structuredResult: any) {
-  const axisScores: Record<string, number> = {};
-  for (const axis of structuredResult?.scores?.axes || []) {
-    if (Number.isFinite(axis?.score)) {
-      axisScores[String(axis.axisCode)] = Number(axis.score);
-    }
-  }
-
-  const kpis: Record<string, number> = {};
-  for (const kpi of structuredResult?.kpis || []) {
-    if (kpi?.status !== "unavailable" && Number.isFinite(kpi?.value)) {
-      kpis[String(kpi.kpiCode)] = Number(kpi.value);
-    }
-  }
-
-  return {
-    overallScore: Number.isFinite(structuredResult?.scores?.overallScore)
-      ? Number(structuredResult.scores.overallScore)
-      : null,
-    classification: structuredResult?.classification?.bandCode ?? null,
-    axisScores,
-    kpis,
-    evSimulator: null,
-    traps: [],
+const USER_KPIS_BY_ASSESSMENT: Record<string, string[]> = {
+  "admin-reception-assessment": ["RRI", "TFI", "PSI", "TCI", "EVI", "NPI", "PLI", "PRP", "TAP"],
+  "clinic-performance": ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"],
+  "comprehensive-clinic-assessment": ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"],
+  "medical-team-assessment": ["TFI", "TAP", "TCI", "PSI", "NPI"],
+  "patient-journey": ["TFI", "TAP", "PRP", "PLI", "PSI", "NPI", "EVI", "TCI"],
+};
+const ASSESSMENT_PURPOSE: Record<string, string> = {
+  "admin-reception-assessment": "جاهزية الإدارة والاستقبال وتنسيق التشغيل",
+  "clinic-performance": "أداء العيادة في التحويل والتواصل والاستبقاء",
+  "comprehensive-clinic-assessment": "الصورة التشغيلية الشاملة للعيادة",
+  "medical-team-assessment": "أداء الفريق الطبي في الثقة والتواصل والتحويل والعمل الجماعي",
+  "patient-journey": "جودة رحلة المريض من الثقة إلى الولاء",
+};
+function projectCompletionResponse(structuredResult: any, previousSession: any = null) {
+  const slug = String(structuredResult?.provenance?.assessmentSlug || structuredResult?.identity?.assessmentSlug || "");
+  const allowedKpis = new Set(USER_KPIS_BY_ASSESSMENT[slug] || []);
+  const axes = (structuredResult?.scores?.axes || [])
+    .filter((axis: any) => axis?.status === "measured" && Number.isFinite(axis?.percentage))
+    .map((axis: any) => ({ code: String(axis.axisCode), nameAr: String(axis.axisNameAr || axis.axisCode), nameEn: String(axis.axisNameEn || axis.axisCode), percentage: Number(axis.percentage), status: "measured" }))
+    .sort((a: any, b: any) => a.percentage - b.percentage || a.code.localeCompare(b.code));
+  const availableKpis = (structuredResult?.kpis || [])
+    .filter((kpi: any) => allowedKpis.has(String(kpi?.kpiCode)) && kpi?.status === "available" && Number.isFinite(kpi?.value))
+    .map((kpi: any) => ({ code: String(kpi.kpiCode), value: Number(kpi.value) }));
+  const lowest = axes[0] || null, highest = axes.length ? axes[axes.length - 1] : null;
+  const economic = structuredResult?.economics || {};
+  const economicOpportunity = economic.status === "COMPUTED" && economic.output && USER_KPIS_BY_ASSESSMENT[slug]
+    ? { status: "available", value: Number(economic.output.value), unit: "currency", visitsPerYear: Number(economic.output.assumptions?.visitsPerYear), referralPercentage: Number(economic.output.assumptions?.referralPercentage) }
+    : null;
+  const bandCode = structuredResult?.classification?.bandCode || null;
+  const labels: Record<string, string> = { Q1: "مرحلة التأسيس", Q2: "مرحلة التفعيل", Q3: "مرحلة النمو", Q4: "مرحلة الريادة" };
+  const userReport = {
+    audience: "user",
+    assessment: { familyId: structuredResult?.identity?.assessmentFamilyId || null, version: structuredResult?.identity?.assessmentVersion ?? null, purpose: ASSESSMENT_PURPOSE[slug] || "نتيجة التقييم" },
+    overall: { value: Number.isFinite(structuredResult?.scores?.overallScore) ? Number(structuredResult.scores.overallScore) : null, bandCode, label: bandCode ? (labels[bandCode] || bandCode) : "غير متاح" },
+    axes, priority: lowest ? { axisCode: lowest.code, axisNameAr: lowest.nameAr, percentage: lowest.percentage } : null,
+    strength: highest ? { axisCode: highest.code, axisNameAr: highest.nameAr, percentage: highest.percentage } : null,
+    kpis: availableKpis, economicOpportunity,
+    trend: { status: "unavailable", reason: previousSession ? "comparison_basis_unverified" : "no_comparison" },
+    coverage: { status: ["FULL", "PARTIAL", "UNKNOWN"].includes(structuredResult?.coverage?.coverageStatus) ? structuredResult.coverage.coverageStatus : "UNKNOWN", ratio: Number.isFinite(structuredResult?.coverage?.coverageRatio) ? Number(structuredResult.coverage.coverageRatio) : null },
   };
+  return { overallScore: userReport.overall.value, classification: userReport.overall.bandCode,
+    axisScores: Object.fromEntries(axes.map((axis: any) => [axis.code, axis.percentage])),
+    kpis: Object.fromEntries(availableKpis.map((kpi: any) => [kpi.code, kpi.value])), evSimulator: null, traps: [], userReport };
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -300,22 +319,42 @@ async function findLeadHistory(assessmentTypeId: string, lead: any) {
   if (sessionError) throw sessionError;
   if (!previousSession) return { allowed: true, previousSessionData: null };
 
-  const { data: previousScores, error: scoreError } = await supabase
-    .from("scores")
-    .select("axis_id, percentage")
-    .eq("session_id", previousSession.id);
+  const { data: resultRow, error: resultError } = await supabase
+    .from("assessment_results")
+    .select("result, assessment_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at")
+    .eq("session_id", previousSession.id)
+    .maybeSingle();
+  if (resultError) throw resultError;
 
-  if (scoreError) throw scoreError;
-
+  const structured = resultRow?.result && typeof resultRow.result === "object" ? resultRow.result : null;
   const axisScores: Record<string, number> = {};
-  for (const row of previousScores || []) axisScores[row.axis_id] = Number(row.percentage) || 0;
+  for (const axis of structured?.scores?.axes || []) {
+    if (axis?.status === "measured" && Number.isFinite(axis?.percentage)) {
+      axisScores[String(axis.axisCode)] = Number(axis.percentage);
+    }
+  }
+  // Legacy score rows remain useful for a visual baseline, but are never enough
+  // to authorize a trend claim without the Structured Result provenance below.
+  if (!Object.keys(axisScores).length) {
+    const { data: previousScores, error: scoreError } = await supabase
+      .from("scores")
+      .select("axis_id, percentage")
+      .eq("session_id", previousSession.id);
+    if (scoreError) throw scoreError;
+    for (const row of previousScores || []) axisScores[String(row.axis_id)] = Number(row.percentage) || 0;
+  }
 
   return {
     allowed: true,
     previousSessionData: {
-      overallScore: Number(last.score_percentage) || 0,
+      assessmentFamilyId: structured?.identity?.assessmentFamilyId || null,
+      assessmentVersion: resultRow?.assessment_version ?? structured?.identity?.assessmentVersion ?? null,
+      scoringEngineVersion: resultRow?.scoring_engine_version ?? structured?.provenance?.scoringEngineVersion ?? null,
+      scoringContractVersion: resultRow?.scoring_contract_version ?? structured?.provenance?.scoringContractVersion ?? null,
+      assessmentConfigDigest: resultRow?.assessment_config_digest ?? structured?.provenance?.assessmentConfigDigest ?? null,
+      overallScore: Number.isFinite(structured?.scores?.overallScore) ? Number(structured.scores.overallScore) : null,
       axisScores,
-      completedAt: last.completed_at || previousSession.completed_at || previousSession.created_at
+      completedAt: resultRow?.calculated_at || last.completed_at || previousSession.completed_at || previousSession.created_at
     }
   };
 }
@@ -682,7 +721,14 @@ Deno.serve(async (req) => {
         storedResult = resultRow;
       }
 
-      return json({ success: true, data: { session, answers, result: storedResult } });
+      const safeStoredResult = storedResult?.result
+        ? { userReport: projectCompletionResponse(storedResult.result).userReport,
+            assessment_version: storedResult.assessment_version, interpretation_version: storedResult.interpretation_version,
+            scoring_engine_version: storedResult.scoring_engine_version, scoring_contract_version: storedResult.scoring_contract_version,
+            assessment_config_digest: storedResult.assessment_config_digest, calculated_at: storedResult.calculated_at,
+            result_status: storedResult.result_status }
+        : null;
+      return json({ success: true, data: { session, answers, result: safeStoredResult } });
     }
 
     if (action === "save_answer") {
@@ -792,7 +838,7 @@ Deno.serve(async (req) => {
               kpis,
               evSimulator: null,
               traps: [],
-              structuredResult: structured,
+              userReport: projectCompletionResponse(structured).userReport,
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -823,7 +869,7 @@ Deno.serve(async (req) => {
             kpis: {},
             evSimulator: null,
             traps: [],
-            structuredResult: null,
+            userReport: null,
             provenance: null,
             already_completed: true,
             session_id: session.id,
@@ -880,7 +926,7 @@ Deno.serve(async (req) => {
             ),
             evSimulator: null,
             traps: [],
-            structuredResult: structured,
+            userReport: structured ? projectCompletionResponse(structured).userReport : null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -960,7 +1006,7 @@ Deno.serve(async (req) => {
         success: true,
         data: {
           ...projectCompletionResponse(structuredResult),
-          structuredResult: storedStructured,
+          userReport: projectCompletionResponse(storedStructured, null).userReport,
           provenance: {
             ...computed.provenance,
             calculatedAt: storedStructured?.identity?.calculatedAt ?? null,

@@ -720,9 +720,9 @@ No financial result is presented as guaranteed revenue.
 
 Official assessment weight data must use:
 
-**0–1 canonical values with sum 1.00**
+**0–100 canonical percentage points with sum 100.00**
 
-Presentation may show percentages.
+Percentage points are the canonical stored domain values; presentation may display them with a percent symbol without creating a second canonical representation.
 
 ## 20.2 Implementation procedure
 
@@ -799,7 +799,7 @@ Do not delete it merely because it is old.
 
 After the final engine passes parity/regression verification and all rollback requirements are satisfied, evaluate whether it can be removed from the active tree.
 
-The preferred final product state is one active engine source, with Git history serving archival needs.
+The preferred final product state is one active engine source. The parity reference is retained outside the runtime tree at `tests/reference/score-engine-legacy.mts` while dedicated tests require it; production function sources must not carry this duplicate.
 
 ## 22.3 Legacy SQL `calculate_session_score(uuid)`
 

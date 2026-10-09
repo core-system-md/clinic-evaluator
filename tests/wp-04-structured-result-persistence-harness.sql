@@ -82,7 +82,7 @@ create table public.assessment_results (
   result jsonb not null
 );
 
-\i supabase/migrations/20261008100000_wp04_structured_result_authority.sql
+\i supabase/migrations/20261008100000_structured_result_authority.sql
 
 insert into public.leads(id) values
  ('11111111-1111-4111-8111-111111111111'),
@@ -154,8 +154,8 @@ insert into wp04_fixture values ($${
   "scores":{
     "overallScore":70,
     "axes":[
-      {"axisCode":"A1","axisNameAr":"A1","axisNameEn":"A1","score":80,"rawScore":80,"maxPossible":100,"percentage":80,"weight":0.5,"weightedScore":40,"status":"measured"},
-      {"axisCode":"A2","axisNameAr":"A2","axisNameEn":"A2","score":60,"rawScore":60,"maxPossible":100,"percentage":60,"weight":0.5,"weightedScore":30,"status":"measured"}
+      {"axisCode":"A1","axisNameAr":"A1","axisNameEn":"A1","score":80,"rawScore":80,"maxPossible":100,"percentage":80,"weight":50,"weightedScore":40,"status":"measured"},
+      {"axisCode":"A2","axisNameAr":"A2","axisNameEn":"A2","score":60,"rawScore":60,"maxPossible":100,"percentage":60,"weight":50,"weightedScore":30,"status":"measured"}
     ]
   },
   "coverage":{"coverageRatio":1,"coverageStatus":"FULL"},

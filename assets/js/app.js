@@ -30,6 +30,8 @@ class ClinicEvaluatorApp {
     this.previousScore = null;
     this.previousSessionData = null;
     this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 }; 
+    this._historyNavigationInstalled = false;
+    this._assessmentHistoryActive = false;
   }
 
   /* ─────────────── INITIALIZATION ─────────────── */
@@ -45,6 +47,7 @@ class ClinicEvaluatorApp {
 
       this.setupLeadForm();
       this.setupNavigation();
+      this.setupHistoryNavigation();
       this.setupEVSimulator();
       this.setupPrint();
       this.setupKeyboardShortcuts();
@@ -58,6 +61,7 @@ class ClinicEvaluatorApp {
 
       const hasSession = await this.checkExistingSession();
       if (hasSession) {
+        this.enterAssessmentHistoryState();
         this.hideView('view-lead-form');
 
         if (this.completedResult) {
@@ -95,6 +99,9 @@ class ClinicEvaluatorApp {
     const data = await this.assessmentAccessRequest('get_content', {
       assessment_key: this.currentAssessmentKey
     });
+    if (!data || typeof data !== 'object' || !Array.isArray(data.questions) || data.questions.length === 0) {
+      throw new Error('Assessment content is invalid: questions must be a non-empty array.');
+    }
     this.config = {
       version: String(data.version || 1),
       project: 'CORE System Server Runtime',
@@ -282,9 +289,19 @@ class ClinicEvaluatorApp {
 
 
   async startAssessmentFlow() {
-    this.questions = this.assessment.questions || [];
-    this.answers = {};
-    this.currentQuestionIndex = 0;
+    if (this.completedResult && this.currentSessionId) {
+      this.enterAssessmentHistoryState();
+      this.hideView('view-lead-form');
+      this.renderResults(this.completedResult);
+      return;
+    }
+
+    const resumingSession = Boolean(this.currentSessionId);
+    if (!resumingSession) {
+      this.questions = this.assessment.questions || [];
+      this.answers = {};
+      this.currentQuestionIndex = 0;
+    }
 
     if (!this.assessmentUuid) {
       this.showError('تعذر تحديد نوع التقييم.');
@@ -343,6 +360,7 @@ class ClinicEvaluatorApp {
       this.showLoadingGlobal(false);
     }
 
+    this.enterAssessmentHistoryState();
     this.hideView('view-lead-form');
     this.showView('view-assessment');
     document.getElementById('view-assessment')?.classList.add('fade-in');
@@ -421,6 +439,39 @@ class ClinicEvaluatorApp {
   setupNavigation() {
     document.getElementById('btn-prev')?.addEventListener('click', () => this.goPrevious());
     document.getElementById('btn-next')?.addEventListener('click', () => this.goNext());
+  }
+
+  setupHistoryNavigation() {
+    if (this._historyNavigationInstalled) return;
+    this._historyNavigationInstalled = true;
+
+    window.addEventListener('popstate', () => {
+      if (!this._assessmentHistoryActive) return;
+      this._assessmentHistoryActive = false;
+
+      // The first Back during an active session returns to the assessment entry form.
+      // A second Back is left to the browser, so users are not trapped on this page.
+      ['view-assessment', 'view-loading', 'view-results', 'view-ev-simulator']
+        .forEach(id => this.hideView(id));
+      this.showView('view-lead-form');
+    });
+  }
+
+  enterAssessmentHistoryState() {
+    if (this._assessmentHistoryActive || !window.history?.pushState) return;
+    try {
+      const priorState = window.history.state && typeof window.history.state === 'object'
+        ? window.history.state
+        : {};
+      window.history.pushState({
+        ...priorState,
+        clinicEvaluatorAssessmentGuard: true,
+        assessmentKey: this.currentAssessmentKey
+      }, '', window.location.href);
+      this._assessmentHistoryActive = true;
+    } catch (err) {
+      console.warn('[app] assessment history guard unavailable:', err);
+    }
   }
 
   goPrevious() {
@@ -553,46 +604,29 @@ class ClinicEvaluatorApp {
 
 
   projectStoredResult(row) {
-    const structured = row?.result;
-    if (!structured) return null;
-
-    const axisScores = {};
-    for (const axis of structured?.scores?.axes || []) {
-      if (Number.isFinite(axis?.score)) {
-        axisScores[String(axis.axisCode)] = Number(axis.score);
+    let report = row?.userReport || null;
+    // Rolling-deploy compatibility only: the previous Edge Function version
+    // returns a raw stored result. The current server response never does.
+    if (!report && row?.result?.schemaVersion === 'P3_STRUCTURED_RESULT_V1') {
+      try {
+        report = window.MDReportInterpretation.projectUserReport(row.result, this.previousSessionData, this.currentAssessmentKey);
+      } catch (error) {
+        console.error('[app] legacy stored result projection failed:', error);
+        return null;
       }
     }
-
-    const kpis = {};
-    for (const kpi of structured?.kpis || []) {
-      if (kpi?.status !== 'unavailable' && Number.isFinite(kpi?.value)) {
-        kpis[String(kpi.kpiCode)] = Number(kpi.value);
-      }
-    }
-
+    if (!report || report.audience !== 'user') return null;
     return {
-      overallScore: Number.isFinite(structured?.scores?.overallScore)
-        ? Number(structured.scores.overallScore)
-        : null,
-      classification: structured?.classification?.bandCode || null,
-      axisScores,
-      kpis,
-      evSimulator: null,
-      traps: [],
-      structuredResult: structured,
-      provenance: row
-        ? {
-            assessmentVersion: row.assessment_version,
-            interpretationVersion: row.interpretation_version,
-            scoringEngineVersion: row.scoring_engine_version,
-            scoringContractVersion: row.scoring_contract_version,
-            assessmentConfigDigest: row.assessment_config_digest,
-            calculatedAt: row.calculated_at,
-          }
-        : null,
-      already_completed: true,
-      session_id: this.currentSessionId,
-      assessment_version: this.assessment?.version || structured?.identity?.assessmentVersion || null,
+      overallScore: report.overall?.value ?? null,
+      classification: report.overall?.bandCode ?? null,
+      axisScores: Object.fromEntries((report.axes || []).map(axis => [String(axis.code), Number(axis.percentage)])),
+      kpis: Object.fromEntries((report.kpis || []).map(kpi => [String(kpi.code), Number(kpi.value)])),
+      evSimulator: null, traps: [], userReport: report,
+      provenance: row ? { assessmentVersion: row.assessment_version, interpretationVersion: row.interpretation_version,
+        scoringEngineVersion: row.scoring_engine_version, scoringContractVersion: row.scoring_contract_version,
+        assessmentConfigDigest: row.assessment_config_digest, calculatedAt: row.calculated_at } : null,
+      already_completed: true, session_id: this.currentSessionId,
+      assessment_version: this.assessment?.version || report.assessment?.version || null,
     };
   }
 
@@ -778,41 +812,31 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
-    const structured = res?.structuredResult;
-    if (!structured || typeof window.MDReportInterpretation?.projectUserReport !== 'function') {
-      this.showFatalError('تعذر بناء التقرير: النتيجة المنظمة الرسمية غير متاحة.');
+    let report = res?.userReport || null;
+    const legacyStructured = !report && res?.structuredResult?.schemaVersion === 'P3_STRUCTURED_RESULT_V1'
+      ? res.structuredResult : null;
+    if (legacyStructured) {
+      try {
+        report = window.MDReportInterpretation.projectUserReport(legacyStructured, this.previousSessionData, this.currentAssessmentKey);
+      } catch (error) {
+        console.error('[app] legacy result projection failed:', error);
+      }
+    }
+    if (!report || report.audience !== 'user' || typeof window.MDReportValidation?.assertValidUserProjection !== 'function') {
+      this.showFatalError('تعذر بناء التقرير الآمن من مخرجات الخادم.');
       return;
     }
-
-    let report;
     try {
-      report = window.MDReportInterpretation.projectUserReport(
-        structured,
-        this.previousSessionData,
-        this.currentAssessmentKey
-      );
+      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report);
+      else window.MDReportValidation.assertValidUserProjection(report);
     } catch (error) {
-      console.error('[app] report interpretation failed:', error);
-      this.showFatalError('تعذر بناء التقرير من النتيجة المنظمة الرسمية.');
+      console.error('[app] server user projection validation failed:', error);
+      this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من إسقاط المستخدم.');
       return;
     }
-
-    res = {
-      ...res,
-      overallScore: report.overall.value,
-      classification: report.overall.bandCode,
+    res = { ...res, userReport: report, overallScore: report.overall.value, classification: report.overall.bandCode,
       axisScores: Object.fromEntries(report.axes.map((axis) => [axis.code, axis.percentage])),
-      kpis: Object.fromEntries(report.kpis.map((kpi) => [kpi.code, kpi.value])),
-      structuredResult: structured
-    };
-
-    try {
-      window.MDReportValidation.assertValidUserReport(structured, report);
-    } catch (error) {
-      console.error('[app] report validation failed before render:', error);
-      this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من سلامة النتيجة أو محتوى التقرير.');
-      return;
-    }
+      kpis: Object.fromEntries(report.kpis.map((kpi) => [kpi.code, kpi.value])) };
 
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
@@ -827,14 +851,9 @@ class ClinicEvaluatorApp {
       const daysSince = report.trend.completedAt
         ? Math.max(0, Math.floor((Date.now() - new Date(report.trend.completedAt).getTime()) / (24 * 60 * 60 * 1000)))
         : null;
-      const suffix = daysSince === null ? '' : ` (${daysSince} يوم)`;
-      if (diff > 0) {
-        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">📈 تغير إيجابي بمقدار +${diff.toFixed(1)}% مقارنة بالتقييم السابق${suffix}</div>`;
-      } else if (diff < 0) {
-        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">📉 تغير بمقدار ${diff.toFixed(1)}% مقارنة بالتقييم السابق${suffix}</div>`;
-      } else {
-        trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">🔄 أداء مستقر مقارنة بالتقييم السابق${suffix}</div>`;
-      }
+      const suffix = daysSince === null ? '' : this.t('report.trend_days', { days: daysSince });
+      const trendPath = diff > 0 ? 'report.trend_positive' : diff < 0 ? 'report.trend_negative' : 'report.trend_stable';
+      trendHtml = `<div style="margin-top:10px; font-weight:700; font-size:0.95rem;">${this.t(trendPath, { delta: Math.abs(diff).toFixed(1), suffix })}</div>`;
     }
 
     const circle = document.getElementById('result-score-circle');
@@ -851,7 +870,7 @@ class ClinicEvaluatorApp {
     const body = document.getElementById('result-body');
     
     if (body) {
-      body.innerHTML = `<div>درجتك الكلية للعيادة: ${score} من 100 — ${qData.label}</div>${trendHtml}`;
+      body.innerHTML = `<div>${this.t('report.overall_sentence', { score, label: qData.label })}</div>${trendHtml}`;
     }
 
     const axesContainer = document.getElementById('axes-scores');
@@ -873,7 +892,7 @@ class ClinicEvaluatorApp {
     const recContainer = document.getElementById('recommendations-container');
     if (recContainer) {
       recContainer.classList.remove('hidden');
-      recContainer.innerHTML = '<h3 class="card-title">💡 التوجيهات الاستشارية وفرص التطوير الهيكلي</h3>';
+      recContainer.innerHTML = `<h3 class="card-title">${this.t('report.recommendations_title')}</h3>`;
       if (res.axisScores) {
         const sorted = Object.entries(res.axisScores).sort((a, b) => a[1] - b[1]);
         const weakest = sorted[0];
@@ -883,7 +902,7 @@ class ClinicEvaluatorApp {
         const strongAxis = axes.find(x => x.id === strongest[0]);
         const box = document.createElement('div');
         box.className = 'insight-box fade-in';
-        box.innerHTML = `<h4>🎯 الأولوية التشغيلية القصوى: ${weakAxis ? weakAxis.name_ar : weakest[0]}</h4><p>بلغت النتيجة المقاسة لهذا المحور (${weakest[1].toFixed(1)}%).</p><h4 style="margin-top:12px;">💪 أعلى محور مقاس: ${strongAxis ? strongAxis.name_ar : strongest[0]}</h4><p>بلغت النتيجة المقاسة لهذا المحور (${strongest[1].toFixed(1)}%).</p>`;
+        box.innerHTML = `<h4>${this.t('report.priority_heading', { axis: weakAxis ? weakAxis.name_ar : weakest[0] })}</h4><p>${this.t('report.measured_axis_sentence', { score: weakest[1].toFixed(1) })}</p><h4 style="margin-top:12px;">${this.t('report.highest_axis_heading', { axis: strongAxis ? strongAxis.name_ar : strongest[0] })}</h4><p>${this.t('report.measured_axis_sentence', { score: strongest[1].toFixed(1) })}</p>`;
         recContainer.appendChild(box);
       }
     }
@@ -894,7 +913,8 @@ class ClinicEvaluatorApp {
 
     const renderedText = document.getElementById('view-results')?.innerText || '';
     try {
-      window.MDReportValidation.assertValidUserReport(structured, report, renderedText);
+      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report, renderedText);
+      else window.MDReportValidation.assertValidUserProjection(report, renderedText);
     } catch (error) {
       console.error('[app] rendered report validation failed:', error);
       this.hideView('view-results');

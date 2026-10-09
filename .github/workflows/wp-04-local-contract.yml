@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "supabase/functions/assessment-access/**"
-      - "supabase/migrations/20261008100000_wp04_structured_result_authority.sql"
+      - "supabase/migrations/20261008100000_structured_result_authority.sql"
       - "tests/wp-04-structured-result-persistence.test.mjs"
       - "tests/wp-04-structured-result-persistence-harness.sql"
       - ".github/workflows/wp-04-local-contract.yml"

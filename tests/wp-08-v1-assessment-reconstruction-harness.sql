@@ -5,12 +5,12 @@ create table public.axes(id uuid primary key default gen_random_uuid(),assessmen
 create table public.questions(id uuid primary key default gen_random_uuid(),axis_id uuid,assessment_type_id uuid,code text,question_text text,question_text_ar text,question_type text,display_order int,is_required bool,trap_index int,status text,impact text,layer text,trap_for jsonb);
 create table public.options(id uuid primary key default gen_random_uuid(),question_id uuid,option_index int,option_value int,label text,label_ar text,display_text text,display_text_ar text,is_trap bool,display_order int);
 create table public.sessions(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
-create table public.answers(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
+create table public.answers(id uuid primary key default gen_random_uuid(),session_id uuid);
 create table public.assessment_results(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
 create table public.leads(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
 create table public.assessment_session_access(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
 create table public.historical_snapshots(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
-create table public.insights_mapping(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
+create table public.insights_mapping(id uuid primary key default gen_random_uuid(),assessment_type_id uuid,insight_code text);
 create table public.assessment_assets(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
 create table public.traps(id uuid primary key default gen_random_uuid(),assessment_type_id uuid);
 insert into public.assessment_families values(gen_random_uuid(),'comprehensive-clinic-assessment',null),(gen_random_uuid(),'patient-journey',null);
@@ -21,7 +21,7 @@ insert into public.assessment_types(id,slug,version,status,is_active,family_id,q
 ('97663a83-52cf-4251-a3bc-667e47fb591a','patient-journey',1,'published',true,(select id from public.assessment_families where slug='patient-journey'),25,5);
 create table public._wp08_old_content_marker(id int);
 insert into public._wp08_old_content_marker values(1);
-\i supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql
+\i supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql
 do $$
 declare n int; comp uuid; patient uuid;
 begin

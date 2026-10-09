@@ -95,10 +95,23 @@ The final repository/runtime must have one central assessment engine identity:
 
 **`engine.ts`**
 
-There must be no competing engine identity or engine file such as:
+### 4.1 Technical ownership and naming rule
+
+The single-owner requirement applies to the repository file/module structure, not only to the conceptual architecture.
+
+- Production/runtime technical files must be named for the responsibility they perform, not for P0–P5, WP-01–WP-n, or another work-plan stage.
+- Stage labels remain valid in documentation and deliberate traceability artifacts, including stage-specific tests and CI, when their purpose is auditability.
+- When repairing or refactoring an existing responsibility, modify or extend its established owner rather than creating a second implementation file.
+- A new technical file requires an independently justified responsibility and an explicit ownership boundary; it must not create a second scoring kernel, report authority, persistence authority, or competing source of truth.
+- After any refactor or extraction, reconcile callers, imports, exports, workflows, tests, runtime entrypoints and deployment references, leaving no abandoned duplicate without an explicitly documented temporary compatibility purpose.
+- Migration names are governed by migration identity and live-history provenance. New migrations should be functionally named. Previously applied migrations must not be renamed cosmetically; historical/live migration reconciliation must be verified before mutation.
+
+This rule controls technical ownership and debt; it is not a cosmetic naming preference.
+
+There must be no competing engine identity or active runtime engine file such as:
 
 - `score-engine.ts`
-- `score-engine-legacy.ts`
+- a runtime copy of `score-engine-legacy.ts` (the parity-only reference may reside at `tests/reference/score-engine-legacy.mts` while verified tests require it)
 - `engine.js`
 - P3-scoring-engine identity
 - Engine V2/V3 product identity

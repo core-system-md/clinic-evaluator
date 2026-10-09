@@ -119,7 +119,7 @@ Canonical weights were fixed as percentage points summing to 100.
 
 Guarded migration created:
 
-`supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql`
+`supabase/migrations/20261008090000_canonical_axis_weights.sql`
 
 Dedicated verification:
 
@@ -418,3 +418,35 @@ Final corrective merge: be6214e4f8fb9382ccdf8150d34491a061887b97.
 Verification evidence: WP-08 run 37777401435 SUCCESS; P3 isolated kernel job 113312306760 SUCCESS; WP-03 configuration semantics job 113312305582 SUCCESS; WP-03 disposable PostgreSQL contract job 113312305836 SUCCESS. The broad Full Node baseline still reports unrelated P5 editor assertions and is not evidence against this WP-08 reconciliation.
 
 Production remains unchanged; WP-08 migration is not present in Production migration history.
+
+
+## 17. Functional ownership and migration reconciliation — 2026-10-09
+
+| Control | Candidate status | Evidence / boundary |
+|---|---|---|
+| Canonical calculation entrypoint | PASS — `engine.ts` remains the sole entrypoint | Entry-point import is unchanged; dependent modules now have responsibility-based filenames |
+| Duplicate stage-named calculation modules | PASS — TARGETED CI | P3 isolated kernel **75/75 PASS**; WP-02 and WP-09 pass on commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24`; legacy parity remains under `tests/reference/score-engine-legacy.mts` |
+| Duplicate 2026-10-08 migration identities | PASS — TARGETED CI | WP-03, WP-04 and WP-08 Node/temporary PostgreSQL gates pass; ownership tests enforce exactly one path per targeted version |
+| Other migration timestamp / live-history mismatches | OPEN — HIGH RISK | 51 repository files vs 48 Supabase history records; two old duplicate-prefix groups and five non-exact production-name matches documented in reconciliation §12; no edits to applied migrations |
+| Source versus Production API | OPEN — RELEASE BLOCKER | Production v32 uses `score-engine.ts` and `complete_p4_*_session`; current source uses `engine.ts` and `complete_p4_*_from_result` |
+| Targeted Node and disposable PostgreSQL checks | PASS — BOUNDED GATES | P3 isolated kernel 75/75; WP-02, WP-03, WP-04, WP-08, WP-09 and disposable PostgreSQL P4 gate passed on commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24` |
+| Production database / Edge deployment | NONE | No production mutation or deployment was performed |
+| Broad full-Node baseline | FAIL — OUT OF SCOPE | Four existing P5 editor assertions fail in `tests/p5-editor-workspace.test.js` (tests 9, 12, 17, 18); failures were not masked |\n| Overall phase | NOT CLOSED | Targeted source tests pass, but Production v32/source API mismatch and older migration provenance are still unresolved; no merge/deploy approval |
+
+This is a limited branch based on `main`; it is not a merge approval for the 90-commit reconciliation branch. Passing source checks will not establish that Production is compatible or authorize deployment.
+
+
+### Focused candidate verification record
+
+Latest tested candidate: `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24`.
+
+| GitHub Actions run | Result |
+|---|---|
+| [P3 kernel verification #341](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650157) | P3 isolated kernel **75/75 PASS**; disposable PostgreSQL P4 completion **PASS**; separate broad full-Node baseline job **FAIL** |
+| [WP-02 #117](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650179) | PASS |
+| [WP-03 #105](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650181) | Node semantics and disposable PostgreSQL migration contract PASS |
+| [WP-04 #106](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650324) | Node Structured Result and disposable PostgreSQL persistence PASS |
+| [WP-08 #32](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650142) | PASS |
+| [WP-09 #96](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650164) | PASS |
+
+The full-Node baseline's four P5 assertions remain visible and outside this change's file scope. None of these repository/ephemeral-PostgreSQL checks validates or changes Production.

@@ -2,9 +2,9 @@ import fs from "node:fs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import canonicalRegistry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
-import packagedRegistry from "../supabase/functions/assessment-access/p3-response-interpretation-registry-v1.json" with { type: "json" };
+import packagedRegistry from "../supabase/functions/assessment-access/response-interpretation-registry-v1.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
-import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/p3-integrated-scorer-v1.mts";
+import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
 function firstSelection(slug) {
   const seen = new Set();
@@ -90,8 +90,8 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
     "supabase/functions/assessment-access/engine.ts",
     "utf8",
   );
-  assert.match(engine, /p3-consistency-rule-registry-v2\.json/);
-  assert.match(engine, /p3-consistency-pair-registry-v1\.json/);
+  assert.match(engine, /consistency-rule-registry-v2\.json/);
+  assert.match(engine, /consistency-pair-registry-v1\.json/);
   assert.match(engine, /scoringContractVersion: SCORING_CONTRACT_ID/);
   assert.doesNotMatch(engine, /P3_AGGREGATION_V[12]/);
 
@@ -103,7 +103,7 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
   );
   const packagedRules = JSON.parse(
     fs.readFileSync(
-      "supabase/functions/assessment-access/p3-consistency-rule-registry-v2.json",
+      "supabase/functions/assessment-access/consistency-rule-registry-v2.json",
       "utf8",
     ),
   );
@@ -117,7 +117,7 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
   );
   const packagedPairs = JSON.parse(
     fs.readFileSync(
-      "supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json",
+      "supabase/functions/assessment-access/consistency-pair-registry-v1.json",
       "utf8",
     ),
   );

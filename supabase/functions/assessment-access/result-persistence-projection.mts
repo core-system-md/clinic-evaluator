@@ -1,4 +1,4 @@
-import type { P3StructuredResultV1 } from "./p3-structured-result-v1.mts";
+import type { P3StructuredResultV1 } from "./structured-result.mts";
 
 export type P3PersistedAxisRow = Record<string, unknown>;
 

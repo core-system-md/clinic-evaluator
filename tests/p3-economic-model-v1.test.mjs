@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { calculateP3RecursiveReferralEconomic } from "../supabase/functions/assessment-access/p3-economic-model-v1.mts";
+import { calculateP3RecursiveReferralEconomic } from "../supabase/functions/assessment-access/economic-opportunity-model-v1.mts";
 
 test("canonical economics returns unavailable for absent inputs", () => {
   const r = calculateP3RecursiveReferralEconomic({

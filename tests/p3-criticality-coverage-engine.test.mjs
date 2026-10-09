@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildP3Coverage, evaluateP3Criticality } from "../supabase/functions/assessment-access/p3-criticality-coverage-engine.mts";
+import { buildP3Coverage, evaluateP3Criticality } from "../supabase/functions/assessment-access/coverage-criticality-engine.mts";
 
 test("full interpreted coverage is FULL without inventing a threshold",()=>{
  const c=buildP3Coverage([

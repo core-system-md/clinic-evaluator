@@ -11,9 +11,9 @@
  * It never uses source option_value as a score.
  */
 
-import registryV1 from "./p3-response-interpretation-registry-v1.json" with { type: "json" };
-import registryV2 from "./p3-response-interpretation-registry-v2.json" with { type: "json" };
-import { aggregateP3Profile, type P3ResolvedMeasurement } from "./p3-aggregation-engine.mts";
+import registryV1 from "./response-interpretation-registry-v1.json" with { type: "json" };
+import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
+import { aggregateP3Profile, type P3ResolvedMeasurement } from "./component-aggregation-engine.mts";
 
 type RegistryEntry = (typeof registryV1.entries)[number];
 

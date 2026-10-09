@@ -3,7 +3,7 @@ import test from "node:test";
 import {
   applyP3ConsistencyScoreEffects,
   evaluateP3Consistency,
-} from "../supabase/functions/assessment-access/p3-consistency-engine.mts";
+} from "../supabase/functions/assessment-access/consistency-engine.mts";
 import catalog from "../documentation/architecture/P3-CONSISTENCY-RULE-REGISTRY-V2.json" with { type: "json" };
 
 const base = {

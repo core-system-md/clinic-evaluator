@@ -1,17 +1,18 @@
 -- WP-08 final V1 reconstruction. No in-place mutation of published content.
 begin;
 -- WP-08: approved V1 Consistency relationships are version-scoped in the canonical/runtime pair registry; question trap_for is retained only as migration/source lineage.
+-- Legacy TRAP_01..TRAP_07 insights are obsolete, unreferenced user-facing trap claims; the existing explicit delete below removes them with the superseded assessment versions. Any non-TRAP insight mapping still blocks the migration.
 do $$
 declare old_type uuid; n bigint;
 begin
   foreach old_type in array array['0779bf3c-45a1-42d9-a2e5-9c9523a23b81'::uuid,'d58150e6-9a85-4837-b41f-2a5f99682639'::uuid,'97663a83-52cf-4251-a3bc-667e47fb591a'::uuid] loop
     select count(*) into n from public.sessions where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: sessions %',n; end if;
-    select count(*) into n from public.answers where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: answers %',n; end if;
+    select count(*) into n from public.answers a join public.sessions s on s.id=a.session_id where s.assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: answers %',n; end if;
     select count(*) into n from public.assessment_results where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: assessment_results %',n; end if;
     select count(*) into n from public.leads where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: leads %',n; end if;
     select count(*) into n from public.assessment_session_access where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: access %',n; end if;
     select count(*) into n from public.historical_snapshots where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: snapshots %',n; end if;
-    select count(*) into n from public.insights_mapping where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: insights %',n; end if;
+    select count(*) into n from public.insights_mapping where assessment_type_id=old_type and left(insight_code, 5) <> 'TRAP_'; if n>0 then raise exception 'WP08 dependency block: non-legacy insights %',n; end if;
     select count(*) into n from public.assessment_assets where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: assets %',n; end if;
   end loop;
 end $$;

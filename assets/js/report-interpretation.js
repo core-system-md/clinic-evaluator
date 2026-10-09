@@ -12,29 +12,63 @@
     Q4: 'مرحلة الريادة'
   };
 
+  const COMMON_PERMITTED_CONCLUSIONS = [
+    'report_measured_overall_score',
+    'report_measured_axis_values',
+    'identify_lowest_and_highest_measured_axes',
+    'show_only_available_kpis',
+    'show_economic_output_only_when_computed',
+    'compare_trend_only_when_provenance_is_compatible'
+  ];
+
   const REPORT_MODELS = {
     'admin-reception-assessment': {
       purpose: 'جاهزية الإدارة والاستقبال وتنسيق التشغيل',
+      measuredConstructs: ['SCHEDULING', 'RECEPTION', 'ADMIN', 'COORDINATION'],
+      axisRoles: { AX85a6e9: 'SCHEDULING', AX765ca8: 'RECEPTION', AXa23fa3: 'ADMIN', AXc39190: 'COORDINATION' },
+      diagnosticMeanings: { lowestMeasuredAxis: 'lowest_measured_axis_only', highestMeasuredAxis: 'highest_measured_axis_only' },
+      permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog: ['quartiles.Q1', 'quartiles.Q2', 'quartiles.Q3', 'quartiles.Q4', 'kpis.RRI', 'kpis.TFI', 'kpis.PSI', 'kpis.TCI', 'kpis.EVI', 'kpis.NPI', 'kpis.PLI', 'kpis.PRP', 'kpis.TAP', 'report.overall_score', 'report.axis_summary'],
       userKpis: ['RRI', 'TFI', 'PSI', 'TCI', 'EVI', 'NPI', 'PLI', 'PRP', 'TAP'],
       economicAllowed: true
     },
     'clinic-performance': {
       purpose: 'أداء العيادة في التحويل والتواصل والاستبقاء',
+      measuredConstructs: ['TRUST', 'COMMUNICATION', 'RETENTION'],
+      axisRoles: { A1: 'TRUST', A2: 'COMMUNICATION', A3: 'RETENTION' },
+      diagnosticMeanings: { lowestMeasuredAxis: 'lowest_measured_axis_only', highestMeasuredAxis: 'highest_measured_axis_only' },
+      permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog: ['quartiles.Q1', 'quartiles.Q2', 'quartiles.Q3', 'quartiles.Q4', 'kpis.TFI', 'kpis.TAP', 'kpis.PRP', 'kpis.PLI', 'kpis.PSI', 'kpis.NPI', 'kpis.EVI', 'kpis.TCI', 'report.overall_score', 'report.axis_summary'],
       userKpis: ['TFI', 'TAP', 'PRP', 'PLI', 'PSI', 'NPI', 'EVI', 'TCI'],
       economicAllowed: true
     },
     'comprehensive-clinic-assessment': {
       purpose: 'الصورة التشغيلية الشاملة للعيادة',
+      measuredConstructs: ['JOURNEY', 'CONVERSION', 'OPERATIONS', 'TEAM', 'RETENTION', 'GROWTH'],
+      axisRoles: { AX6f5aa5: 'JOURNEY', AX80c09a: 'CONVERSION', AXaadfb4: 'OPERATIONS', AX2572cc: 'TEAM', AX6a52b4: 'RETENTION', AX15afd8: 'GROWTH' },
+      diagnosticMeanings: { lowestMeasuredAxis: 'lowest_measured_axis_only', highestMeasuredAxis: 'highest_measured_axis_only' },
+      permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog: ['quartiles.Q1', 'quartiles.Q2', 'quartiles.Q3', 'quartiles.Q4', 'report.overall_score', 'report.axis_summary', 'report.structural_diagnosis'],
       userKpis: ['TFI', 'TAP', 'PRP', 'PLI', 'PSI', 'NPI', 'EVI', 'TCI'],
       economicAllowed: true
     },
     'medical-team-assessment': {
       purpose: 'أداء الفريق الطبي في الثقة والتواصل والتحويل والعمل الجماعي',
+      measuredConstructs: ['TRUST', 'COMMUNICATION', 'CONVERSION', 'TEAMWORK'],
+      axisRoles: { A1: 'TRUST', A2: 'COMMUNICATION', A3: 'CONVERSION', A4: 'TEAMWORK' },
+      diagnosticMeanings: { lowestMeasuredAxis: 'lowest_measured_axis_only', highestMeasuredAxis: 'highest_measured_axis_only' },
+      permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog: ['quartiles.Q1', 'quartiles.Q2', 'quartiles.Q3', 'quartiles.Q4', 'kpis.TFI', 'kpis.TAP', 'kpis.TCI', 'kpis.PSI', 'kpis.NPI', 'report.overall_score', 'report.axis_summary'],
       userKpis: ['TFI', 'TAP', 'TCI', 'PSI', 'NPI'],
       economicAllowed: true
     },
     'patient-journey': {
       purpose: 'جودة رحلة المريض من الثقة إلى الولاء',
+      measuredConstructs: ['TRUST', 'COMMUNICATION', 'CONVERSION', 'RETENTION', 'LOYALTY'],
+      axisRoles: { A1: 'TRUST', A2: 'COMMUNICATION', A3: 'CONVERSION', A4: 'RETENTION', A5: 'LOYALTY' },
+      diagnosticMeanings: { lowestMeasuredAxis: 'lowest_measured_axis_only', highestMeasuredAxis: 'highest_measured_axis_only' },
+      permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog: ['quartiles.Q1', 'quartiles.Q2', 'quartiles.Q3', 'quartiles.Q4', 'kpis.TFI', 'kpis.TAP', 'kpis.PRP', 'kpis.PLI', 'kpis.PSI', 'kpis.NPI', 'kpis.EVI', 'kpis.TCI', 'report.overall_score', 'report.axis_summary'],
       userKpis: ['TFI', 'TAP', 'PRP', 'PLI', 'PSI', 'NPI', 'EVI', 'TCI'],
       economicAllowed: true
     }

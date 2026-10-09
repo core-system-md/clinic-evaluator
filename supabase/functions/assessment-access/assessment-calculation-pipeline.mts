@@ -3,31 +3,31 @@ import {
   scoreP3AssessmentV1,
   type P3Selection,
   type P3ResolvedSelection,
-} from "./p3-scorer-v1.mts";
-import { aggregateP3Profile } from "./p3-aggregation-engine.mts";
+} from "./response-scorer.mts";
+import { aggregateP3Profile } from "./component-aggregation-engine.mts";
 import {
   buildP3Coverage,
   evaluateP3Criticality,
   type P3CoverageItem,
   type P3CriticalityItem,
-} from "./p3-criticality-coverage-engine.mts";
+} from "./coverage-criticality-engine.mts";
 import {
   applyP3ConsistencyScoreEffects,
   evaluateP3Consistency,
   type P3ConsistencyRule,
   type P3ConsistencyFinding,
   type P3ConsistencyScoreEffect,
-} from "./p3-consistency-engine.mts";
+} from "./consistency-engine.mts";
 import {
   calculateP3RecursiveReferralEconomic,
   type P3EconomicInput,
-} from "./p3-economic-model-v1.mts";
+} from "./economic-opportunity-model-v1.mts";
 import {
   buildP3StructuredResultV1,
   type P3StructuredResultV1,
   type P3StructuredKPI,
   type P3StructuredRole,
-} from "./p3-structured-result-v1.mts";
+} from "./structured-result.mts";
 
 export type P3AxisConfig = { code: string; weight: number; nameAr?: string; nameEn?: string };
 export type P3ConsistencyPair = {

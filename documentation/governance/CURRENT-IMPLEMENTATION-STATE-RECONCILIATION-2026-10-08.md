@@ -80,7 +80,7 @@ WP-08 PR #62 explicitly excluded production mutation.
 
 The WP-08 implementation contains and tests the migration:
 
-`supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql`
+`supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql`
 
 but the migration was **not executed against Production Supabase**.
 
@@ -215,3 +215,67 @@ The post-closure V1 Consistency correction was followed by reconciliation of sta
 The dedicated WP-08 verification remained successful (37777401435), the P3 isolated kernel succeeded (113312306760), and the WP-03 configuration semantics contract succeeded (113312305582). The WP-03 disposable PostgreSQL contract also succeeded (113312305836). The full Node baseline remains red on existing P5 editor assertions unrelated to this reconciliation.
 
 Production remains unchanged and the WP-08 migration remains unapplied in Production.
+
+
+## 11. Functional ownership and migration identity reconciliation — 2026-10-09
+
+**Focused candidate branch:** `ownership-migration-remediation-2026-10-09`  
+**Base:** `main` at `543ac1352d23ff1acf75754154df5bbc8994cad8`  
+**Scope:** source-tree ownership, migration identity, directly dependent tests/workflows and the existing governance records only.
+
+The candidate renames stage-prefixed calculation modules and registries to functional names while preserving existing calculation APIs, updates `engine.ts` / `index.ts` import paths, and moves the exact legacy parity implementation to `tests/reference/score-engine-legacy.mts`. The reference remains executable by the parity test but is no longer placed in the Edge Function source tree.
+
+The three unapplied 2026-10-08 migration identities are consolidated to one functional filename each:
+- `20261008090000_canonical_axis_weights.sql`
+- `20261008100000_structured_result_authority.sql`
+- `20261008120000_reconstruct_final_assessment_versions.sql`
+
+Their same-version WP-prefixed file duplicates are removed from the candidate tree. This is not a rename of an applied migration: read-only Production history does not include these versions. Older timestamp/name collisions and repository-to-live provenance mismatches elsewhere remain OPEN and must be mapped before any cleanup.
+
+### Production API compatibility is still unresolved
+
+Read-only inspection found Production `assessment-access` version **32** importing `score-engine.ts` and calling `complete_p4_*_session`. Current repository source imports `engine.ts` and calls `complete_p4_*_from_result`. Production does not yet contain the latter functions, and the applied migration history ends at `20261005143243 / p5_public_options_projection_recovery`.
+
+Production currently has zero `sessions`, `answers`, `scores`, `assessment_results` and `leads`, but it still has six assessment versions and live assessment configuration. That zero transactional-row baseline does not authorize a reset, delete, route switch, migration, or Edge deployment.
+
+**No Production function deployment or database mutation has been performed or approved by this candidate.** A combined migration/runtime release must remain a separate gated decision after exact API/grant compatibility, ordered migration checks, content/dependency validation, smoke tests, rollback and explicit owner authorization.
+
+### Candidate verification — latest focused commit
+
+Commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24` is verified by the targeted repository gates:
+
+- P3 isolated kernel: **75/75 PASS** (run [37920650157](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650157), job `113787483286`).
+- Disposable PostgreSQL P4 protected completion: **PASS** (job `113787483889`).
+- WP-02 local contract: **PASS** (run [37920650179](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650179), job `113787484037`).
+- WP-03 semantics and disposable migration harness: **PASS** (run [37920650181](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650181), jobs `113787484046` and `113787483499`).
+- WP-04 Structured Result and disposable PostgreSQL persistence harness: **PASS** (run [37920650324](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650324), jobs `113787484112` and `113787484359`).
+- WP-08 V1 reconstruction: **PASS** (run [37920650142](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650142), job `113787483735`).
+- WP-09 obsolete runtime references: **PASS** (run [37920650164](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650164), job `113787483907`).
+
+The broad Node baseline job in run `37920650157` remains **FAIL** on four P5 editor assertions in `tests/p5-editor-workspace.test.js` (tests 9, 12, 17, 18); these files are outside the candidate diff. The failures were not suppressed or weakened. Supabase Preview was skipped because repository preview branches are disabled.
+
+These results verify the bounded source/test change, not production compatibility. The overall phase remains **NOT CLOSED**; do not start a later WP or infer production release approval.
+
+
+## 12. Repository-to-Production migration provenance — read-only inventory
+
+The focused branch has **51** SQL migration files, while Supabase reports **48** migration-history entries. The target three migrations dated 2026-10-08 are now each represented once by a functional filename and are absent from Production history. The existing older history is not yet safe for blanket renaming.
+
+Two pre-existing repository version-prefix collisions remain, and both must remain untouched until the ordered SQL and live migration provenance are reconciled:
+
+- Version prefix `20261003233000`: `20261003233000_p5_assessment_lifecycle_correction.sql` and `20261003233000_p5_restore_archived_version_immutability_compat.sql`.
+- Version prefix `20261004150000`: `20261004150000_p5_ev_mapping_shape_fix.sql` and `20261004150000_p5_public_visibility_option_allocation.sql`.
+
+Git history shows the files arrived through distinct commits/changes. A shared timestamp alone is not enough to choose one or discard the other, and Production reports different version IDs for their respective migration names. These are unresolved history/identity conflicts, not cosmetic cleanup.
+
+The read-only comparison also surfaced five Production migration names without an exact same-name repository filename; the listed repository path is only a candidate correspondence and **has not been proven equivalent**:
+
+| Production migration record | Candidate repository path requiring SQL/content/commit-sequence comparison |
+|---|---|
+| `20261002161945 / p3_preserve_completion_access_v2` | `20261002002000_p3_preserve_completion_access.sql` |
+| `20261003181305 / p5_secure_report_session_read_fix_started_at` | `20261003234500_p5_secure_report_session_read.sql` |
+| `20261004074332 / p5_admin_editor_completeness_2026_10_04` | `20261004123000_p5_admin_editor_completeness.sql` |
+| `20261004074428 / p5_draft_cascade_delete_trigger_fix_2026_10_04` | `20261004130000_p5_draft_cascade_delete_trigger_fix.sql` |
+| `20261004102003 / p5_delete_draft_cascade_fix_2026_10_04` | `20261004140000_p5_delete_draft_cascade_fix.sql` |
+
+More broadly, several Production migration `version` identifiers differ from the timestamp prefix in their repository filename even where the migration names appear to correspond. The current evidence does not justify editing the remote migration history, renaming any applied migration, or deleting the older duplicate-prefix files. Next safe action for this subproblem is a per-record content/hash/sequence reconciliation and a documented disposition; no database operation is implied.

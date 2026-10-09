@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { buildP3StructuredResultV1 } from "../supabase/functions/assessment-access/p3-structured-result-v1.mts";
+import { buildP3StructuredResultV1 } from "../supabase/functions/assessment-access/structured-result.mts";
 
 const profile={components:[],overallComposite:null};
 const coverage={expectedApplicableItems:2,answeredItems:2,interpretedItems:2,scoredItems:1,missingItems:0,semanticOnlyItems:1,evidenceOnlyItems:0,signalOnlyItems:0,unsupportedItems:0,notApplicableItems:0,coverageRatio:1,coverageStatus:"FULL",thresholdProfile:"STRUCTURAL_V1_UNCALIBRATED"};

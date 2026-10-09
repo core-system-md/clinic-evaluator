@@ -55,7 +55,8 @@ test('P5 editor has contextual persistence and error handling', () => {
   assert.ok(js.includes('new-question-text'), 'inline question creation missing');
   assert.ok(js.includes("new-option-label-'+q.id+'"), 'question-scoped inline option creation missing');
   assert.ok(js.includes('new-kpi-code'), 'inline KPI creation missing');
-  assert.ok(js.includes('new-ev-code'), 'inline EV creation missing');
+  assert.ok(js.includes('data-ev-role'), 'role-based numeric EV mapping controls missing');
+  assert.ok(!js.includes('new-ev-code'), 'obsolete EV mapping-code UI must not replace the canonical role-to-numeric-weight contract');
   assert.ok(js.includes('option-card'), 'responsive option editor missing');
 });
 
@@ -88,9 +89,9 @@ test('archived versions are viewable but have no mutation controls', () => {
 
 test('lifecycle actions are status-specific and archive is separated from active work', () => {
   assert.ok(manager.includes("['draft','published'].includes"), 'active list must contain only Draft/Published');
-  assert.ok(manager.includes("status === 'draft'"), 'Draft action branch missing');
-  assert.ok(manager.includes("status === 'published'"), 'Published action branch missing');
-  assert.ok(manager.includes("status === 'archived'"), 'Archive action branch missing');
+  assert.ok(/const actions\s*=\s*status\s*===\s*'draft'/.test(manager), 'Draft actions must use the Draft branch');
+  assert.ok(/status\s*===\s*'published'\s*\?\s*'<span class="badge badge-success">منشور<\/span>'/.test(manager), 'Published status must render independently from Draft');
+  assert.ok(/const archived\s*=\s*data\.filter\(a\s*=>\s*String\(a\.status\|\|''\)\.toLowerCase\(\)==='archived'\)/.test(manager), 'Archived versions must be listed separately');
   assert.ok(manager.includes('إيقاف الظهور العام'), 'Published stop-public action missing');
   assert.ok(manager.includes('الأرشيف'), 'Dedicated archive section missing');
   assert.ok(manager.includes('غير مطبق على المسودة'), 'Paid access must not be presented as a Draft lifecycle action');
@@ -99,6 +100,7 @@ test('lifecycle actions are status-specific and archive is separated from active
   assert.ok(manager.includes('منشور لكن متوقف عن الظهور'), 'Stopped-public section missing');
   assert.ok(manager.includes('archiveAssessment'), 'Separate archive action missing');
 });
+
 
 test('question workspace renders every question and scopes option creation per question', () => {
   assert.ok(js.includes('d.questions.filter(q=>q.axis_id===axis.id)'), 'all questions for selected axis must be loaded');
@@ -138,20 +140,26 @@ test('P2 immutability trigger permits only approved lifecycle metadata changes',
 
 test('stop public is a visibility-only lifecycle operation', () => {
   assert.ok(manager.includes('stopPublicAssessment'), 'dedicated stop-public action missing');
-  assert.ok(manager.includes("stopPublicAssessment(\\'"+'family.id'), 'active published row must call stop-public with family id');
+  const stopPublicCallIndex = manager.indexOf('stopPublicAssessment(');
+  const stopPublicCall = stopPublicCallIndex < 0 ? '' : manager.slice(stopPublicCallIndex, manager.indexOf('\n', stopPublicCallIndex));
+  assert.ok(stopPublicCall.includes('family.id'), 'active published row must pass the family id to stop-public');
   assert.ok(lifecycle.includes('stop_public_assessment_secure'), 'stop-public secure RPC missing from lifecycle controller');
-  assert.ok(!manager.includes("archiveAssessment(\\'"+'ast.id'+", \\'published\\', true"), 'stop-public must not call archiveAssessment');
+  assert.ok(lifecycle.includes('p_family_id:familyId'), 'stop-public RPC must target the assessment family');
+  assert.ok(!stopPublicCall.includes('archiveAssessment('), 'stop-public must not be implemented as archive');
 });
 
-test('public assessment runtime guards content and creates a back-navigation entry', () => {
-  assert.ok(app.includes('setupHistoryNavigation'), 'public back-navigation guard missing');
-  assert.ok(app.includes('clinicEvaluatorAssessmentGuard'), 'history guard state missing');
-  assert.ok(app.includes('Array.isArray(data.questions)'), 'public content validation missing');
-  assert.ok(htmlFiles.some(file => file.includes('/assets/js/app.js?v=20261004-3')), 'public runtime cache-busting missing');
+
+test('public assessment runtime validates content and returns to entry on browser Back', () => {
+  assert.ok(app.includes('setupHistoryNavigation'), 'history navigation setup missing');
+  assert.ok(app.includes('clinicEvaluatorAssessmentGuard'), 'assessment history state marker missing');
+  assert.ok(app.includes("window.addEventListener('popstate'"), 'browser Back handler missing');
+  assert.ok(app.includes('Array.isArray(data.questions)'), 'server content questions-array validation missing');
+  assert.ok(htmlFiles.every(file => file.includes('/assets/js/app.js?v=20261009-1')), 'all assessment pages must load the cache-busted public runtime');
   assert.ok(publicRuntime.includes('publicVersion.is_active !== true'), 'public runtime must enforce visibility state');
   assert.ok(publicRuntime.includes('publicVersion.status !== "published"'), 'public runtime must enforce published state');
   assert.ok(publicRuntime.includes('Assessment unavailable'), 'stopped public assessments must not issue/serve public access');
 });
+
 
 test('report detail lookup has a server fallback when the in-memory row is stale', () => {
   assert.ok(manager.includes("this.supabase.select('leads', { filter: { id: leadId }, limit: 1 })"), 'report detail fallback lookup missing');

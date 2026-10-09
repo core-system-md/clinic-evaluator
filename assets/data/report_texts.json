@@ -139,7 +139,16 @@
   "report": {
     "overall_score": "معدل الكفاءة العام",
     "structural_diagnosis": "التشخيص الاستراتيجي للعيادة",
-    "axis_summary": "تحليل الأداء حسب المحاور"
+    "axis_summary": "تحليل الأداء حسب المحاور",
+    "trend_positive": "📈 تغير إيجابي بمقدار +{delta}% مقارنة بالتقييم السابق{suffix}",
+    "trend_negative": "📉 تغير بمقدار {delta}% مقارنة بالتقييم السابق{suffix}",
+    "trend_stable": "🔄 أداء مستقر مقارنة بالتقييم السابق{suffix}",
+    "trend_days": " ({days} يوم)",
+    "overall_sentence": "درجتك الكلية للعيادة: {score} من 100 — {label}",
+    "recommendations_title": "💡 التوجيهات الاستشارية وفرص التطوير الهيكلي",
+    "priority_heading": "🎯 الأولوية التشغيلية القصوى: {axis}",
+    "measured_axis_sentence": "بلغت النتيجة المقاسة لهذا المحور ({score}%).",
+    "highest_axis_heading": "💪 أعلى محور مقاس: {axis}"
   },
   "errors": {
     "init_failed": "عذراً، هناك تحديث بسيط في النظام. يرجى إعادة تحميل الصفحة أو التواصل مع فريق الدعم الفني.",

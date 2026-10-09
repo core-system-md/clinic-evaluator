@@ -82,7 +82,7 @@ No scoring intent is changed.
 
 Migration:
 
-`supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql`
+`supabase/migrations/20261008090000_canonical_axis_weights.sql`
 
 is fail-closed.
 

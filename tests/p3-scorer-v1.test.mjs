@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
-import registryV2 from "../supabase/functions/assessment-access/p3-response-interpretation-registry-v2.json" with { type: "json" };
-import { scoreP3AssessmentV1 } from "../supabase/functions/assessment-access/p3-scorer-v1.mts";
+import registryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
+import { scoreP3AssessmentV1 } from "../supabase/functions/assessment-access/response-scorer.mts";
 
 function firstSelection(assessmentSlug) {
   const byQuestion = new Map();

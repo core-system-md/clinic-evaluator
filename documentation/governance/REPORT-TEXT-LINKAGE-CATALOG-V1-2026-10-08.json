@@ -1,7 +1,7 @@
 {
   "catalogVersion": "WP07_TEXT_LINKAGE_V1",
   "status": "AUDITED",
-  "purpose": "Trace every live report-text entry to its permitted evidence/ownership source. report_texts.json is presentation copy, not semantic authority.",
+  "purpose": "Trace every live report-text leaf and semantic report/presentation template to its permitted evidence/ownership source. report_texts.json is presentation copy; factual claims remain constrained to Structured Result evidence and the report model.",
   "sources": {
     "presentation": "UI/presentation copy only; no independent measurement or business claim.",
     "structured_result_classification": "Structured Result classification.bandCode.",
@@ -481,6 +481,51 @@
       "path": "errors.assessment_not_found",
       "type": "string",
       "source": "presentation"
+    },
+    {
+      "path": "report.trend_positive",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.trend_negative",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.trend_stable",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.trend_days",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.overall_sentence",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.recommendations_title",
+      "type": "string",
+      "source": "report_model"
+    },
+    {
+      "path": "report.priority_heading",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.measured_axis_sentence",
+      "type": "string",
+      "source": "structured_result_scores"
+    },
+    {
+      "path": "report.highest_axis_heading",
+      "type": "string",
+      "source": "structured_result_scores"
     }
   ],
   "removed": [
