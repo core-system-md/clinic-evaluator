@@ -213,7 +213,8 @@ test('P4 completed result is restored from the server-projected user report', ()
 });
 
 test('P4 rolling deployment can project the previous Edge Function stored-result shape', () => {
-  const { ClinicEvaluatorApp } = createAppContext();
+  const { ClinicEvaluatorApp, document } = createAppContext();
+  document.defaultView.MDReportInterpretation = require('../assets/js/report-interpretation.js');
   const app = new ClinicEvaluatorApp();
   app.currentSessionId = 'session-legacy';
   app.currentAssessmentKey = 'clinic-performance';
