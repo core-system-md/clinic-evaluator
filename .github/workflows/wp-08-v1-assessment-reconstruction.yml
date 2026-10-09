@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - "documentation/governance/APPROVED-*-V1-CONTENT-2026-10-08.json"
-      - "supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql"
+      - "supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql"
       - "tests/wp-08-v1-assessment-reconstruction.test.mjs"
       - ".github/workflows/wp-08-v1-assessment-reconstruction.yml"
   workflow_dispatch:
