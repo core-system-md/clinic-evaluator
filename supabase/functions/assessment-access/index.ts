@@ -300,22 +300,42 @@ async function findLeadHistory(assessmentTypeId: string, lead: any) {
   if (sessionError) throw sessionError;
   if (!previousSession) return { allowed: true, previousSessionData: null };
 
-  const { data: previousScores, error: scoreError } = await supabase
-    .from("scores")
-    .select("axis_id, percentage")
-    .eq("session_id", previousSession.id);
+  const { data: resultRow, error: resultError } = await supabase
+    .from("assessment_results")
+    .select("result, assessment_version, scoring_engine_version, scoring_contract_version, assessment_config_digest, calculated_at")
+    .eq("session_id", previousSession.id)
+    .maybeSingle();
+  if (resultError) throw resultError;
 
-  if (scoreError) throw scoreError;
-
+  const structured = resultRow?.result && typeof resultRow.result === "object" ? resultRow.result : null;
   const axisScores: Record<string, number> = {};
-  for (const row of previousScores || []) axisScores[row.axis_id] = Number(row.percentage) || 0;
+  for (const axis of structured?.scores?.axes || []) {
+    if (axis?.status === "measured" && Number.isFinite(axis?.percentage)) {
+      axisScores[String(axis.axisCode)] = Number(axis.percentage);
+    }
+  }
+  // Legacy score rows remain useful for a visual baseline, but are never enough
+  // to authorize a trend claim without the Structured Result provenance below.
+  if (!Object.keys(axisScores).length) {
+    const { data: previousScores, error: scoreError } = await supabase
+      .from("scores")
+      .select("axis_id, percentage")
+      .eq("session_id", previousSession.id);
+    if (scoreError) throw scoreError;
+    for (const row of previousScores || []) axisScores[String(row.axis_id)] = Number(row.percentage) || 0;
+  }
 
   return {
     allowed: true,
     previousSessionData: {
-      overallScore: Number(last.score_percentage) || 0,
+      assessmentFamilyId: structured?.identity?.assessmentFamilyId || null,
+      assessmentVersion: resultRow?.assessment_version ?? structured?.identity?.assessmentVersion ?? null,
+      scoringEngineVersion: resultRow?.scoring_engine_version ?? structured?.provenance?.scoringEngineVersion ?? null,
+      scoringContractVersion: resultRow?.scoring_contract_version ?? structured?.provenance?.scoringContractVersion ?? null,
+      assessmentConfigDigest: resultRow?.assessment_config_digest ?? structured?.provenance?.assessmentConfigDigest ?? null,
+      overallScore: Number.isFinite(structured?.scores?.overallScore) ? Number(structured.scores.overallScore) : null,
       axisScores,
-      completedAt: last.completed_at || previousSession.completed_at || previousSession.created_at
+      completedAt: resultRow?.calculated_at || last.completed_at || previousSession.completed_at || previousSession.created_at
     }
   };
 }
