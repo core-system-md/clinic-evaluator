@@ -1,5 +1,6 @@
 -- WP-04 — Structured Result authoritative persistence
 -- Canonical completion persistence consumes one factual payload: p_result.
+-- Axis weights use the owner-approved 0-100 percentage-point representation.
 -- Scalars and legacy score rows are database projections of the Structured Result.
 
 create or replace function public.complete_p4_public_assessment_from_result(
@@ -167,7 +168,7 @@ begin
         or "rawScore" is null or "rawScore" < 0
         or "maxPossible" is null or "maxPossible" <= 0
         or percentage is null or percentage < 0 or percentage > 100
-        or weight is null or weight <= 0 or weight > 1
+        or weight is null or weight <= 0 or weight > 100
         or "weightedScore" is null
       )
   ) then
@@ -370,7 +371,7 @@ begin
     from jsonb_to_recordset(p_result->'scores'->'axes') as s("axisCode" text, "axisNameAr" text, "axisNameEn" text, score numeric, "rawScore" numeric, "maxPossible" numeric, percentage numeric, weight numeric, "weightedScore" numeric, status text)
     where status = 'measured'
       and (score is null or "rawScore" is null or "rawScore" < 0 or "maxPossible" is null or "maxPossible" <= 0
-        or percentage is null or percentage < 0 or percentage > 100 or weight is null or weight <= 0 or weight > 1
+        or percentage is null or percentage < 0 or percentage > 100 or weight is null or weight <= 0 or weight > 100
         or "weightedScore" is null)
   ) then
     raise exception using errcode = '22023', message = 'Invalid measured Structured Result axis';
