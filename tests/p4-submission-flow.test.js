@@ -175,27 +175,27 @@ test('P4 keyboard answer waits for server persistence before advancing', async (
   assert.equal(nextCalls, 1);
 });
 
-test('P4 completed result is restored from stored Structured Result', () => {
+test('P4 completed result is restored from the server-projected user report', () => {
   const { ClinicEvaluatorApp } = createAppContext();
   const app = new ClinicEvaluatorApp();
   app.currentSessionId = 'session-1';
   app.assessment = { version: 1 };
 
   const row = {
-    result: {
-      schemaVersion: 'P3_STRUCTURED_RESULT_V1',
-      identity: { assessmentVersion: '1' },
-      scores: {
-        overallScore: 82.5,
-        axes: [{ axisCode: 'A1', score: 80 }],
-      },
-      classification: { bandCode: 'Q3' },
-      kpis: [{ kpiCode: 'TFI', value: 76, status: 'available' }],
+    userReport: {
+      audience: 'user',
+      assessment: { familyId: 'family-1', version: 1, purpose: 'test' },
+      overall: { value: 82.5, bandCode: 'Q3', label: 'مرحلة النمو' },
+      axes: [{ code: 'A1', nameAr: 'الثقة', percentage: 80, status: 'measured' }],
+      kpis: [{ code: 'TFI', value: 76 }],
+      economicOpportunity: null,
+      trend: { status: 'unavailable', reason: 'no_comparison' },
+      coverage: { status: 'FULL', ratio: 1 }
     },
     assessment_version: 1,
     interpretation_version: 1,
-    scoring_engine_version: 'P3_SCORER_V1',
-    scoring_contract_version: 'P3_AGGREGATION_V1',
+    scoring_engine_version: 'MD_CODE_ASSESSMENT_ENGINE',
+    scoring_contract_version: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
     assessment_config_digest: 'digest',
     calculated_at: '2026-10-03T08:00:00Z',
   };
@@ -206,6 +206,8 @@ test('P4 completed result is restored from stored Structured Result', () => {
   assert.equal(projected.classification, 'Q3');
   assert.equal(projected.axisScores.A1, 80);
   assert.equal(projected.kpis.TFI, 76);
+  assert.equal(projected.userReport.audience, 'user');
+  assert.equal('structuredResult' in projected, false);
   assert.equal(projected.already_completed, true);
   assert.equal(projected.session_id, 'session-1');
 });
