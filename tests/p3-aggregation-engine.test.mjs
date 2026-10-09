@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { aggregateP3Profile } from "../supabase/functions/assessment-access/p3-aggregation-engine.mts";
+import { aggregateP3Profile } from "../supabase/functions/assessment-access/component-aggregation-engine.mts";
 
 test("P3 component aggregation keeps performance and maturity layers separate", () => {
   const result = aggregateP3Profile([
