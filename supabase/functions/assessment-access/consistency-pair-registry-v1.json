@@ -1,0 +1,1194 @@
+{
+  "schemaVersion": "P3_CONSISTENCY_PAIR_REGISTRY_V1",
+  "status": "implementation-authoritative",
+  "pairs": [
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q04",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q04",
+      "targetQuestionCode": "CCV2Q27",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q05",
+      "targetQuestionCode": "CCV2Q06",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q05",
+      "targetQuestionCode": "CCV2Q07",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q06",
+      "targetQuestionCode": "CCV2Q05",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q06",
+      "targetQuestionCode": "CCV2Q07",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q07",
+      "targetQuestionCode": "CCV2Q05",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q07",
+      "targetQuestionCode": "CCV2Q06",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q11",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q11",
+      "targetQuestionCode": "CCV2Q14",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q12",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q12",
+      "targetQuestionCode": "CCV2Q14",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q13",
+      "targetQuestionCode": "CCV2Q12",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q13",
+      "targetQuestionCode": "CCV2Q14",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q14",
+      "targetQuestionCode": "CCV2Q11",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q14",
+      "targetQuestionCode": "CCV2Q12",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q14",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q17",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q19",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q20",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q17",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q17",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q17",
+      "targetQuestionCode": "CCV2Q20",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q18",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q18",
+      "targetQuestionCode": "CCV2Q17",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q19",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q19",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q20",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q20",
+      "targetQuestionCode": "CCV2Q17",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q20",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q21",
+      "targetQuestionCode": "CCV2Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q21",
+      "targetQuestionCode": "CCV2Q25",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q21",
+      "targetQuestionCode": "CCV2Q28",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q22",
+      "targetQuestionCode": "CCV2Q21",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q22",
+      "targetQuestionCode": "CCV2Q25",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q25",
+      "targetQuestionCode": "CCV2Q21",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q25",
+      "targetQuestionCode": "CCV2Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q25",
+      "targetQuestionCode": "CCV2Q26",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q26",
+      "targetQuestionCode": "CCV2Q25",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q27",
+      "targetQuestionCode": "CCV2Q29",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q27",
+      "targetQuestionCode": "CCV2Q30",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q27",
+      "targetQuestionCode": "CCV2Q31",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q28",
+      "targetQuestionCode": "CCV2Q21",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q28",
+      "targetQuestionCode": "CCV2Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q29",
+      "targetQuestionCode": "CCV2Q27",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q29",
+      "targetQuestionCode": "CCV2Q30",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q30",
+      "targetQuestionCode": "CCV2Q29",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q30",
+      "targetQuestionCode": "CCV2Q31",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q32",
+      "targetQuestionCode": "CCV2Q34",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q32",
+      "targetQuestionCode": "CCV2Q35",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "2",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q32",
+      "targetQuestionCode": "CCV2Q36",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q27",
+      "targetQuestionCode": "CCV2Q29",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q27",
+      "targetQuestionCode": "CCV2Q30",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q27",
+      "targetQuestionCode": "CCV2Q31",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q32",
+      "targetQuestionCode": "CCV2Q34",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q32",
+      "targetQuestionCode": "CCV2Q35",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q32",
+      "targetQuestionCode": "CCV2Q36",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q22",
+      "targetQuestionCode": "CCV2Q21",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q22",
+      "targetQuestionCode": "CCV2Q25",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q17",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q19",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q15",
+      "targetQuestionCode": "CCV2Q20",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q28",
+      "targetQuestionCode": "CCV2Q21",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q28",
+      "targetQuestionCode": "CCV2Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q29",
+      "targetQuestionCode": "CCV2Q27",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q29",
+      "targetQuestionCode": "CCV2Q30",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q17",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q17",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q17",
+      "targetQuestionCode": "CCV2Q20",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q11",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q11",
+      "targetQuestionCode": "CCV2Q14",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q18",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q18",
+      "targetQuestionCode": "CCV2Q17",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q04",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q04",
+      "targetQuestionCode": "CCV2Q27",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q30",
+      "targetQuestionCode": "CCV2Q29",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q30",
+      "targetQuestionCode": "CCV2Q31",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q25",
+      "targetQuestionCode": "CCV2Q21",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q25",
+      "targetQuestionCode": "CCV2Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q25",
+      "targetQuestionCode": "CCV2Q26",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q05",
+      "targetQuestionCode": "CCV2Q06",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q05",
+      "targetQuestionCode": "CCV2Q07",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q12",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q12",
+      "targetQuestionCode": "CCV2Q14",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q19",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q19",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q26",
+      "targetQuestionCode": "CCV2Q25",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q20",
+      "targetQuestionCode": "CCV2Q15",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q20",
+      "targetQuestionCode": "CCV2Q17",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q20",
+      "targetQuestionCode": "CCV2Q18",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q06",
+      "targetQuestionCode": "CCV2Q05",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q06",
+      "targetQuestionCode": "CCV2Q07",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q13",
+      "targetQuestionCode": "CCV2Q12",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q13",
+      "targetQuestionCode": "CCV2Q14",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q14",
+      "targetQuestionCode": "CCV2Q11",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q14",
+      "targetQuestionCode": "CCV2Q12",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q14",
+      "targetQuestionCode": "CCV2Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q07",
+      "targetQuestionCode": "CCV2Q05",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q07",
+      "targetQuestionCode": "CCV2Q06",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q21",
+      "targetQuestionCode": "CCV2Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q21",
+      "targetQuestionCode": "CCV2Q25",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "comprehensive-clinic-assessment",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "CCV2Q21",
+      "targetQuestionCode": "CCV2Q28",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q1",
+      "targetQuestionCode": "Q3",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q10",
+      "targetQuestionCode": "Q9",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q12",
+      "targetQuestionCode": "Q13",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    },
+    {
+      "assessmentSlug": "patient-journey",
+      "assessmentVersion": "1",
+      "relationshipType": "HIGH_PRACTICE_CLAIM_VS_DIRECT_CONTRADICTION",
+      "validatorQuestionCode": "Q21",
+      "targetQuestionCode": "Q23",
+      "scoreEffectOverride": {
+        "mode": "CAP_VALIDATOR_ANCHOR",
+        "maxEffectiveAnchorScore": 70
+      }
+    }
+  ]
+}
