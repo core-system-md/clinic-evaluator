@@ -15,7 +15,7 @@ begin
     select count(*) into n from public.insights_mapping where assessment_type_id=old_type and left(insight_code, 5) <> 'TRAP_'; if n>0 then raise exception 'WP08 dependency block: non-legacy insights %',n; end if;
     select count(*) into n from public.assessment_assets where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: assets %',n; end if;
   end loop;
-end $;
+end $$;
 
 -- Rebuild final V1 identities in one atomic transaction. The family/version unique
 -- constraint requires the superseded identities to be removed before their V1
