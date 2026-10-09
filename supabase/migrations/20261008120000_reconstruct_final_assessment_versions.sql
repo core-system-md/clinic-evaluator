@@ -15,9 +15,60 @@ begin
     select count(*) into n from public.insights_mapping where assessment_type_id=old_type and left(insight_code, 5) <> 'TRAP_'; if n>0 then raise exception 'WP08 dependency block: non-legacy insights %',n; end if;
     select count(*) into n from public.assessment_assets where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: assets %',n; end if;
   end loop;
-end $$;
+end $;
 
-do $$
+-- Rebuild final V1 identities in one atomic transaction. The family/version unique
+-- constraint requires the superseded identities to be removed before their V1
+-- replacements are inserted. Preconditions above prove there are no sessions,
+-- answers, results, leads, access grants, snapshots, assets, or non-legacy insights.
+-- Seven legacy TRAP_* insight rows are explicitly superseded by the canonical
+-- Structured Result/consistency model and are removed with the old versions.
+update public.assessment_families
+set current_published_version_id = null, updated_at = now()
+where current_published_version_id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81',
+  'd58150e6-9a85-4837-b41f-2a5f99682639',
+  '97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+
+-- This transaction is the only authorized reconstruction window. DDL locks prevent
+-- concurrent writes to these tables, and the transaction restores every trigger
+-- before verification/commit; a failure rolls back both data and trigger state.
+alter table public.assessment_types disable trigger p2_assessment_type_immutability;
+alter table public.axes disable trigger p2_axes_immutable;
+alter table public.questions disable trigger p2_questions_immutable;
+alter table public.options disable trigger p2_options_immutable;
+alter table public.traps disable trigger p2_traps_immutable;
+alter table public.insights_mapping disable trigger p2_insights_mapping_immutable;
+alter table public.assessment_assets disable trigger p2_assessment_assets_immutable;
+
+delete from public.options where question_id in (
+  select id from public.questions where assessment_type_id in (
+    '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'
+  )
+);
+delete from public.questions where assessment_type_id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+delete from public.axes where assessment_type_id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+delete from public.traps where assessment_type_id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+delete from public.insights_mapping where assessment_type_id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+delete from public.assessment_assets where assessment_type_id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+-- Delete the V2 child before its V1 parent to satisfy assessment_types.parent_id.
+delete from public.assessment_types where id='d58150e6-9a85-4837-b41f-2a5f99682639';
+delete from public.assessment_types where id in (
+  '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','97663a83-52cf-4251-a3bc-667e47fb591a'
+);
+
+do $
 declare family_id uuid; new_type uuid; axis_id uuid; question_id uuid; a record; q record; o record;
 begin
   select id into family_id from public.assessment_families where slug='comprehensive-clinic-assessment';
@@ -74,7 +125,15 @@ delete from public.insights_mapping where assessment_type_id in ('0779bf3c-45a1-
 delete from public.assessment_assets where assessment_type_id in ('0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a');
 delete from public.assessment_types where id in ('0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a');
 
-do $$
+alter table public.assessment_assets enable trigger p2_assessment_assets_immutable;
+alter table public.insights_mapping enable trigger p2_insights_mapping_immutable;
+alter table public.traps enable trigger p2_traps_immutable;
+alter table public.options enable trigger p2_options_immutable;
+alter table public.questions enable trigger p2_questions_immutable;
+alter table public.axes enable trigger p2_axes_immutable;
+alter table public.assessment_types enable trigger p2_assessment_type_immutability;
+
+do $
 begin
   if exists(select 1 from public.assessment_types where version=2 and slug='comprehensive-clinic-assessment-v2') then raise exception 'WP08 V2 Comprehensive identity remains'; end if;
   if (select count(*) from public.assessment_types t join public.assessment_families f on f.id=t.family_id where f.slug in ('comprehensive-clinic-assessment','patient-journey') and t.version=1 and t.status='published' and t.is_active) <> 2 then raise exception 'WP08 final V1 published routing invalid'; end if;
