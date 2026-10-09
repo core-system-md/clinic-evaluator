@@ -133,7 +133,7 @@ alter table public.questions enable trigger p2_questions_immutable;
 alter table public.axes enable trigger p2_axes_immutable;
 alter table public.assessment_types enable trigger p2_assessment_type_immutability;
 
-do $
+do $$
 begin
   if exists(select 1 from public.assessment_types where version=2 and slug='comprehensive-clinic-assessment-v2') then raise exception 'WP08 V2 Comprehensive identity remains'; end if;
   if (select count(*) from public.assessment_types t join public.assessment_families f on f.id=t.family_id where f.slug in ('comprehensive-clinic-assessment','patient-journey') and t.version=1 and t.status='published' and t.is_active) <> 2 then raise exception 'WP08 final V1 published routing invalid'; end if;
