@@ -101,6 +101,6 @@ test('WP-08 no user-facing V2 identity is introduced by final artifacts', () => 
 test('WP-08 production preconditions follow real schema and retire only legacy trap insights', () => {
  const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql','utf8');
  assert.match(sql, /answers a join public\.sessions s on s\.id=a\.session_id where s\.assessment_type_id=old_type/);
- assert.match(sql, /insight_code not like 'TRAP/);
+ assert.match(sql, /left\(insight_code, 5\) <> 'TRAP_'/);
  assert.match(sql, /delete from public\.insights_mapping where assessment_type_id in/);
 });
