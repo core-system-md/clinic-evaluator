@@ -34,13 +34,13 @@ where current_published_version_id in (
 -- This transaction is the only authorized reconstruction window. DDL locks prevent
 -- concurrent writes to these tables, and the transaction restores every trigger
 -- before verification/commit; a failure rolls back both data and trigger state.
-alter table public.assessment_types disable trigger p2_assessment_type_immutability;
-alter table public.axes disable trigger p2_axes_immutable;
-alter table public.questions disable trigger p2_questions_immutable;
-alter table public.options disable trigger p2_options_immutable;
-alter table public.traps disable trigger p2_traps_immutable;
-alter table public.insights_mapping disable trigger p2_insights_mapping_immutable;
-alter table public.assessment_assets disable trigger p2_assessment_assets_immutable;
+alter table public.assessment_types disable trigger user;
+alter table public.axes disable trigger user;
+alter table public.questions disable trigger user;
+alter table public.options disable trigger user;
+alter table public.traps disable trigger user;
+alter table public.insights_mapping disable trigger user;
+alter table public.assessment_assets disable trigger user;
 
 delete from public.options where question_id in (
   select id from public.questions where assessment_type_id in (
@@ -125,13 +125,13 @@ delete from public.insights_mapping where assessment_type_id in ('0779bf3c-45a1-
 delete from public.assessment_assets where assessment_type_id in ('0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a');
 delete from public.assessment_types where id in ('0779bf3c-45a1-42d9-a2e5-9c9523a23b81','d58150e6-9a85-4837-b41f-2a5f99682639','97663a83-52cf-4251-a3bc-667e47fb591a');
 
-alter table public.assessment_assets enable trigger p2_assessment_assets_immutable;
-alter table public.insights_mapping enable trigger p2_insights_mapping_immutable;
-alter table public.traps enable trigger p2_traps_immutable;
-alter table public.options enable trigger p2_options_immutable;
-alter table public.questions enable trigger p2_questions_immutable;
-alter table public.axes enable trigger p2_axes_immutable;
-alter table public.assessment_types enable trigger p2_assessment_type_immutability;
+alter table public.assessment_assets enable trigger user;
+alter table public.insights_mapping enable trigger user;
+alter table public.traps enable trigger user;
+alter table public.options enable trigger user;
+alter table public.questions enable trigger user;
+alter table public.axes enable trigger user;
+alter table public.assessment_types enable trigger user;
 
 do $$
 begin
