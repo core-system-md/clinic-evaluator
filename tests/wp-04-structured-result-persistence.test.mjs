@@ -46,8 +46,8 @@ test("WP-04 measured axes preserve raw/max/percentage and calculation basis", ()
     assert.equal(typeof a.maxPossible,"number");
     assert.ok(a.maxPossible>0);
     assert.ok(a.percentage>=0 && a.percentage<=100);
-    assert.ok(a.weight>0 && a.weight<=1);
-    assert.equal(a.weightedScore,a.percentage*a.weight);
+    assert.ok(a.weight>0 && a.weight<=100);
+    assert.equal(a.weightedScore,a.percentage*a.weight/100);
   }
 });
 
@@ -81,4 +81,10 @@ test("WP-04 persistence migration rejects obsolete internal result fields", () =
   assert.ok(sql.includes("p_result ? 'axisPersistenceRows'"));
   assert.match(sql,/assessment_results/);
   assert.ok(sql.includes("jsonb_to_recordset(p_result->'scores'->'axes')"));
+});
+
+test("WP-04 migration validates canonical percentage-point weights", () => {
+ const sql=fs.readFileSync("supabase/migrations/20261008100000_structured_result_authority.sql","utf8");
+ assert.match(sql, /weight > 100/);
+ assert.doesNotMatch(sql, /weight > 1\b/);
 });
