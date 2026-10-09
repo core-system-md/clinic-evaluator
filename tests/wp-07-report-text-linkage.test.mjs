@@ -45,3 +45,9 @@ test('WP-07 report interpretation remains the semantic report-model boundary', (
   assert.match(interpretation, /userKpis/);
   assert.doesNotMatch(interpretation, /report_texts\.json/);
 });
+
+test('WP-07 semantic report strings are linked to catalog entries', () => {
+ const app = fs.readFileSync('assets/js/app.js', 'utf8');
+ for (const phrase of ['تغير إيجابي بمقدار', 'الأولوية التشغيلية القصوى', 'أعلى محور مقاس', 'درجتك الكلية للعيادة']) assert.equal(app.includes(phrase), false, phrase);
+ for (const path of ['report.trend_positive','report.trend_negative','report.trend_stable','report.overall_sentence','report.recommendations_title','report.priority_heading','report.measured_axis_sentence','report.highest_axis_heading']) assert.ok(catalog.entries.some(entry => entry.path === path), path);
+});
