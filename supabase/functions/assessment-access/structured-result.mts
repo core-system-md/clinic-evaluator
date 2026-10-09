@@ -4,12 +4,12 @@
  * This module assembles already-computed measurement outputs.
  * It does not recalculate scores or infer unavailable source data.
  */
-import type { P3ProfileAggregation } from "./p3-aggregation-engine.mts";
+import type { P3ProfileAggregation } from "./component-aggregation-engine.mts";
 import type {
   P3CoverageResult,
   P3CriticalityResult,
-} from "./p3-criticality-coverage-engine.mts";
-import type { P3ConsistencyFinding } from "./p3-consistency-engine.mts";
+} from "./coverage-criticality-engine.mts";
+import type { P3ConsistencyFinding } from "./consistency-engine.mts";
 
 export type P3StructuredRole = {
   roleCode: string;

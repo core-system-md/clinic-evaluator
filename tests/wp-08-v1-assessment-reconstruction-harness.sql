@@ -21,7 +21,7 @@ insert into public.assessment_types(id,slug,version,status,is_active,family_id,q
 ('97663a83-52cf-4251-a3bc-667e47fb591a','patient-journey',1,'published',true,(select id from public.assessment_families where slug='patient-journey'),25,5);
 create table public._wp08_old_content_marker(id int);
 insert into public._wp08_old_content_marker values(1);
-\i supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql
+\i supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql
 do $$
 declare n int; comp uuid; patient uuid;
 begin

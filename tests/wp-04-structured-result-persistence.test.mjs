@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
-import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/p3-integrated-scorer-v1.mts";
-import { projectScoreRowsFromStructuredResult } from "../supabase/functions/assessment-access/p3-result-persistence-v1.mts";
+import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
+import { projectScoreRowsFromStructuredResult } from "../supabase/functions/assessment-access/result-persistence-projection.mts";
 
 function selections(slug) {
   const seen = new Set();
@@ -76,7 +76,7 @@ test("WP-04 engine persists only a projection of the Structured Result", () => {
 });
 
 test("WP-04 persistence migration rejects obsolete internal result fields", () => {
-  const sql=fs.readFileSync("supabase/migrations/20261008100000_wp04_structured_result_authority.sql","utf8");
+  const sql=fs.readFileSync("supabase/migrations/20261008100000_structured_result_authority.sql","utf8");
   assert.ok(sql.includes("p_result ? 'resolvedSelections'"));
   assert.ok(sql.includes("p_result ? 'axisPersistenceRows'"));
   assert.match(sql,/assessment_results/);

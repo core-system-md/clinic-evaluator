@@ -80,7 +80,7 @@ WP-08 PR #62 explicitly excluded production mutation.
 
 The WP-08 implementation contains and tests the migration:
 
-`supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql`
+`supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql`
 
 but the migration was **not executed against Production Supabase**.
 
@@ -215,3 +215,29 @@ The post-closure V1 Consistency correction was followed by reconciliation of sta
 The dedicated WP-08 verification remained successful (37777401435), the P3 isolated kernel succeeded (113312306760), and the WP-03 configuration semantics contract succeeded (113312305582). The WP-03 disposable PostgreSQL contract also succeeded (113312305836). The full Node baseline remains red on existing P5 editor assertions unrelated to this reconciliation.
 
 Production remains unchanged and the WP-08 migration remains unapplied in Production.
+
+
+## 11. Functional ownership and migration identity reconciliation — 2026-10-09
+
+**Focused candidate branch:** `ownership-migration-remediation-2026-10-09`  
+**Base:** `main` at `543ac1352d23ff1acf75754154df5bbc8994cad8`  
+**Scope:** source-tree ownership, migration identity, directly dependent tests/workflows and the existing governance records only.
+
+The candidate renames stage-prefixed calculation modules and registries to functional names while preserving existing calculation APIs, updates `engine.ts` / `index.ts` import paths, and moves the exact legacy parity implementation to `tests/reference/score-engine-legacy.ts`. The reference remains executable by the parity test but is no longer placed in the Edge Function source tree.
+
+The three unapplied 2026-10-08 migration identities are consolidated to one functional filename each:
+- `20261008090000_canonical_axis_weights.sql`
+- `20261008100000_structured_result_authority.sql`
+- `20261008120000_reconstruct_final_assessment_versions.sql`
+
+Their same-version WP-prefixed file duplicates are removed from the candidate tree. This is not a rename of an applied migration: read-only Production history does not include these versions. Older timestamp/name collisions and repository-to-live provenance mismatches elsewhere remain OPEN and must be mapped before any cleanup.
+
+### Production API compatibility is still unresolved
+
+Read-only inspection found Production `assessment-access` version **32** importing `score-engine.ts` and calling `complete_p4_*_session`. Current repository source imports `engine.ts` and calls `complete_p4_*_from_result`. Production does not yet contain the latter functions, and the applied migration history ends at `20261005143243 / p5_public_options_projection_recovery`.
+
+Production currently has zero `sessions`, `answers`, `scores`, `assessment_results` and `leads`, but it still has six assessment versions and live assessment configuration. That zero transactional-row baseline does not authorize a reset, delete, route switch, migration, or Edge deployment.
+
+**No Production function deployment or database mutation has been performed or approved by this candidate.** A combined migration/runtime release must remain a separate gated decision after exact API/grant compatibility, ordered migration checks, content/dependency validation, smoke tests, rollback and explicit owner authorization.
+
+**Candidate verification:** NOT VERIFIED until the targeted GitHub Actions and disposable PostgreSQL gates finish. Overall phase remains NOT CLOSED; do not infer closure of the Production release gate or start a subsequent WP.

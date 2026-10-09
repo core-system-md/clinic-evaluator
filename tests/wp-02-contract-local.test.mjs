@@ -5,12 +5,13 @@ import test from "node:test";
 
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
-import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/p3-integrated-scorer-v1.mts";
+import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
 const ROOT = process.cwd();
 const ENGINE = path.join(ROOT, "supabase/functions/assessment-access/engine.ts");
 const ENTRYPOINT = path.join(ROOT, "supabase/functions/assessment-access/index.ts");
-const LEGACY = path.join(ROOT, "supabase/functions/assessment-access/score-engine-legacy.ts");
+const LEGACY = path.join(ROOT, "tests/reference/score-engine-legacy.ts");
+const RUNTIME_LEGACY = path.join(ROOT, "supabase/functions/assessment-access/score-engine-legacy.ts");
 const OLD = path.join(ROOT, "supabase/functions/assessment-access/score-engine.ts");
 
 function firstSelection(slug) {
@@ -29,6 +30,7 @@ test("WP-02 local contract: canonical engine ownership is unambiguous", () => {
   assert.equal(fs.existsSync(ENGINE), true);
   assert.equal(fs.existsSync(OLD), false);
   assert.equal(fs.existsSync(LEGACY), true);
+  assert.equal(fs.existsSync(RUNTIME_LEGACY), false);
 
   const engine = fs.readFileSync(ENGINE, "utf8");
   const entrypoint = fs.readFileSync(ENTRYPOINT, "utf8");

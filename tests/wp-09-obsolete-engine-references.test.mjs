@@ -49,7 +49,7 @@ test("WP-09: no active runtime source imports the obsolete server engine", () =>
   ];
   const allowedReferenceFile = path.join(
     ROOT,
-    "supabase/functions/assessment-access/score-engine-legacy.ts",
+    "tests/reference/score-engine-legacy.ts",
   );
 
   function visit(dir) {
@@ -82,8 +82,14 @@ test("WP-09: no active runtime source imports the obsolete server engine", () =>
 test("WP-09: the preserved legacy scorer is explicitly non-runtime reference material", () => {
   const legacyPath = path.join(
     ROOT,
+    "tests/reference/score-engine-legacy.ts",
+  );
+  const runtimeLegacyPath = path.join(
+    ROOT,
     "supabase/functions/assessment-access/score-engine-legacy.ts",
   );
+  assert.equal(fs.existsSync(legacyPath), true);
+  assert.equal(fs.existsSync(runtimeLegacyPath), false);
   const legacy = fs.readFileSync(legacyPath, "utf8");
   assert.match(
     legacy,

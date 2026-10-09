@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import registryV1 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
-import registryV2 from "../supabase/functions/assessment-access/p3-response-interpretation-registry-v2.json" with { type: "json" };
+import registryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
 import rules from "../documentation/architecture/P3-CONSISTENCY-RULE-REGISTRY-V2.json" with { type: "json" };
 import pairs from "../documentation/architecture/P3-CONSISTENCY-PAIR-REGISTRY-V1.json" with { type: "json" };
 
@@ -108,7 +108,7 @@ test("WP-03 configuration contract: explicit consistency pairs are version-scope
 });
 
 test("WP-03 migration source uses guarded fraction-to-percentage conversion", () => {
-  const sql = fs.readFileSync("supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql", "utf8");
+  const sql = fs.readFileSync("supabase/migrations/20261008090000_canonical_axis_weights.sql", "utf8");
   assert.match(sql, /weight \* 100/);
   assert.match(sql, /weight_sum between 0\.999999 and 1\.000001/);
   assert.match(sql, /expected 12 normalized axis rows/);

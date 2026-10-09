@@ -82,7 +82,7 @@ create table public.assessment_results (
   result jsonb not null
 );
 
-\i supabase/migrations/20261008100000_wp04_structured_result_authority.sql
+\i supabase/migrations/20261008100000_structured_result_authority.sql
 
 insert into public.leads(id) values
  ('11111111-1111-4111-8111-111111111111'),

@@ -23,7 +23,7 @@ test('WP-08 final artifacts are V1 and preserve required content counts', () => 
 });
 
 test('WP-08 migration uses canonical percentage weights and validates totals', () => {
-  const sql = fs.readFileSync('supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql', 'utf8');
+  const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql', 'utf8');
   for (const term of [
     'assessment_results',
     'assessment_session_access',
@@ -41,7 +41,7 @@ test('WP-08 migration uses canonical percentage weights and validates totals', (
 
 test('WP-08 canonical and packaged Consistency registries remain identical', () => {
   const canonical = JSON.parse(fs.readFileSync('documentation/architecture/P3-CONSISTENCY-PAIR-REGISTRY-V1.json', 'utf8'));
-  const packaged = JSON.parse(fs.readFileSync('supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json', 'utf8'));
+  const packaged = JSON.parse(fs.readFileSync('supabase/functions/assessment-access/consistency-pair-registry-v1.json', 'utf8'));
   assert.deepEqual(packaged, canonical);
   assert.equal(packaged.pairs.length, 108);
   assert.equal(packaged.pairs.filter(p => p.assessmentSlug === 'comprehensive-clinic-assessment' && p.assessmentVersion === '2').length, 52);
@@ -52,7 +52,7 @@ test('WP-08 canonical and packaged Consistency registries remain identical', () 
 test('WP-08 V1 consistency configuration is an explicit translation of approved relationships', () => {
   const comp = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-COMPREHENSIVE-CLINIC-V1-CONTENT-2026-10-08.json', 'utf8'));
   const patient = JSON.parse(fs.readFileSync('documentation/governance/APPROVED-PATIENT-JOURNEY-V1-CONTENT-2026-10-08.json', 'utf8'));
-  const registry = JSON.parse(fs.readFileSync('supabase/functions/assessment-access/p3-consistency-pair-registry-v1.json', 'utf8'));
+  const registry = JSON.parse(fs.readFileSync('supabase/functions/assessment-access/consistency-pair-registry-v1.json', 'utf8'));
 
   const key = p => `${p.assessmentSlug}|${p.assessmentVersion}|${p.validatorQuestionCode}|${p.targetQuestionCode}|${p.relationshipType}|${p.scoreEffectOverride?.mode || ''}|${p.scoreEffectOverride?.maxEffectiveAnchorScore ?? ''}`;
 

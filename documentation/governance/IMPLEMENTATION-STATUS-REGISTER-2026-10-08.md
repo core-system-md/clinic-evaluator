@@ -119,7 +119,7 @@ Canonical weights were fixed as percentage points summing to 100.
 
 Guarded migration created:
 
-`supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql`
+`supabase/migrations/20261008090000_canonical_axis_weights.sql`
 
 Dedicated verification:
 
@@ -418,3 +418,19 @@ Final corrective merge: be6214e4f8fb9382ccdf8150d34491a061887b97.
 Verification evidence: WP-08 run 37777401435 SUCCESS; P3 isolated kernel job 113312306760 SUCCESS; WP-03 configuration semantics job 113312305582 SUCCESS; WP-03 disposable PostgreSQL contract job 113312305836 SUCCESS. The broad Full Node baseline still reports unrelated P5 editor assertions and is not evidence against this WP-08 reconciliation.
 
 Production remains unchanged; WP-08 migration is not present in Production migration history.
+
+
+## 17. Functional ownership and migration reconciliation — 2026-10-09
+
+| Control | Candidate status | Evidence / boundary |
+|---|---|---|
+| Canonical calculation entrypoint | PASS — `engine.ts` remains the sole entrypoint | Entry-point import is unchanged; dependent modules now have responsibility-based filenames |
+| Duplicate stage-named calculation modules | IMPLEMENTED ON FOCUSED BRANCH; CI PENDING | Runtime module copies are consolidated to functional paths; parity fixture retained under `tests/reference` |
+| Duplicate 2026-10-08 migration identities | IMPLEMENTED ON FOCUSED BRANCH; CI PENDING | One functional filename for each targeted version; ownership test checks obsolete aliases and version counts |
+| Other migration timestamp / live-history mismatches | OPEN — HIGH RISK | Must map the remaining repository filenames against every live migration version before any cleanup |
+| Source versus Production API | OPEN — RELEASE BLOCKER | Production v32 uses `score-engine.ts` and `complete_p4_*_session`; current source uses `engine.ts` and `complete_p4_*_from_result` |
+| Targeted Node and disposable PostgreSQL checks | NOT VERIFIED | Dedicated P3 ownership, WP-03, WP-04 and WP-08 GitHub Actions checks are the required gate |
+| Production database / Edge deployment | NONE | No production mutation or deployment was performed |
+| Overall phase | NOT CLOSED | Requires passing targeted CI, dependency/diff review, and a separate authorized release decision |
+
+This is a limited branch based on `main`; it is not a merge approval for the 90-commit reconciliation branch. Passing source checks will not establish that Production is compatible or authorize deployment.

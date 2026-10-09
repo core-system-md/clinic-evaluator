@@ -112,6 +112,22 @@ INSPECT → REUSE → EXTEND → CREATE
 
 Before creating a table, service, engine, API, state machine, component, workflow, background process, or permission mechanism, determine whether an existing canonical owner already exists. Duplicate systems require a documented architectural reason.
 
+### 6.1 Functional naming and single-owner file discipline
+
+Repository technical artifacts must be named by their **technical responsibility/function**, not by the work-plan stage that happened to produce or modify them.
+
+The rule is:
+- P0–P5, WP-01–WP-n, and equivalent stage labels are traceability labels, not technical identities.
+- Documentation and explicit traceability artifacts (dedicated tests, CI workflows, status/handoff records) may retain stage labels when that improves auditability.
+- New runtime, executable, configuration, registry, data-path, or other behavior-defining files must use a functional name that identifies the responsibility they own.
+- Before creating a file, search for the existing owner. When a sound owner exists, modify or extend it rather than creating a replacement.
+- A new technical file is justified only when a genuinely independent responsibility exists and its ownership boundary is explicit.
+- Do not leave an abandoned, disabled, dead, or duplicate implementation after introducing a replacement. A temporary compatibility/reference artifact needs an explicit purpose, boundary, owner, lifetime, and verified usage.
+- Migration filenames are executable migration identities. New migrations must be functionally named; an already-applied migration must not be renamed merely to remove a stage label. Any history reconciliation requires migration-provenance and dependency verification.
+- Stage-based branches, PR titles, commit messages, and tracking references may retain stage labels.
+
+The engineering objective is one clear owner per technical responsibility, with no parallel or hidden implementation surfaces.
+
 ### 7. Scope control
 
 Do not add useful-but-unapproved requirements, unrelated refactors, speculative features, new workflows, abstractions, or dependencies. Do not remove approved requirements because they are difficult. Preserve approved scope unless the owner explicitly changes it.

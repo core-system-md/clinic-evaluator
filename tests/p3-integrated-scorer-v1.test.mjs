@@ -1,9 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
-import registryV2 from "../supabase/functions/assessment-access/p3-response-interpretation-registry-v2.json" with { type: "json" };
+import registryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
-import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/p3-integrated-scorer-v1.mts";
+import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
 const families = config.families;
 const kpiMappings = config.kpiMappings;

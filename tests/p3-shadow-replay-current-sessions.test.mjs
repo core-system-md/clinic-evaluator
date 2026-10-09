@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { scoreP3AssessmentV1 } from "../supabase/functions/assessment-access/p3-scorer-v1.mts";
+import { scoreP3AssessmentV1 } from "../supabase/functions/assessment-access/response-scorer.mts";
 
 const fixtures = [
   {

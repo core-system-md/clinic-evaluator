@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
-import { calculateP3RecursiveReferralEconomic } from "./p3-economic-model-v1.mts";
+import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
