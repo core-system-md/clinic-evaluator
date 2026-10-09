@@ -3,13 +3,15 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const enginePath = "supabase/functions/assessment-access/engine.ts";
-const legacyPath = "supabase/functions/assessment-access/score-engine-legacy.ts";
+const legacyPath = "tests/reference/score-engine-legacy.ts";
+const runtimeLegacyPath = "supabase/functions/assessment-access/score-engine-legacy.ts";
 const removedPath = "supabase/functions/assessment-access/p3-production-adapter.mts";
 const entrypointPath = "supabase/functions/assessment-access/index.ts";
 
 test("canonical assessment engine has one authoritative entrypoint", () => {
   assert.equal(fs.existsSync(enginePath), true);
   assert.equal(fs.existsSync(legacyPath), true);
+  assert.equal(fs.existsSync(runtimeLegacyPath), false);
   assert.equal(fs.existsSync(removedPath), false);
 
   const engine = fs.readFileSync(enginePath, "utf8");
