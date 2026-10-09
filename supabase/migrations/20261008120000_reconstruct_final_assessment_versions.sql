@@ -12,7 +12,7 @@ begin
     select count(*) into n from public.leads where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: leads %',n; end if;
     select count(*) into n from public.assessment_session_access where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: access %',n; end if;
     select count(*) into n from public.historical_snapshots where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: snapshots %',n; end if;
-    select count(*) into n from public.insights_mapping where assessment_type_id=old_type and insight_code not like 'TRAP\\_%' escape '\\'; if n>0 then raise exception 'WP08 dependency block: non-legacy insights %',n; end if;
+    select count(*) into n from public.insights_mapping where assessment_type_id=old_type and left(insight_code, 5) <> 'TRAP_'; if n>0 then raise exception 'WP08 dependency block: non-legacy insights %',n; end if;
     select count(*) into n from public.assessment_assets where assessment_type_id=old_type; if n>0 then raise exception 'WP08 dependency block: assets %',n; end if;
   end loop;
 end $$;
