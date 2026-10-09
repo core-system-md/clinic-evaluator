@@ -69,9 +69,12 @@ test("WP-05 trend comparison requires compatible basis", () => {
   assert.equal(compatibleTrend(current, { ...previous, assessmentFamilyId: "family-2" }).status, "unavailable");
 });
 
-test("WP-05 app uses the report interpretation layer", () => {
+test("WP-05 semantic projection is produced by the server and rendered from the user-safe contract", () => {
   const app = fs.readFileSync("assets/js/app.js", "utf8");
-  assert.match(app, /MDReportInterpretation\.projectUserReport/);
+  const edge = fs.readFileSync("supabase/functions/assessment-access/index.ts", "utf8");
+  assert.match(app, /userReport/);
+  assert.match(app, /MDReportValidation\.assertValidUserProjection/);
+  assert.match(edge, /projectCompletionResponse/);
   assert.ok(!app.includes("100 - res.overallScore"));
 });
 
