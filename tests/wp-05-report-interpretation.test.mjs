@@ -177,7 +177,7 @@ test("WP-05 saved and fresh completion paths receive server-verified prior-sessi
 
 test("WP-05 browser report rendering consumes the approved projection instead of interpreting raw scores", () => {
   const app = fs.readFileSync("assets/js/app.js", "utf8");
-  const renderer = app.slice(app.indexOf("  renderResults(res) {"), app.indexOf("  /* ─────────────── AXIS COMPARISON TABLE */"));
+  const renderer = app.slice(app.indexOf("  renderResults(res) {"), app.indexOf("  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */"));
   assert.match(renderer, /const report = res\?\.userReport \|\| null/);
   assert.match(renderer, /assertValidUserProjection\(report/);
   assert.match(renderer, /report\.trend\.direction/);
