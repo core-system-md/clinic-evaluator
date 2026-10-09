@@ -104,3 +104,13 @@ test('WP-08 production preconditions follow real schema and retire only legacy t
  assert.match(sql, /left\(insight_code, 5\) <> 'TRAP_'/);
  assert.match(sql, /delete from public\.insights_mapping where assessment_type_id in/);
 });
+
+test('WP-08 rebuilds published V1 identities atomically under transaction-scoped table locks', () => {
+ const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql','utf8');
+ for (const trigger of ['p2_assessment_type_immutability','p2_axes_immutable','p2_questions_immutable','p2_options_immutable','p2_traps_immutable','p2_insights_mapping_immutable','p2_assessment_assets_immutable']) {
+  assert.match(sql, new RegExp('disable trigger ' + trigger));
+  assert.match(sql, new RegExp('enable trigger ' + trigger));
+ }
+ assert.match(sql, /update public\.assessment_families[\s\S]*current_published_version_id = null/);
+ assert.match(sql, /delete from public\.assessment_types where id='d58150e6-9a85-4837-b41f-2a5f99682639'/);
+});
