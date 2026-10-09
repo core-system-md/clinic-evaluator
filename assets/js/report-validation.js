@@ -141,6 +141,29 @@
     return { ok: issues.length === 0, issues };
   }
 
+  function validateUserReportProjection(report, renderedText = '') {
+    const issues = [];
+    if (!report || report.audience !== 'user') return { ok: false, issues: [issue('PROJECTION_INVALID', 'User report projection is invalid.')] };
+    const serialized = JSON.stringify(report).toLowerCase();
+    for (const key of USER_FORBIDDEN_KEYS) if (serialized.includes(key.toLowerCase())) issues.push(issue('INTERNAL_FIELD_VISIBLE', 'User projection contains a prohibited internal field.', key));
+    const text = String(renderedText || '').toLowerCase();
+    for (const term of USER_FORBIDDEN_TERMS) if (text.includes(term.toLowerCase())) issues.push(issue('PROHIBITED_LANGUAGE', 'Rendered user report contains prohibited internal language.', term));
+    if (!report.assessment?.familyId || report.assessment?.version == null) issues.push(issue('IDENTITY_INCOMPLETE', 'Report assessment identity is incomplete.', 'assessment'));
+    if (!Number.isFinite(report.overall?.value) || report.overall.value < 0 || report.overall.value > 100) issues.push(issue('OVERALL_INVALID', 'Report overall score is invalid.', 'overall.value'));
+    if (!Array.isArray(report.axes) || report.axes.some(axis => !axis.code || !Number.isFinite(axis.percentage) || axis.percentage < 0 || axis.percentage > 100)) issues.push(issue('AXIS_INVALID', 'Report axes are invalid.', 'axes'));
+    if (!Array.isArray(report.kpis) || report.kpis.some(kpi => !kpi.code || !Number.isFinite(kpi.value))) issues.push(issue('KPI_INVALID', 'Report KPIs are invalid.', 'kpis'));
+    if (!report.coverage || !['FULL', 'PARTIAL', 'UNKNOWN'].includes(report.coverage.status)) issues.push(issue('COVERAGE_INVALID', 'Coverage status is invalid.', 'coverage.status'));
+    if (!['unavailable', 'available'].includes(report.trend?.status)) issues.push(issue('TREND_INVALID', 'Trend status is invalid.', 'trend.status'));
+    if (report.trend?.status === 'available' && ![report.trend.previousScore, report.trend.currentScore, report.trend.delta].every(Number.isFinite)) issues.push(issue('TREND_INVALID', 'Available trend must contain numeric values.', 'trend'));
+    return { ok: issues.length === 0, issues };
+  }
+
+  function assertValidUserProjection(report, renderedText = '') {
+    const result = validateUserReportProjection(report, renderedText);
+    if (!result.ok) throw new Error('REPORT_PROJECTION_VALIDATION_FAILED: ' + result.issues.map(item => item.code).join(', '));
+    return report;
+  }
+
   function validateAdminReport(structured, report) {
     const issues = [];
     if (!structured || structured.schemaVersion !== 'P3_STRUCTURED_RESULT_V1' || structured.status !== 'PRODUCTION') {
@@ -174,6 +197,8 @@
     USER_FORBIDDEN_KEYS,
     USER_FORBIDDEN_TERMS,
     validateUserReport,
+    validateUserReportProjection,
+    assertValidUserProjection,
     validateAdminReport,
     assertValidUserReport
   };
