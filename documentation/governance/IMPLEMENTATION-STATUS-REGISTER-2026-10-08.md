@@ -119,7 +119,7 @@ Canonical weights were fixed as percentage points summing to 100.
 
 Guarded migration created:
 
-`supabase/migrations/20261008090000_wp03_canonical_axis_weights.sql`
+`supabase/migrations/20261008090000_canonical_axis_weights.sql`
 
 Dedicated verification:
 
