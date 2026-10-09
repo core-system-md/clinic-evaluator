@@ -23,7 +23,7 @@ test('WP-08 final artifacts are V1 and preserve required content counts', () => 
 });
 
 test('WP-08 migration uses canonical percentage weights and validates totals', () => {
-  const sql = fs.readFileSync('supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql', 'utf8');
+  const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql', 'utf8');
   for (const term of [
     'assessment_results',
     'assessment_session_access',
