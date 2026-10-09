@@ -211,3 +211,30 @@ test('P4 completed result is restored from the server-projected user report', ()
   assert.equal(projected.already_completed, true);
   assert.equal(projected.session_id, 'session-1');
 });
+
+test('P4 rolling deployment can project the previous Edge Function stored-result shape', () => {
+  const { ClinicEvaluatorApp } = createAppContext();
+  const app = new ClinicEvaluatorApp();
+  app.currentSessionId = 'session-legacy';
+  app.currentAssessmentKey = 'clinic-performance';
+  app.assessment = { version: 1 };
+  app.previousSessionData = null;
+  const row = {
+    result: {
+      schemaVersion: 'P3_STRUCTURED_RESULT_V1',
+      status: 'PRODUCTION',
+      identity: { assessmentFamilyId: 'family-1', assessmentVersion: 1, assessmentTypeId: 'type-1' },
+      provenance: { assessmentSlug: 'clinic-performance', scoringEngineVersion: 'MD_CODE_ASSESSMENT_ENGINE', scoringContractVersion: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07', assessmentConfigDigest: 'digest' },
+      classification: { bandCode: 'Q3' },
+      scores: { overallScore: 82.5, axes: [{ axisCode: 'A1', axisNameAr: 'الثقة', axisNameEn: 'Trust', percentage: 80, status: 'measured' }] },
+      kpis: [{ kpiCode: 'TFI', status: 'available', value: 76 }],
+      economics: { status: 'NOT_COMPUTED' },
+      coverage: { coverageStatus: 'FULL', coverageRatio: 1 }
+    },
+    assessment_version: 1
+  };
+  const projected = app.projectStoredResult(row);
+  assert.equal(projected.overallScore, 82.5);
+  assert.equal(projected.userReport.audience, 'user');
+  assert.equal('structuredResult' in projected, false);
+});
