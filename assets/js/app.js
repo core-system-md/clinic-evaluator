@@ -604,7 +604,17 @@ class ClinicEvaluatorApp {
 
 
   projectStoredResult(row) {
-    const report = row?.userReport || null;
+    let report = row?.userReport || null;
+    // Rolling-deploy compatibility only: the previous Edge Function version
+    // returns a raw stored result. The current server response never does.
+    if (!report && row?.result?.schemaVersion === 'P3_STRUCTURED_RESULT_V1') {
+      try {
+        report = window.MDReportInterpretation.projectUserReport(row.result, this.previousSessionData, this.currentAssessmentKey);
+      } catch (error) {
+        console.error('[app] legacy stored result projection failed:', error);
+        return null;
+      }
+    }
     if (!report || report.audience !== 'user') return null;
     return {
       overallScore: report.overall?.value ?? null,
@@ -802,19 +812,29 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
-    const report = res?.userReport;
+    let report = res?.userReport || null;
+    const legacyStructured = !report && res?.structuredResult?.schemaVersion === 'P3_STRUCTURED_RESULT_V1'
+      ? res.structuredResult : null;
+    if (legacyStructured) {
+      try {
+        report = window.MDReportInterpretation.projectUserReport(legacyStructured, this.previousSessionData, this.currentAssessmentKey);
+      } catch (error) {
+        console.error('[app] legacy result projection failed:', error);
+      }
+    }
     if (!report || report.audience !== 'user' || typeof window.MDReportValidation?.assertValidUserProjection !== 'function') {
       this.showFatalError('تعذر بناء التقرير الآمن من مخرجات الخادم.');
       return;
     }
     try {
-      window.MDReportValidation.assertValidUserProjection(report);
+      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report);
+      else window.MDReportValidation.assertValidUserProjection(report);
     } catch (error) {
       console.error('[app] server user projection validation failed:', error);
       this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من إسقاط المستخدم.');
       return;
     }
-    res = { ...res, overallScore: report.overall.value, classification: report.overall.bandCode,
+    res = { ...res, userReport: report, overallScore: report.overall.value, classification: report.overall.bandCode,
       axisScores: Object.fromEntries(report.axes.map((axis) => [axis.code, axis.percentage])),
       kpis: Object.fromEntries(report.kpis.map((kpi) => [kpi.code, kpi.value])) };
 
@@ -893,7 +913,8 @@ class ClinicEvaluatorApp {
 
     const renderedText = document.getElementById('view-results')?.innerText || '';
     try {
-      window.MDReportValidation.assertValidUserProjection(report, renderedText);
+      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report, renderedText);
+      else window.MDReportValidation.assertValidUserProjection(report, renderedText);
     } catch (error) {
       console.error('[app] rendered report validation failed:', error);
       this.hideView('view-results');
