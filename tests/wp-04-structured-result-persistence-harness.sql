@@ -82,7 +82,7 @@ create table public.assessment_results (
   result jsonb not null
 );
 
-\i supabase/migrations/20261008100000_wp04_structured_result_authority.sql
+\i supabase/migrations/20261008100000_structured_result_authority.sql
 
 insert into public.leads(id) values
  ('11111111-1111-4111-8111-111111111111'),
@@ -170,13 +170,13 @@ insert into wp04_fixture values ($${
   "audit":{"replayableFrom":["pinned assessment version","stored answers","interpretation version:1","scoring contract:FINAL_IMPLEMENTATION_CONTRACT-2026-10-07","assessment config digest:sha256:wp04"]}
 }$$::jsonb);
 
-select public.complete_p4_assessment_from_result(
+select public.complete_protected_assessment_from_result(
  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
  'token-protected','33333333-3333-4333-8333-333333333333'::uuid,
  'fp-protected', (select result from wp04_fixture)
 );
 
-select public.complete_p4_assessment_from_result(
+select public.complete_protected_assessment_from_result(
  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid,
  'token-protected','33333333-3333-4333-8333-333333333333'::uuid,
  'fp-protected', (select result from wp04_fixture)
@@ -201,7 +201,7 @@ begin
  end if;
 end $test$;
 
-select public.complete_p4_public_assessment_from_result(
+select public.complete_public_assessment_from_result(
  'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'::uuid,
  'token-public','fp-public',
  jsonb_set(
@@ -229,7 +229,7 @@ begin
  v_payload := jsonb_set(v_payload,'{identity,resultId}','"77777777-7777-4777-8777-777777777777"');
  v_payload := v_payload || '{"resolvedSelections":[{"fake":true}]}'::jsonb;
  begin
-   perform public.complete_p4_public_assessment_from_result(
+   perform public.complete_public_assessment_from_result(
      'cccccccc-cccc-4ccc-8ccc-cccccccccccc'::uuid,
      'token-tamper','fp-tamper',v_payload
    );
