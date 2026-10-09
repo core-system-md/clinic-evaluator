@@ -223,7 +223,7 @@ Production remains unchanged and the WP-08 migration remains unapplied in Produc
 **Base:** `main` at `543ac1352d23ff1acf75754154df5bbc8994cad8`  
 **Scope:** source-tree ownership, migration identity, directly dependent tests/workflows and the existing governance records only.
 
-The candidate renames stage-prefixed calculation modules and registries to functional names while preserving existing calculation APIs, updates `engine.ts` / `index.ts` import paths, and moves the exact legacy parity implementation to `tests/reference/score-engine-legacy.ts`. The reference remains executable by the parity test but is no longer placed in the Edge Function source tree.
+The candidate renames stage-prefixed calculation modules and registries to functional names while preserving existing calculation APIs, updates `engine.ts` / `index.ts` import paths, and moves the exact legacy parity implementation to `tests/reference/score-engine-legacy.mts`. The reference remains executable by the parity test but is no longer placed in the Edge Function source tree.
 
 The three unapplied 2026-10-08 migration identities are consolidated to one functional filename each:
 - `20261008090000_canonical_axis_weights.sql`

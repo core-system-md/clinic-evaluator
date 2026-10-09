@@ -63,7 +63,7 @@ function toServerShape(config) {
 test('server scorer stays behaviorally equivalent to browser engine', async () => {
   const BrowserEngine = await loadBrowserEngine();
   const { calculateLegacyAssessment: calculateAssessment } = await import(pathToFileURL(
-    path.join(__dirname, '../tests/reference/score-engine-legacy.ts')
+    path.join(__dirname, '../tests/reference/score-engine-legacy.mts')
   ).href);
 
   const testCases = [

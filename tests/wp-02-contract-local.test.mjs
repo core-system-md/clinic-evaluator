@@ -10,7 +10,7 @@ import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/ass
 const ROOT = process.cwd();
 const ENGINE = path.join(ROOT, "supabase/functions/assessment-access/engine.ts");
 const ENTRYPOINT = path.join(ROOT, "supabase/functions/assessment-access/index.ts");
-const LEGACY = path.join(ROOT, "tests/reference/score-engine-legacy.ts");
+const LEGACY = path.join(ROOT, "tests/reference/score-engine-legacy.mts");
 const RUNTIME_LEGACY = path.join(ROOT, "supabase/functions/assessment-access/score-engine-legacy.ts");
 const OLD = path.join(ROOT, "supabase/functions/assessment-access/score-engine.ts");
 

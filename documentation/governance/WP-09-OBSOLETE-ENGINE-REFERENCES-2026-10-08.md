@@ -110,6 +110,6 @@ Final publication/merge to `main` remains the publication step for this stage; n
 
 ## Follow-up — legacy parity fixture ownership, 2026-10-09
 
-The historical WP-09 implementation correctly retained the legacy implementation at that time. The focused functional-ownership remediation moves its exact source to `tests/reference/score-engine-legacy.ts`; the copy under `supabase/functions/assessment-access/` is removed. `tests/server-scoring-parity.test.js` continues to execute the reference implementation, preserving the parity check without keeping a second implementation in the Edge Function source tree.
+The historical WP-09 implementation correctly retained the legacy implementation at that time. The focused functional-ownership remediation moves its exact source to `tests/reference/score-engine-legacy.mts`; the copy under `supabase/functions/assessment-access/` is removed. `tests/server-scoring-parity.test.js` continues to execute the reference implementation, preserving the parity check without keeping a second implementation in the Edge Function source tree.
 
 This follow-up does not deploy an Edge Function or mutate Production. The updated ownership and WP-09 tests are the verification boundary; status remains NOT VERIFIED until CI succeeds.

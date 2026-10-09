@@ -799,7 +799,7 @@ Do not delete it merely because it is old.
 
 After the final engine passes parity/regression verification and all rollback requirements are satisfied, evaluate whether it can be removed from the active tree.
 
-The preferred final product state is one active engine source. The parity reference is retained outside the runtime tree at `tests/reference/score-engine-legacy.ts` while dedicated tests require it; production function sources must not carry this duplicate.
+The preferred final product state is one active engine source. The parity reference is retained outside the runtime tree at `tests/reference/score-engine-legacy.mts` while dedicated tests require it; production function sources must not carry this duplicate.
 
 ## 22.3 Legacy SQL `calculate_session_score(uuid)`
 

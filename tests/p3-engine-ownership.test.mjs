@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 const enginePath = "supabase/functions/assessment-access/engine.ts";
-const legacyPath = "tests/reference/score-engine-legacy.ts";
+const legacyPath = "tests/reference/score-engine-legacy.mts";
 const runtimeLegacyPath = "supabase/functions/assessment-access/score-engine-legacy.ts";
 const removedPath = "supabase/functions/assessment-access/p3-production-adapter.mts";
 const entrypointPath = "supabase/functions/assessment-access/index.ts";

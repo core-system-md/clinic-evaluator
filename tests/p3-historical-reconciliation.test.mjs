@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { classifyP3HistoricalSession, historicalAction } from "../supabase/functions/assessment-access/p3-historical-reconciliation.mts";
+import { classifyP3HistoricalSession, historicalAction } from "./support/historical-result-reconciliation.mts";
 
 test("fully answered and version-pinned history is replayable",()=>{
  const c=classifyP3HistoricalSession({expectedQuestions:25,answeredQuestions:25,optionIdentityResolved:true,assessmentVersionPinned:true,legacyScoreExists:true,scoreLineagePresent:true});
