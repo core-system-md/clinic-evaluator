@@ -68,7 +68,7 @@ delete from public.assessment_types where id in (
   '0779bf3c-45a1-42d9-a2e5-9c9523a23b81','97663a83-52cf-4251-a3bc-667e47fb591a'
 );
 
-do $
+do $$
 declare family_id uuid; new_type uuid; axis_id uuid; question_id uuid; a record; q record; o record;
 begin
   select id into family_id from public.assessment_families where slug='comprehensive-clinic-assessment';
