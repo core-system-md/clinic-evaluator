@@ -33,4 +33,4 @@ jobs:
         with: { node-version: 22, cache: npm }
       - run: npm ci
       - run: node --test tests/wp-08-v1-assessment-reconstruction.test.mjs
-      - run: psql "postgresql://postgres:postgres@localhost:5432/postgres" -v ON_ERROR_STOP=1 -f tests/wp-08-v1-assessment-reconstruction-harness.sql
+      - run: psql "postgresql://postgres:postgres@localhost:5432/postgres" -v ON_ERROR_STOP=1 -f tests/wp-08-v1-assessment-reconstruction-harness-safe.sql
