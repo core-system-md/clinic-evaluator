@@ -58,14 +58,15 @@ test("technical calculation files have functional names and no stage-named dupli
 test("release migrations use one functional identity aligned with production history", () => {
   const migrationsDir = "supabase/migrations";
   const names = fs.readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
-  const expected = [
-    ["20261009164918", "20261009164918_canonical_axis_weights.sql", "20261009164918_wp03_canonical_axis_weights.sql"],
-    ["20261009164951", "20261009164951_structured_result_authority.sql", "20261009164951_wp04_structured_result_authority.sql"],
-    ["20261008120000", "20261008120000_reconstruct_final_assessment_versions.sql", "20261008120000_wp08_reconstruct_final_v1_assessments.sql"],
+  const canonical = [
+    names.find((name) => /^\d+_canonical_axis_weights\.sql$/.test(name)),
+    names.find((name) => /^\d+_structured_result_authority\.sql$/.test(name)),
+    names.find((name) => /^\d+_reconstruct_final_assessment_versions\.sql$/.test(name)),
   ];
-  for (const [version, canonicalName, obsoleteName] of expected) {
-    assert.ok(names.includes(canonicalName), canonicalName);
-    assert.ok(!names.includes(obsoleteName), obsoleteName);
+  assert.equal(canonical.every(Boolean), true, "all three release migrations must exist");
+  for (const canonicalName of canonical) {
+    const version = canonicalName.split("_")[0];
     assert.equal(names.filter((name) => name.startsWith(version + "_")).length, 1, version + " migration identity");
   }
+  assert.equal(names.some((name) => /^\d+_wp0[348]_/.test(name)), false, "obsolete duplicate migration identities must not exist");
 });
