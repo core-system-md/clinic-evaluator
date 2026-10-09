@@ -55,12 +55,12 @@ test("technical calculation files have functional names and no stage-named dupli
   );
 });
 
-test("the three new unapplied migrations use one functional identity per version", () => {
+test("release migrations use one functional identity aligned with production history", () => {
   const migrationsDir = "supabase/migrations";
   const names = fs.readdirSync(migrationsDir).filter((name) => name.endsWith(".sql"));
   const expected = [
-    ["20261008090000", "20261008090000_canonical_axis_weights.sql", "20261008090000_wp03_canonical_axis_weights.sql"],
-    ["20261008100000", "20261008100000_structured_result_authority.sql", "20261008100000_wp04_structured_result_authority.sql"],
+    ["20261009164918", "20261009164918_canonical_axis_weights.sql", "20261009164918_wp03_canonical_axis_weights.sql"],
+    ["20261009164951", "20261009164951_structured_result_authority.sql", "20261009164951_wp04_structured_result_authority.sql"],
     ["20261008120000", "20261008120000_reconstruct_final_assessment_versions.sql", "20261008120000_wp08_reconstruct_final_v1_assessments.sql"],
   ];
   for (const [version, canonicalName, obsoleteName] of expected) {
