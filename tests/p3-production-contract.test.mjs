@@ -90,8 +90,8 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
     "supabase/functions/assessment-access/engine.ts",
     "utf8",
   );
-  assert.match(engine, /p3-consistency-rule-registry-v2\.json/);
-  assert.match(engine, /p3-consistency-pair-registry-v1\.json/);
+  assert.match(engine, /consistency-rule-registry-v2\.json/);
+  assert.match(engine, /consistency-pair-registry-v1\.json/);
   assert.match(engine, /scoringContractVersion: SCORING_CONTRACT_ID/);
   assert.doesNotMatch(engine, /P3_AGGREGATION_V[12]/);
 
