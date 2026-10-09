@@ -10,7 +10,8 @@ import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/ass
 const ROOT = process.cwd();
 const ENGINE = path.join(ROOT, "supabase/functions/assessment-access/engine.ts");
 const ENTRYPOINT = path.join(ROOT, "supabase/functions/assessment-access/index.ts");
-const LEGACY = path.join(ROOT, "supabase/functions/assessment-access/score-engine-legacy.ts");
+const LEGACY = path.join(ROOT, "tests/reference/score-engine-legacy.ts");
+const RUNTIME_LEGACY = path.join(ROOT, "supabase/functions/assessment-access/score-engine-legacy.ts");
 const OLD = path.join(ROOT, "supabase/functions/assessment-access/score-engine.ts");
 
 function firstSelection(slug) {
@@ -29,6 +30,7 @@ test("WP-02 local contract: canonical engine ownership is unambiguous", () => {
   assert.equal(fs.existsSync(ENGINE), true);
   assert.equal(fs.existsSync(OLD), false);
   assert.equal(fs.existsSync(LEGACY), true);
+  assert.equal(fs.existsSync(RUNTIME_LEGACY), false);
 
   const engine = fs.readFileSync(ENGINE, "utf8");
   const entrypoint = fs.readFileSync(ENTRYPOINT, "utf8");
