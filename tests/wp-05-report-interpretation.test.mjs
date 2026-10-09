@@ -74,3 +74,20 @@ test("WP-05 app uses the report interpretation layer", () => {
   assert.match(app, /MDReportInterpretation\.projectUserReport/);
   assert.ok(!app.includes("100 - res.overallScore"));
 });
+
+test("WP-05 report model metadata is complete for every assessment family", () => {
+  for (const [slug, model] of Object.entries(reportApi.REPORT_MODELS)) {
+    assert.ok(model.measuredConstructs.length, slug);
+    assert.ok(Object.keys(model.axisRoles).length, slug);
+    assert.equal(model.diagnosticMeanings.lowestMeasuredAxis, "lowest_measured_axis_only");
+    assert.ok(model.permittedConclusions.includes("report_measured_axis_values"));
+    assert.ok(model.textTemplateCatalog.length, slug);
+  }
+});
+test("WP-05 history adapter obtains trend provenance from persisted results", () => {
+  const edge = fs.readFileSync("supabase/functions/assessment-access/index.ts", "utf8");
+  assert.match(edge, /assessmentFamilyId: structured/);
+  assert.match(edge, /scoring_engine_version/);
+  assert.match(edge, /scoring_contract_version/);
+  assert.match(edge, /assessment_config_digest/);
+});
