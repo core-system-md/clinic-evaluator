@@ -30,6 +30,8 @@ class ClinicEvaluatorApp {
     this.previousScore = null;
     this.previousSessionData = null;
     this.evDefaults = { flow: 50, visits: 3, avg: 50, years: 3, referral: 0 }; 
+    this._historyNavigationInstalled = false;
+    this._assessmentHistoryActive = false;
   }
 
   /* ─────────────── INITIALIZATION ─────────────── */
@@ -45,6 +47,7 @@ class ClinicEvaluatorApp {
 
       this.setupLeadForm();
       this.setupNavigation();
+      this.setupHistoryNavigation();
       this.setupEVSimulator();
       this.setupPrint();
       this.setupKeyboardShortcuts();
@@ -58,6 +61,7 @@ class ClinicEvaluatorApp {
 
       const hasSession = await this.checkExistingSession();
       if (hasSession) {
+        this.enterAssessmentHistoryState();
         this.hideView('view-lead-form');
 
         if (this.completedResult) {
@@ -95,6 +99,9 @@ class ClinicEvaluatorApp {
     const data = await this.assessmentAccessRequest('get_content', {
       assessment_key: this.currentAssessmentKey
     });
+    if (!data || typeof data !== 'object' || !Array.isArray(data.questions) || data.questions.length === 0) {
+      throw new Error('Assessment content is invalid: questions must be a non-empty array.');
+    }
     this.config = {
       version: String(data.version || 1),
       project: 'CORE System Server Runtime',
@@ -282,9 +289,19 @@ class ClinicEvaluatorApp {
 
 
   async startAssessmentFlow() {
-    this.questions = this.assessment.questions || [];
-    this.answers = {};
-    this.currentQuestionIndex = 0;
+    if (this.completedResult && this.currentSessionId) {
+      this.enterAssessmentHistoryState();
+      this.hideView('view-lead-form');
+      this.renderResults(this.completedResult);
+      return;
+    }
+
+    const resumingSession = Boolean(this.currentSessionId);
+    if (!resumingSession) {
+      this.questions = this.assessment.questions || [];
+      this.answers = {};
+      this.currentQuestionIndex = 0;
+    }
 
     if (!this.assessmentUuid) {
       this.showError('تعذر تحديد نوع التقييم.');
@@ -343,6 +360,7 @@ class ClinicEvaluatorApp {
       this.showLoadingGlobal(false);
     }
 
+    this.enterAssessmentHistoryState();
     this.hideView('view-lead-form');
     this.showView('view-assessment');
     document.getElementById('view-assessment')?.classList.add('fade-in');
@@ -421,6 +439,39 @@ class ClinicEvaluatorApp {
   setupNavigation() {
     document.getElementById('btn-prev')?.addEventListener('click', () => this.goPrevious());
     document.getElementById('btn-next')?.addEventListener('click', () => this.goNext());
+  }
+
+  setupHistoryNavigation() {
+    if (this._historyNavigationInstalled) return;
+    this._historyNavigationInstalled = true;
+
+    window.addEventListener('popstate', () => {
+      if (!this._assessmentHistoryActive) return;
+      this._assessmentHistoryActive = false;
+
+      // The first Back during an active session returns to the assessment entry form.
+      // A second Back is left to the browser, so users are not trapped on this page.
+      ['view-assessment', 'view-loading', 'view-results', 'view-ev-simulator']
+        .forEach(id => this.hideView(id));
+      this.showView('view-lead-form');
+    });
+  }
+
+  enterAssessmentHistoryState() {
+    if (this._assessmentHistoryActive || !window.history?.pushState) return;
+    try {
+      const priorState = window.history.state && typeof window.history.state === 'object'
+        ? window.history.state
+        : {};
+      window.history.pushState({
+        ...priorState,
+        clinicEvaluatorAssessmentGuard: true,
+        assessmentKey: this.currentAssessmentKey
+      }, '', window.location.href);
+      this._assessmentHistoryActive = true;
+    } catch (err) {
+      console.warn('[app] assessment history guard unavailable:', err);
+    }
   }
 
   goPrevious() {
