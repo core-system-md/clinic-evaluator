@@ -32,8 +32,8 @@ The assessment completion entrypoint now sends a single factual result payload t
 
 New completion functions:
 
-- `public.complete_p4_assessment_from_result(..., p_result jsonb)`
-- `public.complete_p4_public_assessment_from_result(..., p_result jsonb)`
+- `public.complete_protected_assessment_from_result(..., p_result jsonb)`
+- `public.complete_public_assessment_from_result(..., p_result jsonb)`
 
 These validate the Structured Result, enforce session/assessment identity and pinned version, project persistence fields from it, and persist the exact result JSONB in `assessment_results`.
 
