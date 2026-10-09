@@ -469,3 +469,58 @@ This is a deployment/migration synchronization gap. It must be resolved as one c
 **Engineering consequence:** the naming/debt investigation has exposed a production-correctness boundary: repository ownership, deployed Edge Function source, database completion API, Structured Result transport policy, and migration state currently describe different generations of the system.
 
 **No production mutation was made during this investigation.**
+
+
+### 12.7 Functional naming / single-owner debt investigation — 2026-10-09
+
+**Handoff status: INVESTIGATING — NOT IMPLEMENTED, NOT CLOSED.**
+
+#### Governance updates recorded in this branch
+
+The existing governing documents were updated in-place (no new documentation file was created):
+
+- `documentation/governance/AI-ENGINEERING-OPERATING-CONTRACT.md` — added §6.1, functional naming and single-owner file discipline.
+- `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md` — added §4.1, technical ownership and naming rule.
+
+The rule distinguishes permitted stage labels in documentation/traceability artifacts from prohibited stage-based identities for production/runtime behavior owners. It requires reuse and modification of the established owner before creation, independent justification for any new technical file, and verified disposition of abandoned/disabled/duplicate implementations. Migration history must be reconciled before renaming or changing migration identities.
+
+#### Confirmed findings from the restarted inventory
+
+1. **Executable migration filenames carry stage labels.** The repository contains migrations named with `p1_`, `p2_`, `p3_`, `p4_`, `p5_`, and at least one `wp04_` / `wp08_` form. Live migration history independently confirms numerous already-applied stage-named migration identities, including the live latest entry `20261005143243 / p5_public_options_projection_recovery`. These are not safe bulk-rename candidates: the repository filename, migration version, and live history must be reconciled per migration before any change. **Finding: naming debt confirmed; safe remediation not yet performed.**
+
+2. **Runtime calculation modules use stage-prefixed technical filenames.** Examples include `p3-scorer-v1.mts`, `p3-integrated-scorer-v1.mts`, `p3-economic-model-v1.mts`, `p3-structured-result-v1.mts`, `p3-consistency-engine.mts`, `p3-aggregation-engine.mts`, `p3-criticality-coverage-engine.mts`, and `p3-result-persistence-v1.mts`. These are executable modules, not merely traceability records. They are imported by the canonical repository `engine.ts` and by tests; therefore renaming/deleting them without coordinated import, export, test, deployment and ownership reconciliation would risk breaking working behavior. **Finding: functional naming debt confirmed; duplicate ownership/deadness is not established merely by these names.**
+
+3. **Stage-specific test and CI names exist.** Examples include `tests/wp-02-contract-local.test.mjs`, `tests/wp-04-structured-result-persistence.test.mjs`, `tests/wp-05-report-interpretation.test.mjs`, `tests/wp-08-v1-assessment-reconstruction.test.mjs`, and `.github/workflows/wp-08-v1-assessment-reconstruction.yml`. Under the clarified rule these may remain when their purpose is traceability. They are not defects solely because their names include a WP label.
+
+4. **Identifiers in schemas/contracts are not automatically filename violations.** For example, `P3_STRUCTURED_RESULT_V1` is a structured-result schema identifier, and `P3_REPORT_SOURCE_V1` was established as a report-source contract identifier. Their semantic appropriateness must be judged against the current approved contract and runtime compatibility; they must not be mechanically renamed as if they were files.
+
+5. **Production and repository ownership diverge.** Read-only inspection recorded live `assessment-access` Edge Function v32 importing `score-engine.ts`, while the repository contract/branch identifies `engine.ts` as the canonical owner. The live database function inventory also lacks repository-branch `complete_p4_*_from_result` function names and instead exposes older `complete_p4_*_assessment_session` paths. This is a release/API synchronization risk, not a cosmetic naming issue. No production mutation was performed.
+
+#### Work actually performed at this checkpoint
+
+- Updated the two existing governance/contract documents listed above.
+- Restarted repository and live Supabase read-only inventory.
+- Classified confirmed stage-named runtime modules, migration artifacts, and permitted traceability artifacts at a preliminary level.
+- **No source/runtime file was renamed, deleted, merged, or rewritten in this checkpoint.**
+- **No migration was applied or renamed; no database object or Edge Function was mutated/deployed.**
+- No tests were run for code changes because no code changes were made.
+
+#### Open work / closure blockers
+
+- Complete a path-by-path inventory across the full repository tree, not search excerpts alone.
+- For each executable stage-named module, record responsibility, importers/callers, runtime reachability, test coverage, duplicate candidates, and canonical owner.
+- Reconcile the `engine.ts` / `score-engine.ts` source-versus-production divergence, including exact deployed bundle, database completion functions, migration provenance, and safe release sequence.
+- Inspect each migration filename against repository contents and live `schema_migrations`; do not rename already-applied migrations as a cosmetic change.
+- Determine whether any parallel/abandoned implementations actually exist through dependency and runtime evidence before deleting or consolidating them.
+- Implement any approved repository changes as one ownership-preserving, reviewable change; run targeted tests, integration/baseline tests, and deployment/runtime checks only where authorized.
+- Update the existing handoff/status documents with exact commits, workflow runs, test results, risks and next canonical action after implementation and verification.
+
+#### Current status
+
+- Governance rule: **DOCUMENTED IN EXISTING CONTRACTS** (branch-local; not yet established as merged/default-branch policy).
+- Inventory: **IN PROGRESS**.
+- Runtime/migration remediation: **NOT STARTED**.
+- Tests for this investigation's code remediation: **NOT RUN — no code remediation performed**.
+- Production: **UNCHANGED by this investigation**.
+- Closure: **NOT CLOSED**.
+- Next canonical action: complete the full ownership/dependency inventory, then reconcile the production/repository engine boundary and classify each runtime module/migration for a safe, coordinated repair. Do not begin another WP or deploy to production without the contract-required authorization/gates.
