@@ -108,10 +108,10 @@ The single-owner requirement applies to the repository file/module structure, no
 
 This rule controls technical ownership and debt; it is not a cosmetic naming preference.
 
-There must be no competing engine identity or engine file such as:
+There must be no competing engine identity or active runtime engine file such as:
 
 - `score-engine.ts`
-- `score-engine-legacy.ts`
+- a runtime copy of `score-engine-legacy.ts` (the parity-only reference may reside at `tests/reference/score-engine-legacy.mts` while verified tests require it)
 - `engine.js`
 - P3-scoring-engine identity
 - Engine V2/V3 product identity

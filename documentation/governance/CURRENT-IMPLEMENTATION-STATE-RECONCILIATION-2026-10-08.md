@@ -240,4 +240,42 @@ Production currently has zero `sessions`, `answers`, `scores`, `assessment_resul
 
 **No Production function deployment or database mutation has been performed or approved by this candidate.** A combined migration/runtime release must remain a separate gated decision after exact API/grant compatibility, ordered migration checks, content/dependency validation, smoke tests, rollback and explicit owner authorization.
 
-**Candidate verification:** NOT VERIFIED until the targeted GitHub Actions and disposable PostgreSQL gates finish. Overall phase remains NOT CLOSED; do not infer closure of the Production release gate or start a subsequent WP.
+### Candidate verification — latest focused commit
+
+Commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24` is verified by the targeted repository gates:
+
+- P3 isolated kernel: **75/75 PASS** (run [37920650157](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650157), job `113787483286`).
+- Disposable PostgreSQL P4 protected completion: **PASS** (job `113787483889`).
+- WP-02 local contract: **PASS** (run [37920650179](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650179), job `113787484037`).
+- WP-03 semantics and disposable migration harness: **PASS** (run [37920650181](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650181), jobs `113787484046` and `113787483499`).
+- WP-04 Structured Result and disposable PostgreSQL persistence harness: **PASS** (run [37920650324](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650324), jobs `113787484112` and `113787484359`).
+- WP-08 V1 reconstruction: **PASS** (run [37920650142](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650142), job `113787483735`).
+- WP-09 obsolete runtime references: **PASS** (run [37920650164](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650164), job `113787483907`).
+
+The broad Node baseline job in run `37920650157` remains **FAIL** on four P5 editor assertions in `tests/p5-editor-workspace.test.js` (tests 9, 12, 17, 18); these files are outside the candidate diff. The failures were not suppressed or weakened. Supabase Preview was skipped because repository preview branches are disabled.
+
+These results verify the bounded source/test change, not production compatibility. The overall phase remains **NOT CLOSED**; do not start a later WP or infer production release approval.
+
+
+## 12. Repository-to-Production migration provenance — read-only inventory
+
+The focused branch has **51** SQL migration files, while Supabase reports **48** migration-history entries. The target three migrations dated 2026-10-08 are now each represented once by a functional filename and are absent from Production history. The existing older history is not yet safe for blanket renaming.
+
+Two pre-existing repository version-prefix collisions remain, and both must remain untouched until the ordered SQL and live migration provenance are reconciled:
+
+- Version prefix `20261003233000`: `20261003233000_p5_assessment_lifecycle_correction.sql` and `20261003233000_p5_restore_archived_version_immutability_compat.sql`.
+- Version prefix `20261004150000`: `20261004150000_p5_ev_mapping_shape_fix.sql` and `20261004150000_p5_public_visibility_option_allocation.sql`.
+
+Git history shows the files arrived through distinct commits/changes. A shared timestamp alone is not enough to choose one or discard the other, and Production reports different version IDs for their respective migration names. These are unresolved history/identity conflicts, not cosmetic cleanup.
+
+The read-only comparison also surfaced five Production migration names without an exact same-name repository filename; the listed repository path is only a candidate correspondence and **has not been proven equivalent**:
+
+| Production migration record | Candidate repository path requiring SQL/content/commit-sequence comparison |
+|---|---|
+| `20261002161945 / p3_preserve_completion_access_v2` | `20261002002000_p3_preserve_completion_access.sql` |
+| `20261003181305 / p5_secure_report_session_read_fix_started_at` | `20261003234500_p5_secure_report_session_read.sql` |
+| `20261004074332 / p5_admin_editor_completeness_2026_10_04` | `20261004123000_p5_admin_editor_completeness.sql` |
+| `20261004074428 / p5_draft_cascade_delete_trigger_fix_2026_10_04` | `20261004130000_p5_draft_cascade_delete_trigger_fix.sql` |
+| `20261004102003 / p5_delete_draft_cascade_fix_2026_10_04` | `20261004140000_p5_delete_draft_cascade_fix.sql` |
+
+More broadly, several Production migration `version` identifiers differ from the timestamp prefix in their repository filename even where the migration names appear to correspond. The current evidence does not justify editing the remote migration history, renaming any applied migration, or deleting the older duplicate-prefix files. Next safe action for this subproblem is a per-record content/hash/sequence reconciliation and a documented disposition; no database operation is implied.
