@@ -80,7 +80,7 @@ WP-08 PR #62 explicitly excluded production mutation.
 
 The WP-08 implementation contains and tests the migration:
 
-`supabase/migrations/20261008120000_wp08_reconstruct_final_v1_assessments.sql`
+`supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql`
 
 but the migration was **not executed against Production Supabase**.
 
@@ -334,7 +334,7 @@ The repository contains three current, unapplied migrations whose executable fil
 
 - `20261008090000_wp03_canonical_axis_weights.sql`
 - `20261008100000_wp04_structured_result_authority.sql`
-- `20261008120000_wp08_reconstruct_final_v1_assessments.sql`
+- `20261008120000_reconstruct_final_assessment_versions.sql`
 
 Production migration history currently ends at `20261005143243 / p5_public_options_projection_recovery`; therefore these three files are not applied in Production. They are direct functional-naming violations and are technically safer rename candidates than already-applied migrations, but no rename was performed in this investigation.
 
