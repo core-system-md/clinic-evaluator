@@ -140,3 +140,12 @@ test('WP-06 user transport returns a projected report rather than raw Structured
  assert.match(edge, /safeStoredResult/);
  assert.match(fs.readFileSync('assets/js/report-validation.js','utf8'), /assertValidUserProjection/);
 });
+
+test('WP-06 frontend retains only temporary compatibility with the previous Edge payload shape', () => {
+ const app = fs.readFileSync('assets/js/app.js', 'utf8');
+ assert.match(app, /Rolling-deploy compatibility only/);
+ assert.match(app, /legacyStructured/);
+ const edge = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
+ assert.doesNotMatch(edge, /structuredResult:\s*storedStructured/);
+ assert.doesNotMatch(edge, /structuredResult:\s*structured/);
+});
