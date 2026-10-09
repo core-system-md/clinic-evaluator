@@ -23,7 +23,7 @@ test('WP-08 final artifacts are V1 and preserve required content counts', () => 
 });
 
 test('WP-08 migration uses canonical percentage weights and validates totals', () => {
-  const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql', 'utf8');
+  const sql = fs.readFileSync('supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql', 'utf8');
   for (const term of [
     'assessment_results',
     'assessment_session_access',
@@ -99,14 +99,14 @@ test('WP-08 no user-facing V2 identity is introduced by final artifacts', () => 
 });
 
 test('WP-08 production preconditions follow real schema and retire only legacy trap insights', () => {
- const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql','utf8');
+ const sql = fs.readFileSync('supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql','utf8');
  assert.match(sql, /answers a join public\.sessions s on s\.id=a\.session_id where s\.assessment_type_id=old_type/);
  assert.match(sql, /left\(insight_code, 5\) <> 'TRAP_'/);
  assert.match(sql, /delete from public\.insights_mapping where assessment_type_id in/);
 });
 
 test('WP-08 rebuilds published V1 identities atomically under transaction-scoped table locks', () => {
- const sql = fs.readFileSync('supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql','utf8');
+ const sql = fs.readFileSync('supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql','utf8');
  for (const table of ['assessment_types','axes','questions','options','traps','insights_mapping','assessment_assets']) {
   assert.match(sql, new RegExp('alter table public\\.' + table + ' disable trigger user'));
   assert.match(sql, new RegExp('alter table public\\.' + table + ' enable trigger user'));
