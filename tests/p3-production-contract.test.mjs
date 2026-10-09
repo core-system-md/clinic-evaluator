@@ -75,10 +75,10 @@ test("production structured result does not persist internal scorer-only fields"
   });
 
   assert.ok(Array.isArray(result.resolvedSelections));
-  assert.ok(Array.isArray(result.axisPersistenceRows));
-  const { resolvedSelections, axisPersistenceRows, ...persisted } = result;
+  assert.equal(Object.hasOwn(result, "axisPersistenceRows"), false);
+  const { resolvedSelections, ...persisted } = result;
   assert.equal(resolvedSelections.length > 0, true);
-  assert.equal(axisPersistenceRows.length > 0, true);
+  assert.equal(Object.hasOwn(persisted, "axisPersistenceRows"), false);
   assert.equal(Object.hasOwn(persisted, "resolvedSelections"), false);
   assert.equal(Object.hasOwn(persisted, "axisPersistenceRows"), false);
   assert.equal(persisted.status, "PRODUCTION");
