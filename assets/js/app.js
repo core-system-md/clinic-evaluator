@@ -812,15 +812,31 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
-    const report = res?.userReport || null;
+    let report = res?.userReport || null;
+    // Rolling-deploy compatibility only: interpret the previous Edge payload
+    // before rendering; never pass raw result fields directly to report markup.
+    const legacyStructured = !report && res?.structuredResult?.schemaVersion === 'P3_STRUCTURED_RESULT_V1'
+      ? res.structuredResult : null;
+    if (legacyStructured) {
+      try {
+        report = window.MDReportInterpretation.projectUserReport(
+          legacyStructured,
+          this.previousSessionData,
+          this.currentAssessmentKey
+        );
+      } catch (error) {
+        console.error('[app] legacy result projection failed:', error);
+      }
+    }
     if (!report || report.audience !== 'user' || typeof window.MDReportValidation?.assertValidUserProjection !== 'function') {
       this.showFatalError('تعذر بناء التقرير الآمن من مخرجات الخادم.');
       return;
     }
     try {
-      window.MDReportValidation.assertValidUserProjection(report);
+      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report);
+      else window.MDReportValidation.assertValidUserProjection(report);
     } catch (error) {
-      console.error('[app] user report projection validation failed:', error);
+      console.error('[app] report projection validation failed:', error);
       this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من إسقاط المستخدم.');
       return;
     }
@@ -913,7 +929,8 @@ class ClinicEvaluatorApp {
 
     const renderedText = document.getElementById('view-results')?.innerText || '';
     try {
-      window.MDReportValidation.assertValidUserProjection(report, renderedText);
+      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report, renderedText);
+      else window.MDReportValidation.assertValidUserProjection(report, renderedText);
     } catch (error) {
       console.error('[app] rendered report validation failed:', error);
       this.hideView('view-results');
