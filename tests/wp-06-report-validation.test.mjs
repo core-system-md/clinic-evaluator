@@ -105,8 +105,12 @@ test('WP-06 admin projection retains audit evidence', () => {
 
 test('WP-06 renderer is wired through interpretation and validation, not browser scoring', () => {
   const app = fs.readFileSync('assets/js/app.js', 'utf8');
-  assert.match(app, /MDReportInterpretation\.projectUserReport/);
-  assert.match(app, /MDReportValidation\.assertValidUserReport/);
+  assert.match(app, /MDReportValidation\.assertValidUserProjection/);
+  const edge = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
+  assert.match(edge, /userReport/);
+  assert.match(edge, /safeStoredResult/);
+  assert.doesNotMatch(edge, /structuredResult:\s*storedStructured/);
+  assert.doesNotMatch(edge, /structuredResult:\s*structured/);
   assert.doesNotMatch(app, /100\s*[-−]\s*res\.overallScore/);
   assert.doesNotMatch(app, /calculate.*score/i);
   assert.doesNotMatch(app, /this\.engine/);
@@ -128,4 +132,11 @@ test('WP-06 assessment pages load both report layers before app.js', () => {
     assert.ok(interpretationAt >= 0 && validationAt >= 0 && appAt >= 0, page);
     assert.ok(interpretationAt < appAt && validationAt < appAt, page);
   }
+});
+
+test('WP-06 user transport returns a projected report rather than raw Structured Result', () => {
+ const edge = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
+ assert.match(edge, /projectCompletionResponse\(storedStructured, null\)\.userReport/);
+ assert.match(edge, /safeStoredResult/);
+ assert.match(fs.readFileSync('assets/js/report-validation.js','utf8'), /assertValidUserProjection/);
 });
