@@ -102,7 +102,7 @@ Historical note: PR #72’s branch CI exposed WP-03/WP-04 tests referencing migr
 - WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` PASS; integrated run `38033398747` PASS. The browser accepts only the server-owned `userReport` projection.
 - WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` PASS.
 - WP-09 run `38033398788`, P3 isolated kernel, P4 protected completion using disposable PostgreSQL, and full Node baseline jobs in run `38033398737`: PASS.
-- The old stacked PR #69 remains closed unmerged. No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages did automatically deploy main commits after merges; deployment IDs and commit provenance are recorded in §7.
+- The old stacked PR #69 remains closed unmerged. No Supabase database mutation occurred. The WP-05/WP-06/WP-07 PRs did not deploy the Edge Function; after source/migration reconciliation and passing disposable harnesses, Edge v35 was deployed separately as recorded in §7. Cloudflare Pages also auto-deployed main commits.
 
 ### Next authorized work — read-only release reconciliation
 1. **Corrected Edge source is now deployed:** `assessment-access` v35, bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`, deployed `2026-10-10T07:32:15Z`. All 15 runtime files match current `main` commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; `report-interpretation.mjs` and persisted-history wiring are present. `verify_jwt=false` is unchanged. The prior v34 bundle's exact source was PR #70 merge `48074ce...` and is now historical.
