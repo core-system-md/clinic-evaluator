@@ -178,7 +178,7 @@ test("WP-05 saved and fresh completion paths receive server-verified prior-sessi
 test("WP-05 browser report rendering consumes the approved projection instead of interpreting raw scores", () => {
   const app = fs.readFileSync("assets/js/app.js", "utf8");
   const renderer = app.slice(app.indexOf("  renderResults(res) {"), app.indexOf("  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */"));
-  assert.match(renderer, /let report = res\?\.userReport \|\| null/);
+  assert.match(renderer, /const report = res\?\.userReport \|\| null/);
   assert.match(renderer, /assertValidUserProjection\(report/);
   assert.match(renderer, /report\.trend\.direction/);
   assert.match(renderer, /axis\.bandCode/);
@@ -188,9 +188,7 @@ test("WP-05 browser report rendering consumes the approved projection instead of
   assert.doesNotMatch(renderer, /Object\.entries\(res\.axisScores\)\.sort/);
   assert.doesNotMatch(renderer, /score\s*>=\s*75/);
   assert.doesNotMatch(renderer, /diff\s*>\s*0/);
-  assert.match(renderer, /legacyStructured/);
-  assert.match(renderer, /projectUserReport\(\s*legacyStructured,\s*this\.previousSessionData,\s*this\.currentAssessmentKey/);
-  assert.match(renderer, /assertValidUserReport\(legacyStructured, report/);
+  assert.doesNotMatch(renderer, /structuredResult|legacyStructured|projectUserReport/);
   const benchmark = app.slice(app.indexOf("  renderVisualBenchmark(report) {"), app.indexOf("  /* ─────────────── EV SIMULATOR ─────────────── */"));
   assert.doesNotMatch(benchmark, /\bres\./);
 });
