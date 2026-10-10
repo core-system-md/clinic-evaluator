@@ -9,9 +9,9 @@ const lifecycle = fs.readFileSync('admin/assessment-lifecycle.js', 'utf8');
 const app = fs.readFileSync('assets/js/app.js', 'utf8');
 const publicRuntime = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
 const htmlFiles = ['comprehensive-clinic-assessment.html','clinic-performance.html','medical-team-assessment.html','admin-reception-assessment.html','patient-journey.html'].map(file => fs.readFileSync(file, 'utf8'));
-const migration = fs.readFileSync('supabase/migrations/20261004140000_p5_delete_draft_cascade_fix.sql', 'utf8');
-const visibilityMigration = fs.readFileSync('supabase/migrations/20261004150000_p5_public_visibility_option_allocation.sql', 'utf8');
-const lifecycleTriggerFix = fs.readFileSync('supabase/migrations/20261004160000_p5_lifecycle_trigger_final_fix.sql', 'utf8');
+const migration = fs.readFileSync('supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql', 'utf8');
+const visibilityMigration = fs.readFileSync('supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql', 'utf8');
+const lifecycleTriggerFix = fs.readFileSync('supabase/migrations/20261004145553_p5_lifecycle_trigger_final_fix.sql', 'utf8');
 
 test('P5 editor workspace assets are wired correctly', () => {
   assert.equal((html.match(/id="assessment-modal"/g) || []).length, 1);
