@@ -53,3 +53,17 @@ No production Edge Function deployment was executed.
 Next canonical stage:
 
 **WP-08 — Assessment V1 reconstruction**
+
+
+## 6. Post-closure corrective reconciliation — 2026-10-10
+
+A targeted source audit found remaining report/presentation labels hardcoded in `assets/js/app.js` despite the existing catalog covering all `report_texts.json` leaves.
+
+- Corrective PR #75 merged to `main` at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`.
+- Dedicated WP-07 workflow run `38033398744`: **SUCCESS**.
+- Integrated WP-05 run `38033398711`, WP-06 run `38033398747`, and WP-09 run `38033398788`: **SUCCESS**.
+- P3 isolated kernel, P4 protected-completion disposable PostgreSQL, and full Node baseline jobs in run `38033398737`: **SUCCESS**.
+- Moved axis-comparison headers, visual benchmark heading, and report fallback label into `report_texts.json`, added corresponding catalog linkage entries, and added tests against renderer hardcoding.
+- No Production data or deployment changes occurred.
+
+**WP-07 corrective repository gate: PASS / CLOSED.** Production completion/read E2E remains NOT VERIFIED.
