@@ -147,3 +147,29 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 - **Cloudflare Pages:** main auto-deploy is enabled. Production deployments `c81e3147` (commit `67ae293a...`), `6c4db491` (commit `cfd595f...`), and `848841c5` (commit `28b70f3...`) completed successfully. These were automatic Pages deployments; no Supabase database mutation or Edge Function deployment accompanied them.
 - **Tests:** WP-03 `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3/P4 disposable PostgreSQL/full Node run `38034275402` all **SUCCESS**.
 - **Release status:** repository corrective gates, migration identity reconciliation, and current Edge source deployment **PASS / CLOSED**. Valid deployed completion/read E2E remains **NOT VERIFIED** because Production has no designated disposable session and no test data was created; overall release **NOT CLOSED**.
+
+
+## 8. Session closeout and exact continuation point — 2026-10-10 13:15 UTC
+
+### Work completed in this session
+- Supabase deployed `assessment-access` is version **35**, bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`.
+- Compared all **15/15** deployed runtime files against repository `main`; every file was an exact text match, including `index.ts`, `engine.ts`, `structured-result.mts`, `result-persistence-projection.mts`, and `report-interpretation.mjs`.
+- `verify_jwt=false` remains unchanged.
+- Migration identity reconciliation PR #77 merged at `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`: 51/51 Production migration version/name identities match repository migration filenames. This is identity matching, not SQL checksum proof. No Production migration history/schema was modified.
+- WP-05/06/07 corrective repository gates are closed. WP-03 run `38034275409`, WP-04 run `38034275445`, WP-08 run `38034275428`, and P3/P4/full Node run `38034275402` succeeded.
+- No Production session, lead, result, or fake test record was created. No Production database mutation or Edge deployment was performed during this session.
+
+### Final gate state
+| Gate | State |
+|---|---|
+| WP-05 / WP-06 / WP-07 repository corrective gates | PASS / CLOSED |
+| Production migration identity vs repository filenames | PASS / CLOSED (51/51; no checksum claim) |
+| Deployed Edge v35 file-level source correspondence | PASS (15/15 exact file matches to main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`) |
+| Valid deployed completion → persisted Structured Result → user-report read E2E | NOT VERIFIED |
+| Overall Production release | NOT CLOSED |
+
+### Exact next action — do not expand scope
+The next conversation must work **only on the outstanding safe E2E/release gate**. Do not repeat migration reconciliation, WP-05/06/07, or v35 source matching. First locate an approved isolated/non-Production route for testing the completion contract without writing to real Production data. If no such route exists, document the safety/authorization blocker and stop; do not manufacture Production test data or execute against a real user session. If an approved path exists, verify: (1) valid completion accepted, (2) Structured Result persisted for the correct session/version, (3) subsequent report read returns the expected server-owned user projection, and (4) invalid/expired credentials remain rejected. Capture workflow/run links and sanitized evidence. Close the release gate only if all assertions pass; otherwise report the exact failed assertion and stop.
+
+### Start prompt for the next conversation
+`MD — تابع من HANDOFF-PRODUCTION-STRUCTURED-RESULT-RECOVERY-2026-10-10.md §8. لا تعِد فحص أو تنفيذ WP-05/06/07 أو مطابقة الهجرات أو مطابقة ملفات Edge v35؛ هذه مغلقة بالأدلة المذكورة. اعمل حصراً على بوابة E2E الآمنة المتبقية: حدّد المسار المعزول المعتمد، ونفّذ completion → persisted Structured Result → report read فقط إذا كان آمناً ومصرحاً، وإلا وثّق الـ blocker وتوقف. لا تعدّل Production ولا تنشئ بيانات اختبار وهمية دون مسار معتمد.`
