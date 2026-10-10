@@ -65,7 +65,7 @@ These are API-declared counts, not an exhaustive content-integrity proof. A prio
 - No successful disposable/test assessment has been completed end-to-end through deployed version 34 and its Structured Result persistence path.
 - No evidence proves the saved report returned to the user is correct after completion.
 - Exact live-to-repository deployed-source commit mapping is not yet proven by the bundle hash.
-- WP-05/WP-06/WP-07 corrective reconciliation is not established as fully closed.
+- At initial Handoff creation, WP-05/WP-06/WP-07 corrective reconciliation was not established as fully closed. WP-05 has since been closed at repository level by corrective PR #72; WP-06 and WP-07 remain open, and Production E2E remains NOT VERIFIED.
 - The broad Node baseline historically failed four unrelated P5 editor assertions (tests 9, 12, 17, 18); check latest Actions before relying on historical status.
 - Production release is NOT CLOSED.
 
@@ -131,7 +131,7 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 ## 6. Guardrails / do not do
 - Do not treat “migration/function deployed” as equivalent to “release complete.”
 - Do not start WP-08 again: its repository implementation was previously merged and verified; this handoff concerns live release reconciliation and the WP-05→WP-07 corrective gate.
-- Do not claim WP-05/06/07 closed solely because their historical PRs merged.
+- Do not claim WP-06 or WP-07 closed solely because historical PRs merged. WP-05 is closed only on the corrective evidence and merge recorded above; its Production E2E gate remains NOT VERIFIED.
 - Do not run complete against real user sessions or use random fake data in production.
 - Do not edit applied migration files or rewrite Supabase migration history.
 - Do not make additional production changes before proving the exact defect and validating a safe test path.

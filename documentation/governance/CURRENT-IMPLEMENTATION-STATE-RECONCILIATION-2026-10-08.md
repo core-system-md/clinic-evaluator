@@ -110,17 +110,9 @@ The implementation-stage contract boundary was to prepare, test, verify, documen
 
 ## 6. Correct current transition point
 
-The project is **not** at “WP-08 pre-implementation”, and it is also **not yet contract-clean for Production rollout**.
+At the time this 2026-10-08 snapshot was written, the post-WP-08 forensic audit had identified open corrective items in WP-05, WP-06, and WP-07. WP-05's two identified gaps have since been resolved at repository level by corrective PR #72, merged on 2026-10-10. WP-06 and WP-07 remain open.
 
-The WP-08 implementation has now been corrected and closed, but the post-closure forensic audit identified unresolved contract deviations in the report stages:
-
-- WP-05 report-model completeness and normal-history provenance integration;
-- WP-06 transport/privacy enforcement for Structured Result;
-- WP-07 full semantic ownership/linkage coverage.
-
-Therefore the current point is:
-
-**POST-WP-08 CORRECTIVE RECONCILIATION GATE — NOT PRODUCTION-READY**
+**Current transition point after the 2026-10-10 evidence update: WP-06 corrective reconciliation — NOT PRODUCTION-READY.**
 
 No Production rollout decision may be treated as cleared until these reconciliation items are separately corrected and verified.
 

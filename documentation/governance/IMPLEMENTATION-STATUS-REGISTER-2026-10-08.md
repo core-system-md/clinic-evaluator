@@ -396,7 +396,7 @@ No content, version, routing, deletion or production decision may be inferred as
 
 The later contract audit distinguishes historical stage PASS from current contract-clean status.
 
-**WP-05:** historical implementation/test PASS remains valid as execution evidence, but current contract reconciliation is required for complete assessment-specific report models and normal-history provenance integration.
+**WP-05 (historical pre-correction note):** the implementation/test PASS remains valid as execution evidence. The subsequently identified contract-completeness and normal-history integration gaps were resolved by corrective PR #72; see §14 for current evidence.
 
 **WP-06:** historical implementation/test PASS remains valid for report projection validation, but current contract reconciliation is required for transport-level prevention of raw Structured Result exposure to the browser.
 
