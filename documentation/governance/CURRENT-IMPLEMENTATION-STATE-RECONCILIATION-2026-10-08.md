@@ -249,9 +249,11 @@ The broad Node baseline job in run `37920650157` remains **FAIL** on four P5 edi
 These results verify the bounded source/test change, not production compatibility. The overall phase remains **NOT CLOSED**; do not start a later WP or infer production release approval.
 
 
-## 12. Repository-to-Production migration provenance — read-only inventory
+## 12. Historical repository-to-Production migration inventory — 2026-10-09 snapshot
 
-The focused branch has **51** SQL migration files, while Supabase reports **48** migration-history entries. The target three migrations dated 2026-10-08 are now each represented once by a functional filename and are absent from Production history. The existing older history is not yet safe for blanket renaming.
+**Historical snapshot:** the counts and unresolved candidate mappings in this section describe the state before the 2026-10-10 reconciliation. They are superseded by §13 below; retain them only as the audit trail.
+
+The focused branch then had **51** SQL migration files, while Supabase reported **48** migration-history entries. The target three migrations dated 2026-10-08 are now each represented once by a functional filename and are absent from Production history. The existing older history is not yet safe for blanket renaming.
 
 Two pre-existing repository version-prefix collisions remain, and both must remain untouched until the ordered SQL and live migration provenance are reconciled:
 
@@ -296,3 +298,35 @@ The current WP-05 repository reconciliation is therefore **PASS / MERGED / CLOSE
 
 **WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED.**
 **Production source-to-commit provenance, migration identity reconciliation, valid completion/read E2E, and overall release: NOT VERIFIED / NOT CLOSED.**
+
+
+## 13. Current Production provenance and migration reconciliation — 2026-10-10
+
+### Migration identity reconciliation
+- Supabase reports **51** migration-history entries; the active repository `supabase/migrations` directory now has **51** files.
+- Exact comparison by `version + recorded name`: **51/51 matched**, zero missing/extra identities, zero duplicate version prefixes.
+- The two former local collisions at `20261003233000` and `20261004150000` are resolved by restoring the actual Production version identities.
+- Five previously non-exact Production names now map to their recorded identities. The secure report-session history is restored as two separate migrations: original `created_at` behavior at `20261003181243`, followed by the separately applied `started_at` correction at `20261003181305`.
+- The unapplied `p5_assessment_lifecycle_correction` candidate was archived outside the active migration directory because its only function is superseded by the later applied draft-delete fix. Its exact source blob is preserved.
+- No Supabase migration was applied, repaired, or deleted from Production; remote migration history was not modified.
+- Verification PR #77 merged as `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`. WP-03 run `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3/P4 disposable PostgreSQL/full Node run `38034275402` all passed.
+
+### Deployed Edge source provenance
+- Production `assessment-access` is active at version **34**, bundle SHA-256 `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907`.
+- All **14 deployed files** match the repository source at PR #70 merge commit `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce` exactly.
+- This establishes provenance, but also proves the deployed Edge source is **stale relative to current main**: the current repository imports `report-interpretation.mjs` and wires persisted history provenance; the deployed bundle does not contain that module and uses the earlier inline projection.
+- No Edge Function redeployment has been performed. WP-05's corrected server-owned semantics are therefore repository-closed but not yet deployed to Edge.
+
+### Cloudflare Pages deployment truth
+The Pages project `clinicevaluat` is configured to auto-deploy `main`. Successful production deployments occurred automatically after merges:
+- `c81e3147`, commit `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`, 2026-10-10 07:07:12 UTC (WP-06 frontend correction).
+- `6c4db491`, commit `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`, 2026-10-10 07:09:07 UTC (WP-07 catalog correction).
+- `848841c5`, commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`, 2026-10-10 07:24:48 UTC (migration-identity repository update; no frontend source change).
+No database mutation or Edge deployment accompanied these Pages deployments.
+
+### Current release gate
+- WP-05/WP-06/WP-07 repository corrective gates: **PASS / CLOSED**.
+- Migration identity reconciliation: **PASS / CLOSED**.
+- Deployed Edge source provenance: **PASS — exact historical source identified**, but deployment is stale relative to current main.
+- Valid completion + persisted Structured Result + returned user-report E2E through the deployed Edge API: **NOT VERIFIED**.
+- Overall Production release: **NOT CLOSED** until the corrected Edge source is safely deployed and the controlled E2E gate is satisfied, or the live E2E is explicitly marked NOT VERIFIED because no safe disposable production session exists.
