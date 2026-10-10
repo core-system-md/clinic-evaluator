@@ -65,7 +65,7 @@ These are API-declared counts, not an exhaustive content-integrity proof. A prio
 - No successful disposable/test assessment has been completed end-to-end through deployed version 34 and its Structured Result persistence path.
 - No evidence proves the saved report returned to the user is correct after completion.
 - Exact live-to-repository deployed-source commit mapping is not yet proven by the bundle hash.
-- At initial Handoff creation, WP-05/WP-06/WP-07 corrective reconciliation was not established as fully closed. WP-05 has since been closed at repository level by corrective PR #72; WP-06 and WP-07 remain open, and Production E2E remains NOT VERIFIED.
+- At initial Handoff creation, WP-05/WP-06/WP-07 corrective reconciliation was not established as fully closed. Repository corrective gates are now closed by PR #72 (WP-05), #74 (WP-06), and #75 (WP-07), with current dedicated/impacted workflow evidence recorded below. Production E2E remains NOT VERIFIED.
 - The broad Node baseline historically failed four unrelated P5 editor assertions (tests 9, 12, 17, 18); check latest Actions before relying on historical status.
 - Production release is NOT CLOSED.
 
@@ -96,21 +96,25 @@ PR #72’s branch CI also exposed two unrelated known repository/workflow path f
 - WP-04 run `38005770367`: expected `supabase/migrations/20261008100000_structured_result_authority.sql` is absent from the current source tree.
 No migrations or test harnesses for those work packages were changed here.
 
-## 4. Exact continuation point — after WP-05 closeout
+## 4. Exact continuation point — after WP-05/WP-06/WP-07 repository closeout
 
-**WP-05 is complete at the repository implementation boundary and this conversation stops here.** Do not restart WP-05 or repeat its tests as a new task without a new finding.
+**WP-05, WP-06, and WP-07 corrective repository gates are CLOSED.** Do not restart them without new evidence of a defect.
 
-1. The canonical fix is PR #72, merged to `main` at `270d868825d83aa50624ef7ccd40313eef0c9bfc`; WP-05 run `38005770371` is **SUCCESS**.
-2. The old stacked PR #69 is closed unmerged and must not be revived.
-3. WP-03/WP-04 failures on missing migration paths are recorded above and remain assigned to the separate migration-name/history reconciliation. Do not alter migrations in the WP-05 closeout.
-4. The next *separate* corrective item, if the owner’s existing release authorization still applies, is WP-06. Do not begin WP-06 automatically in this handoff.
-5. WP-07 follows only after WP-06 is separately corrected and evidenced. The controlled E2E and overall release gate remain later tasks.
+### Closure evidence
+- WP-05 corrective PR #72 merged at `270d868825d83aa50624ef7ccd40313eef0c9bfc`; dedicated run `38005770371` PASS; integrated WP-05 run `38033398711` PASS.
+- WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` PASS; integrated run `38033398747` PASS. The browser accepts only the server-owned `userReport` projection.
+- WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` PASS.
+- WP-09 run `38033398788`, P3 isolated kernel, P4 protected completion using disposable PostgreSQL, and full Node baseline jobs in run `38033398737`: PASS.
+- The old stacked PR #69 remains closed unmerged. No Production mutation/deployment occurred.
 
-Do not change scoring formulas, questionnaire content, published assessment versions, Production database state, routes, or the deployed Edge Function as part of this WP-05 closeout.
-6. WP-06 scope: ensure browser responses expose only the approved user projection, not raw persisted Structured Result. Add focused tests; do not broaden into unrelated security redesign.
-7. WP-07 scope: move remaining semantic report/presentation strings out of assets/js/app.js into the contract-defined catalog/linkage model; focused tests only.
-8. After all three are closed, run a controlled disposable E2E assessment through the exact deployed API path. If a disposable live-production session cannot be safely created and cleaned without touching real user data, mark Production E2E NOT VERIFIED and use a local/disposable database harness instead.
-9. Final gate: verify migration order/identity, deployed function source/provenance, catalogue/content consistency, successful result persistence and returned user report, regression suites, rollback/recovery. Report each gate PASS/FAIL/NOT VERIFIED.
+### Next authorized work — read-only release reconciliation
+1. Match the exact deployed `assessment-access` bundle hash `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` to repository source/build provenance. Do not infer a source commit from the Edge version number.
+2. Reconcile the three Production-applied migration identities with repository filenames/history, including the known WP-03/WP-04 workflow references to absent names `20261008090000_canonical_axis_weights.sql` and `20261008100000_structured_result_authority.sql`. Preserve applied migration history; do not edit applied migrations or reset Production.
+3. Inventory and resolve documented historical differences using Git/migration/deployment evidence; do not label differences as defects until proven.
+4. Only after source and migration reconciliation, define the smallest safe disposable E2E path for valid completion, persisted Structured Result, and returned user report. Never complete against real user sessions.
+5. Finish with a release gate report separating PASS / FAIL / NOT VERIFIED, rollback/recovery, and documentation closure. Overall release remains NOT CLOSED.
+
+Do not change scoring formulas, questionnaire content, published assessment versions, Production data, public routes, or deployed services during read-only reconciliation.
 
 ## 5. Release status matrix
 | Gate | Status | Evidence / reason |
@@ -123,17 +127,17 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 | Valid completion + Structured Result persistence E2E | NOT VERIFIED | No successful disposable completion trace |
 | User-facing saved report correctness | NOT VERIFIED | No post-completion result-read assertion |
 | WP-05 corrective closure | **PASS / CLOSED (repository)** | PR #72 merged at `270d868825d83aa50624ef7ccd40313eef0c9bfc`; dedicated run `38005770371` SUCCESS; Production E2E remains NOT VERIFIED |
-| WP-06 corrective closure | OPEN / NOT VERIFIED | No current closure evidence after corrective audit |
-| WP-07 corrective closure | OPEN / NOT VERIFIED | No current closure evidence after corrective audit |
+| WP-06 corrective closure | **PASS / CLOSED (repository)** | PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated `38033275598` and integrated `38033398747` SUCCESS |
+| WP-07 corrective closure | **PASS / CLOSED (repository)** | PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated `38033398744` SUCCESS |
 | Exact deployed source-to-commit provenance | NOT VERIFIED | Bundle hash available; matching repository artifact/commit not established |
 | Overall release | NOT CLOSED | Required corrective gates and valid E2E proof incomplete |
 
 ## 6. Guardrails / do not do
 - Do not treat “migration/function deployed” as equivalent to “release complete.”
 - Do not start WP-08 again: its repository implementation was previously merged and verified; this handoff concerns live release reconciliation and the WP-05→WP-07 corrective gate.
-- Do not claim WP-06 or WP-07 closed solely because historical PRs merged. WP-05 is closed only on the corrective evidence and merge recorded above; its Production E2E gate remains NOT VERIFIED.
+- Do not claim WP-05/06/07 closed solely because historical PRs merged; use the corrective merge/run evidence recorded above. Their repository gates are closed, but Production E2E and deployed-source provenance remain NOT VERIFIED.
 - Do not run complete against real user sessions or use random fake data in production.
 - Do not edit applied migration files or rewrite Supabase migration history.
 - Do not make additional production changes before proving the exact defect and validating a safe test path.
 
-**Next action:** Stop after the completed WP-05 closeout. The next authorized corrective stage is WP-06 in a separate continuation; overall Production release remains NOT CLOSED.
+**Next action:** Read-only match the deployed Edge bundle to repository provenance, then reconcile migration identities/history. Do not deploy or mutate Production until these gates and a safe E2E plan are verified. Overall Production release remains NOT CLOSED.
