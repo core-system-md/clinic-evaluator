@@ -148,7 +148,13 @@
     "recommendations_title": "💡 التوجيهات الاستشارية وفرص التطوير الهيكلي",
     "priority_heading": "🎯 الأولوية التشغيلية القصوى: {axis}",
     "measured_axis_sentence": "بلغت النتيجة المقاسة لهذا المحور ({score}%).",
-    "highest_axis_heading": "💪 أعلى محور مقاس: {axis}"
+    "highest_axis_heading": "💪 أعلى محور مقاس: {axis}",
+    "axis_comparison_axis": "المحور",
+    "axis_comparison_baseline": "الأساس",
+    "axis_comparison_current": "الحالي",
+    "axis_comparison_change": "التغير",
+    "visual_benchmark_title": "📊 التحليل البصري الشامل",
+    "unavailable_label": "غير متاح"
   },
   "errors": {
     "init_failed": "عذراً، هناك تحديث بسيط في النظام. يرجى إعادة تحميل الصفحة أو التواصل مع فريق الدعم الفني.",

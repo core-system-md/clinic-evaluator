@@ -526,6 +526,36 @@
       "path": "report.highest_axis_heading",
       "type": "string",
       "source": "structured_result_scores"
+    },
+    {
+      "path": "report.axis_comparison_axis",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.axis_comparison_baseline",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.axis_comparison_current",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.axis_comparison_change",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.visual_benchmark_title",
+      "type": "string",
+      "source": "presentation"
+    },
+    {
+      "path": "report.unavailable_label",
+      "type": "string",
+      "source": "presentation"
     }
   ],
   "removed": [
