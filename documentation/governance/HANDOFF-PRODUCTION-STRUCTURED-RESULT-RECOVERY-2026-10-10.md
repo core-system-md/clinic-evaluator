@@ -173,3 +173,28 @@ The next conversation must work **only on the outstanding safe E2E/release gate*
 
 ### Start prompt for the next conversation
 `MD — تابع من HANDOFF-PRODUCTION-STRUCTURED-RESULT-RECOVERY-2026-10-10.md §8. لا تعِد فحص أو تنفيذ WP-05/06/07 أو مطابقة الهجرات أو مطابقة ملفات Edge v35؛ هذه مغلقة بالأدلة المذكورة. اعمل حصراً على بوابة E2E الآمنة المتبقية: حدّد المسار المعزول المعتمد، ونفّذ completion → persisted Structured Result → report read فقط إذا كان آمناً ومصرحاً، وإلا وثّق الـ blocker وتوقف. لا تعدّل Production ولا تنشئ بيانات اختبار وهمية دون مسار معتمد.`
+
+## 9. Final closeout — documentation handoff, 2026-10-10
+
+This section is the final session boundary and supersedes earlier next-step wording that implies source provenance or migration identity reconciliation is still pending.
+
+### Confirmed at closeout
+- Documentation closeout PR #76 is merged: https://github.com/core-system-md/clinic-evaluator/pull/76 (merge commit `02a921a8f77f0120e13a704a2f6bb47dd6080040`).
+- Supabase `assessment-access` is v35, bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`; all 15 deployed runtime files were compared with repository `main` at `28b70f3d90167f4ebded47aa3316f4b436c7ccb9` and matched exactly.
+- Migration identity reconciliation is closed via PR #77; 51/51 version/name identities match repository migration filenames. This is not a SQL checksum claim.
+- WP-05/WP-06/WP-07 corrective repository gates are closed. WP-03, WP-04, WP-08 and P3/P4/full Node workflow runs recorded in §8 are successful.
+- This documentation closeout did not run a valid deployed completion E2E and did not modify Production data, migration history, or deploy the Edge Function.
+
+### Explicitly NOT CLOSED
+- Valid deployed completion → persisted Structured Result → subsequent user-report read E2E remains **NOT VERIFIED**.
+- Overall Production release remains **NOT CLOSED**. Do not label the overall release complete based only on repository tests, source correspondence, smoke tests, or migration identity matching.
+
+### Exact continuation instruction
+The next session is authorized to work only on the outstanding safe E2E/release gate:
+1. Identify an already-approved isolated/non-Production test route and its fixture/credentials without changing Production.
+2. If such a route exists, test valid completion, persistence for the correct assessment session/version, subsequent server-owned user-report projection, and invalid/expired credential rejection. Capture actual workflow/runtime evidence.
+3. If no approved safe route exists, record the precise blocker and stop. Do not invent test data, create a Production session, or invoke completion against real users.
+4. Do not repeat WP-05/06/07, migration identity reconciliation, or v35 file matching. Do not start another WP or perform unrelated cleanup.
+
+**Start prompt for the next conversation:**
+`MD — تابع حصراً من HANDOFF-PRODUCTION-STRUCTURED-RESULT-RECOVERY-2026-10-10.md §9. تم إغلاق WP-05/06/07، ومطابقة هويات الهجرات 51/51، ومطابقة ملفات Edge v35 عدد 15/15؛ لا تُعد هذه الأعمال. المطلوب فقط بوابة E2E الآمنة: ابحث عن مسار اختبار معزول ومعتمد لا يمس Production، واختبر completion → persisted Structured Result → report read مع رفض بيانات الاعتماد غير الصالحة إذا كان المسار متاحاً. إن لم يوجد مسار آمن معتمد، وثّق العائق المحدد وتوقف. لا تعدّل Production ولا تنتقل إلى أي WP أخرى.`
