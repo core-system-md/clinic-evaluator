@@ -398,9 +398,9 @@ The later contract audit distinguishes historical stage PASS from current contra
 
 **WP-05 (historical pre-correction note):** the implementation/test PASS remains valid as execution evidence. The subsequently identified contract-completeness and normal-history integration gaps were resolved by corrective PR #72; see §14 for current evidence.
 
-**WP-06:** historical implementation/test PASS remains valid for report projection validation, but current contract reconciliation is required for transport-level prevention of raw Structured Result exposure to the browser.
+**WP-06 (historical pre-correction snapshot):** the earlier implementation/test PASS remains valid for projection validation; the transport-level raw-Structured-Result gap was later corrected by PR #74 (see §15).
 
-**WP-07:** historical implementation/test PASS remains valid for the cataloged text asset, but current contract reconciliation is required because semantic report/presentation strings remain outside the declared linkage catalog.
+**WP-07 (historical pre-correction snapshot):** the earlier catalog test PASS remains valid; remaining hardcoded report/presentation labels were later corrected by PR #75 (see §15).
 
 **WP-08:** corrective PR #65 restored the missing V1 Consistency configuration and canonical 0–100 Patient Journey weights. Corrected dedicated workflow **37776556545 = SUCCESS**; corrective merge **ebd375e883e9faeb8659fc5bef312f343f0aa504**. WP-08 is therefore closed after correction.
 
