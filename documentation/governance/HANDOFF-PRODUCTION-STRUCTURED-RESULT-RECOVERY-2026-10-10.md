@@ -102,7 +102,7 @@ Historical note: PR #72’s branch CI exposed WP-03/WP-04 tests referencing migr
 - WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` PASS; integrated run `38033398747` PASS. The browser accepts only the server-owned `userReport` projection.
 - WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` PASS.
 - WP-09 run `38033398788`, P3 isolated kernel, P4 protected completion using disposable PostgreSQL, and full Node baseline jobs in run `38033398737`: PASS.
-- The old stacked PR #69 remains closed unmerged. No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages did automatically deploy main commits after merges; deployment IDs and commit provenance are recorded in §13.
+- The old stacked PR #69 remains closed unmerged. No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages did automatically deploy main commits after merges; deployment IDs and commit provenance are recorded in §7.
 
 ### Next authorized work — read-only release reconciliation
 1. **Source provenance is now identified:** deployed `assessment-access` v34 bundle SHA `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` matches all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`. Current `main` differs because WP-05's corrected `report-interpretation.mjs` and history wiring are not in the deployed bundle. Do not deploy Edge solely from the version number.
@@ -132,7 +132,7 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 ## 6. Guardrails / do not do
 - Do not treat “migration/function deployed” as equivalent to “release complete.”
 - Do not start WP-08 again: its repository implementation was previously merged and verified; this handoff concerns live release reconciliation and the WP-05→WP-07 corrective gate.
-- Do not claim WP-05/06/07 closed solely because historical PRs merged; use the corrective merge/run evidence recorded above. Their repository gates are closed, but Production E2E and deployed-source provenance remain NOT VERIFIED.
+- Do not claim WP-05/06/07 closed solely because historical PRs merged; use the corrective merge/run evidence recorded above. Their repository gates are closed. Source provenance is now identified but stale relative to main; valid Production E2E remains NOT VERIFIED.
 - Do not run complete against real user sessions or use random fake data in production.
 - Do not edit applied migration files or rewrite Supabase migration history.
 - Do not make additional production changes before proving the exact defect and validating a safe test path.
@@ -140,7 +140,7 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 **Next action:** verify a safe disposable completion/read E2E path. The deployed Edge source is identified but stale; migration identities and WP-05/06/07 repository gates are closed. Do not deploy the corrected Edge Function or create fake Production sessions without a proven safe test path. Overall Production release remains NOT CLOSED.
 
 
-## 6. Post-merge live-state addendum — 2026-10-10
+## 7. Post-merge live-state addendum — 2026-10-10
 
 - **Supabase Edge:** version 34, SHA-256 `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907`, exact source match to PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce` across 14 files. The deployed bundle does not contain `report-interpretation.mjs`; current main does. This is a known deployment lag, not an unknown source.
 - **Supabase migrations:** exact 51/51 repository-to-Production identity match after PR #77; duplicate prefixes resolved; remote migration history untouched.
