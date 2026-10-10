@@ -294,7 +294,7 @@ The current WP-05 repository reconciliation is therefore **PASS / MERGED / CLOSE
 - WP-06 PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The renderer accepts only the server-owned user projection.
 - WP-07 PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed.
 - WP-05 run `38033398711`, WP-09 run `38033398788`, and P3/P4/full Node baseline jobs in run `38033398737` passed.
-- No Production changes or deployments occurred.
+- No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages automatically deployed main commits after PRs #74 and #75; exact deployment IDs are recorded in §13.
 
 **WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED.**
 **Production source-to-commit provenance, migration identity reconciliation, valid completion/read E2E, and overall release: NOT VERIFIED / NOT CLOSED.**
