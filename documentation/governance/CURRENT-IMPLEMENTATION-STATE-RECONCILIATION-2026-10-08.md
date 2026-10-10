@@ -102,17 +102,17 @@ The implementation-stage contract boundary was to prepare, test, verify, documen
 | WP-03 | Complete; a duplicate architecture document still requires documentary reconciliation |
 | WP-04 | Pass / Closed / Merged within persistence-authority scope |
 | WP-05 | **CORRECTIVE RECONCILIATION CLOSED** — PR #72 merged; dedicated run `38005770371` PASS; Production runtime/E2E remains NOT VERIFIED |
-| WP-06 | **POST-CLOSURE RECONCILIATION REQUIRED** — transport/privacy boundary is not enforced by the report-validation layer |
-| WP-07 | **POST-CLOSURE RECONCILIATION REQUIRED** — semantic strings remain outside the linkage catalog |
+| WP-06 | **CORRECTIVE RECONCILIATION CLOSED** — PR #74 merged; dedicated run `38033275598` PASS; integrated run `38033398747` PASS; Production E2E remains NOT VERIFIED |
+| WP-07 | **CORRECTIVE RECONCILIATION CLOSED** — PR #75 merged; dedicated run `38033398744` PASS; Production E2E remains NOT VERIFIED |
 | WP-08 | **Pass / Closed / Merged after corrective reconciliation — production rollout not executed** |
 | WP-09 | Pass / Closed / Merged |
 | WP-10–WP-12 | Not started as implementation stages |
 
 ## 6. Correct current transition point
 
-At the time this 2026-10-08 snapshot was written, the post-WP-08 forensic audit had identified open corrective items in WP-05, WP-06, and WP-07. WP-05's two identified gaps have since been resolved at repository level by corrective PR #72, merged on 2026-10-10. WP-06 and WP-07 remain open.
+At the time this 2026-10-08 snapshot was written, the post-WP-08 forensic audit had identified open corrective items in WP-05, WP-06, and WP-07. Those repository-level gaps have since been closed by PR #72 (WP-05), PR #74 (WP-06), and PR #75 (WP-07), with dedicated/impacted workflows passing as recorded in dated addenda.
 
-**Current transition point after the 2026-10-10 evidence update: WP-06 corrective reconciliation — NOT PRODUCTION-READY.**
+**Current transition point after the 2026-10-10 evidence update: read-only Production source/provenance and migration-identity reconciliation — NOT PRODUCTION-READY.**
 
 No Production rollout decision may be treated as cleared until these reconciliation items are separately corrected and verified.
 
@@ -285,3 +285,14 @@ The two gaps described in the WP-05 section above are resolved at the repository
 - No Production data mutation or Edge deployment occurred. Valid completion/persistence E2E and source-to-deployed-bundle provenance remain **NOT VERIFIED**.
 
 The current WP-05 repository reconciliation is therefore **PASS / MERGED / CLOSED**. WP-06 and WP-07 remain post-closure reconciliation items, and the Production release remains blocked until the later gates and E2E evidence are satisfied.
+
+
+## 11. WP-06 / WP-07 corrective closeout — 2026-10-10
+
+- WP-06 PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The renderer accepts only the server-owned user projection.
+- WP-07 PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed.
+- WP-05 run `38033398711`, WP-09 run `38033398788`, and P3/P4/full Node baseline jobs in run `38033398737` passed.
+- No Production changes or deployments occurred.
+
+**WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED.**
+**Production source-to-commit provenance, migration identity reconciliation, valid completion/read E2E, and overall release: NOT VERIFIED / NOT CLOSED.**
