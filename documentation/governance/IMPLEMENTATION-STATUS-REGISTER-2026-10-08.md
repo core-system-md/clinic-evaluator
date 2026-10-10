@@ -427,7 +427,7 @@ Production remains unchanged; WP-08 migration is not present in Production migra
 | Canonical calculation entrypoint | PASS — `engine.ts` remains the sole entrypoint | Entry-point import is unchanged; dependent modules now have responsibility-based filenames |
 | Duplicate stage-named calculation modules | PASS — TARGETED CI | P3 isolated kernel **75/75 PASS**; WP-02 and WP-09 pass on commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24`; legacy parity remains under `tests/reference/score-engine-legacy.mts` |
 | Duplicate 2026-10-08 migration identities | PASS — TARGETED CI | WP-03, WP-04 and WP-08 Node/temporary PostgreSQL gates pass; ownership tests enforce exactly one path per targeted version |
-| Other migration timestamp / live-history mismatches | OPEN — HIGH RISK | 51 repository files vs 48 Supabase history records; two old duplicate-prefix groups and five non-exact production-name matches documented in reconciliation §12; no edits to applied migrations |
+| Other migration timestamp / live-history mismatches | HISTORICAL SNAPSHOT — SUPERSEDED | At the time of §17, 51 repository files vs 48 Supabase history records; the 2026-10-10 exact 51/51 identity reconciliation is recorded in §16 below |
 | Source versus Production API | OPEN — RELEASE BLOCKER | Production v32 uses `score-engine.ts` and `complete_p4_*_session`; current source uses `engine.ts` and `complete_p4_*_from_result` |
 | Targeted Node and disposable PostgreSQL checks | PASS — BOUNDED GATES | P3 isolated kernel 75/75; WP-02, WP-03, WP-04, WP-08, WP-09 and disposable PostgreSQL P4 gate passed on commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24` |
 | Production database / Edge deployment | NONE | No production mutation or deployment was performed |
@@ -474,3 +474,13 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - No Production data, migration, Cloudflare asset, or Edge Function deployment was changed.
 
 **WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED. Production source provenance, migration identity reconciliation, and valid completion/read E2E remain NOT VERIFIED.**
+
+
+## 16. Production source and migration identity reconciliation — 2026-10-10
+
+- **Migration identity:** PR #77 merged at `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; 51 Production history entries exactly match 51 repository migration filenames by version and recorded name. No missing/extra entries and no duplicate prefixes remain. No Production migration history or database schema was changed.
+- **Special history repair:** the secure report-session migration was restored to its original `created_at` body and the separately applied `started_at` correction restored as its own migration. The superseded, unapplied draft-lifecycle candidate is archived outside the active migrations directory.
+- **CI:** WP-03 `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3 kernel/P4 disposable PostgreSQL/full Node baseline `38034275402`: **SUCCESS**.
+- **Edge source provenance:** deployed `assessment-access` v34 bundle SHA `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` exactly matches all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`. This confirms the deployed Edge code is older than current main and does not contain the WP-05 report-interpretation module/history wiring.
+- **Cloudflare Pages:** auto-deploy is enabled for main. Production deployments `c81e3147` (WP-06), `6c4db491` (WP-07), and `848841c5` (migration identity update) succeeded. No Supabase DB mutation or Edge deployment accompanied them.
+- **Current status:** WP-05/06/07 repository gates and migration identity reconciliation are **PASS / CLOSED**. Valid deployed completion/read E2E remains **NOT VERIFIED**; overall release remains **NOT CLOSED** until the Edge deployment/test gate is resolved or the E2E limitation is formally recorded.
