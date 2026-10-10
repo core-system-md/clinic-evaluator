@@ -835,8 +835,8 @@ class ClinicEvaluatorApp {
 
     const q = ['Q1', 'Q2', 'Q3', 'Q4'].includes(res.classification) ? res.classification : null;
     const qData = q
-      ? (this.texts?.quartiles?.[q] || { label: report.overall?.label || 'غير متاح', color: '#C67D47' })
-      : { label: report.overall?.label || 'غير متاح', color: '#C67D47' };
+      ? (this.texts?.quartiles?.[q] || { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' })
+      : { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
 
     let trendHtml = "";
@@ -929,7 +929,7 @@ class ClinicEvaluatorApp {
     if (!this.previousSessionData?.axisScores) return '';
     
     let html = '<div style="margin-top:16px;overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:0.85rem;">';
-    html += '<thead><tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;text-align:right;">المحور</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الأساس</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">الحالي</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">التغير</th></tr></thead><tbody>';
+    html += `<thead><tr style="background:#f3f4f6;"><th style="padding:8px;border:1px solid #e5e7eb;text-align:right;">${this.t('report.axis_comparison_axis')}</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${this.t('report.axis_comparison_baseline')}</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${this.t('report.axis_comparison_current')}</th><th style="padding:8px;border:1px solid #e5e7eb;text-align:center;">${this.t('report.axis_comparison_change')}</th></tr></thead><tbody>`;
     
     const axes = this.assessment?.axes || [];
     Object.entries(currentAxisScores).forEach(([aid, currentScore]) => {
@@ -970,7 +970,7 @@ class ClinicEvaluatorApp {
       axesContainer?.parentNode?.insertBefore(benchmarkContainer, axesContainer.nextSibling);
     }
     
-    benchmarkContainer.innerHTML = '<h3 class="card-title">📊 التحليل البصري الشامل</h3>';
+    benchmarkContainer.innerHTML = `<h3 class="card-title">${this.t('report.visual_benchmark_title')}</h3>`;
     
     if (Array.isArray(report.axes)) {
       const data = report.axes.map((axis) => ({

@@ -46,8 +46,28 @@ test('WP-07 report interpretation remains the semantic report-model boundary', (
   assert.doesNotMatch(interpretation, /report_texts\.json/);
 });
 
-test('WP-07 semantic report strings are linked to catalog entries', () => {
+test('WP-07 report/presentation strings in active renderers are linked to catalog entries', () => {
  const app = fs.readFileSync('assets/js/app.js', 'utf8');
- for (const phrase of ['تغير إيجابي بمقدار', 'الأولوية التشغيلية القصوى', 'أعلى محور مقاس', 'درجتك الكلية للعيادة']) assert.equal(app.includes(phrase), false, phrase);
- for (const path of ['report.trend_positive','report.trend_negative','report.trend_stable','report.overall_sentence','report.recommendations_title','report.priority_heading','report.measured_axis_sentence','report.highest_axis_heading']) assert.ok(catalog.entries.some(entry => entry.path === path), path);
+ const renderStart = app.indexOf('  renderResults(res) {');
+ const comparisonStart = app.indexOf('  renderAxisComparison(currentAxisScores) {');
+ const benchmarkStart = app.indexOf('  renderVisualBenchmark(report) {');
+ const simulatorStart = app.indexOf('  /* ─────────────── EV SIMULATOR ─────────────── */');
+ assert.ok(renderStart >= 0 && comparisonStart > renderStart && benchmarkStart > comparisonStart && simulatorStart > benchmarkStart);
+ const renderer = app.slice(renderStart, comparisonStart);
+ const comparison = app.slice(comparisonStart, benchmarkStart);
+ const benchmark = app.slice(benchmarkStart, simulatorStart);
+ for (const phrase of ['تغير إيجابي بمقدار', 'الأولوية التشغيلية القصوى', 'أعلى محور مقاس', 'درجتك الكلية للعيادة', 'غير متاح']) assert.equal(renderer.includes(phrase), false, phrase);
+ for (const phrase of ['المحور', 'الأساس', 'الحالي', 'التغير']) assert.equal(comparison.includes(phrase), false, phrase);
+ assert.equal(benchmark.includes('التحليل البصري الشامل'), false);
+ const paths = [
+  'report.trend_positive','report.trend_negative','report.trend_stable','report.overall_sentence',
+  'report.recommendations_title','report.priority_heading','report.measured_axis_sentence',
+  'report.highest_axis_heading','report.axis_comparison_axis','report.axis_comparison_baseline',
+  'report.axis_comparison_current','report.axis_comparison_change','report.visual_benchmark_title',
+  'report.unavailable_label'
+ ];
+ for (const path of paths) {
+  assert.ok(Object.hasOwn(texts.report, path.split('.')[1]), 'missing live text: '+path);
+  assert.ok(catalog.entries.some(entry => entry.path === path), 'missing linkage: '+path);
+ }
 });
