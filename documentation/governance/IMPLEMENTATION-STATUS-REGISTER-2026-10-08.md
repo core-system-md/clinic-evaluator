@@ -469,9 +469,9 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The browser accepts only the server-owned `userReport` projection.
 - WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed and linkage-tested.
 - Integrated WP-05 run `38033398711`, WP-09 run `38033398788`, and P3 isolated kernel, P4 disposable PostgreSQL, and full Node baseline jobs in run `38033398737` passed.
-- No Supabase database mutation, migration apply, or Edge Function deployment was performed. Cloudflare Pages automatically deployed main commits `67ae293a...` and `cfd595f...` after PRs #74/#75; see §16 for deployment evidence.
+- During migration PR #77, no Supabase database mutation, migration apply, or Edge Function deployment was performed. Cloudflare Pages automatically deployed main commits `67ae293a...` and `cfd595f...` after PRs #74/#75; see §16 for deployment evidence.
 
-**WP-05 / WP-06 / WP-07 repository corrective gates and migration identity reconciliation: PASS / CLOSED. Edge source provenance is identified but stale relative to main. Valid completion/read E2E remains NOT VERIFIED; overall release remains NOT CLOSED.**
+**WP-05 / WP-06 / WP-07 repository corrective gates and migration identity reconciliation: PASS / CLOSED. Edge v35 source deployment: PASS. Valid completion/read E2E remains NOT VERIFIED; overall release remains NOT CLOSED.**
 
 
 ## 16. Production source and migration identity reconciliation — 2026-10-10
@@ -479,6 +479,18 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - **Migration identity:** PR #77 merged at `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; 51 Production history entries exactly match 51 repository migration filenames by version and recorded name. No missing/extra entries and no duplicate prefixes remain. No Production migration history or database schema was changed.
 - **Special history repair:** the secure report-session migration was restored to its original `created_at` body and the separately applied `started_at` correction restored as its own migration. The superseded, unapplied draft-lifecycle candidate is archived outside the active migrations directory.
 - **CI:** WP-03 `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3 kernel/P4 disposable PostgreSQL/full Node baseline `38034275402`: **SUCCESS**.
-- **Edge source provenance:** deployed `assessment-access` v34 bundle SHA `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` exactly matches all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`. This confirms the deployed Edge code is older than current main and does not contain the WP-05 report-interpretation module/history wiring.
+- **Edge source provenance (pre-v35 snapshot):** v34 bundle SHA `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` matched all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`. The v35 deployment superseding that state is recorded in §17.
 - **Cloudflare Pages:** auto-deploy is enabled for main. Production deployments `c81e3147` (WP-06), `6c4db491` (WP-07), and `848841c5` (migration identity update) succeeded. No Supabase DB mutation or Edge deployment accompanied them.
 - **Current status:** WP-05/06/07 repository gates and migration identity reconciliation are **PASS / CLOSED**. Valid deployed completion/read E2E remains **NOT VERIFIED**; overall release remains **NOT CLOSED** until the Edge deployment/test gate is resolved or the E2E limitation is formally recorded.
+
+
+## 17. Post-deployment verification — 2026-10-10
+
+- Corrected `assessment-access` was deployed as version **35** at `2026-10-10T07:32:15Z`.
+- Bundle SHA-256: `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`.
+- All 15 runtime files returned by Supabase exactly match current repository `main` commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`. The report-interpretation module and persisted-history wiring are present.
+- `verify_jwt=false` was preserved, matching the existing custom-token authentication model.
+- Production has zero leads, sessions, and assessment results; no designated disposable session exists, and no fake test data was created.
+- Local/disposable P4 PostgreSQL, WP-03, WP-04, WP-08, WP-05/06/07, WP-09, and the full Node baseline passed. No valid deployed completion/persisted-result/report-read trace was executed.
+
+**Current state:** source deployment and migration identity reconciliation **PASS**; valid Production E2E **NOT VERIFIED**; overall release **NOT CLOSED**.
