@@ -459,9 +459,7 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - Dedicated WP-05 run `38005770371`: **SUCCESS**.
 - Related WP-06 source-contract run `38005770377`: **SUCCESS**; WP-06 itself remains open for its own corrective boundary.
 - No Production DB mutation or Edge Function deployment was part of this work.
-- WP-03 run `38005770356` remains failed on missing migration filename `20261008090000_canonical_axis_weights.sql`.
-- WP-04 run `38005770367` remains failed on missing migration filename `20261008100000_structured_result_authority.sql`.
-- Those WP-03/WP-04 failures are explicitly left to the separate migration-name/history reconciliation; no migration file or applied migration history was changed here.
+- At that point, WP-03 run `38005770356` and WP-04 run `38005770367` failed because tests referenced superseded migration filenames. This historical result is superseded by migration-identity PR #77: WP-03 run `38034275409` and WP-04 run `38034275445` now pass on the canonical paths.
 
 **Current WP-05 state: corrective repository reconciliation PASS / MERGED / CLOSED. The overall Production release remains NOT CLOSED.**
 
