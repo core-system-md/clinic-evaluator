@@ -41,8 +41,8 @@ This is the authoritative correction. The earlier conversational claim was a rep
 | WP-03 | Configuration semantics | `wp-03/correct-configuration-semantics-2026-10-08` | #57 | Run `37739494944` | merge commit `8550b982d5c933c0948e42d70265b43685d990c5` | NO | CLOSED |
 | WP-04 | Structured Result authority/persistence | `wp-04/result-model-persistence-2026-10-08` | #58 | Run `37741449245` | merge commit `e4d582bb51b74fe9e4dbf5251504deed4a558505` | NO | CLOSED |
 | WP-05 | Report interpretation | `wp05-corrective-semantic-ownership-2026-10-10` | #72 (supersedes closed #69) | Run `38005770371` | corrective merge `270d868825d83aa50624ef7ccd40313eef0c9bfc` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
-| WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
-| WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
+| WP-06 | Report validation gate | `wp06-corrective-transport-projection-2026-10-10` | #74 | Run `38033275598` (integrated `38033398747`) | corrective merge `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
+| WP-07 | Report text/model linkage | `wp07-corrective-presentation-linkage-2026-10-10` | #75 | Run `38033398744` | corrective merge `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
 | WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 + corrective #65 | Original run `37748440553`; corrected run `37776556545` | original `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`; corrective merge `ebd375e883e9faeb8659fc5bef312f343f0aa504` | NO | **CLOSED AFTER CORRECTION** |
 | WP-09 | Obsolete engine/runtime references | `wp-09-remove-obsolete-engine-references-2026-10-08` | #64 | Runs `37762105060`, `37762220883`; final job `113261161511` | merge commit `74b2c269511b27d80b3cbc957aba80c3c4167929` | NO | CLOSED |
 
@@ -398,9 +398,9 @@ The later contract audit distinguishes historical stage PASS from current contra
 
 **WP-05 (historical pre-correction note):** the implementation/test PASS remains valid as execution evidence. The subsequently identified contract-completeness and normal-history integration gaps were resolved by corrective PR #72; see §14 for current evidence.
 
-**WP-06:** historical implementation/test PASS remains valid for report projection validation, but current contract reconciliation is required for transport-level prevention of raw Structured Result exposure to the browser.
+**WP-06 (historical pre-correction snapshot):** the earlier implementation/test PASS remains valid for projection validation; the transport-level raw-Structured-Result gap was later corrected by PR #74 (see §15).
 
-**WP-07:** historical implementation/test PASS remains valid for the cataloged text asset, but current contract reconciliation is required because semantic report/presentation strings remain outside the declared linkage catalog.
+**WP-07 (historical pre-correction snapshot):** the earlier catalog test PASS remains valid; remaining hardcoded report/presentation labels were later corrected by PR #75 (see §15).
 
 **WP-08:** corrective PR #65 restored the missing V1 Consistency configuration and canonical 0–100 Patient Journey weights. Corrected dedicated workflow **37776556545 = SUCCESS**; corrective merge **ebd375e883e9faeb8659fc5bef312f343f0aa504**. WP-08 is therefore closed after correction.
 
@@ -427,7 +427,7 @@ Production remains unchanged; WP-08 migration is not present in Production migra
 | Canonical calculation entrypoint | PASS — `engine.ts` remains the sole entrypoint | Entry-point import is unchanged; dependent modules now have responsibility-based filenames |
 | Duplicate stage-named calculation modules | PASS — TARGETED CI | P3 isolated kernel **75/75 PASS**; WP-02 and WP-09 pass on commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24`; legacy parity remains under `tests/reference/score-engine-legacy.mts` |
 | Duplicate 2026-10-08 migration identities | PASS — TARGETED CI | WP-03, WP-04 and WP-08 Node/temporary PostgreSQL gates pass; ownership tests enforce exactly one path per targeted version |
-| Other migration timestamp / live-history mismatches | OPEN — HIGH RISK | 51 repository files vs 48 Supabase history records; two old duplicate-prefix groups and five non-exact production-name matches documented in reconciliation §12; no edits to applied migrations |
+| Other migration timestamp / live-history mismatches | HISTORICAL SNAPSHOT — SUPERSEDED | At the time of §17, 51 repository files vs 48 Supabase history records; the 2026-10-10 exact 51/51 identity reconciliation is recorded in §16 below |
 | Source versus Production API | OPEN — RELEASE BLOCKER | Production v32 uses `score-engine.ts` and `complete_p4_*_session`; current source uses `engine.ts` and `complete_p4_*_from_result` |
 | Targeted Node and disposable PostgreSQL checks | PASS — BOUNDED GATES | P3 isolated kernel 75/75; WP-02, WP-03, WP-04, WP-08, WP-09 and disposable PostgreSQL P4 gate passed on commit `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24` |
 | Production database / Edge deployment | NONE | No production mutation or deployment was performed |
@@ -459,8 +459,38 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - Dedicated WP-05 run `38005770371`: **SUCCESS**.
 - Related WP-06 source-contract run `38005770377`: **SUCCESS**; WP-06 itself remains open for its own corrective boundary.
 - No Production DB mutation or Edge Function deployment was part of this work.
-- WP-03 run `38005770356` remains failed on missing migration filename `20261008090000_canonical_axis_weights.sql`.
-- WP-04 run `38005770367` remains failed on missing migration filename `20261008100000_structured_result_authority.sql`.
-- Those WP-03/WP-04 failures are explicitly left to the separate migration-name/history reconciliation; no migration file or applied migration history was changed here.
+- At that point, WP-03 run `38005770356` and WP-04 run `38005770367` failed because tests referenced superseded migration filenames. This historical result is superseded by migration-identity PR #77: WP-03 run `38034275409` and WP-04 run `38034275445` now pass on the canonical paths.
 
 **Current WP-05 state: corrective repository reconciliation PASS / MERGED / CLOSED. The overall Production release remains NOT CLOSED.**
+
+
+## 15. WP-06 / WP-07 corrective closeout — 2026-10-10
+
+- WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The browser accepts only the server-owned `userReport` projection.
+- WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed and linkage-tested.
+- Integrated WP-05 run `38033398711`, WP-09 run `38033398788`, and P3 isolated kernel, P4 disposable PostgreSQL, and full Node baseline jobs in run `38033398737` passed.
+- During migration PR #77, no Supabase database mutation, migration apply, or Edge Function deployment was performed. Cloudflare Pages automatically deployed main commits `67ae293a...` and `cfd595f...` after PRs #74/#75; see §16 for deployment evidence.
+
+**WP-05 / WP-06 / WP-07 repository corrective gates and migration identity reconciliation: PASS / CLOSED. Edge v35 source deployment: PASS. Valid completion/read E2E remains NOT VERIFIED; overall release remains NOT CLOSED.**
+
+
+## 16. Production source and migration identity reconciliation — 2026-10-10
+
+- **Migration identity:** PR #77 merged at `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; 51 Production history entries exactly match 51 repository migration filenames by version and recorded name. No missing/extra entries and no duplicate prefixes remain. No Production migration history or database schema was changed.
+- **Special history repair:** the secure report-session migration was restored to its original `created_at` body and the separately applied `started_at` correction restored as its own migration. The superseded, unapplied draft-lifecycle candidate is archived outside the active migrations directory.
+- **CI:** WP-03 `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3 kernel/P4 disposable PostgreSQL/full Node baseline `38034275402`: **SUCCESS**.
+- **Edge source provenance (pre-v35 snapshot):** v34 bundle SHA `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` matched all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`. The v35 deployment superseding that state is recorded in §17.
+- **Cloudflare Pages:** auto-deploy is enabled for main. Production deployments `c81e3147` (WP-06), `6c4db491` (WP-07), and `848841c5` (migration identity update) succeeded. No Supabase DB mutation or Edge deployment accompanied them.
+- **Current status:** WP-05/06/07 repository gates and migration identity reconciliation are **PASS / CLOSED**. Valid deployed completion/read E2E remains **NOT VERIFIED**; overall release remains **NOT CLOSED** until the Edge deployment/test gate is resolved or the E2E limitation is formally recorded.
+
+
+## 17. Post-deployment verification — 2026-10-10
+
+- Corrected `assessment-access` was deployed as version **35** at `2026-10-10T07:32:15Z`.
+- Bundle SHA-256: `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`.
+- All 15 runtime files returned by Supabase exactly match current repository `main` commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`. The report-interpretation module and persisted-history wiring are present.
+- `verify_jwt=false` was preserved, matching the existing custom-token authentication model.
+- Production has zero leads, sessions, and assessment results; no designated disposable session exists, and no fake test data was created.
+- Local/disposable P4 PostgreSQL, WP-03, WP-04, WP-08, WP-05/06/07, WP-09, and the full Node baseline passed. No valid deployed completion/persisted-result/report-read trace was executed.
+
+**Current state:** source deployment and migration identity reconciliation **PASS**; valid Production E2E **NOT VERIFIED**; overall release **NOT CLOSED**.

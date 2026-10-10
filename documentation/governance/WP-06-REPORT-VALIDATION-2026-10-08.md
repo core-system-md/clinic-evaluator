@@ -69,3 +69,17 @@ WP-06 satisfies its independent final-contract acceptance boundary.
 Next canonical stage:
 
 **WP-07 — Rebuild report text and model linkage**
+
+
+## 6. Post-closure corrective reconciliation — 2026-10-10
+
+A post-closure review found that the browser still had a temporary path accepting raw `structuredResult` and projecting it locally. This did not satisfy the approved server-owned user-projection boundary.
+
+- Corrective PR #74 merged to `main` at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`.
+- Dedicated WP-06 workflow run `38033275598`: **SUCCESS**.
+- Integrated WP-06 workflow run `38033398747`: **SUCCESS**.
+- Impacted WP-05 renderer contract run `38033398711`: **SUCCESS**.
+- The renderer now accepts only `userReport`, validates it before rendering and validates the rendered text, and fails closed for legacy/raw payloads.
+- No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages automatically deployed main commit `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337` in successful production deployment `c81e3147` at `2026-10-10T07:07:12Z` because main auto-deploy is enabled.
+
+**WP-06 corrective repository gate: PASS / CLOSED.** Production completion/read E2E remains NOT VERIFIED.

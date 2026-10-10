@@ -102,17 +102,17 @@ The implementation-stage contract boundary was to prepare, test, verify, documen
 | WP-03 | Complete; a duplicate architecture document still requires documentary reconciliation |
 | WP-04 | Pass / Closed / Merged within persistence-authority scope |
 | WP-05 | **CORRECTIVE RECONCILIATION CLOSED** — PR #72 merged; dedicated run `38005770371` PASS; Production runtime/E2E remains NOT VERIFIED |
-| WP-06 | **POST-CLOSURE RECONCILIATION REQUIRED** — transport/privacy boundary is not enforced by the report-validation layer |
-| WP-07 | **POST-CLOSURE RECONCILIATION REQUIRED** — semantic strings remain outside the linkage catalog |
+| WP-06 | **CORRECTIVE RECONCILIATION CLOSED** — PR #74 merged; dedicated run `38033275598` PASS; integrated run `38033398747` PASS; Production E2E remains NOT VERIFIED |
+| WP-07 | **CORRECTIVE RECONCILIATION CLOSED** — PR #75 merged; dedicated run `38033398744` PASS; Production E2E remains NOT VERIFIED |
 | WP-08 | **Pass / Closed / Merged after corrective reconciliation — production rollout not executed** |
 | WP-09 | Pass / Closed / Merged |
 | WP-10–WP-12 | Not started as implementation stages |
 
 ## 6. Correct current transition point
 
-At the time this 2026-10-08 snapshot was written, the post-WP-08 forensic audit had identified open corrective items in WP-05, WP-06, and WP-07. WP-05's two identified gaps have since been resolved at repository level by corrective PR #72, merged on 2026-10-10. WP-06 and WP-07 remain open.
+At the time this 2026-10-08 snapshot was written, the post-WP-08 forensic audit had identified open corrective items in WP-05, WP-06, and WP-07. Those repository-level gaps have since been closed by PR #72 (WP-05), PR #74 (WP-06), and PR #75 (WP-07), with dedicated/impacted workflows passing as recorded in dated addenda.
 
-**Current transition point after the 2026-10-10 evidence update: WP-06 corrective reconciliation — NOT PRODUCTION-READY.**
+**Current transition point after the 2026-10-10 evidence update: read-only Production source/provenance and migration-identity reconciliation — NOT PRODUCTION-READY.**
 
 No Production rollout decision may be treated as cleared until these reconciliation items are separately corrected and verified.
 
@@ -249,9 +249,11 @@ The broad Node baseline job in run `37920650157` remains **FAIL** on four P5 edi
 These results verify the bounded source/test change, not production compatibility. The overall phase remains **NOT CLOSED**; do not start a later WP or infer production release approval.
 
 
-## 12. Repository-to-Production migration provenance — read-only inventory
+## 12. Historical repository-to-Production migration inventory — 2026-10-09 snapshot
 
-The focused branch has **51** SQL migration files, while Supabase reports **48** migration-history entries. The target three migrations dated 2026-10-08 are now each represented once by a functional filename and are absent from Production history. The existing older history is not yet safe for blanket renaming.
+**Historical snapshot:** the counts and unresolved candidate mappings in this section describe the state before the 2026-10-10 reconciliation. They are superseded by §13 below; retain them only as the audit trail.
+
+The focused branch then had **51** SQL migration files, while Supabase reported **48** migration-history entries. The target three migrations dated 2026-10-08 are now each represented once by a functional filename and are absent from Production history. The existing older history is not yet safe for blanket renaming.
 
 Two pre-existing repository version-prefix collisions remain, and both must remain untouched until the ordered SQL and live migration provenance are reconciled:
 
@@ -285,3 +287,58 @@ The two gaps described in the WP-05 section above are resolved at the repository
 - No Production data mutation or Edge deployment occurred. Valid completion/persistence E2E and source-to-deployed-bundle provenance remain **NOT VERIFIED**.
 
 The current WP-05 repository reconciliation is therefore **PASS / MERGED / CLOSED**. WP-06 and WP-07 remain post-closure reconciliation items, and the Production release remains blocked until the later gates and E2E evidence are satisfied.
+
+
+## 11. WP-06 / WP-07 corrective closeout — 2026-10-10
+
+- WP-06 PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The renderer accepts only the server-owned user projection.
+- WP-07 PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed.
+- WP-05 run `38033398711`, WP-09 run `38033398788`, and P3/P4/full Node baseline jobs in run `38033398737` passed.
+- No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages automatically deployed main commits after PRs #74 and #75; exact deployment IDs are recorded in §13.
+
+**WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED.**
+**Production source-to-commit provenance, migration identity reconciliation, valid completion/read E2E, and overall release: NOT VERIFIED / NOT CLOSED.**
+
+
+## 13. Current Production provenance and migration reconciliation — 2026-10-10
+
+### Migration identity reconciliation
+- Supabase reports **51** migration-history entries; the active repository `supabase/migrations` directory now has **51** files.
+- Exact comparison by `version + recorded name`: **51/51 matched**, zero missing/extra identities, zero duplicate version prefixes.
+- The two former local collisions at `20261003233000` and `20261004150000` are resolved by restoring the actual Production version identities.
+- Five previously non-exact Production names now map to their recorded identities. The secure report-session history is restored as two separate migrations: original `created_at` behavior at `20261003181243`, followed by the separately applied `started_at` correction at `20261003181305`.
+- The unapplied `p5_assessment_lifecycle_correction` candidate was archived outside the active migration directory because its only function is superseded by the later applied draft-delete fix. Its exact source blob is preserved.
+- No Supabase migration was applied, repaired, or deleted from Production; remote migration history was not modified.
+- Verification PR #77 merged as `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`. WP-03 run `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3/P4 disposable PostgreSQL/full Node run `38034275402` all passed.
+
+### Deployed Edge source provenance
+- Before the corrective deployment, Production `assessment-access` v34 (SHA-256 `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907`) matched all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`.
+- After the WP-05/WP-06/WP-07 repository gates and migration identity reconciliation passed, `assessment-access` v35 was deployed at `2026-10-10T07:32:15Z`, bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`.
+- All **15 runtime files** in v35 exactly match current `main` commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`, including `report-interpretation.mjs` and persisted history provenance. The existing custom-auth configuration `verify_jwt=false` was preserved.
+- Deployment source verification: **PASS**. This confirms the WP-05 corrected semantics are now deployed; it does not substitute for a valid completion/persistence/report-read E2E trace.
+
+### Cloudflare Pages deployment truth
+The Pages project `clinicevaluat` is configured to auto-deploy `main`. Successful production deployments occurred automatically after merges:
+- `c81e3147`, commit `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`, 2026-10-10 07:07:12 UTC (WP-06 frontend correction).
+- `6c4db491`, commit `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`, 2026-10-10 07:09:07 UTC (WP-07 catalog correction).
+- `848841c5`, commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`, 2026-10-10 07:24:48 UTC (migration-identity repository update; no frontend source change).
+No database mutation or Edge deployment accompanied these Pages deployments.
+
+### Current release gate
+- WP-05/WP-06/WP-07 repository corrective gates: **PASS / CLOSED**.
+- Migration identity reconciliation: **PASS / CLOSED**.
+- Deployed Edge source provenance and current-source deployment: **PASS** (v35; 15 runtime files match current main; `verify_jwt=false` preserved).
+- Production currently has **0 leads, 0 sessions, and 0 assessment results**, with no designated disposable test session. No fake Production data was created.
+- Valid completion + persisted Structured Result + returned user-report E2E through the deployed Edge API: **NOT VERIFIED**. P4 disposable PostgreSQL and the focused WP-05/06/07 suites pass, but no valid live completion trace exists.
+- Overall Production release: **NOT CLOSED** until an approved safe runtime E2E path is available or the release owner explicitly accepts the NOT VERIFIED gate.
+
+
+## 2026-10-10 session closeout — current authoritative continuation
+
+This dated addendum supersedes prior next-transition statements in this historical reconciliation snapshot.
+
+- WP-05/WP-06/WP-07 repository corrective gates: PASS/CLOSED (PR #72/#74/#75; see current Handoff §8).
+- Migration identity reconciliation: PASS/CLOSED by PR #77 merge `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; 51/51 Production version/name identities match repository migration filenames. This does not assert SQL checksum equality. No Production migration history or schema was modified.
+- Deployed `assessment-access` v35 bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`; all 15 runtime files exactly match main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; `verify_jwt=false` preserved.
+- Valid deployed completion/persistence/report-read E2E remains NOT VERIFIED because no approved disposable Production session/path was available and no fake data was created. Overall release remains NOT CLOSED.
+- **Only remaining task:** identify/use an approved isolated E2E route, verify completion → persisted Structured Result → user-report read and invalid/expired-token rejection, or document the safety/authorization blocker and stop. Do not redo closed gates or mutate Production to manufacture test evidence.
