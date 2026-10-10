@@ -65,7 +65,7 @@ These are API-declared counts, not an exhaustive content-integrity proof. A prio
 - No successful disposable/test assessment has been completed end-to-end through deployed version 34 and its Structured Result persistence path.
 - No evidence proves the saved report returned to the user is correct after completion.
 - Exact live-to-repository deployed-source commit mapping is not yet proven by the bundle hash.
-- WP-05/WP-06/WP-07 corrective reconciliation is not established as fully closed.
+- At initial Handoff creation, WP-05/WP-06/WP-07 corrective reconciliation was not established as fully closed. WP-05 has since been closed at repository level by corrective PR #72; WP-06 and WP-07 remain open, and Production E2E remains NOT VERIFIED.
 - The broad Node baseline historically failed four unrelated P5 editor assertions (tests 9, 12, 17, 18); check latest Actions before relying on historical status.
 - Production release is NOT CLOSED.
 
@@ -78,24 +78,35 @@ Governance records exist:
 
 Older portions of the reconciliation/status register say Production was untouched and rollout was blocked. Those statements were true at their historical timestamp but are now stale because Production migrations and Edge Function v34 have since been applied/deployed. Treat this handoff as the newer live-state addendum; do not rewrite historical evidence as though the older statements were never true.
 
-### Active WP-05 corrective PR
-GitHub search reports PR #69, “WP-05 reconciliation: restore complete report semantic ownership”:
-- Branch: reconciliation-wp05-report-interpretation-2026-10-08
-- Base: main at 543ac1352d23ff1acf75754154df5bbc8994cad8
-- Head: 2c9d8e8508b7d0de25a96fcdfe1a2fdc3a1df0bf
-- State: OPEN, not merged; mergeable=false
-- PR reports 90 commits, so do not merge blindly. Inspect its actual diff/history and dedicated WP-05 workflow first.
+### WP-05 corrective PR — resolved 2026-10-10
 
-PR #56 is an old draft/historical stacked branch; do not revive it as the canonical WP-05 reconciliation.
+Canonical corrective PR #72, “WP-05 corrective: restore report semantics and history provenance”:
+- Branch: `wp05-corrective-semantic-ownership-2026-10-10`
+- Head before squash merge: `d94607ccacc3421e42ae20f19957383cd165c12f`
+- Squash merge to `main`: `270d868825d83aa50624ef7ccd40313eef0c9bfc`
+- Dedicated WP-05 workflow run `38005770371`: **SUCCESS**
+- Related WP-06 report-validation workflow run `38005770377`: **SUCCESS**
+- P3 kernel `38005770365`, WP-02 `38005770363`, WP-09 `38005770318`: **SUCCESS**
+- PR #69 was closed unmerged as superseded; GitHub comment ID `6091206906` records why. PR #69’s 90-commit diff was not merged.
 
-## 4. Exact continuation point — do this first next conversation
-Resume at read-only verification of WP-05 corrective PR #69 and its dedicated CI, not at WP-01 and not at another Production deployment.
+The merged change closes WP-05’s repository-level contract reconciliation: explicit family report models, server-owned report projection semantics, and persisted previous-session provenance wired to trend evaluation. It did not mutate Production or deploy an Edge Function.
 
-1. Read the current governing contract and WP-05 reconciliation document from main; compare them to PR #69's exact changed-file list and diff.
-2. Retrieve latest commit/check status and the dedicated WP-05 workflow run for PR #69. Record exact run IDs and conclusions. Do not infer pass from historical runs.
-3. If the PR is broad/stacked or its base/head is stale, isolate the minimum WP-05-only patch on a fresh branch based on current main; do not merge the 90-commit PR as-is.
-4. Implement and test WP-05 only: complete family-specific report semantics and ensure normal history provenance reaches trend interpretation, as required by the contract. Do not change scoring formulas, question content, assessment versions, or Production.
-5. Close/document WP-05 with its own evidence, then stop and report. Only proceed to WP-06 when the owner’s existing authorization to finish the release still applies and WP-05 is demonstrably closed.
+PR #72’s branch CI also exposed two unrelated known repository/workflow path failures that remain for migration-name/history reconciliation:
+- WP-03 run `38005770356`: expected `supabase/migrations/20261008090000_canonical_axis_weights.sql` is absent from the current source tree.
+- WP-04 run `38005770367`: expected `supabase/migrations/20261008100000_structured_result_authority.sql` is absent from the current source tree.
+No migrations or test harnesses for those work packages were changed here.
+
+## 4. Exact continuation point — after WP-05 closeout
+
+**WP-05 is complete at the repository implementation boundary and this conversation stops here.** Do not restart WP-05 or repeat its tests as a new task without a new finding.
+
+1. The canonical fix is PR #72, merged to `main` at `270d868825d83aa50624ef7ccd40313eef0c9bfc`; WP-05 run `38005770371` is **SUCCESS**.
+2. The old stacked PR #69 is closed unmerged and must not be revived.
+3. WP-03/WP-04 failures on missing migration paths are recorded above and remain assigned to the separate migration-name/history reconciliation. Do not alter migrations in the WP-05 closeout.
+4. The next *separate* corrective item, if the owner’s existing release authorization still applies, is WP-06. Do not begin WP-06 automatically in this handoff.
+5. WP-07 follows only after WP-06 is separately corrected and evidenced. The controlled E2E and overall release gate remain later tasks.
+
+Do not change scoring formulas, questionnaire content, published assessment versions, Production database state, routes, or the deployed Edge Function as part of this WP-05 closeout.
 6. WP-06 scope: ensure browser responses expose only the approved user projection, not raw persisted Structured Result. Add focused tests; do not broaden into unrelated security redesign.
 7. WP-07 scope: move remaining semantic report/presentation strings out of assets/js/app.js into the contract-defined catalog/linkage model; focused tests only.
 8. After all three are closed, run a controlled disposable E2E assessment through the exact deployed API path. If a disposable live-production session cannot be safely created and cleaned without touching real user data, mark Production E2E NOT VERIFIED and use a local/disposable database harness instead.
@@ -111,7 +122,7 @@ Resume at read-only verification of WP-05 corrective PR #69 and its dedicated CI
 | Invalid token rejection | PASS (negative smoke only) | HTTP 401 for invalid/expired token |
 | Valid completion + Structured Result persistence E2E | NOT VERIFIED | No successful disposable completion trace |
 | User-facing saved report correctness | NOT VERIFIED | No post-completion result-read assertion |
-| WP-05 corrective closure | OPEN / NOT VERIFIED | PR #69 open; mergeable false; latest dedicated workflow not yet verified |
+| WP-05 corrective closure | **PASS / CLOSED (repository)** | PR #72 merged at `270d868825d83aa50624ef7ccd40313eef0c9bfc`; dedicated run `38005770371` SUCCESS; Production E2E remains NOT VERIFIED |
 | WP-06 corrective closure | OPEN / NOT VERIFIED | No current closure evidence after corrective audit |
 | WP-07 corrective closure | OPEN / NOT VERIFIED | No current closure evidence after corrective audit |
 | Exact deployed source-to-commit provenance | NOT VERIFIED | Bundle hash available; matching repository artifact/commit not established |
@@ -120,9 +131,9 @@ Resume at read-only verification of WP-05 corrective PR #69 and its dedicated CI
 ## 6. Guardrails / do not do
 - Do not treat “migration/function deployed” as equivalent to “release complete.”
 - Do not start WP-08 again: its repository implementation was previously merged and verified; this handoff concerns live release reconciliation and the WP-05→WP-07 corrective gate.
-- Do not claim WP-05/06/07 closed solely because their historical PRs merged.
+- Do not claim WP-06 or WP-07 closed solely because historical PRs merged. WP-05 is closed only on the corrective evidence and merge recorded above; its Production E2E gate remains NOT VERIFIED.
 - Do not run complete against real user sessions or use random fake data in production.
 - Do not edit applied migration files or rewrite Supabase migration history.
 - Do not make additional production changes before proving the exact defect and validating a safe test path.
 
-**Next action:** Audit PR #69 and its current WP-05 CI/diff; isolate and close WP-05 only, then stop with evidence.
+**Next action:** Stop after the completed WP-05 closeout. The next authorized corrective stage is WP-06 in a separate continuation; overall Production release remains NOT CLOSED.

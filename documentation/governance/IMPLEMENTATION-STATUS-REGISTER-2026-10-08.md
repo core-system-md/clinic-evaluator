@@ -40,7 +40,7 @@ This is the authoritative correction. The earlier conversational claim was a rep
 | WP-02 | Canonical `engine.ts` | `wp-02/establish-engine-ts-2026-10-07` | #55 | dedicated P3/contract/browser checks; recorded in WP-02 doc | merge commit `dc00a4cdf4014fa9edc76e6c3133303bda3fe668` | NO | CLOSED |
 | WP-03 | Configuration semantics | `wp-03/correct-configuration-semantics-2026-10-08` | #57 | Run `37739494944` | merge commit `8550b982d5c933c0948e42d70265b43685d990c5` | NO | CLOSED |
 | WP-04 | Structured Result authority/persistence | `wp-04/result-model-persistence-2026-10-08` | #58 | Run `37741449245` | merge commit `e4d582bb51b74fe9e4dbf5251504deed4a558505` | NO | CLOSED |
-| WP-05 | Report interpretation | `wp-05-report-interpretation-2026-10-08` | #59 | Run `37742137612` | merge commit `ee357a4e23d0c006783da9cdf236da3491c77c97` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
+| WP-05 | Report interpretation | `wp05-corrective-semantic-ownership-2026-10-10` | #72 (supersedes closed #69) | Run `38005770371` | corrective merge `270d868825d83aa50624ef7ccd40313eef0c9bfc` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
 | WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
 | WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
 | WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 + corrective #65 | Original run `37748440553`; corrected run `37776556545` | original `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`; corrective merge `ebd375e883e9faeb8659fc5bef312f343f0aa504` | NO | **CLOSED AFTER CORRECTION** |
@@ -396,7 +396,7 @@ No content, version, routing, deletion or production decision may be inferred as
 
 The later contract audit distinguishes historical stage PASS from current contract-clean status.
 
-**WP-05:** historical implementation/test PASS remains valid as execution evidence, but current contract reconciliation is required for complete assessment-specific report models and normal-history provenance integration.
+**WP-05 (historical pre-correction note):** the implementation/test PASS remains valid as execution evidence. The subsequently identified contract-completeness and normal-history integration gaps were resolved by corrective PR #72; see §14 for current evidence.
 
 **WP-06:** historical implementation/test PASS remains valid for report projection validation, but current contract reconciliation is required for transport-level prevention of raw Structured Result exposure to the browser.
 
@@ -450,3 +450,17 @@ Latest tested candidate: `5e2517060be51d209d8387bcd7f4c2fd7cf3ca24`.
 | [WP-09 #96](https://github.com/core-system-md/clinic-evaluator/actions/runs/37920650164) | PASS |
 
 The full-Node baseline's four P5 assertions remain visible and outside this change's file scope. None of these repository/ephemeral-PostgreSQL checks validates or changes Production.
+
+
+## 14. WP-05 post-closure reconciliation update — 2026-10-10
+
+The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. The later contract-completeness and normal-history integration gaps were addressed separately by corrective PR #72, merged to `main` at `270d868825d83aa50624ef7ccd40313eef0c9bfc`.
+
+- Dedicated WP-05 run `38005770371`: **SUCCESS**.
+- Related WP-06 source-contract run `38005770377`: **SUCCESS**; WP-06 itself remains open for its own corrective boundary.
+- No Production DB mutation or Edge Function deployment was part of this work.
+- WP-03 run `38005770356` remains failed on missing migration filename `20261008090000_canonical_axis_weights.sql`.
+- WP-04 run `38005770367` remains failed on missing migration filename `20261008100000_structured_result_authority.sql`.
+- Those WP-03/WP-04 failures are explicitly left to the separate migration-name/history reconciliation; no migration file or applied migration history was changed here.
+
+**Current WP-05 state: corrective repository reconciliation PASS / MERGED / CLOSED. The overall Production release remains NOT CLOSED.**

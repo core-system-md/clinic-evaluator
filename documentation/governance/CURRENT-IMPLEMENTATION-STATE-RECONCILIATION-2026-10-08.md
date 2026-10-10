@@ -101,7 +101,7 @@ The implementation-stage contract boundary was to prepare, test, verify, documen
 | WP-02 | Complete within scoped engine-establishment boundary |
 | WP-03 | Complete; a duplicate architecture document still requires documentary reconciliation |
 | WP-04 | Pass / Closed / Merged within persistence-authority scope |
-| WP-05 | **POST-CLOSURE RECONCILIATION REQUIRED** — report-model completeness and history-provenance integration gaps |
+| WP-05 | **CORRECTIVE RECONCILIATION CLOSED** — PR #72 merged; dedicated run `38005770371` PASS; Production runtime/E2E remains NOT VERIFIED |
 | WP-06 | **POST-CLOSURE RECONCILIATION REQUIRED** — transport/privacy boundary is not enforced by the report-validation layer |
 | WP-07 | **POST-CLOSURE RECONCILIATION REQUIRED** — semantic strings remain outside the linkage catalog |
 | WP-08 | **Pass / Closed / Merged after corrective reconciliation — production rollout not executed** |
@@ -110,17 +110,9 @@ The implementation-stage contract boundary was to prepare, test, verify, documen
 
 ## 6. Correct current transition point
 
-The project is **not** at “WP-08 pre-implementation”, and it is also **not yet contract-clean for Production rollout**.
+At the time this 2026-10-08 snapshot was written, the post-WP-08 forensic audit had identified open corrective items in WP-05, WP-06, and WP-07. WP-05's two identified gaps have since been resolved at repository level by corrective PR #72, merged on 2026-10-10. WP-06 and WP-07 remain open.
 
-The WP-08 implementation has now been corrected and closed, but the post-closure forensic audit identified unresolved contract deviations in the report stages:
-
-- WP-05 report-model completeness and normal-history provenance integration;
-- WP-06 transport/privacy enforcement for Structured Result;
-- WP-07 full semantic ownership/linkage coverage.
-
-Therefore the current point is:
-
-**POST-WP-08 CORRECTIVE RECONCILIATION GATE — NOT PRODUCTION-READY**
+**Current transition point after the 2026-10-10 evidence update: WP-06 corrective reconciliation — NOT PRODUCTION-READY.**
 
 No Production rollout decision may be treated as cleared until these reconciliation items are separately corrected and verified.
 
@@ -175,7 +167,7 @@ It does **not** authorize a Production migration or other Production mutation.
 
 The prior stage records remain historical evidence of their executed implementations and dedicated test runs. A later contract audit, however, found that several closure claims were broader than the actual implementation boundaries.
 
-### WP-05 — reconciliation required
+### WP-05 — post-closure gap and resolution
 
 The current report model registry provides purpose, KPI allow-list, and an economic flag, but it does not independently encode all required assessment-family semantics listed in contract §15: measured constructs, axes/components, diagnostic meanings, permitted user-facing conclusions, and text/template catalog.
 
@@ -279,3 +271,17 @@ The read-only comparison also surfaced five Production migration names without a
 | `20261004102003 / p5_delete_draft_cascade_fix_2026_10_04` | `20261004140000_p5_delete_draft_cascade_fix.sql` |
 
 More broadly, several Production migration `version` identifiers differ from the timestamp prefix in their repository filename even where the migration names appear to correspond. The current evidence does not justify editing the remote migration history, renaming any applied migration, or deleting the older duplicate-prefix files. Next safe action for this subproblem is a per-record content/hash/sequence reconciliation and a documented disposition; no database operation is implied.
+
+
+## 10. Post-closure reconciliation result — 2026-10-10
+
+The two gaps described in the WP-05 section above are resolved at the repository implementation boundary by PR #72, squash-merged to `main` as `270d868825d83aa50624ef7ccd40313eef0c9bfc`.
+
+- The five report-family models now explicitly declare axis/construct roles, supported KPIs, economic eligibility, diagnostic meanings, permitted conclusions, and template-catalog linkage.
+- The Edge Function's fresh-completion, idempotent-completion, and saved-result paths pass prior-session provenance from the persisted history adapter into the server report projection. The existing cooldown rule is preserved.
+- The projection owns axis bands and trend direction; the browser renders the interpreted projection. The temporary legacy payload fallback remains compatibility-only and is interpreted/validated before rendering.
+- Dedicated WP-05 run `38005770371`: **SUCCESS**. Related WP-06 validation workflow run `38005770377`: **SUCCESS**.
+- The old stacked PR #69 was closed unmerged as superseded by PR #72.
+- No Production data mutation or Edge deployment occurred. Valid completion/persistence E2E and source-to-deployed-bundle provenance remain **NOT VERIFIED**.
+
+The current WP-05 repository reconciliation is therefore **PASS / MERGED / CLOSED**. WP-06 and WP-07 remain post-closure reconciliation items, and the Production release remains blocked until the later gates and E2E evidence are satisfied.
