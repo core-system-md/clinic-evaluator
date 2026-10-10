@@ -76,7 +76,7 @@ test("WP-04 engine persists only a projection of the Structured Result", () => {
 });
 
 test("WP-04 persistence migration rejects obsolete internal result fields", () => {
-  const sql=fs.readFileSync("supabase/migrations/20261008100000_structured_result_authority.sql","utf8");
+  const sql=fs.readFileSync("supabase/migrations/20261009164951_structured_result_authority.sql","utf8");
   assert.ok(sql.includes("p_result ? 'resolvedSelections'"));
   assert.ok(sql.includes("p_result ? 'axisPersistenceRows'"));
   assert.match(sql,/assessment_results/);
@@ -84,7 +84,7 @@ test("WP-04 persistence migration rejects obsolete internal result fields", () =
 });
 
 test("WP-04 migration validates canonical percentage-point weights", () => {
- const sql=fs.readFileSync("supabase/migrations/20261008100000_structured_result_authority.sql","utf8");
+ const sql=fs.readFileSync("supabase/migrations/20261009164951_structured_result_authority.sql","utf8");
  assert.match(sql, /weight > 100/);
  assert.doesNotMatch(sql, /weight > 1\b/);
 });
