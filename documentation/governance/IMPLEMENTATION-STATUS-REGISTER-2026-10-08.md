@@ -469,9 +469,9 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The browser accepts only the server-owned `userReport` projection.
 - WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed and linkage-tested.
 - Integrated WP-05 run `38033398711`, WP-09 run `38033398788`, and P3 isolated kernel, P4 disposable PostgreSQL, and full Node baseline jobs in run `38033398737` passed.
-- No Production data, migration, Cloudflare asset, or Edge Function deployment was changed.
+- No Supabase database mutation, migration apply, or Edge Function deployment was performed. Cloudflare Pages automatically deployed main commits `67ae293a...` and `cfd595f...` after PRs #74/#75; see §16 for deployment evidence.
 
-**WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED. Production source provenance, migration identity reconciliation, and valid completion/read E2E remain NOT VERIFIED.**
+**WP-05 / WP-06 / WP-07 repository corrective gates and migration identity reconciliation: PASS / CLOSED. Edge source provenance is identified but stale relative to main. Valid completion/read E2E remains NOT VERIFIED; overall release remains NOT CLOSED.**
 
 
 ## 16. Production source and migration identity reconciliation — 2026-10-10
