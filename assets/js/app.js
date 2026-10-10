@@ -812,29 +812,15 @@ class ClinicEvaluatorApp {
   }
 
   renderResults(res) {
-    let report = res?.userReport || null;
-    // Rolling-deploy compatibility only: interpret the previous Edge payload
-    // before rendering; never pass raw result fields directly to report markup.
-    const legacyStructured = !report && res?.structuredResult?.schemaVersion === 'P3_STRUCTURED_RESULT_V1'
-      ? res.structuredResult : null;
-    if (legacyStructured) {
-      try {
-        report = window.MDReportInterpretation.projectUserReport(
-          legacyStructured,
-          this.previousSessionData,
-          this.currentAssessmentKey
-        );
-      } catch (error) {
-        console.error('[app] legacy result projection failed:', error);
-      }
-    }
+    const report = res?.userReport || null;
+    // The browser accepts only the server-owned, allowlisted user projection.
+    // Legacy/raw Structured Result payloads are rejected rather than reinterpreted here.
     if (!report || report.audience !== 'user' || typeof window.MDReportValidation?.assertValidUserProjection !== 'function') {
       this.showFatalError('تعذر بناء التقرير الآمن من مخرجات الخادم.');
       return;
     }
     try {
-      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report);
-      else window.MDReportValidation.assertValidUserProjection(report);
+      window.MDReportValidation.assertValidUserProjection(report);
     } catch (error) {
       console.error('[app] report projection validation failed:', error);
       this.showFatalError('تعذر اعتماد التقرير: فشل التحقق من إسقاط المستخدم.');
@@ -929,8 +915,7 @@ class ClinicEvaluatorApp {
 
     const renderedText = document.getElementById('view-results')?.innerText || '';
     try {
-      if (legacyStructured) window.MDReportValidation.assertValidUserReport(legacyStructured, report, renderedText);
-      else window.MDReportValidation.assertValidUserProjection(report, renderedText);
+      window.MDReportValidation.assertValidUserProjection(report, renderedText);
     } catch (error) {
       console.error('[app] rendered report validation failed:', error);
       this.hideView('view-results');
