@@ -9,7 +9,7 @@ on:
       - "assets/js/app.js"
       - "*.html"
       - "tests/wp-06-report-validation.test.mjs"
-      - ".github/workflows/wp-06-local-contract.yml"
+      - ".github/workflows/wp-06-report-validation-gate.yml"
   workflow_dispatch:
 
 permissions:

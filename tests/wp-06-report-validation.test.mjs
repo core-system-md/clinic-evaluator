@@ -141,11 +141,18 @@ test('WP-06 user transport returns a projected report rather than raw Structured
  assert.match(fs.readFileSync('assets/js/report-validation.js','utf8'), /assertValidUserProjection/);
 });
 
-test('WP-06 frontend retains only temporary compatibility with the previous Edge payload shape', () => {
+test('WP-06 renderer accepts only the approved server user projection', () => {
  const app = fs.readFileSync('assets/js/app.js', 'utf8');
- assert.match(app, /Rolling-deploy compatibility only/);
- assert.match(app, /legacyStructured/);
+ const start = app.indexOf('  renderResults(res) {');
+ const end = app.indexOf('  /* ─────────────── AXIS COMPARISON TABLE ─────────────── */', start);
+ assert.ok(start >= 0 && end > start, 'active report renderer boundaries exist');
+ const renderer = app.slice(start, end);
+ assert.match(renderer, /const report = res\?\.userReport \|\| null/);
+ assert.match(renderer, /assertValidUserProjection\(report/);
+ assert.doesNotMatch(renderer, /structuredResult|legacyStructured|projectUserReport/);
+ assert.match(renderer, /if \(!report \|\| report\.audience !== 'user'/);
  const edge = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
+ assert.match(edge, /projectCompletionResponse\(storedResult\.result, await getPreviousAssessmentSessionData\(session\)\)\.userReport/);
  assert.doesNotMatch(edge, /structuredResult:\s*storedStructured/);
  assert.doesNotMatch(edge, /structuredResult:\s*structured/);
 });
