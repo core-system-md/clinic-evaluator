@@ -41,8 +41,8 @@ This is the authoritative correction. The earlier conversational claim was a rep
 | WP-03 | Configuration semantics | `wp-03/correct-configuration-semantics-2026-10-08` | #57 | Run `37739494944` | merge commit `8550b982d5c933c0948e42d70265b43685d990c5` | NO | CLOSED |
 | WP-04 | Structured Result authority/persistence | `wp-04/result-model-persistence-2026-10-08` | #58 | Run `37741449245` | merge commit `e4d582bb51b74fe9e4dbf5251504deed4a558505` | NO | CLOSED |
 | WP-05 | Report interpretation | `wp05-corrective-semantic-ownership-2026-10-10` | #72 (supersedes closed #69) | Run `38005770371` | corrective merge `270d868825d83aa50624ef7ccd40313eef0c9bfc` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
-| WP-06 | Report validation gate | `wp-06-report-validation-gate-2026-10-08` | #60 | Run `37746669959`; job `113209672293` | merge commit `219ba205194ccae6dcd2e828d7895f3dd77ce368` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
-| WP-07 | Report text/model linkage | `wp-07-report-text-model-linkage-2026-10-08` | #61 | Run `37747138706` | merge commit `a075803e24a7c6ccda803d3ceb58fd603d793ccd` | NO | **HISTORICAL PASS — RECONCILIATION REQUIRED** |
+| WP-06 | Report validation gate | `wp06-corrective-transport-projection-2026-10-10` | #74 | Run `38033275598` (integrated `38033398747`) | corrective merge `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
+| WP-07 | Report text/model linkage | `wp07-corrective-presentation-linkage-2026-10-10` | #75 | Run `38033398744` | corrective merge `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2` | NO | **CORRECTIVE PASS — CLOSED (repository); Production E2E NOT VERIFIED** |
 | WP-08 | Final V1 assessment reconstruction | `wp-08-v1-assessment-reconstruction-2026-10-08` | #62 + corrective #65 | Original run `37748440553`; corrected run `37776556545` | original `aa3f44e7a0268753ae12caa75ab3fb643f50ad2c`; corrective merge `ebd375e883e9faeb8659fc5bef312f343f0aa504` | NO | **CLOSED AFTER CORRECTION** |
 | WP-09 | Obsolete engine/runtime references | `wp-09-remove-obsolete-engine-references-2026-10-08` | #64 | Runs `37762105060`, `37762220883`; final job `113261161511` | merge commit `74b2c269511b27d80b3cbc957aba80c3c4167929` | NO | CLOSED |
 
@@ -464,3 +464,13 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - Those WP-03/WP-04 failures are explicitly left to the separate migration-name/history reconciliation; no migration file or applied migration history was changed here.
 
 **Current WP-05 state: corrective repository reconciliation PASS / MERGED / CLOSED. The overall Production release remains NOT CLOSED.**
+
+
+## 15. WP-06 / WP-07 corrective closeout — 2026-10-10
+
+- WP-06 corrective PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated run `38033275598` and integrated run `38033398747` passed. The browser accepts only the server-owned `userReport` projection.
+- WP-07 corrective PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated run `38033398744` passed. Remaining report/presentation labels are catalog-backed and linkage-tested.
+- Integrated WP-05 run `38033398711`, WP-09 run `38033398788`, and P3 isolated kernel, P4 disposable PostgreSQL, and full Node baseline jobs in run `38033398737` passed.
+- No Production data, migration, Cloudflare asset, or Edge Function deployment was changed.
+
+**WP-05 / WP-06 / WP-07 repository corrective gates: PASS / CLOSED. Production source provenance, migration identity reconciliation, and valid completion/read E2E remain NOT VERIFIED.**
