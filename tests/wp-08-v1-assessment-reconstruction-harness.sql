@@ -34,7 +34,7 @@ create trigger p2_insights_mapping_immutable before insert or update or delete o
 create trigger p2_assessment_assets_immutable before insert or update or delete on public.assessment_assets for each row execute function public._wp08_noop_trigger();
 create table public._wp08_old_content_marker(id int);
 insert into public._wp08_old_content_marker values(1);
-\i supabase/migrations/20261008120000_reconstruct_final_assessment_versions.sql
+\i supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql
 do $$
 declare n int; comp uuid; patient uuid;
 begin

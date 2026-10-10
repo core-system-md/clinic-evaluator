@@ -141,9 +141,9 @@ create table public.assessment_results (
   result jsonb not null
 );
 
-\i supabase/migrations/20261003090000_p4_submission_foundation.sql
-\i supabase/migrations/20261003093000_p4_submission_prepare_finalize.sql
-\i supabase/migrations/20261003103000_p4_submission_context_lock.sql
+\i supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql
+\i supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql
+\i supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql
 
 insert into public.assessment_types(id,slug,version,status)
 values('44444444-4444-4444-8444-444444444444','p4-protected-fixture',1,'draft');

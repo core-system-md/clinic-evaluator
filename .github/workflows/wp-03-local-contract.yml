@@ -8,7 +8,7 @@ on:
       - "tests/wp-03-configuration-semantics.test.mjs"
       - "tests/wp-03-axis-weight-migration-harness.sql"
       - "tests/fixtures/p3-current-published-config-v1.json"
-      - "supabase/migrations/20261008090000_canonical_axis_weights.sql"
+      - "supabase/migrations/20261009164918_canonical_axis_weights.sql"
       - "supabase/functions/assessment-access/index.ts"
       - "documentation/architecture/**"
       - ".github/workflows/wp-03-local-contract.yml"
