@@ -105,11 +105,11 @@ Historical note: PR #72’s branch CI exposed WP-03/WP-04 tests referencing migr
 - The old stacked PR #69 remains closed unmerged. No Supabase database mutation or Edge Function deployment occurred. Cloudflare Pages did automatically deploy main commits after merges; deployment IDs and commit provenance are recorded in §7.
 
 ### Next authorized work — read-only release reconciliation
-1. **Source provenance is now identified:** deployed `assessment-access` v34 bundle SHA `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907` matches all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`. Current `main` differs because WP-05's corrected `report-interpretation.mjs` and history wiring are not in the deployed bundle. Do not deploy Edge solely from the version number.
+1. **Corrected Edge source is now deployed:** `assessment-access` v35, bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`, deployed `2026-10-10T07:32:15Z`. All 15 runtime files match current `main` commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; `report-interpretation.mjs` and persisted-history wiring are present. `verify_jwt=false` is unchanged. The prior v34 bundle's exact source was PR #70 merge `48074ce...` and is now historical.
 2. **Migration identity reconciliation is complete:** PR #77 merge `28b70f3d90167f4ebded47aa3316f4b436c7ccb9` aligns all 51 local files to the 51 recorded Production identities, resolves both duplicate prefixes, restores the separate `started_at` follow-up migration, and archives the superseded unapplied lifecycle candidate. No remote migration history was changed.
-3. The current frontend is on the auto-deployed Cloudflare Pages main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9` (deployment `848841c5`); the WP-06/WP-07 frontend corrections are deployed. The Edge Function is still stale relative to main.
+3. The current frontend is on the auto-deployed Cloudflare Pages main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9` (deployment `848841c5`); the WP-06/WP-07 frontend corrections are deployed. The Edge Function v35 now also matches that source commit.
 4. Next, verify whether a safe disposable end-to-end fixture exists without touching real sessions or adding random test data to Production. The local/disposable PostgreSQL P4 harness passes; if no safe production fixture exists, mark valid deployed completion/read E2E **NOT VERIFIED** rather than inventing one.
-5. Do not deploy the corrected Edge Function until the safe test path and rollback/recovery steps are established. Finish with a release gate report separating PASS / FAIL / NOT VERIFIED. Overall release remains NOT CLOSED.
+5. No further Edge deployment is needed for the current source. Production currently has zero leads, sessions, and assessment results, and no designated disposable test session; no fake test data was created. The local/disposable PostgreSQL harness passed, but valid completion + saved-result read through the deployed API remains **NOT VERIFIED**. Do not fabricate a Production fixture. Overall release remains NOT CLOSED until a safe approved runtime E2E path is available or the release owner explicitly accepts the NOT VERIFIED gate.
 
 Do not change scoring formulas, questionnaire content, published assessment versions, Production data, public routes, or deployed services during read-only reconciliation.
 
@@ -126,13 +126,13 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 | WP-05 corrective closure | **PASS / CLOSED (repository)** | PR #72 merged at `270d868825d83aa50624ef7ccd40313eef0c9bfc`; dedicated run `38005770371` SUCCESS; Production E2E remains NOT VERIFIED |
 | WP-06 corrective closure | **PASS / CLOSED (repository)** | PR #74 merged at `67ae293a59a93cce9c59cbabc46b4aa3b1fcd337`; dedicated `38033275598` and integrated `38033398747` SUCCESS |
 | WP-07 corrective closure | **PASS / CLOSED (repository)** | PR #75 merged at `cfd595f741bdc4cdfc4b5c2886ed47795b7401a2`; dedicated `38033398744` SUCCESS |
-| Exact deployed Edge source-to-commit provenance | **PASS — IDENTIFIED, STALE** | v34 bundle SHA maps exactly to all 14 files at PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`; current main has WP-05 module/history wiring absent from deployed bundle |
+| Exact deployed Edge source-to-commit provenance | **PASS — CURRENT SOURCE DEPLOYED** | v35 bundle SHA `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`; all 15 runtime files match main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9` |
 | Overall release | NOT CLOSED | Required corrective gates and valid E2E proof incomplete |
 
 ## 6. Guardrails / do not do
 - Do not treat “migration/function deployed” as equivalent to “release complete.”
 - Do not start WP-08 again: its repository implementation was previously merged and verified; this handoff concerns live release reconciliation and the WP-05→WP-07 corrective gate.
-- Do not claim WP-05/06/07 closed solely because historical PRs merged; use the corrective merge/run evidence recorded above. Their repository gates are closed. Source provenance is now identified but stale relative to main; valid Production E2E remains NOT VERIFIED.
+- Do not claim WP-05/06/07 closed solely because historical PRs merged; use the corrective merge/run evidence recorded above. Their repository gates are closed. Edge v35 now matches main; valid Production E2E remains NOT VERIFIED.
 - Do not run complete against real user sessions or use random fake data in production.
 - Do not edit applied migration files or rewrite Supabase migration history.
 - Do not make additional production changes before proving the exact defect and validating a safe test path.
@@ -142,8 +142,8 @@ Do not change scoring formulas, questionnaire content, published assessment vers
 
 ## 7. Post-merge live-state addendum — 2026-10-10
 
-- **Supabase Edge:** version 34, SHA-256 `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907`, exact source match to PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce` across 14 files. The deployed bundle does not contain `report-interpretation.mjs`; current main does. This is a known deployment lag, not an unknown source.
+- **Supabase Edge:** historical v34 matched PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce` across 14 files. Corrected v35 is now deployed at SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`; all 15 runtime files match current main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`, including `report-interpretation.mjs` and history provenance wiring. `verify_jwt=false` remains unchanged.
 - **Supabase migrations:** exact 51/51 repository-to-Production identity match after PR #77; duplicate prefixes resolved; remote migration history untouched.
 - **Cloudflare Pages:** main auto-deploy is enabled. Production deployments `c81e3147` (commit `67ae293a...`), `6c4db491` (commit `cfd595f...`), and `848841c5` (commit `28b70f3...`) completed successfully. These were automatic Pages deployments; no Supabase database mutation or Edge Function deployment accompanied them.
 - **Tests:** WP-03 `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3/P4 disposable PostgreSQL/full Node run `38034275402` all **SUCCESS**.
-- **Release status:** repository corrective gates and migration identity reconciliation **PASS / CLOSED**; valid deployed completion/read E2E **NOT VERIFIED**; overall release **NOT CLOSED**.
+- **Release status:** repository corrective gates, migration identity reconciliation, and current Edge source deployment **PASS / CLOSED**. Valid deployed completion/read E2E remains **NOT VERIFIED** because Production has no designated disposable session and no test data was created; overall release **NOT CLOSED**.
