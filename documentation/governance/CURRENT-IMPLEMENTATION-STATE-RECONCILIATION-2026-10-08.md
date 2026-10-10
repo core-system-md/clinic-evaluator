@@ -312,10 +312,10 @@ The current WP-05 repository reconciliation is therefore **PASS / MERGED / CLOSE
 - Verification PR #77 merged as `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`. WP-03 run `38034275409`, WP-04 `38034275445`, WP-08 `38034275428`, and P3/P4 disposable PostgreSQL/full Node run `38034275402` all passed.
 
 ### Deployed Edge source provenance
-- Production `assessment-access` is active at version **34**, bundle SHA-256 `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907`.
-- All **14 deployed files** match the repository source at PR #70 merge commit `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce` exactly.
-- This establishes provenance, but also proves the deployed Edge source is **stale relative to current main**: the current repository imports `report-interpretation.mjs` and wires persisted history provenance; the deployed bundle does not contain that module and uses the earlier inline projection.
-- No Edge Function redeployment has been performed. WP-05's corrected server-owned semantics are therefore repository-closed but not yet deployed to Edge.
+- Before the corrective deployment, Production `assessment-access` v34 (SHA-256 `fc3dce961191d081d3d1bcb099d6b0d2b79c47982877e91077fcdb18474cd907`) matched all 14 files at historical PR #70 merge `48074ce4870dedb1c96d4de13d14fb8a78d7c2ce`.
+- After the WP-05/WP-06/WP-07 repository gates and migration identity reconciliation passed, `assessment-access` v35 was deployed at `2026-10-10T07:32:15Z`, bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`.
+- All **15 runtime files** in v35 exactly match current `main` commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`, including `report-interpretation.mjs` and persisted history provenance. The existing custom-auth configuration `verify_jwt=false` was preserved.
+- Deployment source verification: **PASS**. This confirms the WP-05 corrected semantics are now deployed; it does not substitute for a valid completion/persistence/report-read E2E trace.
 
 ### Cloudflare Pages deployment truth
 The Pages project `clinicevaluat` is configured to auto-deploy `main`. Successful production deployments occurred automatically after merges:
@@ -327,6 +327,7 @@ No database mutation or Edge deployment accompanied these Pages deployments.
 ### Current release gate
 - WP-05/WP-06/WP-07 repository corrective gates: **PASS / CLOSED**.
 - Migration identity reconciliation: **PASS / CLOSED**.
-- Deployed Edge source provenance: **PASS — exact historical source identified**, but deployment is stale relative to current main.
-- Valid completion + persisted Structured Result + returned user-report E2E through the deployed Edge API: **NOT VERIFIED**.
-- Overall Production release: **NOT CLOSED** until the corrected Edge source is safely deployed and the controlled E2E gate is satisfied, or the live E2E is explicitly marked NOT VERIFIED because no safe disposable production session exists.
+- Deployed Edge source provenance and current-source deployment: **PASS** (v35; 15 runtime files match current main; `verify_jwt=false` preserved).
+- Production currently has **0 leads, 0 sessions, and 0 assessment results**, with no designated disposable test session. No fake Production data was created.
+- Valid completion + persisted Structured Result + returned user-report E2E through the deployed Edge API: **NOT VERIFIED**. P4 disposable PostgreSQL and the focused WP-05/06/07 suites pass, but no valid live completion trace exists.
+- Overall Production release: **NOT CLOSED** until an approved safe runtime E2E path is available or the release owner explicitly accepts the NOT VERIFIED gate.
