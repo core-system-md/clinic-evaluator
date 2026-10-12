@@ -6,6 +6,7 @@ import test from "node:test";
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
 import registryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
+import patientJourneyRegistryV2 from "../documentation/architecture/P3-PATIENT-JOURNEY-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
 const ROOT = process.cwd();
@@ -57,7 +58,11 @@ test("WP-02 local contract: every current published fixture family has explicit 
     const binding = '"' + slug + ":" + family.version + '"';
     assert.ok(engine.includes(binding), "missing binding for " + binding);
     const interpretationVersion = ["comprehensive-clinic-assessment", "patient-journey"].includes(slug) ? 2 : 1;
-    const sourceRegistry = interpretationVersion === 2 ? registryV2 : registry;
+    const sourceRegistry = slug === "comprehensive-clinic-assessment"
+      ? registryV2
+      : slug === "patient-journey"
+        ? patientJourneyRegistryV2
+        : registry;
     const entries = sourceRegistry.entries.filter(
       (entry) => entry.assessmentSlug === slug && Number(entry.interpretationVersion) === interpretationVersion,
     );
