@@ -15,6 +15,7 @@ import { projectScoreRowsFromStructuredResult } from "./result-persistence-proje
 import { type P3ConsistencyRule } from "./consistency-engine.mts";
 import registry from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
+import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
 
@@ -119,7 +120,7 @@ const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
 const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
 
 type InterpretationBinding = {
-  registry: typeof registry | typeof registryV2;
+  registry: typeof registry | typeof registryV2 | typeof patientJourneyRegistryV2;
   interpretationVersion: number;
 };
 
@@ -145,7 +146,7 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
     interpretationVersion: 1,
   },
   "patient-journey:1": {
-    registry: registryV2,
+    registry: patientJourneyRegistryV2,
     interpretationVersion: 2,
   },
 };
