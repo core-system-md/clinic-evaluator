@@ -5,6 +5,8 @@ import canonicalRegistry from "../documentation/architecture/P3-RESPONSE-INTERPR
 import packagedRegistry from "../supabase/functions/assessment-access/response-interpretation-registry-v1.json" with { type: "json" };
 import canonicalRegistryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
 import packagedRegistryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
+import canonicalRegistryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
+import packagedRegistryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
@@ -22,6 +24,18 @@ function firstSelection(slug) {
 
 test("production function registry is byte-equivalent to canonical registry artifact", () => {
   assert.deepEqual(packagedRegistry, canonicalRegistry);
+});
+
+test("production interpretation registry v2 is byte-equivalent to its canonical artifact", () => {
+  assert.deepEqual(packagedRegistryV2, canonicalRegistryV2);
+  assert.equal(packagedRegistryV2.entries.length, 248);
+  assert.equal(new Set(packagedRegistryV2.entries.map((entry) => entry.optionId)).size, 248);
+  for (const slug of ["comprehensive-clinic-assessment", "patient-journey"]) {
+    const entries = packagedRegistryV2.entries.filter((entry) => entry.assessmentSlug === slug);
+    assert.ok(entries.length > 0, "missing V2 interpretation coverage for " + slug);
+    assert.ok(entries.every((entry) => String(entry.assessmentVersion) === "1"));
+    assert.ok(entries.every((entry) => Number(entry.interpretationVersion) === 2));
+  }
 });
 
 test("production interpretation registry v2 is byte-equivalent to its canonical artifact", () => {
