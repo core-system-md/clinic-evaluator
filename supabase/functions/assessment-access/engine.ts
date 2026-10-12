@@ -137,10 +137,6 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
     interpretationVersion: 1,
   },
   "comprehensive-clinic-assessment:1": {
-    registry,
-    interpretationVersion: 1,
-  },
-  "comprehensive-clinic-assessment:2": {
     registry: registryV2,
     interpretationVersion: 2,
   },
@@ -149,8 +145,8 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
     interpretationVersion: 1,
   },
   "patient-journey:1": {
-    registry,
-    interpretationVersion: 1,
+    registry: registryV2,
+    interpretationVersion: 2,
   },
 };
 
@@ -429,7 +425,7 @@ export async function calculateAssessment(
       interpretationVersion: interpretationBinding.interpretationVersion,
       entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
-        .filter((entry) => String(entry.assessmentVersion ?? String(assessmentVersion)) === String(assessmentVersion))
+        .filter((entry) => Number(entry.interpretationVersion) === interpretationBinding.interpretationVersion)
         .sort(
           (a, b) =>
             String(a.questionCode).localeCompare(String(b.questionCode)) ||
