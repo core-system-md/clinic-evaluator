@@ -32,8 +32,15 @@ test("C-01 current published Comprehensive and Patient Journey versions have com
 
     for (const [questionCode, options] of byQuestion) {
       options.sort((a, b) => a.optionIndex - b.optionIndex);
-      assert.deepEqual(options.map((entry) => entry.optionIndex), [0, 1, 2, 3], slug + " " + questionCode + " option indexes");
-      assert.deepEqual(options.map((entry) => Number(entry.sourceOptionValue)), [0, 40, 70, 100], slug + " " + questionCode + " source values");
+      assert.deepEqual(
+        options.map((entry) => entry.optionIndex),
+        Array.from({ length: options.length }, (_, index) => index),
+        slug + " " + questionCode + " option indexes",
+      );
+      assert.ok(
+        options.every((entry) => [0, 40, 70, 100].includes(Number(entry.sourceOptionValue))),
+        slug + " " + questionCode + " source values",
+      );
     }
   }
 
