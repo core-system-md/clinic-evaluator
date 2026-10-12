@@ -12,7 +12,7 @@ This index is the current continuation pointer. The historical Production Struct
 - PR #79: [fix: reconcile current published interpretation identities (C-01)](https://github.com/core-system-md/clinic-evaluator/pull/79), open, Draft, unmerged; head `7114737af8d11ae1b2a3b7f6f100765320c3169b`.
 - Cloudflare Pages project configuration read-only check: production branch `main`; root directory `/`; destination directory `/`; `path_includes=["*"]`; `path_excludes=[]`.
 - A preview deployment for PR #79 succeeded, but this does not establish that internal JSON paths are blocked. Direct HTTP retrieval could not be verified in this session. D-09 remains **OPEN / NOT VERIFIED**; do not merge PR #79 until asset/path exposure is resolved.
-- D-13 owner decision correction is documented on branch `d13-historical-deletion-documentation-2026-10-12` in `documentation/governance/D-13-HISTORICAL-RECORD-DELETION-DECISION-2026-10-12.md`. It is a documentation-only branch change and must not be treated as merged until a PR is reviewed/merged.
+- D-13 owner decision correction is documented in [PR #80](https://github.com/core-system-md/clinic-evaluator/pull/80), currently Draft and unmerged, on branch `d13-historical-deletion-documentation-2026-10-12`; the decision record is `documentation/governance/D-13-HISTORICAL-RECORD-DELETION-DECISION-2026-10-12.md`. This documentation-only correction is not yet part of `main`.
 - No Supabase Production SQL/write, Edge Function deployment, or Cloudflare Pages production publication was performed during this continuation.
 
 ## Owner decisions that must not be reopened or contradicted
