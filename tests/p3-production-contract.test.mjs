@@ -5,8 +5,6 @@ import canonicalRegistry from "../documentation/architecture/P3-RESPONSE-INTERPR
 import packagedRegistry from "../supabase/functions/assessment-access/response-interpretation-registry-v1.json" with { type: "json" };
 import canonicalRegistryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
 import packagedRegistryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
-import canonicalRegistryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
-import packagedRegistryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
