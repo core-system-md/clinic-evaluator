@@ -3,18 +3,23 @@ import fs from "node:fs";
 import test from "node:test";
 
 import registryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
+import patientJourneyRegistryV2 from "../supabase/functions/assessment-access/patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import { resolveP3Selections } from "../supabase/functions/assessment-access/response-scorer.mts";
 
 const EXPECTED = {
   "comprehensive-clinic-assessment": { questions: 36, options: 152 },
   "patient-journey": { questions: 25, options: 96 },
 };
+const REGISTRIES = {
+  "comprehensive-clinic-assessment": registryV2,
+  "patient-journey": patientJourneyRegistryV2,
+};
 
 test("C-01 current published Comprehensive and Patient Journey versions have complete V2 interpretation coverage", () => {
   const ids = new Set();
 
   for (const [slug, expected] of Object.entries(EXPECTED)) {
-    const entries = registryV2.entries.filter(
+    const entries = REGISTRIES[slug].entries.filter(
       (entry) => entry.assessmentSlug === slug && String(entry.assessmentVersion) === "1" && Number(entry.interpretationVersion) === 2,
     );
     const byQuestion = new Map();
@@ -49,7 +54,7 @@ test("C-01 current published Comprehensive and Patient Journey versions have com
 
 test("C-01 every current published option identity resolves through the production scorer", () => {
   for (const slug of Object.keys(EXPECTED)) {
-    const entries = registryV2.entries.filter(
+    const entries = REGISTRIES[slug].entries.filter(
       (entry) => entry.assessmentSlug === slug && String(entry.assessmentVersion) === "1" && Number(entry.interpretationVersion) === 2,
     );
 
@@ -73,7 +78,7 @@ test("C-01 every current published option identity resolves through the producti
 test("C-01 engine explicitly binds current product V1 to interpretation V2 and fails closed for an unregistered product V2", () => {
   const engine = fs.readFileSync("supabase/functions/assessment-access/engine.ts", "utf8");
   assert.match(engine, /"comprehensive-clinic-assessment:1": \{\s*registry: registryV2,\s*interpretationVersion: 2,/);
-  assert.match(engine, /"patient-journey:1": \{\s*registry: registryV2,\s*interpretationVersion: 2,/);
+  assert.match(engine, /"patient-journey:1": \{\s*registry: patientJourneyRegistryV2,\s*interpretationVersion: 2,/);
   assert.doesNotMatch(engine, /"comprehensive-clinic-assessment:2":/);
   assert.match(engine, /Number\(entry\.interpretationVersion\) === interpretationBinding\.interpretationVersion/);
 });
