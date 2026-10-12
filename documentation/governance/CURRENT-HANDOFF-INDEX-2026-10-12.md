@@ -25,17 +25,19 @@ This index is the current continuation pointer. The historical Production Struct
 
 ## Exact next work
 
-### First: close the D-09 investigation boundary (do not claim PASS yet)
+### D-09 — preview verification complete; Production fix pending
 
-1. Obtain direct HTTP status/body evidence for each candidate internal/legacy asset on both the production Pages URL and the PR preview URL.
-2. Confirm `assets/data/report_texts.json` remains accessible if still required by the client.
-3. If internal/legacy files are exposed, prepare an isolated build-output correction that publishes only an explicit allowlist of client assets; do not change the shared Cloudflare Pages project settings or trigger a Production publication as part of the investigation.
-4. Add a regression/smoke gate proving blocked paths return a non-success response and required public assets remain available.
-5. Keep PR #79 Draft and unmerged until the evidence passes. If direct HTTP cannot be tested, record the blocker and stop this gate as NOT VERIFIED.
+- PR #81: https://github.com/core-system-md/clinic-evaluator/pull/81 — Draft, unmerged.
+- The preview middleware blocks the three legacy `*_assesstment.json` paths tested, the interpretation registry path under `/supabase`, and the canonical interpretation registry path under `/documentation`.
+- `/assets/data/report_texts.json` remains available with version `2.2.0`; the root route returns the application landing page.
+- GitHub Actions run `38223253283` on head `1e9163365fd29cbfd9ac4950acdce3c3643f706f`: P3 isolated kernel, full Node test suite, and P4 disposable PostgreSQL all PASS.
+- Production still serves the old Comprehensive asset until the fix is merged and deployed. Do not merge PR #81 without explicit owner approval because merge triggers a Production Pages publication.
+- The preview fix does not make the public GitHub repository private.
+
 
 ### Then: one bounded work package at a time
 
-- D-13: review/merge the documentation-only correction after the D-09 investigation step; do not touch data.
+- D-13: review the documentation-only correction in PR #80; do not touch data. Merge only under the repository's normal review/approval rules.
 - D-14: read-only impact inventory for the three unapproved Production migrations, followed by a repair design only. No Production migration execution.
 - C-02: forward-only fix for the answer-value constraint rejecting `70`, tested on disposable PostgreSQL.
 - C-03: explicit interpretation-binding and complete option-identity coverage gate for publication.
