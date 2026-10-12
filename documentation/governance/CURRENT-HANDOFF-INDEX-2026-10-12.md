@@ -1,66 +1,96 @@
-# Current Handoff Index — 2026-10-12
+# Current Handoff Index — 2026-10-12 (post-D-14)
 
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
-**Cloudflare Pages:** `clinicevaluat`  
-**Production branch:** `main`
+**Cloudflare Pages project:** `clinicevaluat`  
+**Production branch:** `main`  
+**Current production work sequence:** D-09 → D-13 → D-14 closed; next bounded package is C-02.
 
-Use this index for the current D-09–D-19 repair sequence. The 2026-10-10 Production Structured Result handoff remains historical context, not the current queue.
+This index is the continuation anchor for the next conversation. Do not restart completed work or infer that branch-only changes are on `main`.
 
-## Verified current state
+## Latest closure: D-14
 
-- **D-09:** PR #81 merged with commit `6b9de8affde4737e4d15f069bcbe9dee3c0d7e33`. Cloudflare Pages deployment `df10f1e1-01ca-4c61-8d51-d84597c50e8f` completed successfully. Post-deployment checks: `/assets/data/comprehensive_assesstment.json` returned `Not Found`; `/assets/data/report_texts.json` remains available at version `2.2.0`. The three legacy assessment assets and tested internal registry paths passed on preview. Additional Production probes were rate-limited, so those paths are not claimed as independently re-verified on Production. D-09 follow-up documentation is in PR #82 and is not yet in `main`.
-- **D-13:** PR #80 merged to `main` as `4d6d9bb11f06732e1563f2829ed78930a4411121`. Cloudflare Pages Production deployment `b192ada8-48d1-496a-b760-d2b7e69b264b` completed successfully for that commit at `2026-10-12T11:38:25Z` ([deployment](https://b192ada8.clinicevaluat.pages.dev)). This was a documentation-only commit; no new D-09 asset smoke tests were run because no application code changed. The historical deletion record preserves the reported counts and does not claim a new live-database verification of them.
-- **PR #82:** documentation-only D-09 production verification update, open and unmerged. It does not change production resources.
-- **PR #79:** C-01 interpretation identity repair, open, Draft, unmerged; head `7114737af8d11ae1b2a3b7f6f100765320c3169b`.
-- **CI for PR #81:** run [38223253283](https://github.com/core-system-md/clinic-evaluator/actions/runs/38223253283) passed P3 isolated kernel, full Node test suite, and P4 disposable PostgreSQL.
-- Cloudflare Pages project configuration was read-only checked as production branch `main`, root directory `/`, destination directory `/`, `path_includes=["*"]`, and `path_excludes=[]`.
+- **PR #83:** [docs: inventory unapproved Production migrations and define forward-only repair](https://github.com/core-system-md/clinic-evaluator/pull/83) — merged, closed.
+- **Merge commit:** `baf663c222b96a2a675c96520a490a8dc4a31cc4`.
+- **Files now on main:**
+  - [D-14 migration impact inventory](https://github.com/core-system-md/clinic-evaluator/blob/main/documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INVENTORY-2026-10-12.md)
+  - [Handoff index as included in PR #83](https://github.com/core-system-md/clinic-evaluator/blob/main/documentation/governance/CURRENT-HANDOFF-INDEX-2026-10-12.md)
+- PR #83 changed documentation only. No Production SQL, DDL, data writes, migration execution, rollback, Edge Function deployment, or Cloudflare configuration change was performed as part of D-14.
+- GitHub returned no PR-triggered workflow runs for the PR #83 head SHA. Cloudflare reported a successful **branch preview** for PR #83. Do not infer Production deployment or runtime validation from that preview.
+- A follow-up Handoff refresh is being prepared on branch `handoff-post-d14-2026-10-12` / PR #84 (if created successfully). It must remain separate; the owner authorized merging PR #83 alone, not another PR.
 
-## D-14 — read-only migration impact inventory
+## Verified current state and historical evidence
 
-The Supabase migration ledger confirms these three migrations are applied in Production:
-- `20261009164918_canonical_axis_weights`
-- `20261009164951_structured_result_authority`
-- `20261009170228_reconstruct_final_assessment_versions`
+### D-09 — Pages asset exposure
+- PR #81 merged as `6b9de8affde4737e4d15f069bcbe9dee3c0d7e33`.
+- Cloudflare deployment ID `df10f1e1-01ca-4c61-8d51-d84597c50e8f` completed successfully.
+- Production smoke check: `/assets/data/comprehensive_assesstment.json` returned `Not Found`; `/assets/data/report_texts.json` remained available, version `2.2.0`.
+- The three legacy assessment assets and tested internal registry paths passed on preview. Additional Production probes were rate-limited, so do not claim all paths were independently re-verified in Production.
+- PR #82 is a separate D-09 post-production documentation follow-up and remains open/unmerged unless a fresh check proves otherwise.
 
-Read-only live checks found current published V1 content counts and 0–100 axis weight totals consistent with the reconstruction contract. The two `*_from_result` RPCs exist and are service-role-only; deployed `assessment-access` is version 35 and calls those RPCs. Current totals for leads, sessions, answers, scores, assessment_results, assessment_session_access, and historical_snapshots are all zero.
+### D-13 — historical deletion decision
+- PR #80 merged as `4d6d9bb11f06732e1563f2829ed78930a4411121`.
+- Cloudflare Pages deployment `b192ada8-48d1-496a-b760-d2b7e69b264b` was reported successful for that documentation-only commit. No new D-09 asset smoke tests were run for that commit.
+- The owner’s historical deletion decision was already made and executed before D-13. Preserve reported counts and the historical autovacuum timestamp in the D-13 record; do not repeat deletion/restoration or present the old counts as freshly verified live data.
 
-One cross-migration defect was identified for C-02: the live `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,100`, while the reconstructed assessments contain 57 options valued 70 and the answer-save RPC writes the option value to `answer_value`. A forward-only constraint correction to include 70 is designed in the D-14 report; it has not been implemented or applied.
+### C-01 / PR #79
+- PR #79 is the interpretation identity repair, branch `phase1/c01-interpretation-identity-repair-2026-10-12`, head SHA `7114737af8d11ae1b2a3b7f6f100765320c3169b` at last verification. It was Draft and unmerged at that point; check current state before relying on it.
+- The repair separates Comprehensive V2 (152 option identities) from Patient Journey V2 (96 option identities), and binds product assessment version 1 to interpretation version 2. The full user journey is not considered verified until C-02/C-03 and required E2E gates are closed.
 
-D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INVENTORY-2026-10-12.md` on branch `d14-production-migration-impact-inventory-2026-10-12`. The report and updated handoff are branch-only until reviewed/merged.
+### D-14 — read-only Production migration inventory
+The three Production migrations applied on 2026-10-09 without owner approval are:
+1. `20261009164918_canonical_axis_weights.sql`
+2. `20261009164951_structured_result_authority.sql`
+3. `20261009170228_reconstruct_final_assessment_versions.sql`
 
-## Owner decisions and safety boundaries
+Evidence and limits are recorded in the D-14 report. Read-only checks found:
+- Current published V1 assessment content and family pointers match intended reconstruction postconditions.
+- Current axis weight totals are 100 for each current assessment.
+- Comprehensive Clinic V1: 36 questions, 152 options, 6 axes.
+- Patient Journey V1: 25 questions, 96 options, 5 axes.
+- Deployed `assessment-access` Edge Function was version 35 and called the current `*_from_result` RPCs; both RPCs existed and were restricted to `service_role`.
+- Current row counts were zero for `leads`, `sessions`, `answers`, `scores`, `assessment_results`, `assessment_session_access`, and `historical_snapshots`. These counts do not reveal exact pre-migration row counts.
+- No Production E2E submission was run.
 
-1. Historical-record deletion was decided and executed before D-13; preserve the reported counts and historical autovacuum timestamp. Do not repeat deletion or restoration.
-2. The three Production migrations listed under D-14 were not owner-approved. Their effects are inventoried; no rollback, restore, migration-history rewrite, or Production repair has been performed.
-3. EV Simulator must be repaired, not hidden.
-4. Internal repository assets must not be exposed through Pages. Client-required assets such as `assets/data/report_texts.json` must remain available.
-5. The owner explicitly approved merge/publication of PR #81 and separately authorized the documentation-only merge of PR #80. This does not authorize merging PR #79 or PR #82, executing D-14/C-02 against Production, or any unrelated production change.
+**Confirmed cross-migration defect routed to C-02:** the live `answers_answer_value_compat_check` accepts `0,1,2,3,4,5,40,100`, but current Comprehensive and Patient Journey assessments contain 57 options valued `70` (36 + 21). The answer-save path writes the selected option value into `answer_value`; choosing 70 therefore conflicts with the live CHECK constraint. Current `answers` is empty, so the inventory does not claim a persisted failed row.
 
-## Exact next work
+## Exact next step — C-02 (do not skip)
 
-### D-14 — inventory/design result
-Read-only inventory is complete for the three specified migrations and relevant live contracts. The documented C-02 constraint repair is a design only. No production mutation was performed. This work package should close only after the D-14 documentation PR is reviewed and merged; do not infer that branch-only documentation is already on `main`.
+Start a **new, bounded C-02 work package** from the current `main` after checking the latest repository and Supabase state. The goal is to implement and test a **new forward-only migration** that adds `70` to `answers_answer_value_compat_check`, preserving existing accepted values. Candidate allowed set:
 
-### Next bounded work package: C-02
-Implement a new forward-only migration to add 70 to `answers_answer_value_compat_check` while preserving legacy values. Test it on disposable PostgreSQL, including positive values `0,40,70,100`, retained legacy values, and rejection of unsupported values. Do not edit applied migration files or run the migration on Production without explicit approval.
+`answer_value IN (0, 1, 2, 3, 4, 5, 40, 70, 100)`
 
-### Remaining sequence
-- C-03: explicit interpretation-binding and complete option-identity coverage gate.
-- D-06: repair EV Simulator calculation inputs/defaults and publish a new version rather than editing a published version.
-- D-04/D-12: make Structured Result authoritative and remove dead code.
-- D-05: live baseline schema and retired Edge Function documentation.
-- D-08/D-15/D-17: authorization and identity discovery.
-- D-07: legacy functions/schema review before removal.
-- D-18: result accuracy.
-- D-16: naming.
-- D-19: document the leaked-password decision only; no security change without a new decision.
+Required sequence:
+1. Recheck current `main`, migration history, live constraint name/definition, and existing answer values using read-only queries.
+2. Inspect the existing answer-save RPC and migration/test conventions. Do not edit any applied migration file or rewrite migration history.
+3. Add a new forward-only migration only; no Production execution.
+4. Test on disposable PostgreSQL: all retained values plus 70 are accepted, unsupported values are rejected, and the relevant answer-save path persists a 70-valued option.
+5. Run targeted tests and applicable regression suite.
+6. Update D-14/C-02 governance documentation and Handoff with test evidence and the exact next gate.
+7. Report results and STOP. Do not automatically start C-03.
 
-## Mandatory operating contract
+**Production execution remains unauthorized.** No Supabase Production migration/DDL/data change, Edge Function deployment, or Cloudflare shared setting change without separate explicit owner approval.
 
-- One bounded work package at a time: inspect → implement only its scope → dedicated tests → update docs/Handoff → report evidence and status → stop.
-- Each package has a maximum budget of three hours; stop and report if exceeded. Do not invent time accounting.
-- Do not automatically advance to the next package.
-- Mark absent runtime evidence **NOT VERIFIED**, not PASS.
-- No Production writes, migrations, Edge deployment, shared Cloudflare setting change, or Pages publication without explicit owner approval.
-- Do not repeat previously verified work unless new evidence shows a regression.
+## Remaining assigned work sequence after C-02
+
+Run each as a separate bounded package, with verification and documentation before stopping:
+1. **C-03:** explicit interpretation-binding gate and complete option-identity coverage.
+2. **D-06:** repair EV Simulator so `visitsPerYear` (default 3) actually feeds the calculation; referrals default empty and remain unavailable until valid input; EV must not change the core score. Publish a new assessment version rather than modifying a published version.
+3. **D-04 / D-12:** make Structured Result authoritative and remove dead code.
+4. **D-05:** establish/document the live baseline schema and retired Edge Functions.
+5. **D-08 / D-15 / D-17:** authorization and identity discovery.
+6. **D-07:** review legacy functions/schema before any removal.
+7. **D-18:** result accuracy.
+8. **D-16:** naming.
+9. **D-19:** document the leaked-password decision only; no security change without a new explicit decision.
+
+Do not merge PR #79, #82, #84, or any other PR without its own explicit authorization. The owner’s instruction for this turn was to merge **PR #83 only**.
+
+## Mandatory work contract
+
+- One bounded package at a time: inspect current state → implement only authorized scope → dedicated tests → update governance/Handoff → report evidence and limitations → STOP.
+- Maximum budget per package: 3 hours. If exceeded or blocked, stop and report. Do not invent elapsed-time measurements.
+- No automatic progression to the next package.
+- Distinguish CI, branch preview, and Production evidence. If evidence is absent, say **NOT VERIFIED**.
+- No unapproved Production mutation, migration, rollback, history rewrite, Edge deployment, Cloudflare configuration change, or merge that triggers publication.
+- Never claim a branch-only artifact is on `main`.
