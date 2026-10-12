@@ -5,6 +5,7 @@ import test from "node:test";
 
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
+import registryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
 const ROOT = process.cwd();
@@ -55,10 +56,16 @@ test("WP-02 local contract: every current published fixture family has explicit 
   for (const [slug, family] of Object.entries(config.families)) {
     const binding = '"' + slug + ":" + family.version + '"';
     assert.ok(engine.includes(binding), "missing binding for " + binding);
-    const entries = registry.entries.filter(
-      (entry) => entry.assessmentSlug === slug && Number(entry.interpretationVersion) === 1,
+    const interpretationVersion = ["comprehensive-clinic-assessment", "patient-journey"].includes(slug) ? 2 : 1;
+    const sourceRegistry = interpretationVersion === 2 ? registryV2 : registry;
+    const entries = sourceRegistry.entries.filter(
+      (entry) => entry.assessmentSlug === slug && Number(entry.interpretationVersion) === interpretationVersion,
     );
     assert.ok(entries.length > 0, "missing interpretation entries for " + slug);
+    if (interpretationVersion === 2) {
+      assert.ok(entries.every((entry) => String(entry.assessmentVersion) === String(family.version)),
+        "registry assessmentVersion must match published product version for " + slug);
+    }
   }
 });
 
