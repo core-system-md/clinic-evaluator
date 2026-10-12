@@ -7,6 +7,7 @@ on:
     paths:
       - "supabase/functions/assessment-access/**"
       - "tests/wp-02-contract-local.test.mjs"
+      - "tests/c01-current-published-interpretation-binding.test.mjs"
       - "tests/p3-integrated-scorer-v1.test.mjs"
       - "tests/fixtures/**"
       - "documentation/architecture/**"
@@ -32,7 +33,7 @@ jobs:
       - run: npm ci
 
       - name: Run WP-02 local contract harness
-        run: node --experimental-strip-types --test tests/wp-02-contract-local.test.mjs
+        run: node --experimental-strip-types --test tests/wp-02-contract-local.test.mjs tests/c01-current-published-interpretation-binding.test.mjs
 
       - name: Run WP-02 scoring regression
         run: node --experimental-strip-types --test tests/p3-integrated-scorer-v1.test.mjs tests/p3-production-contract.test.mjs tests/p3-engine-ownership.test.mjs
