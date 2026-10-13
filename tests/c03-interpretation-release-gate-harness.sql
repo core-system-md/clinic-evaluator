@@ -111,7 +111,7 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('b',40)
     );
   exception when others then
     v_rejected := true;
@@ -122,7 +122,7 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('c',64), 'edge-v-test'
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('c',64), 'edge-v-test', repeat('b',40)
     );
   exception when others then
     v_rejected := true;
@@ -132,15 +132,25 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'wrong-edge-ref'
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'wrong-edge-ref', repeat('b',40)
     );
   exception when others then
     v_rejected := true;
   end;
   if not v_rejected then raise exception 'Runtime attestation accepted a mismatched Edge release reference'; end if;
 
+  v_rejected := false;
+  begin
+    perform public.mark_assessment_interpretation_release_runtime_verified_secure(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('d',40)
+    );
+  exception when others then
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'Runtime attestation accepted a mismatched source commit'; end if;
+
   v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('b',40)
   );
   if coalesce((v_result->>'success')::boolean, false) is not true then
     raise exception 'Runtime attestation failed: %', v_result;
@@ -162,7 +172,7 @@ begin
     raise exception 'Re-registering a release retained stale runtime attestation: %', v_result;
   end if;
   v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('b',40)
   );
 
   update public.options set option_value = 99
