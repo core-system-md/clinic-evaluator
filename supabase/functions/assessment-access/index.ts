@@ -39,7 +39,7 @@ async function isOwnerRequest(req: Request): Promise<boolean> {
     global: { headers: { Authorization: authorization } },
     auth: { persistSession: false, autoRefreshToken: false },
   });
-  const { data: userData, error: userError } = await userClient.auth.getUser();
+  const { data: userData, error: userError } = await userClient.auth.getUser(authorization.slice("Bearer ".length));
   if (userError || !userData.user) return false;
 
   const { data: owner, error: ownerError } = await userClient.rpc("is_owner");
