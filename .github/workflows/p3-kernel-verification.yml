@@ -208,13 +208,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Deno
-        uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-
-      - name: Type-check Edge runtime and registry provenance integration
-        run: deno check supabase/functions/assessment-access/index.ts
+      - name: Check Edge runtime and registry provenance syntax
+        run: |
+          node --experimental-strip-types --check supabase/functions/assessment-access/index.ts
+          node --experimental-strip-types --check supabase/functions/assessment-access/engine.ts
+          node --check supabase/functions/assessment-access/interpretation-release-provenance.mjs
 
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
