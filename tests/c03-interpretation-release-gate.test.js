@@ -50,6 +50,7 @@ test("C-03 runtime fails closed on release lookup errors and attests the selecte
   assert.match(engineSource, /assertInterpretationReleaseMatches/);
   assert.match(engineSource, /Interpretation release lookup failed/);
   assert.match(engineSource, /interpretationRegistryDigest/);
+  assert.match(engineSource, /C03_SOURCE_COMMIT_SHA/);
 });
 
 test("C-03 publication requires a runtime attestation from the Edge service role", () => {
