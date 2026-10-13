@@ -58,7 +58,8 @@ test("C-03 publication requires a runtime attestation from the Edge service role
   assert.match(source, /runtime_verified_digest = r\.registry_digest/);
   assert.match(source, /runtime_verified_edge_release_ref = r\.edge_release_ref/);
   assert.match(source, /auth\.role\(\).*service_role/);
-  assert.match(source, /grant execute on function public\.mark_assessment_interpretation_release_runtime_verified_secure\(uuid, text, text\)\s+to service_role/);
+  assert.match(source, /grant execute on function public\.mark_assessment_interpretation_release_runtime_verified_secure\(uuid, text, text, text\)\s+to service_role/);
+  assert.match(source, /runtime_verified_source_commit_sha = r\.source_commit_sha/);
 });
 
 test("C-03 Edge attestation action is owner-authorized and records runtime verification", () => {
