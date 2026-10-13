@@ -9,6 +9,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "tests/**"
+      - ".github/scripts/**"
       - "supabase/functions/assessment-access/**"
   pull_request:
     branches:
