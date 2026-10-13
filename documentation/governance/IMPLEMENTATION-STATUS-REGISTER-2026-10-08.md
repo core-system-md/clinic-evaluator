@@ -566,3 +566,15 @@ The owner clarified that ordinary engineering steps within the approved contract
 | FINAL STATUS | NOT CLOSED | The code and deployment remain verified, but the required live scoring path has not yet been exercised. C-03 must not start automatically. |
 
 The bounded runtime test is an engineering execution responsibility under the owner's clarified authority; do not ask for a separate approval merely to perform its individual steps. Preserve the Production safety boundary by using synthetic tagged records, a deterministic cleanup ledger, and post-cleanup zero-count checks for the test identifiers.
+
+
+## Dedicated live E2E harness — PR #87 (2026-10-13)
+
+- PR: https://github.com/core-system-md/clinic-evaluator/pull/87 (Draft; not merged).
+- Added `tests/c02-value70-live-e2e.mjs`, a C-02-only live runner for published `comprehensive-clinic-assessment`. It reads the public published question graph, joins its question codes to exact DB question IDs, and resolves the stored value-70 option for each published question.
+- Interpretation verification intentionally uses registry V2 independently of the published product version: the published assessment remains product V1 while its scoring semantics are bound to interpretation V2. The runner compares persisted response lineage against the V2 registry's `semanticStateKey`, source value 70, anchor score 70, and eligibility.
+- The runner verifies saved answer values, completion provenance V2, persisted `P3_STRUCTURED_RESULT_V1`, component/layer and axis score evidence, and numeric overall score.
+- Cleanup runs from `finally`, deletes access rows by SHA-256 hashes of this run's own issued tokens, and removes only the tagged synthetic lead/session/result/score/answer rows. It then verifies zero remaining rows for those run-specific identifiers; cleanup failure fails the run.
+- Workflow `.github/workflows/c02-value70-live-e2e.yml` is `workflow_dispatch` only, requires confirmation string `RUN-C02-VALUE70`, uses the `production-e2e` environment and `SUPABASE_SERVICE_ROLE_KEY`, and does not trigger on push or pull request. No production run has been dispatched.
+- CI run #431 passed all four jobs at the earlier PR snapshot: P3 isolated kernel, full Node suite, P4 disposable PostgreSQL, and C-02 answer-save RPC on disposable PostgreSQL. Subsequent runner revisions correct persisted-lineage verification to use registry V2; their CI run is pending at this documentation snapshot and must be checked against the latest PR head before approval.
+- **Production runtime remains NOT VERIFIED; C-02 remains NOT CLOSED.** No production test session/answer was created by this PR. Do not begin C-03.
