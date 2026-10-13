@@ -8,6 +8,7 @@ on:
       - "supabase/migrations/20261013110000_c02_allow_answer_value_70.sql"
       - "tests/c02-answer-value-compat-harness.sql"
       - "tests/c02-answer-value-compat.test.mjs"
+      - "tests/p4-protected-function-harness.sql"
       - ".github/workflows/c02-answer-value-compat.yml"
   workflow_dispatch:
 
@@ -16,7 +17,7 @@ permissions:
 
 jobs:
   c02-node-contract:
-    name: C-02 migration source contract
+    name: C-02 migration and RPC harness contract
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -29,7 +30,7 @@ jobs:
       - run: node --experimental-strip-types --test tests/c02-answer-value-compat.test.mjs
 
   c02-disposable-postgres:
-    name: C-02 disposable PostgreSQL constraint verification
+    name: C-02 save_assessment_answer RPC on disposable PostgreSQL
     runs-on: ubuntu-latest
     timeout-minutes: 10
     services:
