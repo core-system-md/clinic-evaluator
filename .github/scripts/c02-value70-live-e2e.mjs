@@ -43,28 +43,54 @@ async function runAssessment(slug) {
   assert(content.slug === slug && Number(content.version) === 1 && Array.isArray(content.questions) && content.questions.length > 0, "Published final V1 content unavailable for " + slug);
   assert(content.requires_login === false, "Assessment requires login; refusing public path");
 
-  const candidates = REGISTRY.entries.filter((entry) =>
-    entry.assessmentSlug === slug &&
-    Number(entry.interpretationVersion) === 2 &&
-    Number(entry.sourceOptionValue) === 70 &&
-    Number(entry.anchorScore) === 70 &&
-    entry.scoreEligible === true
+  const registryEntries = REGISTRY.entries.filter((entry) =>
+    entry.assessmentSlug === slug && Number(entry.interpretationVersion) === 2
   );
   const byCode = new Map();
-  for (const entry of candidates) {
+  for (const entry of registryEntries) {
     const items = byCode.get(entry.questionCode) || [];
     items.push(entry);
     byCode.set(entry.questionCode, items);
   }
   const selected = content.questions.map((question, i) => {
-    const entries = byCode.get(question.id) || [];
-    assert(entries.length === 1, "Expected one eligible V2 value-70 registry entry for " + slug + "/" + question.id + "; found " + entries.length);
-    const entry = entries[0];
-    assert((question.options || []).some((option) => Number(option.index) === Number(entry.optionIndex)), "Registry value-70 option index absent from published content: " + question.id);
-    return { code: question.id, optionIndex: Number(entry.optionIndex), currentQuestion: i + 1, semanticStateKey: entry.semanticStateKey };
+    const publishedIndexes = new Set((question.options || []).map((option) => Number(option.index)));
+    const entries = (byCode.get(question.id) || []).filter((entry) =>
+      publishedIndexes.has(Number(entry.optionIndex)) && entry.sourceIsTrap !== true
+    );
+    const value70 = entries.filter((entry) =>
+      Number(entry.sourceOptionValue) === 70 &&
+      Number(entry.anchorScore) === 70 &&
+      entry.scoreEligible === true
+    );
+    let entry;
+    if (value70.length) {
+      assert(value70.length === 1, "Expected one eligible V2 value-70 registry entry for " + slug + "/" + question.id);
+      entry = value70[0];
+    } else {
+      // Patient Journey has 21 value-70 options across 25 questions; the other required questions must still be answered.
+      const fallback = entries.filter((candidate) =>
+        candidate.scoreEligible === true && Number(candidate.sourceOptionValue) !== 70
+      ).sort((a, b) => {
+        const rank = (value) => value === 40 ? 0 : value === 0 ? 1 : value === 100 ? 2 : 3;
+        return rank(Number(a.sourceOptionValue)) - rank(Number(b.sourceOptionValue));
+      });
+      assert(fallback.length > 0, "No valid non-trap registry option for required question " + slug + "/" + question.id);
+      entry = fallback[0];
+    }
+    return {
+      code: question.id,
+      optionIndex: Number(entry.optionIndex),
+      sourceOptionValue: Number(entry.sourceOptionValue),
+      anchorScore: Number(entry.anchorScore),
+      scoreEligible: entry.scoreEligible === true,
+      currentQuestion: i + 1,
+      semanticStateKey: entry.semanticStateKey
+    };
   });
+  const value70Count = selected.filter((item) => item.sourceOptionValue === 70 && item.anchorScore === 70 && item.scoreEligible).length;
   assert(selected.length === content.questions.length, "Published question set is incomplete");
-  record(testCase, "published V1 content matches V2 registry value-70 anchors", { version: content.version, questions: selected.length });
+  assert(value70Count === (slug === "patient-journey" ? 21 : content.questions.length), "Unexpected number of published value-70 anchors for " + slug + ": " + value70Count);
+  record(testCase, "published V1 content maps all required answers and every available V2 value-70 anchor", { version: content.version, questions: selected.length, value_70_answers: value70Count });
 
   const suffix = Date.now() + "-" + crypto.randomBytes(6).toString("hex");
   const email = RUN_ID + "-" + slug + "-" + suffix + "@example.invalid";
@@ -109,7 +135,7 @@ async function runAssessment(slug) {
     interpretation_version: completed.body.data.provenance.interpretationVersion,
     overall_score: completed.body.data.overallScore
   });
-  testCase.expected = { answerCount: selected.length, responses: selected };
+  testCase.expected = { answerCount: selected.length, value70Count: selected.filter((item) => item.sourceOptionValue === 70 && item.anchorScore === 70 && item.scoreEligible).length, responses: selected };
   testCase.e2e_success = true;
   return testCase;
 }
