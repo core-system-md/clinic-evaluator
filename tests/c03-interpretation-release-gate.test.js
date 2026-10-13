@@ -8,6 +8,8 @@ const MIGRATION = path.join(ROOT, "supabase/migrations/20261014120000_c03_interp
 const PUBLISH_MIGRATION = path.join(ROOT, "supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql");
 const source = fs.readFileSync(MIGRATION, "utf8");
 const publishSource = fs.readFileSync(PUBLISH_MIGRATION, "utf8");
+const ENGINE = path.join(ROOT, "supabase/functions/assessment-access/engine.ts");
+const engineSource = fs.readFileSync(ENGINE, "utf8");
 
 test("C-03 registers an owner-controlled release with source and runtime provenance", () => {
   assert.match(source, /register_assessment_interpretation_release_secure/);
@@ -39,4 +41,11 @@ test("C-03 release registration cannot be called by public or anonymous clients"
   assert.match(source, /grant execute on function public\.register_assessment_interpretation_release_secure\(uuid, integer, text, text, text, jsonb\) to authenticated/);
   assert.match(source, /assessment_interpretation_releases enable row level security/);
   assert.match(source, /revoke all on public\.assessment_interpretation_releases from public, anon, authenticated/);
+});
+
+test("C-03 runtime fails closed on release lookup errors and attests the selected registry", () => {
+  assert.match(engineSource, /from\(["']assessment_interpretation_releases["']\)/);
+  assert.match(engineSource, /assertInterpretationReleaseMatches/);
+  assert.match(engineSource, /Interpretation release lookup failed/);
+  assert.match(engineSource, /interpretationRegistryDigest/);
 });
