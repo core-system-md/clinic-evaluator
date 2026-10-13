@@ -185,3 +185,33 @@ jobs:
               then raise exception 'Retry changed used_count'; end if;
           end $test$;
           SQL
+
+  c02-answer-save-e2e:
+    name: C-02 save_assessment_answer RPC (disposable PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Exercise the actual answer-save RPC and C-02 migration
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f tests/c02-answer-value-compat-harness.sql
+
