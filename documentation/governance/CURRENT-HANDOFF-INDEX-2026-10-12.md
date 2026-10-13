@@ -57,7 +57,7 @@ Prepared on branch `fix/c02-answer-value-70-2026-10-13`:
 - Dedicated C-02 CI run [#5](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328799): **PASS** — Node source-contract tests (2/2) and disposable PostgreSQL harness both passed.
 - Full Node suite, P3 isolated kernel, and P4 disposable PostgreSQL gate: **PASS** in [P3 verification run #417](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328225).
 - The first PostgreSQL harness attempt failed on a doubled backslash in the psql include directive. Fixed in commit `b441e2fb1dff68c605a6acfe3f6203a2bdb20436`; the subsequent PostgreSQL run passed.
-- Production constraint/row state was not re-queried during C-02; the prior D-14 read-only inventory recorded the old constraint and zero answer rows. No Production write was made.
+- Read-only Production re-check on 2026-10-13 confirmed the live constraint still allows `0,1,2,3,4,5,40,100` and `public.answers` has 0 rows. This was metadata/count-only SQL; no Production DDL or data write was made.
 - Deployed answer-save RPC E2E remains **NOT VERIFIED**; the disposable harness covers the constraint-facing insert contract, not the full deployed RPC dependency graph.
 
 Remaining to close C-02:
