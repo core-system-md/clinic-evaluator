@@ -1,6 +1,6 @@
 # Current Handoff Index — 2026-10-12
 
-> **Latest reconciliation: 2026-10-13.** This file name is retained as the canonical existing handoff index; the latest state is recorded in the C-02 section below and supersedes older contradictory C-02 status text.
+> **Latest reconciliation: 2026-10-14.** The canonical session handoff is `documentation/handoff/CURRENT-SESSION-HANDOFF.md`; latest C-02 run #38469121966 passed scoring but its cleanup is pending, as documented at the end of this index. This file name is retained as the canonical existing handoff index; the latest state is recorded in the C-02 section below and supersedes older contradictory C-02 status text.
 
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
@@ -140,3 +140,10 @@ The repository does contain a network-capable GitHub Actions route, but inspecti
 - Production constraint `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,70,100`. No migration or DDL change was executed in this E2E.
 - **Audit finding C-02: CLOSED.** Do not conflate this finding with work-package label C2. Audit finding C-01 remains OPEN and is the next item in the established sequence. C-03 remains NOT STARTED and must not be started before C-01 is resolved.
 - Separate CI note: WP-03 configuration semantics run #38387272452 failed an unrelated expectation that configured modes contain only `DIRECT_ANCHOR`, while current configuration also includes `SEMANTIC_ONLY`. This is outside C-02 and remains separately queued; C-02-specific live and CI gates passed.
+
+
+## Session-closeout pointer — 2026-10-14
+
+Use `documentation/handoff/CURRENT-SESSION-HANDOFF.md` as the exact resume file for the next conversation. This pointer is additive; all historical lines above are retained.
+
+Latest observed main before documentation closeout: `b2cf8b3f66ddf4e3da7ec34ab97ac8b45deb2cd4` (the remote `refs/heads/main` ref matched this SHA). Latest live C-02 run [#38469121966](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966) passed scoring but left two synthetic Production sessions pending scoped cleanup. Current counts are leads=2, sessions=2, assessment_results=2, answers=61, scores=11, assessment_session_access=2. Do not reuse the prior clean-state statement until the latest run is cleaned and verified. No C-03 work is authorized by this handoff.

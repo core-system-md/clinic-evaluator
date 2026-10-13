@@ -602,3 +602,80 @@ This entry supersedes every earlier C-02 status in this register that says runti
 - **Cleanup:** 2 access rows, 2 results, 11 score rows, 61 answer rows, 2 sessions, and 2 synthetic leads deleted by run-specific IDs/hashes. Post-cleanup verification returned zero rows for `sessions`, `answers`, `scores`, `assessment_results`, `leads`, and `assessment_session_access`; the global counts of those six tables are also zero.
 - **CI:** PR #93 run #38387798824 PASS across all four C-02/P3/P4 jobs; PR #91 P3 and WP-05 report projection checks passed. The separate WP-03 configuration semantics run #38387272452 has an unrelated assertion mismatch involving `DIRECT_ANCHOR` and `SEMANTIC_ONLY`; no WP-03 source/test changes were made in C-02.
 - **FINAL STATUS:** audit finding **C-02 CLOSED**. This is not a closure of the separately named work-package C2. Audit finding C-01 remains open and is the next item in the established sequence; C-03 must not start before C-01 is resolved.
+
+
+## 23. Session closure reconciliation — 2026-10-14 (supersedes prior clean-state claim)
+
+**Scope:** documentation-only session closure. No code, migration, Edge deployment, Pages deployment, or Production write was performed during this closeout.
+
+### Current source-control reality
+
+- Immediately before this documentation closeout, GitHub's `refs/heads/main` and `/commits/main` both identified `b2cf8b3f66ddf4e3da7ec34ab97ac8b45deb2cd4`; it was already pushed to remote `main`.
+- Commit `b2cf8b3f66ddf4e3da7ec34ab97ac8b45deb2cd4` changed one comment line in `.github/workflows/c02-value70-live-e2e.yml`. Because the workflow's push trigger watches that file, it automatically launched Production E2E run [#38469121966](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966). This run completed before the current closeout instruction; it is not an operation launched during this documentation-only closeout.
+- The working interface exposes GitHub repository APIs, not a local checkout/worktree. No local uncommitted files were created or changed in this closeout. Existing open PRs #85, #84, #82, #79, and #56 remain unmerged and were not changed or merged here.
+
+### Latest live E2E evidence
+
+- Exact runner command from the successful Actions log: `node .github/scripts/c02-value70-live-e2e.mjs`.
+- Workflow run [#38469121966](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966): **workflow SUCCESS**; started `2026-10-13T21:14:49Z`, updated/completed `2026-10-13T21:16:10Z`; evidence artifact [11850662078](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966/artifacts/11850662078).
+- Comprehensive Clinic final V1: 36 questions / 36 answers; all 36 saved answers have source value 70; completion returned HTTP 200, interpretation V2, overall score `69.99999999999999` (floating-point representation of 70).
+- Patient Journey final V1: 25 questions / 25 answers; all 21 available eligible value-70 anchors persisted, plus four valid non-trap answers for questions without an eligible value-70 anchor; completion returned HTTP 200, interpretation V2, overall score `65.8`.
+- The run's own evidence JSON explicitly reports `cleanup.status=PENDING_AGENT_SQL_CLEANUP` and `cleanup.verified=false`. Thus the run's functional scoring checks passed, but its cleanup gate did **not** pass. Do not treat this run as evidence of a clean Production database.
+
+### Read-only Production snapshot after that run
+
+Read-only SQL executed through the connected Supabase SQL operator returned:
+
+| Metric | Observed value |
+|---|---:|
+| Migration ledger row count | 52 |
+| Latest migration | `20261013110000 / c02_allow_answer_value_70` |
+| `public.leads` | 2 |
+| `public.sessions` | 2 |
+| `public.assessment_results` | 2 |
+| `public.answers` | 61 |
+| `public.scores` | 11 |
+| `public.assessment_session_access` | 2 |
+
+The two sessions are exactly the latest run's synthetic test sessions; the aggregate counts match those two run-owned datasets. Exact identifiers:
+
+| Family | Session ID | Result ID | Lead ID | Answers | Scores |
+|---|---|---|---|---:|---:|
+| Comprehensive Clinic | `37e39b82-0fc6-42ea-889f-b759d32f9dc6` | `05f1fe0f-a70e-48d3-ac8f-ab95f7c8828c` | `5673535d-d167-4c92-a29f-4c057907b63c` | 36 | 6 |
+| Patient Journey | `eb0bc8cf-7f19-45dc-95f6-6dea2422d509` | `f943d24d-4b6b-4c78-82f7-f0fb6bdf0156` | `4663754d-4aed-4169-a247-98a2400fad65` | 25 | 5 |
+
+Run-owned access token hashes:
+- Comprehensive Clinic: `96dcf286c531f4d04f9c35085ea590cd9c24c06a4d70ed886e5f139753a0a1e5`
+- Patient Journey: `2c8cc5879026d60922cc5f8db3cd621efb78950dd22546933fa94eea2662882b`
+
+The read-only query confirmed both sessions are `completed`; both results are `PRODUCTION`, interpretation version 2. The test runner's successful completion and the live row readback are evidence for scoring behavior. They are **not** evidence of cleanup.
+
+### Deployment and migration state
+
+- Latest observed `assessment-access`: ACTIVE, version **37**; bundle SHA-256 recorded in the existing production closure evidence: `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`. Logs for run #38469121966 identify deployment version 37.
+- Latest migration remains `20261013110000 / c02_allow_answer_value_70`; no migration was applied in this closeout.
+- No Edge deployment, Pages deployment, RPC write, DDL, or data mutation was performed during this closeout.
+
+### Contract status after the latest run
+
+| Gate | State |
+|---|---|
+| Value-70 acceptance / V2 interpretation / persisted scoring for both families | **PRODUCTION VERIFIED** |
+| Latest repeat-run E2E functional assertions | **PASS** |
+| Cleanup for earlier run #38387901746 | Historically verified at that time; its evidence remains valid for that run only |
+| Cleanup for latest run #38469121966 | **PENDING / NOT VERIFIED** |
+| Global zero-residue claim | **CONTRADICTED by current read-only counts**; do not repeat the earlier zero-count statement as current |
+| Audit finding C-02 functionality | **PRODUCTION VERIFIED** |
+| C-02 session-wide clean closure state | **BLOCKED until latest run-owned records are removed and zero residue is verified** |
+| Audit finding C-01 | OPEN |
+| Audit finding C-03 | NOT STARTED; must not begin before C-01 is resolved and the owner authorizes resumption |
+
+### Time accounting
+
+- Latest E2E workflow duration: approximately 81 seconds from GitHub's `created_at` to `updated_at`; the runner evidence spans `2026-10-13T21:14:56.859Z` to `2026-10-13T21:16:05.530Z` (about 68.7 seconds).
+- The governing handoff records a maximum three-hour budget per bounded work package. A reliable start timestamp for the full C-02 work package and for this closeout session is not available in the execution records; full-package elapsed time versus budget is therefore **UNVERIFIED**, not estimated.
+- No production operation was running at the time of closeout; Actions run #38469121966 was completed.
+
+### Required next gate (do not execute during this closeout)
+
+After the owner explicitly confirms resumption in a new conversation, perform **only** the bounded cleanup for run #38469121966 using the two session IDs, two lead IDs, and two token hashes listed above. Delete only those run-owned access/result/score/answer/session/lead rows in dependency-safe order, then run read-only verification proving zero rows for each exact identifier and no residual tagged records. Do not rerun E2E, deploy, migrate, or start C-03 as part of that cleanup gate.

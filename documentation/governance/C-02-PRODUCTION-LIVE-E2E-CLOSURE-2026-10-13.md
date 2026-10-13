@@ -4,7 +4,7 @@
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
 **Finding:** C-02 — acceptance, interpretation, and scoring of answer value `70`  
-**Status:** CLOSED — live Production E2E passed for both affected published final V1 assessment families; persisted results verified; run-scoped cleanup verified.
+**Status:** FUNCTIONAL SCORING = PRODUCTION VERIFIED for both affected published final V1 families; latest rerun cleanup is PENDING (run #38469121966). The earlier run's cleanup proof remains valid only for that earlier run.
 
 > This closes audit finding C-02 only. It does not close C-01, does not start C-03, and does not mark work-package labels C0/C1/C2 closed by implication.
 
@@ -87,9 +87,37 @@ No Production migration, DDL change, or schema modification was executed during 
 | Interpretation registry V2 lineage | PRODUCTION VERIFIED |
 | Component/layer, axis, and overall scoring persisted | PRODUCTION VERIFIED |
 | Completion API returns success | PRODUCTION VERIFIED |
-| Run-scoped cleanup and zero-residue checks | VERIFIED |
-| Audit finding C-02 | **CLOSED** |
+| Run-scoped cleanup and zero-residue checks | VERIFIED for run #38387901746; PENDING for latest run #38469121966 |
+| Audit finding C-02 | **PRODUCTION VERIFIED for scoring behavior; latest-run cleanup pending before clean-state closure** |
 | Audit finding C-01 | OPEN — separate next item in the established sequence |
 | Audit finding C-03 | NOT STARTED — remains blocked until C-01 is resolved |
 
-The earlier trigger/secret failure report remains a historically accurate record of the failed attempt at that time. This closure report supersedes its open-status conclusion using the later successful run and independently verified cleanup evidence.
+The earlier trigger/secret failure report remains a historically accurate record of the failed attempt at that time. The earlier clean closure was valid for run #38387901746 only; it does not establish cleanup for the later run #38469121966.
+
+
+## Latest repeat-run reconciliation — 2026-10-14
+
+This section supersedes any implication above that Production currently has zero test records. It does not invalidate the successful scoring evidence or the earlier run's cleanup evidence; it records that a later run created a new, separately scoped test dataset.
+
+- Latest run: [#38469121966](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966), event `push`, head commit `b2cf8b3f66ddf4e3da7ec34ab97ac8b45deb2cd4`, workflow result **SUCCESS**.
+- Exact command: `node .github/scripts/c02-value70-live-e2e.mjs`.
+- Artifact: [c02-value70-live-e2e-evidence, artifact 11850662078](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966/artifacts/11850662078).
+- Both flows passed the answer-save and completion checks. Comprehensive Clinic: 36/36 value-70 answers, interpretation V2, score `69.99999999999999`. Patient Journey: 25/25 answers, including 21 eligible value-70 answers, interpretation V2, score `65.8`.
+- The artifact explicitly reports `cleanup.status=PENDING_AGENT_SQL_CLEANUP`, `cleanup.verified=false`. Cleanup is not complete for this run.
+
+### Latest run-owned Production records (read-only verified)
+
+| Family | Session ID | Result ID | Lead ID | Answer rows | Score rows |
+|---|---|---|---|---:|---:|
+| Comprehensive Clinic | `37e39b82-0fc6-42ea-889f-b759d32f9dc6` | `05f1fe0f-a70e-48d3-ac8f-ab95f7c8828c` | `5673535d-d167-4c92-a29f-4c057907b63c` | 36 | 6 |
+| Patient Journey | `eb0bc8cf-7f19-45dc-95f6-6dea2422d509` | `f943d24d-4b6b-4c78-82f7-f0fb6bdf0156` | `4663754d-4aed-4169-a247-98a2400fad65` | 25 | 5 |
+
+Access-token hashes:
+- `96dcf286c531f4d04f9c35085ea590cd9c24c06a4d70ed886e5f139753a0a1e5`
+- `2c8cc5879026d60922cc5f8db3cd621efb78950dd22546933fa94eea2662882b`
+
+A read-only aggregate query after the run returned 52 migration-ledger rows, latest migration `20261013110000 / c02_allow_answer_value_70`, and current counts: leads=2, sessions=2, assessment_results=2, answers=61, scores=11, assessment_session_access=2. Those counts match the two record sets above; the prior global-zero claim was true after run #38387901746 but is no longer current.
+
+Production `assessment-access` was observed serving version **37**, bundle SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`. No migration, deployment, or Production write was performed during the 2026-10-14 documentation closeout.
+
+**Current gate:** value-70 scoring behavior is **PRODUCTION VERIFIED**. Cleanup of run #38469121966 is **PENDING / NOT VERIFIED**, so current Production zero-residue/clean-state closure is **BLOCKED**. Do not execute cleanup, rerun E2E, deploy, migrate, or start C-03 during this session. After the owner authorizes resumption, clean only the identifiers above and prove zero residue.
