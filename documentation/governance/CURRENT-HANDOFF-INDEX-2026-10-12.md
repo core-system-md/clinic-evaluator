@@ -163,3 +163,20 @@ Latest observed main before documentation closeout: `b2cf8b3f66ddf4e3da7ec34ab97
 The owner resolved the numbering ambiguity: Guardrails decision 11 is the hybrid Git/Supabase configuration model with explicit synchronization/release. P3 Architecture D11 (“Classification / grade semantics”) is a separate document-local numbering scheme and is not the cited decision. C-01 remains out of scope.
 
 A repository-only C-03 implementation is prepared on branch `work/c03-publication-release-gate-20261014` from main `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`: migration `20261014120000_c03_interpretation_release_publication_gate.sql` and static contract test `tests/c03-interpretation-release-gate.test.js`. The migration adds owner-controlled release registration and requires a complete option identity manifest at the shared publish/restore validator. No tests have yet been run; no production migration/RPC/deployment has occurred. This status supersedes older C-03 “blocked by scope conflict” text above.
+
+
+---
+
+## C-03 engineering verification — 2026-10-14 (latest status)
+
+This entry supersedes the prior C-03 update's statement that no tests had run. The owner directed continued verification of PR #96.
+
+- PR #96: https://github.com/core-system-md/clinic-evaluator/pull/96 — **open draft**, not merged.
+- Tested source commit: `f33a9117cbea773b63269fc375c1bcf69599bef0`.
+- CI run [#38477545145](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477545145): **SUCCESS**.
+- Full Node test suite: 36 passed, 0 failed.
+- C-03 migration harness: passed on disposable PostgreSQL 17 with a minimal fixture; incomplete manifest rejected, complete manifest accepted, validator accepted the registered manifest, and validator rejected a later option-value mismatch.
+- Two test harness failures were fixed before the successful run: psql migration include path and missing Supabase client roles.
+- No migration or RPC was applied to Production; no Edge/Pages deployment; no merge.
+
+**Not a C-03 closure:** the current migration stores `registry_digest`, `source_commit_sha`, and `edge_release_ref`, but does not independently attest that the deployed Edge runtime uses the registered digest. The isolated fixture also does not prove compatibility against the complete live Supabase schema. Next step is bounded engineering review of Edge/runtime provenance linkage and validator parity, without Production writes. C-01 remains out of scope.
