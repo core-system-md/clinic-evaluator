@@ -25,7 +25,7 @@ The Supabase migration ledger confirms these three migrations are applied in Pro
 
 Read-only live checks found current published V1 content counts and 0–100 axis weight totals consistent with the reconstruction contract. The two `*_from_result` RPCs exist and are service-role-only; deployed `assessment-access` is version 35 and calls those RPCs. Current totals for leads, sessions, answers, scores, assessment_results, assessment_session_access, and historical_snapshots are all zero.
 
-One cross-migration defect was identified for C-02: the live `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,100`, while the reconstructed assessments contain 57 options valued 70 and the answer-save RPC writes the option value to `answer_value`. The forward-only correction has now been implemented on branch `fix/c02-answer-value-70-2026-10-13` and verified against disposable PostgreSQL in CI. It has **not** been applied to Production.
+One cross-migration defect was identified for C-02: the live `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,100`, while the reconstructed assessments contain 57 options valued 70 and the answer-save RPC writes the option value to `answer_value`. The forward-only correction is implemented on branch `fix/c02-answer-value-70-2026-10-13`; the repository `save_assessment_answer` function has now passed end-to-end verification against disposable PostgreSQL in CI, including value-70 persistence and rejection of unsupported 99. It has **not** been applied to Production.
 
 D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INVENTORY-2026-10-12.md` on branch `d14-production-migration-impact-inventory-2026-10-12`. The report and updated handoff are branch-only until reviewed/merged.
 
@@ -42,31 +42,31 @@ D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INV
 ### D-14 — inventory/design result
 Read-only inventory is complete for the three specified migrations and relevant live contracts. The documented C-02 constraint repair is a design only. No production mutation was performed. This work package should close only after the D-14 documentation PR is reviewed and merged; do not infer that branch-only documentation is already on `main`.
 
-### C-02 — implementation and disposable verification passed; review/operational closure pending
+### C-02 — implementation and disposable RPC E2E verification complete; branch-only release pending
 
 **PR:** [#86 — forward-only answer value 70 compatibility repair](https://github.com/core-system-md/clinic-evaluator/pull/86) — open, not merged.
 
 Prepared on branch `fix/c02-answer-value-70-2026-10-13`:
 - New migration `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql`; no applied migration was edited.
 - Migration checks for the expected constraint and aborts if existing non-null values fall outside the intended set, then replaces the constraint with `0,1,2,3,4,5,40,70,100`.
-- Disposable PostgreSQL harness covers accepted values, legacy preservation, matching `option_value`/`answer_value` persistence for 70, and rejection of unsupported 99.
-- Dedicated Node contract test and GitHub Actions workflow added.
+- Disposable PostgreSQL harness loads the actual `public.save_assessment_answer` implementation from the P4 migration and invokes it with synthetic access/session/question/option fixtures.
+- It verifies `option_value=70` and `answer_value=70`, the RPC return payload, session progress/access activity updates, rejection of option value 99 without damaging the valid answer, and legacy-value preservation.
+- Dedicated Node contract test, dedicated C-02 workflow, and an independent PostgreSQL E2E job in the existing P3 workflow are present.
 - Governance report: `documentation/governance/C-02-ANSWER-VALUE-70-COMPATIBILITY-REPAIR-2026-10-13.md`.
 
 **Verified results (2026-10-13):**
-- Dedicated C-02 CI run [#5](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328799): **PASS** — Node source-contract tests (2/2) and disposable PostgreSQL harness both passed.
-- Full Node suite, P3 isolated kernel, and P4 disposable PostgreSQL gate: **PASS** in [P3 verification run #417](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328225).
-- The first PostgreSQL harness attempt failed on a doubled backslash in the psql include directive. Fixed in commit `b441e2fb1dff68c605a6acfe3f6203a2bdb20436`; the subsequent PostgreSQL run passed.
+- Dedicated C-02 CI run [#14](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363993137): **PASS** — Node migration/RPC source-contract tests (2/2) and the actual `save_assessment_answer` function E2E on disposable PostgreSQL both passed.
+- Independent P3 verification run [#426](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363993200): **PASS** — P3 isolated kernel, full Node suite, P4 protected-completion disposable PostgreSQL gate, and C-02 answer-save RPC E2E job.
+- RPC E2E specifically confirmed persistence of both values as 70, valid RPC result fields, session progress and access activity updates, rejection of unsupported 99 without replacing the valid answer, and preservation of legacy accepted values.
+- The first PostgreSQL harness attempt failed on a doubled backslash in the psql include directive. The runner was corrected and the subsequent runs passed.
 - Read-only Production re-check on 2026-10-13 confirmed the live constraint still allows `0,1,2,3,4,5,40,100` and `public.answers` has 0 rows. This was metadata/count-only SQL; no Production DDL or data write was made.
-- Deployed answer-save RPC E2E remains **NOT VERIFIED**; the disposable harness covers the constraint-facing insert contract, not the full deployed RPC dependency graph.
+- The disposable test executes the repository function definition, not the deployed Production function. Production runtime execution remains **NOT VERIFIED** and was not attempted.
 
-Remaining to close C-02:
-1. Review PR #86 and resolve any review feedback within C-02 scope; do not merge without explicit authorization.
-2. If needed, perform read-only production constraint/row confirmation; do not apply the migration.
-3. Decide whether full deployed answer-save RPC E2E is required before declaring operational closure; it remains NOT VERIFIED.
-4. Keep the C-02 report and this Handoff aligned with the verified CI evidence.
-5. Stop after C-02; do not begin C-03 automatically.
-6. **Do not apply the migration to Production without separate explicit owner approval.**
+**C-02 technical implementation and disposable verification are complete on the PR branch.** Remaining release/administrative actions:
+1. Review PR #86; it remains open and unmerged. Do not merge without explicit authorization.
+2. Do not apply the migration to Production without separate explicit owner approval.
+3. Keep Production runtime execution marked NOT VERIFIED unless separately authorized and performed.
+4. Stop after C-02. Do not begin C-03 automatically in this continuation.
 
 ### Remaining sequence
 - C-03: explicit interpretation-binding and complete option-identity coverage gate.
