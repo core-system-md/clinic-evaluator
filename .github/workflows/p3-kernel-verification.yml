@@ -21,6 +21,7 @@ on:
       - "package.json"
       - "package-lock.json"
       - "tests/**"
+      - ".github/scripts/**"
   workflow_dispatch:
 
 permissions:
