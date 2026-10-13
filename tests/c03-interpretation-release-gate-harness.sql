@@ -129,6 +129,16 @@ begin
   end;
   if not v_rejected then raise exception 'Runtime attestation accepted a mismatched digest'; end if;
 
+  v_rejected := false;
+  begin
+    perform public.mark_assessment_interpretation_release_runtime_verified_secure(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'wrong-edge-ref'
+    );
+  exception when others then
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'Runtime attestation accepted a mismatched Edge release reference'; end if;
+
   v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
     'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
   );
@@ -140,6 +150,20 @@ begin
   if coalesce((v_result->>'valid')::boolean, false) is not true then
     raise exception 'Validator rejected release after runtime attestation: %', v_result;
   end if;
+
+  -- Re-registering a release must invalidate the previous runtime attestation.
+  v_result := public.register_assessment_interpretation_release_secure(
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1, repeat('a',64), repeat('b',40),
+    'edge-v-test',
+    '[{"question_code":"Q1","option_id":"ffffffff-ffff-4fff-8fff-ffffffffffff","option_index":0,"source_option_value":0},{"question_code":"Q1","option_id":"11111111-1111-4111-8111-111111111111","option_index":1,"source_option_value":1}]'::jsonb
+  );
+  v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if coalesce((v_result->>'valid')::boolean, true) is not false then
+    raise exception 'Re-registering a release retained stale runtime attestation: %', v_result;
+  end if;
+  v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
+  );
 
   update public.options set option_value = 99
    where id = '11111111-1111-4111-8111-111111111111';
