@@ -121,3 +121,22 @@ A read-only aggregate query after the run returned 52 migration-ledger rows, lat
 Production `assessment-access` was observed serving version **37**, bundle SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`. No migration, deployment, or Production write was performed during the 2026-10-14 documentation closeout.
 
 **Current gate:** value-70 scoring behavior is **PRODUCTION VERIFIED**. Cleanup of run #38469121966 is **PENDING / NOT VERIFIED**, so current Production zero-residue/clean-state closure is **BLOCKED**. Do not execute cleanup, rerun E2E, deploy, migrate, or start C-03 during this session. After the owner authorizes resumption, clean only the identifiers above and prove zero residue.
+
+
+## Latest cleanup closure — 2026-10-14
+
+This section supersedes the previous cleanup-pending conclusion for run #38469121966.
+
+- Owner authorization: explicit instruction to clean the run-owned synthetic records and close C-02.
+- Pre-delete identity verification: exact two session IDs, two result IDs, two lead IDs, C-02 source marker, example.invalid emails, expected 36/25 answer counts, expected 6/5 score counts, and two runner-emitted token hashes were confirmed by read-only Production queries.
+- Cleanup: deleted exactly the two lead rows using exact IDs plus the exact C-02 source marker and synthetic email suffix. Foreign-key cascades removed the associated sessions and dependent answers, scores, results, access rows, and historical snapshots.
+- Delete output: exactly two expected lead IDs/emails returned.
+- Post-cleanup verification: zero rows for exact lead IDs, session IDs, result IDs, session-linked answers/scores, token hashes, and session-linked historical snapshots.
+- Global counts: leads=0, sessions=0, assessment_results=0, answers=0, scores=0, assessment_session_access=0.
+- No repeat E2E, migration, DDL, Edge deployment, or manual Pages deployment occurred. Migration ledger remains 52 rows, latest 20261013110000 / c02_allow_answer_value_70; Edge remains ACTIVE v37 with SHA-256 bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36.
+
+C-02 FINAL STATUS: CLOSED — scoring is PRODUCTION VERIFIED and the latest run cleanup/zero-residue gate is VERIFIED.
+
+## Owner-directed C-03 transition — 2026-10-14
+
+Owner explicitly directs C-03 instead of C-01. Implementation is blocked by a scope contradiction: current owner prompt §7 defines C-03 as Git/database synchronization (D11) plus safe completion of published admin assessments; the existing handoff index defines C-03 as interpretation binding/option identity coverage; the P3 architecture document calls D11 “Classification / grade semantics”. No C-03 implementation or Production operation was started. Obtain one authoritative scope definition before coding or changing data.
