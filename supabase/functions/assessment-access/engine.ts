@@ -83,6 +83,7 @@ export type AssessmentComputation = {
   result: P3IntegratedResult;
   scoreRows: Array<Record<string, unknown>>;
   provenance: {
+    assessmentSlug: string;
     assessmentVersion: number;
     interpretationVersion: number;
     scoringEngineVersion: string;
@@ -504,6 +505,7 @@ export async function calculateAssessment(
     result,
     scoreRows,
     provenance: {
+      assessmentSlug: runtime.family.slug,
       assessmentVersion,
       interpretationVersion: interpretationBinding.interpretationVersion,
       scoringEngineVersion: ENGINE_IDENTITY,

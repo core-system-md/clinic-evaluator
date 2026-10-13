@@ -5,6 +5,8 @@ const { execFileSync } = require("node:child_process");
 
 const runner = fs.readFileSync(".github/scripts/c02-value70-live-e2e.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/c02-value70-live-e2e.yml", "utf8");
+const engine = fs.readFileSync("supabase/functions/assessment-access/engine.ts", "utf8");
+const edgeIndex = fs.readFileSync("supabase/functions/assessment-access/index.ts", "utf8");
 
 test("C-02 runner is restricted to the intended Production project and explicit live-write gate", () => {
   assert.match(runner, /ALLOW_LIVE_E2E === "true"/);
@@ -45,4 +47,10 @@ test("workflow automatic trigger remains limited to the workflow file and preser
 
 test("live runner parses without executing Production writes", () => {
   execFileSync(process.execPath, ["--check", ".github/scripts/c02-value70-live-e2e.mjs"]);
+});
+
+test("completion projection receives the pinned assessment family slug instead of failing with unknown", () => {
+  assert.match(engine, /assessmentSlug: runtime\.family\.slug/);
+  assert.match(edgeIndex, /assessmentSlug: computed\.provenance\.assessmentSlug/);
+  assert.match(edgeIndex, /projectCompletionResponse\(\{/);
 });

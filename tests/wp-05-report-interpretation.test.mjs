@@ -167,7 +167,8 @@ test("WP-05 saved and fresh completion paths receive server-verified prior-sessi
   assert.match(index, /async function getPreviousAssessmentSessionData\(session: any\)/);
   assert.match(index, /findLeadHistory\([\s\S]*?false,[\s\S]*?String\(session\.lead_id\)/);
   assert.match(index, /const previousSessionData = await getPreviousAssessmentSessionData\(session\)/);
-  assert.match(index, /projectCompletionResponse\(storedStructured, previousSessionData\)/);
+  assert.match(index, /projectCompletionResponse\(\{/);
+  assert.match(index, /assessmentSlug: computed\.provenance\.assessmentSlug/);
   assert.match(index, /projectCompletionResponse\(storedResult\.result, await getPreviousAssessmentSessionData\(session\)\)/);
   const history = index.slice(index.indexOf("async function findLeadHistory("), index.indexOf("async function getPreviousAssessmentSessionData("));
   assert.doesNotMatch(history, /if \(leads\.length < 2\) return/);

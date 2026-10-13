@@ -985,7 +985,13 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          ...projectCompletionResponse(storedStructured, previousSessionData),
+          ...projectCompletionResponse({
+            ...storedStructured,
+            provenance: {
+              ...(storedStructured.provenance || {}),
+              assessmentSlug: computed.provenance.assessmentSlug,
+            },
+          }, previousSessionData),
           provenance: {
             ...computed.provenance,
             calculatedAt: storedStructured?.identity?.calculatedAt ?? null,
