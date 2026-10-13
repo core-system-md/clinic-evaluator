@@ -128,7 +128,7 @@ async function main() {
   const responseByCode = new Map(result.inputs.responses.map((x) => [x.questionCode, x]));
   const interpreted70 = selected.every((item) => {
     const response = responseByCode.get(item.code);
-    const entry = REGISTRY_V2.entries.find((x) => x.assessmentSlug === SLUG && String(x.assessmentVersion) === String(row.assessment_version) && x.questionCode === item.code && Number(x.optionIndex) === item.optionIndex && Number(x.sourceOptionValue) === 70);
+    const entry = REGISTRY_V2.entries.find((x) => x.assessmentSlug === SLUG && Number(x.interpretationVersion) === 2 && x.questionCode === item.code && Number(x.optionIndex) === item.optionIndex && Number(x.sourceOptionValue) === 70);
     return Boolean(response && entry && Number(response.sourceOptionValue) === 70 && response.semanticStateKey === entry.semanticStateKey && Number(entry.anchorScore) === 70 && entry.scoreEligible === true);
   });
   assert(interpreted70, "Persisted response lineage does not match the V2 registry's score-70 anchors");
