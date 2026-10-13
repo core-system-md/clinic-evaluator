@@ -1,6 +1,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const test = require("node:test");
+const { execFileSync } = require("node:child_process");
 
 const runner = fs.readFileSync("tests/c02-value70-live-e2e.mjs", "utf8");
 const workflow = fs.readFileSync(".github/workflows/c02-value70-live-e2e.yml", "utf8");
@@ -30,4 +31,8 @@ test("workflow is manual-only, confirmation-gated, and requires cleanup credenti
   assert.match(workflow, /confirm_production_write/);
   assert.match(workflow, /SUPABASE_SERVICE_ROLE_KEY/);
   assert.match(workflow, /ALLOW_LIVE_E2E: "true"/);
+});
+
+test("live runner parses without executing Production writes", () => {
+  execFileSync(process.execPath, ["--check", "tests/c02-value70-live-e2e.mjs"]);
 });
