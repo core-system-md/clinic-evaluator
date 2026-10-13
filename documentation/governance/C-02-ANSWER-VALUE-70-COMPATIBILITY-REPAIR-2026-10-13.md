@@ -73,3 +73,15 @@ The owner clarified that engineering execution within the approved work contract
 - An external POST attempt to the deployed Edge endpoint could not reach the Supabase hostname from the available execution container (EAI_AGAIN DNS resolution failure). This is an execution-environment connectivity failure, not evidence of a Production function failure. No Production session, answer, or access row was created by this attempt.
 
 **Current status remains:** scoring correction implemented, CI verified, Edge v36 deployed, live Production scoring E2E NOT VERIFIED. The next engineering action is to run the bounded runtime test from an execution environment that can reach the deployed endpoint, then verify the resulting score and confirm cleanup. Do not restart the implementation or begin C-03.
+
+
+## Runtime-runner audit — 2026-10-13 (supersedes generic runner suggestion)
+
+The repository does contain a network-capable GitHub Actions route, but inspection shows the existing manual workflows are **not valid C-02 value-70 closure evidence and must not be dispatched as-is**:
+
+- `.github/workflows/p2-external-e2e.yml` is `workflow_dispatch` only and uses `tests/external-assessment-access.mjs`. That script checks reachability/content/access and saves only the first option; it does not select a value-70 option, call `complete`, inspect the resulting mathematical score, or clean up the synthetic session/answer/access/lead records.
+- The same workflow's P3 matrix uses `tests/p3-production-external-e2e.mjs`. The script answers every question with option index 0, expects interpretation version `1`, does not assert the value-70 anchor or 70 score, and contains no cleanup path. Running it would create production test data without satisfying this C-02 gate.
+- The current GitHub connector exposes read and workflow-job/log operations but no workflow-dispatch operation. No run was triggered.
+- Therefore no claim of live runtime verification is made. The earlier suggestion to simply run a generic external E2E on a network-capable runner is too broad and is superseded by this audit.
+
+**Next bounded engineering action:** implement and validate a dedicated C-02 production E2E harness/workflow that (1) targets a published Comprehensive Clinic or Patient Journey question whose published option value is exactly 70, (2) uses unique tagged synthetic identities and records all created IDs, (3) checks saved answer value, V2 interpretation anchor and component/axis/overall scoring in the persisted result, and (4) runs deterministic cleanup in a `finally` path and verifies the exact tagged test records are gone. Before any production run, inspect the existing API/data model to establish that cleanup is supported and complete; if the public Edge API cannot delete test artifacts safely, use a controlled database cleanup mechanism scoped only to IDs created by the test. Never use the existing generic workflows as a substitute. C-02 remains **NOT CLOSED**; C-03 must not start.
