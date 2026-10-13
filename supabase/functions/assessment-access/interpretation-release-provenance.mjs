@@ -3,6 +3,8 @@
  * The digest covers the stable-serialized selected registry entries, preserving entry order.
  */
 
+export const RUNTIME_EDGE_RELEASE_REF = "assessment-access-c03-registry-attestation-v1";
+
 export function stableSerialize(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
   if (Array.isArray(value)) return "[" + value.map(stableSerialize).join(",") + "]";
@@ -106,6 +108,9 @@ export async function assertInterpretationReleaseMatches({
   }
   if (typeof release.edge_release_ref !== "string" || !release.edge_release_ref.trim()) {
     throw new Error("Interpretation release Edge reference metadata is missing");
+  }
+  if (release.edge_release_ref !== RUNTIME_EDGE_RELEASE_REF) {
+    throw new Error("Registered Edge release reference does not match this runtime build");
   }
   if (!Array.isArray(release.option_manifest)) {
     throw new Error("Interpretation release option manifest is missing");
