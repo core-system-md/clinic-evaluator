@@ -513,3 +513,21 @@ This section updates the canonical register in place after PR #86 merged. It doe
 | FINAL STATUS | VERIFIED — bounded repository/test scope only | Do not mark the production-facing C-02 release CLOSED; full assessment-family E2E/runtime and Production verification requirements remain unmet. |
 
 **Stop boundary:** C-02 implementation and disposable RPC E2E are merged and tested. Do not apply the migration to Production, do not start C-03, and do not merge PR #85 as part of this task. The next action after this documentation commit is to stop and report.
+
+
+## 19. C-02 post-merge Production state recheck — 2026-10-13
+
+This entry supersedes the current-state claims in §18 only where new read-only evidence differs; it does not claim the deployed RPC/runtime has been exercised.
+
+| Contract field | Current observed state | Evidence / boundary |
+|---|---|---|
+| IMPLEMENTATION STATUS | IMPLEMENTED | Migration `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql` is present on `main` through PR #86. |
+| TEST STATUS | TESTED | Dedicated C-02 CI run [#16](https://github.com/core-system-md/clinic-evaluator/actions/runs/38364130139) PASS; integrated P3/P4/C-02 run [#428](https://github.com/core-system-md/clinic-evaluator/actions/runs/38364130147) PASS. |
+| RUNTIME STATUS | NOT VERIFIED | No call to the deployed Production `save_assessment_answer` RPC was made. |
+| PRODUCTION STATUS | MIGRATION / CONSTRAINT OBSERVED | Read-only Supabase migration ledger lists `20261013110000 / c02_allow_answer_value_70`; read-only constraint query returns allowed values `0,1,2,3,4,5,40,70,100`; `public.answers` row count is 0. The application actor/time is not established. |
+| PAGES STATUS | DEPLOYED | Production deployment `815c64a2-ab9b-4d46-b3b9-c63c175bdc1f` succeeded for merge commit `dfaa79ce54cc4a385b5b0975e2e61d91f310c9cb`; documentation commit `375737c29cb038070842eefd4d46b854fff253ad` succeeded as `d7d28cde-d990-45ae-a832-62b9bad67cc5`. |
+| OPEN RISKS | OPEN | Deployed Production RPC behavior and full assessment-family E2E remain unverified; migration-application provenance is unknown. |
+| OPEN DECISIONS | OPEN | Separate explicit owner approval is required for a Production runtime test. |
+| FINAL STATUS | NOT CLOSED | Bounded repository/CI and read-only Production state are verified; full production-facing C-02 closure criteria are not yet satisfied. |
+
+**Boundary:** no Production RPC was invoked and no Production mutation was performed in this continuation. Do not start C-03 automatically; the current handoff must first record the required C-02 closure evidence and authorized transition.
