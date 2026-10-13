@@ -1,7 +1,7 @@
 name: C-02 Production value-70 E2E (agent-coordinated cleanup)
 
 on:
-  # Run automatically only when this guarded workflow changes on main.
+  # One bounded rerun after assessment-access v37 was deployed with family-context propagation.
   push:
     branches:
       - main
