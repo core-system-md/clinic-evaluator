@@ -45,7 +45,7 @@ async function validRelease() {
     interpretation_version: 1,
     registry_digest: await provenance.digestInterpretationEntries(entries),
     source_commit_sha: "c".repeat(40),
-    edge_release_ref: "assessment-access-v-test",
+    edge_release_ref: provenance.RUNTIME_EDGE_RELEASE_REF,
     option_manifest: manifestFrom(entries),
   };
 }
