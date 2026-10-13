@@ -56,6 +56,7 @@ const expected = {
   assessmentVersion: 1,
   interpretationVersion: 1,
   registryEntries: entries,
+  runtimeSourceCommitSha: "c".repeat(40),
 };
 
 test("runtime release attestation accepts matching digest and exact manifest", async () => {
@@ -90,6 +91,15 @@ test("runtime release attestation rejects duplicate option identities", async ()
   await assert.rejects(
     provenance.assertInterpretationReleaseMatches({ release, ...expected }),
     /duplicate option identities/,
+  );
+});
+
+test("runtime release attestation rejects a different deployed source commit", async () => {
+  const release = await validRelease();
+  release.source_commit_sha = "d".repeat(40);
+  await assert.rejects(
+    provenance.assertInterpretationReleaseMatches({ release, ...expected }),
+    /does not match this Edge runtime build/,
   );
 });
 
