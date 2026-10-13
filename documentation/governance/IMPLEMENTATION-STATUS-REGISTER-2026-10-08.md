@@ -531,3 +531,21 @@ This entry supersedes the current-state claims in §18 only where new read-only 
 | FINAL STATUS | NOT CLOSED | Bounded repository/CI and read-only Production state are verified; full production-facing C-02 closure criteria are not yet satisfied. |
 
 **Boundary:** no Production RPC was invoked and no Production mutation was performed in this continuation. Do not start C-03 automatically; the current handoff must first record the required C-02 closure evidence and authorized transition.
+
+
+## 20. Value-70 mathematical scoring activation — 2026-10-13
+
+This entry supersedes earlier C-02 status claims where the later scoring correction or Edge deployment changes the current state. It does not claim a live-session E2E.
+
+| Contract field | Current state | Evidence / boundary |
+|---|---|---|
+| IMPLEMENTATION STATUS | IMPLEMENTED | Commit [`41037bee`](https://github.com/core-system-md/clinic-evaluator/commit/41037bee21708f661671dbff484f0df031d81fcb) adds the final-V1 interpretation V2 bindings, 21 Patient Journey 70 anchors, and stable runtime option matching by question/index/source value. |
+| TEST STATUS | PASS | P3 verification [run #430](https://github.com/core-system-md/clinic-evaluator/actions/runs/38377217349): P3 isolated kernel, full Node suite, P4 disposable PostgreSQL and C-02 RPC E2E all passed. Regression fixtures assert that 70 yields a 70 component/layer score and 70 axis/overall score. |
+| EDGE DEPLOYMENT STATUS | DEPLOYED | Supabase Edge Function `assessment-access` ACTIVE at version 36; bundle SHA `82a26223caa92516016f17a70afeafc859c06766a53773bc6e895f6026145916`; deployed source verified read-only. |
+| PRODUCTION DATA STATUS | READ-ONLY OBSERVED | Compatibility constraint allows `0,1,2,3,4,5,40,70,100`; `public.answers` has 0 rows. The migration ledger lists C-02 migration as applied, but application actor/time are unknown. No Production RPC or data write was performed. |
+| RUNTIME E2E STATUS | NOT VERIFIED | No real Production session/answer was created or scored. Passing CI tests and deployed source do not replace a live-session test. |
+| PAGES STATUS | DEPLOYED | Cloudflare Pages deployment `48aa91c5-3295-47b3-9c97-7dca758cc3d9` succeeded for commit `41037bee21708f661671dbff484f0df031d81fcb`. |
+| OPEN RISKS | OPEN | Live-session scoring behavior is not yet verified end-to-end; migration-application provenance is unknown. |
+| FINAL STATUS | SCORING FIX DEPLOYED; FULL E2E NOT CLOSED | The explicit 70 anchor now reaches mathematical aggregation in tested fixtures; Production live-session confirmation remains outstanding. |
+
+**Boundary:** no Production session or answer data was created or changed. A controlled live-session E2E needs explicit authorization for the test-data operation. C-03 remains outside this action and must not start automatically; PR #85 remains untouched.
