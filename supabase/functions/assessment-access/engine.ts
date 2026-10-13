@@ -17,7 +17,7 @@ import registry from "./response-interpretation-registry-v1.json" with { type: "
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
-import { assertInterpretationReleaseMatches, selectInterpretationEntries } from "./interpretation-release-provenance.mjs";
+import { assertInterpretationReleaseMatches, RUNTIME_EDGE_RELEASE_REF, selectInterpretationEntries } from "./interpretation-release-provenance.mjs";
 
 type AssessmentRow = {
   id: string;
@@ -274,6 +274,70 @@ async function loadRuntime(
     axes: (axes || []) as AxisRow[],
     questions: (questions || []) as QuestionRow[],
     options: (options || []) as OptionRow[],
+  };
+}
+
+/**
+ * Owner-triggered attestation path. The HTTP handler authenticates the owner;
+ * the service-role client records attestation only after checking this Edge
+ * runtime's bundled registry bytes against the registered release.
+ */
+export async function attestInterpretationRelease(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const assessmentVersion = Number(
+    runtime.assessment.version ?? runtime.assessment.config_version ?? 1,
+  );
+  const binding = resolveInterpretationBinding(
+    runtime.family.slug,
+    assessmentVersion,
+  );
+  const registryEntries = selectInterpretationEntries(
+    binding.registry,
+    runtime.family.slug,
+    binding.interpretationVersion,
+  );
+
+  const { data: release, error: releaseError } = await client
+    .from("assessment_interpretation_releases")
+    .select("assessment_type_id, family_id, assessment_version, interpretation_version, registry_digest, source_commit_sha, edge_release_ref, option_manifest")
+    .eq("assessment_type_id", runtime.assessment.id)
+    .maybeSingle();
+
+  if (releaseError) {
+    throw new Error("Interpretation release lookup failed: " + releaseError.message);
+  }
+  if (!release) throw new Error("Interpretation release must be registered before runtime attestation");
+
+  const attestation = await assertInterpretationReleaseMatches({
+    release,
+    assessmentTypeId: runtime.assessment.id,
+    familyId: runtime.family.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    registryEntries,
+  });
+
+  const { data: verification, error: verificationError } = await client.rpc(
+    "mark_assessment_interpretation_release_runtime_verified_secure",
+    {
+      p_assessment_type_id: runtime.assessment.id,
+      p_runtime_digest: attestation.registryDigest,
+      p_runtime_edge_release_ref: RUNTIME_EDGE_RELEASE_REF,
+    },
+  );
+  if (verificationError) {
+    throw new Error("Runtime attestation could not be recorded: " + verificationError.message);
+  }
+
+  return {
+    assessmentTypeId: runtime.assessment.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    ...attestation,
+    verification,
   };
 }
 
