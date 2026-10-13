@@ -215,12 +215,12 @@ This section supersedes the older closeout-only resume instruction and stale C-0
 - Repository: `core-system-md/clinic-evaluator`
 - PR: https://github.com/core-system-md/clinic-evaluator/pull/96 (still **DRAFT**, not merged)
 - Branch: `work/c03-publication-release-gate-20261014`
-- Tested source commit: `f33a9117cbea773b63269fc375c1bcf69599bef0`
-- CI run: https://github.com/core-system-md/clinic-evaluator/actions/runs/38477545145 — **SUCCESS**
+- Tested source commit: `760f73a74c90bf3b63e0b88429749714c5eba799`
+- CI run: https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577 — **SUCCESS**
 - Full Node suite: **36 passed, 0 failed**.
 - Disposable PostgreSQL 17 C-03 harness: **passed**. It applies the migration against an isolated fixture and checks rejection of an incomplete manifest, acceptance of a complete manifest, validator acceptance, and validator rejection after an option identity/value becomes stale.
 - First harness runs exposed and then fixed two test-environment defects: the psql relative migration path and missing `anon`/`authenticated` roles. The latest run above includes those fixes.
-- No production migration, release RPC, Edge deployment, Pages deployment, or merge occurred. Main remains unchanged by this work.
+- Read-only inspection of the live Supabase validator showed the pre-existing validation conditions match the baseline logic retained by the C-03 replacement; the live `options.option_value` type is `integer`, now matched by the disposable fixture. This was read-only and did not alter Production.\n- No production migration, release RPC, Edge deployment, Pages deployment, or merge occurred. Main remains unchanged by this work.
 
 ### Engineering boundary / next gate
 
@@ -229,3 +229,6 @@ The harness is intentionally a minimal fixture, not a full clone of the live Sup
 **C-03 is not ready to close:** `registry_digest`, `source_commit_sha`, and `edge_release_ref` are accepted and stored, but the current implementation does not independently prove that the deployed Edge runtime's registry digest matches the registered manifest. Design and test that provenance linkage before considering the release/synchronization contract complete. Also review the validator replacement against the complete intended validation contract.
 
 Keep PR #96 draft; do not merge, apply to Production, invoke the release RPC, or deploy without explicit authorization for that exact operation. C-01 remains out of scope.
+
+
+Verification provenance note: the successful CI run above tested implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`. Subsequent commits in this PR update documentation only; no migration, test, workflow, or application source changed after that verified implementation commit.
