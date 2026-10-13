@@ -549,3 +549,20 @@ This entry supersedes earlier C-02 status claims where the later scoring correct
 | FINAL STATUS | SCORING FIX DEPLOYED; FULL E2E NOT CLOSED | The explicit 70 anchor now reaches mathematical aggregation in tested fixtures; Production live-session confirmation remains outstanding. |
 
 **Boundary:** no Production session or answer data was created or changed. A controlled live-session E2E needs explicit authorization for the test-data operation. C-03 remains outside this action and must not start automatically; PR #85 remains untouched.
+
+
+## 21. C-02 authority clarification and runtime verification continuation — 2026-10-13
+
+The owner clarified that ordinary engineering steps within the approved contract do not require repeated step-specific authorization. This supersedes prior C-02 wording that treated separate approval as a prerequisite solely for a bounded runtime test using synthetic, clearly tagged data. Engineering ownership includes executing that test, verifying score propagation, and cleaning up its own test records. This does not authorize scope/architecture changes, destructive migrations, or unrelated Production writes.
+
+| Contract field | Updated state | Evidence / boundary |
+|---|---|---|
+| IMPLEMENTATION STATUS | IMPLEMENTED | Commit 41037bee21708f661671dbff484f0df031d81fcb. |
+| TEST STATUS | PASS | CI run [#430](https://github.com/core-system-md/clinic-evaluator/actions/runs/38377217349) rechecked; all four jobs succeeded. |
+| EDGE DEPLOYMENT | DEPLOYED | assessment-access ACTIVE v36; bundle SHA 82a26223caa92516016f17a70afeafc859c06766a53773bc6e895f6026145916. |
+| LIVE DATA / CONFIG RECHECK | PASS, READ-ONLY | Published Comprehensive Clinic final V1 has 36 value-70 options; Patient Journey final V1 has 21. Counts for sessions, answers, scores, results, leads, and access rows are all zero. |
+| RUNTIME E2E | NOT VERIFIED | Direct external POST failed before reaching Supabase because DNS resolution from the current execution container returned EAI_AGAIN. This is an environment connectivity limitation, not a Production function result. No Production test rows were created. |
+| NEXT ACTION | OPEN | Execute value-70 save-to-completion test from a network-capable runner using synthetic tagged data; assert stored option value, interpretation anchor, component/axis/overall result; clean and verify removal of only those test records. |
+| FINAL STATUS | NOT CLOSED | The code and deployment remain verified, but the required live scoring path has not yet been exercised. C-03 must not start automatically. |
+
+The bounded runtime test is an engineering execution responsibility under the owner's clarified authority; do not ask for a separate approval merely to perform its individual steps. Preserve the Production safety boundary by using synthetic tagged records, a deterministic cleanup ledger, and post-cleanup zero-count checks for the test identifiers.
