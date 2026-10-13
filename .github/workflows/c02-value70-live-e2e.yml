@@ -28,7 +28,7 @@ jobs:
       - name: Require cleanup credential
         run: test -n "$SUPABASE_SERVICE_ROLE_KEY"
       - name: Run bounded C-02 Production value-70 E2E
-        run: node tests/c02-value70-live-e2e.mjs
+        run: node .github/scripts/c02-value70-live-e2e.mjs
       - name: Upload C-02 evidence (including cleanup result)
         if: always()
         uses: actions/upload-artifact@v4
