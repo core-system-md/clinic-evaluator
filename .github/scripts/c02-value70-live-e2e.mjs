@@ -69,7 +69,7 @@ async function runAssessment(slug) {
     } else {
       // Patient Journey has 21 value-70 options across 25 questions; the other required questions must still be answered.
       const fallback = entries.filter((candidate) =>
-        candidate.scoreEligible === true && Number(candidate.sourceOptionValue) !== 70
+        Number(candidate.sourceOptionValue) !== 70 && candidate.sourceIsTrap !== true
       ).sort((a, b) => {
         const rank = (value) => value === 40 ? 0 : value === 0 ? 1 : value === 100 ? 2 : 3;
         return rank(Number(a.sourceOptionValue)) - rank(Number(b.sourceOptionValue));
@@ -81,7 +81,7 @@ async function runAssessment(slug) {
       code: question.id,
       optionIndex: Number(entry.optionIndex),
       sourceOptionValue: Number(entry.sourceOptionValue),
-      anchorScore: Number(entry.anchorScore),
+      anchorScore: entry.anchorScore === null || entry.anchorScore === undefined ? null : Number(entry.anchorScore),
       scoreEligible: entry.scoreEligible === true,
       currentQuestion: i + 1,
       semanticStateKey: entry.semanticStateKey
