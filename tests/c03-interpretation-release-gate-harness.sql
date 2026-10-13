@@ -46,7 +46,7 @@ create table public.options (
   id uuid primary key,
   question_id uuid not null references public.questions(id),
   option_index integer not null,
-  option_value numeric not null
+  option_value integer not null
 );
 
 create or replace function public.is_owner() returns boolean language sql stable as $$ select true $$;
