@@ -1,7 +1,8 @@
 name: C-02 Production value-70 E2E (agent-coordinated cleanup)
 
 on:
-  # Run automatically only when this guarded workflow changes on main.
+  # Run automatically when this guarded workflow changes on main; this revision
+  # intentionally reruns C-02 after the completion family-context correction.
   push:
     branches:
       - main
