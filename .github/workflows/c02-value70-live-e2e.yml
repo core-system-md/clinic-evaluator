@@ -1,0 +1,38 @@
+name: C-02 Production value-70 E2E (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_production_write:
+        description: "Type RUN-C02-VALUE70 to authorize the bounded synthetic Production E2E"
+        required: true
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  c02-value70-live-e2e:
+    if: \${{ inputs.confirm_production_write == 'RUN-C02-VALUE70' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production-e2e
+    env:
+      EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
+      SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
+      SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ALLOW_LIVE_E2E: "true"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Require cleanup credential
+        run: test -n "$SUPABASE_SERVICE_ROLE_KEY"
+      - name: Run bounded C-02 Production value-70 E2E
+        run: node tests/c02-value70-live-e2e.mjs
+      - name: Upload C-02 evidence (including cleanup result)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: c02-value70-live-e2e-evidence
+          path: c02-value70-live-e2e-result.json
+          if-no-files-found: error
