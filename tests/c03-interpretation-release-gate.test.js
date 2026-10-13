@@ -10,6 +10,8 @@ const source = fs.readFileSync(MIGRATION, "utf8");
 const publishSource = fs.readFileSync(PUBLISH_MIGRATION, "utf8");
 const ENGINE = path.join(ROOT, "supabase/functions/assessment-access/engine.ts");
 const engineSource = fs.readFileSync(ENGINE, "utf8");
+const INDEX = path.join(ROOT, "supabase/functions/assessment-access/index.ts");
+const indexSource = fs.readFileSync(INDEX, "utf8");
 
 test("C-03 registers an owner-controlled release with source and runtime provenance", () => {
   assert.match(source, /register_assessment_interpretation_release_secure/);
@@ -48,4 +50,19 @@ test("C-03 runtime fails closed on release lookup errors and attests the selecte
   assert.match(engineSource, /assertInterpretationReleaseMatches/);
   assert.match(engineSource, /Interpretation release lookup failed/);
   assert.match(engineSource, /interpretationRegistryDigest/);
+});
+
+test("C-03 publication requires a runtime attestation from the Edge service role", () => {
+  assert.match(source, /runtime_verified_at is not null/);
+  assert.match(source, /runtime_verified_digest = r\.registry_digest/);
+  assert.match(source, /runtime_verified_edge_release_ref = r\.edge_release_ref/);
+  assert.match(source, /auth\.role\(\).*service_role/);
+  assert.match(source, /grant execute on function public\.mark_assessment_interpretation_release_runtime_verified_secure\(uuid, text, text\)\s+to service_role/);
+});
+
+test("C-03 Edge attestation action is owner-authorized and records runtime verification", () => {
+  assert.match(indexSource, /action === "verify_interpretation_release"/);
+  assert.match(indexSource, /isOwnerRequest\(req\)/);
+  assert.match(indexSource, /attestInterpretationRelease\(supabase, assessmentTypeId\)/);
+  assert.match(engineSource, /mark_assessment_interpretation_release_runtime_verified_secure/);
 });
