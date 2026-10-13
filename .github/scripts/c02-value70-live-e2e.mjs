@@ -90,7 +90,7 @@ async function main() {
     const candidates = (byQuestion.get(dbq.id) || []).filter((o) => Number(o.option_value) === 70);
     assert(candidates.length === 1, "Expected one value-70 option for " + q.id + ", found " + candidates.length);
     assert((q.options || []).some((o) => Number(o.index) === Number(candidates[0].option_index)), "Value-70 index absent from published content: " + q.id);
-    return { code: q.id, optionIndex: Number(candidates[0].option_index), currentQuestion: i + 1 };
+    return { code: q.id, questionId: dbq.id, optionIndex: Number(candidates[0].option_index), currentQuestion: i + 1 };
   });
   record("published value-70 option map verified", { value_70_questions: selected.length });
 
@@ -118,18 +118,20 @@ async function main() {
   assert(Number.isFinite(Number(completed.body.data.overallScore)), "Completion overall score is not numeric");
 
   const answers = await rest("answers", "select=id,session_id,question_id,option_index,option_value&session_id=eq." + encodeURIComponent(sessionId));
-  assert(answers.length === selected.length && answers.every((a) => Number(a.option_value) === 70), "Persisted answers do not all contain value 70");
+  const selectedById = new Map(selected.map((item) => [item.questionId, item]));
+  assert(answers.length === selected.length && answers.every((a) => { const expected = selectedById.get(a.question_id); return expected && Number(a.option_index) === expected.optionIndex && Number(a.option_value) === 70; }), "Persisted answers do not match the selected value-70 options");
   const rows = await rest("assessment_results", "select=id,session_id,result,assessment_version,interpretation_version,scoring_engine_version&session_id=eq." + encodeURIComponent(sessionId));
   assert(rows.length === 1, "Expected one persisted Structured Result, found " + rows.length);
   const row = rows[0], result = row.result;
   assert(Number(row.interpretation_version) === 2 && Number(result?.provenance?.interpretationVersion) === 2, "Persisted result is not interpretation V2");
   assert(result?.schemaVersion === "P3_STRUCTURED_RESULT_V1" && result?.status === "PRODUCTION", "Persisted result is not production Structured Result");
   assert(Array.isArray(result?.inputs?.responses), "Missing persisted response lineage");
+  assert(result.inputs.responses.length === selected.length, "Persisted response lineage count does not match the published question count");
   const responseByCode = new Map(result.inputs.responses.map((x) => [x.questionCode, x]));
   const interpreted70 = selected.every((item) => {
     const response = responseByCode.get(item.code);
     const entry = REGISTRY_V2.entries.find((x) => x.assessmentSlug === SLUG && Number(x.interpretationVersion) === 2 && x.questionCode === item.code && Number(x.optionIndex) === item.optionIndex && Number(x.sourceOptionValue) === 70);
-    return Boolean(response && entry && Number(response.sourceOptionValue) === 70 && response.semanticStateKey === entry.semanticStateKey && Number(entry.anchorScore) === 70 && entry.scoreEligible === true);
+    return Boolean(response && entry && Number(response.sourceOptionValue) === 70 && Number(response.optionIndex) === item.optionIndex && response.semanticStateKey === entry.semanticStateKey && Number(entry.anchorScore) === 70 && entry.scoreEligible === true);
   });
   assert(interpreted70, "Persisted response lineage does not match the V2 registry's score-70 anchors");
   const components = result?.measurement?.profile?.components || [];
