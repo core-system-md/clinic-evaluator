@@ -679,3 +679,46 @@ The read-only query confirmed both sessions are `completed`; both results are `P
 ### Required next gate (do not execute during this closeout)
 
 After the owner explicitly confirms resumption in a new conversation, perform **only** the bounded cleanup for run #38469121966 using the two session IDs, two lead IDs, and two token hashes listed above. Delete only those run-owned access/result/score/answer/session/lead rows in dependency-safe order, then run read-only verification proving zero rows for each exact identifier and no residual tagged records. Do not rerun E2E, deploy, migrate, or start C-03 as part of that cleanup gate.
+
+
+## 24. C-02 cleanup completion and owner-directed C-03 boundary — 2026-10-14
+
+This section supersedes §23's pending-cleanup state.
+
+### Cleanup execution and evidence
+
+Owner explicitly authorized cleanup of run #38469121966. Before writing, read-only queries re-identified the exact two completed sessions, exact two PRODUCTION results (interpretation version 2), two synthetic lead IDs/emails with source marker c02-value70-1791926096857-42fb72a0cde1 and example.invalid addresses, 36+25 answers, 6+5 scores, and both exact runner-emitted token hashes. FK inventory showed session-linked answers, scores, results, access rows, and historical snapshots cascade with the associated session/lead.
+
+One narrowly scoped SQL DELETE removed only the two lead rows, guarded by both exact IDs and the exact C-02 source/email marker. The DELETE returned exactly the two expected synthetic leads. Cascades removed the dependent run-owned records.
+
+Post-cleanup read-only verification:
+- Exact lead IDs: 0 rows.
+- Exact session IDs: 0 rows.
+- Exact result IDs: 0 rows.
+- Answers for both session IDs: 0 rows.
+- Scores for both session IDs: 0 rows.
+- Access rows matching both token hashes: 0 rows.
+- Historical snapshots for both session IDs: 0 rows.
+- Global counts: leads=0, sessions=0, assessment_results=0, answers=0, scores=0, assessment_session_access=0.
+
+No E2E was rerun; no migration, DDL, Edge deployment, or manual Pages deployment was initiated. Production assessment-access remains ACTIVE v37, SHA-256 bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36. Migration ledger remains 52 entries, latest 20261013110000 / c02_allow_answer_value_70.
+
+### C-02 final gate
+
+| Gate | State |
+|---|---|
+| Value-70 acceptance and runtime scoring | PRODUCTION VERIFIED for both published final V1 families; run #38469121966, artifact 11850662078 |
+| Persisted result and V2 interpretation lineage | PRODUCTION VERIFIED |
+| Latest-run cleanup | VERIFIED — exact IDs/hashes zero |
+| Global clean-state verification for six tracked tables | VERIFIED — all zero |
+| Final C-02 status | CLOSED |
+
+### Owner-directed next item: C-03, not C-01 — scope conflict stop
+
+The owner explicitly directed continuation to C-03, not C-01. However, authoritative materials disagree on the meaning of C-03:
+1. Current owner-provided prompt §7 defines C-03 as Git/database synchronization (D11) and preventing a published admin assessment from throwing during completion.
+2. documentation/governance/CURRENT-HANDOFF-INDEX-2026-10-12.md defines C-03 as interpretation-binding and complete option-identity coverage.
+3. documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md labels D11 “Classification / grade semantics”, not Git/database synchronization.
+4. Older handoff/status text says C-03 must not start before C-01; the current owner instruction explicitly overrides that sequence by directing C-03 instead.
+
+Per the no-silent-conflict rule, C-03 implementation is BLOCKED pending scope reconciliation, not redirected to C-01. No C-03 code, schema, migration, deployment, or Production operation was started. Required decision: confirm the current prompt's C-03 scope (Git↔DB sync + published-admin completion safety) supersedes the handoff index's interpretation/option-identity definition, or specify the intended single scope. No implementation should begin until the scope is unambiguous.
