@@ -89,6 +89,7 @@ export async function assertInterpretationReleaseMatches({
   assessmentVersion,
   interpretationVersion,
   registryEntries,
+  runtimeSourceCommitSha,
 }) {
   if (!release) throw new Error("Registered interpretation release is missing");
   if (release.assessment_type_id !== assessmentTypeId) {
@@ -105,6 +106,15 @@ export async function assertInterpretationReleaseMatches({
   }
   if (typeof release.source_commit_sha !== "string" || !/^[0-9a-f]{40}([0-9a-f]{24})?$/.test(release.source_commit_sha)) {
     throw new Error("Interpretation release source commit metadata is invalid");
+  }
+  if (
+    typeof runtimeSourceCommitSha !== "string" ||
+    !/^[0-9a-f]{40}([0-9a-f]{24})?$/.test(runtimeSourceCommitSha)
+  ) {
+    throw new Error("Edge runtime source commit is not configured");
+  }
+  if (release.source_commit_sha !== runtimeSourceCommitSha) {
+    throw new Error("Registered source commit does not match this Edge runtime build");
   }
   if (typeof release.edge_release_ref !== "string" || !release.edge_release_ref.trim()) {
     throw new Error("Interpretation release Edge reference metadata is missing");
