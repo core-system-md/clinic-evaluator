@@ -147,3 +147,12 @@ The repository does contain a network-capable GitHub Actions route, but inspecti
 Use `documentation/handoff/CURRENT-SESSION-HANDOFF.md` as the exact resume file for the next conversation. This pointer is additive; all historical lines above are retained.
 
 Latest observed main before documentation closeout: `b2cf8b3f66ddf4e3da7ec34ab97ac8b45deb2cd4` (the remote `refs/heads/main` ref matched this SHA). Latest live C-02 run [#38469121966](https://github.com/core-system-md/clinic-evaluator/actions/runs/38469121966) passed scoring but left two synthetic Production sessions pending scoped cleanup. Current counts are leads=2, sessions=2, assessment_results=2, answers=61, scores=11, assessment_session_access=2. Do not reuse the prior clean-state statement until the latest run is cleaned and verified. No C-03 work is authorized by this handoff.
+
+
+## Latest owner-directed reconciliation — 2026-10-14 (supersedes stale pending-cleanup state)
+
+- C-02 run #38469121966 is now cleaned. Exact IDs and token hashes verified zero; global counts after cleanup: leads=0, sessions=0, assessment_results=0, answers=0, scores=0, assessment_session_access=0; historical snapshots for both sessions=0. Cleanup was limited to two verified synthetic leads with the exact C-02 source marker and example.invalid emails; FK cascades removed dependent run records. No E2E rerun, migration, DDL, or deployment occurred.
+- Production migration ledger: 52 rows, latest 20261013110000 / c02_allow_answer_value_70. assessment-access remains ACTIVE v37, SHA-256 bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36.
+- C-02 = CLOSED: scoring PRODUCTION VERIFIED; latest-run cleanup and clean-state verification VERIFIED.
+- Owner explicitly directed C-03, not C-01. C-03 execution is blocked by conflicting scope definitions: current owner prompt §7 says Git↔DB synchronization (D11) plus preventing a published-admin completion crash; this index says interpretation-binding and complete option-identity coverage; documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md calls D11 “Classification / grade semantics”. The owner direction supersedes the old C-01-first sequence, but does not resolve this scope contradiction. Do not start C-01. Do not implement C-03 until its scope is unambiguous.
+- Current next step: reconcile the C-03 scope with the owner, then inspect the agreed paths read-only. No production operation is authorized by this note.
