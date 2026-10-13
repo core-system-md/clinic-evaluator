@@ -327,6 +327,7 @@ export async function attestInterpretationRelease(
       p_assessment_type_id: runtime.assessment.id,
       p_runtime_digest: attestation.registryDigest,
       p_runtime_edge_release_ref: RUNTIME_EDGE_RELEASE_REF,
+      p_runtime_source_commit_sha: attestation.sourceCommitSha,
     },
   );
   if (verificationError) {
