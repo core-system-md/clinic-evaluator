@@ -14,7 +14,7 @@ alter table public.answers
 insert into public.answers(answer_value, option_value)
 values (0,0),(1,1),(2,2),(3,3),(4,4),(5,5),(40,40),(100,100);
 
-\\i supabase/migrations/20261013110000_c02_allow_answer_value_70.sql
+\i supabase/migrations/20261013110000_c02_allow_answer_value_70.sql
 
 do $test$
 declare
