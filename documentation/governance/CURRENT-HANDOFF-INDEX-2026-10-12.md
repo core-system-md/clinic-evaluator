@@ -172,11 +172,14 @@ A repository-only C-03 implementation is prepared on branch `work/c03-publicatio
 This entry supersedes the prior C-03 update's statement that no tests had run. The owner directed continued verification of PR #96.
 
 - PR #96: https://github.com/core-system-md/clinic-evaluator/pull/96 — **open draft**, not merged.
-- Tested source commit: `f33a9117cbea773b63269fc375c1bcf69599bef0`.
-- CI run [#38477545145](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477545145): **SUCCESS**.
+- Tested source commit: `760f73a74c90bf3b63e0b88429749714c5eba799`.
+- CI run [#38477545145](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577): **SUCCESS**.
 - Full Node test suite: 36 passed, 0 failed.
 - C-03 migration harness: passed on disposable PostgreSQL 17 with a minimal fixture; incomplete manifest rejected, complete manifest accepted, validator accepted the registered manifest, and validator rejected a later option-value mismatch.
 - Two test harness failures were fixed before the successful run: psql migration include path and missing Supabase client roles.
 - No migration or RPC was applied to Production; no Edge/Pages deployment; no merge.
 
 **Not a C-03 closure:** the current migration stores `registry_digest`, `source_commit_sha`, and `edge_release_ref`, but does not independently attest that the deployed Edge runtime uses the registered digest. The isolated fixture also does not prove compatibility against the complete live Supabase schema. Next step is bounded engineering review of Edge/runtime provenance linkage and validator parity, without Production writes. C-01 remains out of scope.
+
+
+Verification provenance — latest check (2026-10-14): CI run [#38477746577](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) succeeded on implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`, including the PostgreSQL 17 C-03 migration harness and the full Node test suite. A read-only inspection of Production confirmed the baseline validator conditions match the validation logic being replaced and `options.option_value` is `integer`; no Production write was performed. Subsequent commits in this PR update documentation only.
