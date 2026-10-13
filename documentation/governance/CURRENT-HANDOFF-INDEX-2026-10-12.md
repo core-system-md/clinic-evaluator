@@ -1,11 +1,13 @@
 # Current Handoff Index — 2026-10-12
 
+> **Latest reconciliation: 2026-10-13.** This file name is retained as the canonical existing handoff index; the latest state is recorded in the C-02 section below and supersedes older contradictory C-02 status text.
+
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
 **Cloudflare Pages:** `clinicevaluat`  
 **Production branch:** `main`
 
-Use this index for the current D-09–D-19 repair sequence. The 2026-10-10 Production Structured Result handoff remains historical context, not the current queue.
+Use this index as the current work handoff. The 2026-10-10 Production Structured Result handoff remains historical context, not the current queue. For C-02, the dated post-merge reconciliation below supersedes any older C-02 branch-only/open-PR status in this file.
 
 ## Verified current state
 
@@ -42,31 +44,20 @@ D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INV
 ### D-14 — inventory/design result
 Read-only inventory is complete for the three specified migrations and relevant live contracts. The documented C-02 constraint repair is a design only. No production mutation was performed. This work package should close only after the D-14 documentation PR is reviewed and merged; do not infer that branch-only documentation is already on `main`.
 
-### C-02 — implementation and disposable RPC E2E verification complete; branch-only release pending
+### C-02 — implementation and disposable RPC E2E merged; Production not verified
 
-**PR:** [#86 — forward-only answer value 70 compatibility repair](https://github.com/core-system-md/clinic-evaluator/pull/86) — open, not merged.
+**Repository status (updated 2026-10-13):** PR #86 is merged into `main` by squash commit `dfaa79ce54cc4a385b5b0975e2e61d91f310c9cb`.
 
-Prepared on branch `fix/c02-answer-value-70-2026-10-13`:
-- New migration `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql`; no applied migration was edited.
-- Migration checks for the expected constraint and aborts if existing non-null values fall outside the intended set, then replaces the constraint with `0,1,2,3,4,5,40,70,100`.
-- Disposable PostgreSQL harness loads the actual `public.save_assessment_answer` implementation from the P4 migration and invokes it with synthetic access/session/question/option fixtures.
-- It verifies `option_value=70` and `answer_value=70`, the RPC return payload, session progress/access activity updates, rejection of option value 99 without damaging the valid answer, and legacy-value preservation.
-- Dedicated Node contract test, dedicated C-02 workflow, and an independent PostgreSQL E2E job in the existing P3 workflow are present.
-- Governance report: `documentation/governance/C-02-ANSWER-VALUE-70-COMPATIBILITY-REPAIR-2026-10-13.md`.
-
-**Verified results (2026-10-13):**
-- Dedicated C-02 CI run [#14](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363993137): **PASS** — Node migration/RPC source-contract tests (2/2) and the actual `save_assessment_answer` function E2E on disposable PostgreSQL both passed.
-- Independent P3 verification run [#426](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363993200): **PASS** — P3 isolated kernel, full Node suite, P4 protected-completion disposable PostgreSQL gate, and C-02 answer-save RPC E2E job.
-- RPC E2E specifically confirmed persistence of both values as 70, valid RPC result fields, session progress and access activity updates, rejection of unsupported 99 without replacing the valid answer, and preservation of legacy accepted values.
-- The first PostgreSQL harness attempt failed on a doubled backslash in the psql include directive. The runner was corrected and the subsequent runs passed.
-- Read-only Production re-check on 2026-10-13 confirmed the live constraint still allows `0,1,2,3,4,5,40,100` and `public.answers` has 0 rows. This was metadata/count-only SQL; no Production DDL or data write was made.
-- The disposable test executes the repository function definition, not the deployed Production function. Production runtime execution remains **NOT VERIFIED** and was not attempted.
-
-**C-02 technical implementation and disposable verification are complete on the PR branch.** Remaining release/administrative actions:
-1. Review PR #86; it remains open and unmerged. Do not merge without explicit authorization.
-2. Do not apply the migration to Production without separate explicit owner approval.
-3. Keep Production runtime execution marked NOT VERIFIED unless separately authorized and performed.
-4. Stop after C-02. Do not begin C-03 automatically in this continuation.
+- PR: [#86 — forward-only answer value 70 compatibility repair](https://github.com/core-system-md/clinic-evaluator/pull/86).
+- Migration: `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql`; forward-only; not applied to Production.
+- Disposable harness executes the repository's actual `public.save_assessment_answer` definition from the P4 migration with synthetic fixtures and validates value-70 persistence, RPC response, session progress/access activity, rejection of unsupported 99 without damaging the valid answer, and legacy-value preservation.
+- Dedicated C-02 CI run [#16](https://github.com/core-system-md/clinic-evaluator/actions/runs/38364130139): **PASS** — Node source-contract tests (2/2) and PostgreSQL 17 RPC E2E.
+- Integrated P3 verification run [#428](https://github.com/core-system-md/clinic-evaluator/actions/runs/38364130147): **PASS** — full Node suite, P3 isolated kernel, P4 disposable PostgreSQL protected-completion gate, and C-02 RPC E2E.
+- Earlier read-only Production check (2026-10-13, pre-merge) found the live constraint still allowed `0,1,2,3,4,5,40,100` and `public.answers` had 0 rows. No Production DDL/data write, migration application, migration-history edit, RPC execution, or Edge Function deployment was performed. This is not a post-merge Production verification.
+- Cloudflare Pages auto-deploy is configured for pushes to `main`; the deployment status and deployed artifact for the merge have not been independently verified in this handoff update.
+- **Contract status:** IMPLEMENTATION STATUS = IMPLEMENTED; TEST STATUS = TESTED; RUNTIME STATUS = NOT VERIFIED; PRODUCTION STATUS = NOT VERIFIED; DOCUMENTATION STATUS = UPDATED; OPEN RISKS = Production constraint remains incompatible until migration application; deployed runtime and Pages deployment are unverified; OPEN DECISIONS = separate owner approval for Production migration/application and any Production runtime test; CLOSURE EVIDENCE = CI runs #16/#428 and merge commit above; FINAL STATUS = VERIFIED for repository/disposable PostgreSQL scope only, not CLOSED for full production-facing release.
+- PR #85 remains a separate item; its state has not been reassessed as part of this update. Do not merge it as part of this handoff.
+- **Exact next step:** documentation synchronization is the bounded task being completed now. After verifying this commit and file contents, stop. Do not apply the migration and do not start C-03.
 
 ### Remaining sequence
 - C-03: explicit interpretation-binding and complete option-identity coverage gate.

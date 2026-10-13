@@ -494,3 +494,22 @@ The historical WP-05 stage remains attributable to PR #59 / run `37742137612`. T
 - Local/disposable P4 PostgreSQL, WP-03, WP-04, WP-08, WP-05/06/07, WP-09, and the full Node baseline passed. No valid deployed completion/persisted-result/report-read trace was executed.
 
 **Current state:** source deployment and migration identity reconciliation **PASS**; valid Production E2E **NOT VERIFIED**; overall release **NOT CLOSED**.
+
+
+## 18. C-02 post-merge status reconciliation — 2026-10-13
+
+This section updates the canonical register in place after PR #86 merged. It does not authorize Production mutation or the next work package.
+
+| Contract field | C-02 status | Evidence / boundary |
+|---|---|---|
+| IMPLEMENTATION STATUS | IMPLEMENTED | Forward-only migration `20261013110000_c02_allow_answer_value_70.sql` and test harness merged through PR #86. |
+| TEST STATUS | TESTED | Dedicated C-02 CI [run #16](https://github.com/core-system-md/clinic-evaluator/actions/runs/38364130139) PASS; integrated P3/P4/C-02 verification [run #428](https://github.com/core-system-md/clinic-evaluator/actions/runs/38364130147) PASS. Disposable PostgreSQL RPC E2E verified value 70 persistence and negative/legacy cases. |
+| RUNTIME STATUS | NOT VERIFIED | The deployed Production function/runtime was not invoked as part of this repair. |
+| PRODUCTION STATUS | NOT VERIFIED | The pre-merge read-only check found the live constraint still excludes 70 and `public.answers` had 0 rows. No Production migration, DDL/data write, RPC execution, or Edge deployment was performed. |
+| DOCUMENTATION STATUS | UPDATED | C-02 report and current Handoff index reconciled in the same documentation commit as this register update. |
+| OPEN RISKS | OPEN | Until separately approved and applied, the Production constraint remains incompatible with value 70. Cloudflare Pages deployment triggered by the merge has not been independently verified in this update. |
+| OPEN DECISIONS | OPEN | Separate explicit owner approval is required for applying the C-02 migration to Production and for any Production runtime test. |
+| CLOSURE EVIDENCE | RECORDED | PR #86 merged by squash as `dfaa79ce54cc4a385b5b0975e2e61d91f310c9cb`; CI runs #16 and #428 linked above. |
+| FINAL STATUS | VERIFIED — bounded repository/test scope only | Do not mark the production-facing C-02 release CLOSED; full assessment-family E2E/runtime and Production verification requirements remain unmet. |
+
+**Stop boundary:** C-02 implementation and disposable RPC E2E are merged and tested. Do not apply the migration to Production, do not start C-03, and do not merge PR #85 as part of this task. The next action after this documentation commit is to stop and report.
