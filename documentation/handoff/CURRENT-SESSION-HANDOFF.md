@@ -235,3 +235,19 @@ Verification provenance note: the successful CI run above tested implementation 
 
 
 Verification provenance — latest check (2026-10-14): CI run [#38477746577](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) succeeded on implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`, including the PostgreSQL 17 C-03 migration harness and the full Node test suite. A read-only inspection of Production confirmed the baseline validator conditions match the validation logic being replaced and `options.option_value` is `integer`; no Production write was performed. Subsequent commits in this PR update documentation only.
+
+
+---
+
+## C-03 runtime provenance gate — latest verified state (2026-10-14)
+
+- PR #96 remains DRAFT: https://github.com/core-system-md/clinic-evaluator/pull/96. Implementation under test: `a5f5b24f0e8283c93891541ab411a022542f3139`.
+- CI run [#38480654971](https://github.com/core-system-md/clinic-evaluator/actions/runs/38480654971): C-03 disposable PostgreSQL 17 harness **PASS**; full Node suite **47 passed / 0 failed**; changed Edge files passed Node syntax checks.
+- Runtime digest is SHA-256 over stable serialization of the selected assessment's registry entries, using the same slug + interpretation-version selection as the engine binding. Runtime verification checks digest, exact option identity coverage, assessment/family/version identity, registered Edge release marker, and deployed source commit.
+- New owner-only Edge action: `verify_interpretation_release`. It requires an owner JWT via `is_owner`, then uses the service-role client to record verification. The DB RPC is service-role-only; publication/restoration validation now requires successful attestation. Re-registering a release clears the previous attestation.
+- `C03_SOURCE_COMMIT_SHA` must be set to the exact commit deployed to Edge. `edge_release_ref` must equal the code marker `assessment-access-c03-registry-attestation-v1`. The runtime rejects a missing/mismatched source SHA, digest, marker, or manifest.
+- Validator parity was checked read-only against the current live `validate_assessment_version_secure(uuid)`: the original baseline conditions are preserved, with the release/attestation gate added.
+- A full `deno check` attempt surfaced 30 pre-existing type errors across unrelated engine modules. To avoid expanding C-03 into unrelated repairs, the CI gate uses syntax checks plus the full Node suite and isolated SQL harness; this is not a claim that the full Edge dependency graph type-checks.
+- Production boundary unchanged: live `assessment_interpretation_releases` table is absent; Edge `assessment-access` remains ACTIVE v37 with SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; `main` remains `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`. No Production migration, release RPC, Edge/Pages deployment, or merge occurred.
+
+**C-03 remains IN PROGRESS / NOT READY TO CLOSE.** The runtime attestation mechanism is implemented and isolated-tested, but it is not deployed or exercised against the live release table. The release-manifest generation/sync operation and full live-schema compatibility still require bounded verification. Next exact task: add/test a deterministic release-payload generator for the chosen registry + option identities, then validate its payload against the disposable PostgreSQL harness. Do not merge, migrate, register releases, or deploy without explicit authorization. C-01 remains out of scope.

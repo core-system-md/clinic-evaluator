@@ -751,3 +751,17 @@ This entry supersedes the earlier C-03 subsection's “not test-verified” stat
 
 
 Verification provenance — latest check (2026-10-14): CI run [#38477746577](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) succeeded on implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`, including the PostgreSQL 17 C-03 migration harness and the full Node test suite. A read-only inspection of Production confirmed the baseline validator conditions match the validation logic being replaced and `options.option_value` is `integer`; no Production write was performed. Subsequent commits in this PR update documentation only.
+
+
+## C-03 update — runtime provenance attestation implemented (2026-10-14)
+
+Status: **IN PROGRESS — implementation gate passed in isolation; production release flow not exercised**.
+
+- Tested implementation commit: `a5f5b24f0e8283c93891541ab411a022542f3139`.
+- CI [#38480654971](https://github.com/core-system-md/clinic-evaluator/actions/runs/38480654971): PostgreSQL 17 C-03 harness PASS; Node tests 47/47 PASS; Edge source syntax checks PASS.
+- Added stable registry digest computation and exact manifest attestation in the Edge runtime; owner-only `verify_interpretation_release` action; service-role-only attestation RPC; publication/restore validation requires matching runtime digest, Edge release marker, and source commit SHA. Re-registering resets attestation.
+- Required Edge environment variable: `C03_SOURCE_COMMIT_SHA` = exact deployed commit SHA. Required `edge_release_ref`: `assessment-access-c03-registry-attestation-v1`.
+- Read-only comparison with the live validator confirms baseline validation logic is preserved. Full Deno type-check remains blocked by 30 pre-existing errors outside C-03; CI therefore checks changed-file syntax and executes the Node + disposable PostgreSQL tests.
+- Production unchanged: release table absent; Edge v37 SHA `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; `main` SHA `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`; no migration/RPC/deploy/merge.
+
+Next bounded step: deterministic release-payload generator + isolated verification against the PostgreSQL registration gate. Keep PR #96 draft. C-01 is out of scope.

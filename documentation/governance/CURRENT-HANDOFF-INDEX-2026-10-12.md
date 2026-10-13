@@ -183,3 +183,14 @@ This entry supersedes the prior C-03 update's statement that no tests had run. T
 
 
 Verification provenance — latest check (2026-10-14): CI run [#38477746577](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) succeeded on implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`, including the PostgreSQL 17 C-03 migration harness and the full Node test suite. A read-only inspection of Production confirmed the baseline validator conditions match the validation logic being replaced and `options.option_value` is `integer`; no Production write was performed. Subsequent commits in this PR update documentation only.
+
+
+## Exact C-03 continuation point — 2026-10-14
+
+Runtime provenance and publication gating are now implemented on PR #96 and passed the isolated checks at commit `a5f5b24f0e8283c93891541ab411a022542f3139` (CI [#38480654971](https://github.com/core-system-md/clinic-evaluator/actions/runs/38480654971); 47 Node tests pass; PostgreSQL 17 C-03 harness passes).
+
+The gate now requires Edge runtime attestation of the selected registry digest, exact option manifest, Edge release marker, and deployed source commit (`C03_SOURCE_COMMIT_SHA`). The validator retains the baseline checks and additionally requires persisted attestation. Full Deno type-checking remains pre-existing technical debt outside this scope; changed files are syntax-checked.
+
+No Production migration/RPC/deploy or merge occurred. Live release table remains absent; Edge `assessment-access` is still v37; `main` SHA remains `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`.
+
+**Next exact task:** create a deterministic release-payload generator (selected registry digest + exact option manifest + source SHA + required Edge marker) and test its output through the disposable PostgreSQL registration/attestation harness. Do not deploy or merge without explicit authorization; C-01 remains out of scope.
