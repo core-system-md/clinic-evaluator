@@ -14,14 +14,14 @@ permissions:
 
 jobs:
   c02-value70-live-e2e:
-    if: \${{ inputs.confirm_production_write == 'RUN-C02-VALUE70' }}
+    if: ${{ inputs.confirm_production_write == 'RUN-C02-VALUE70' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: production-e2e
     env:
       EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
       SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: \${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       ALLOW_LIVE_E2E: "true"
     steps:
       - uses: actions/checkout@v4
