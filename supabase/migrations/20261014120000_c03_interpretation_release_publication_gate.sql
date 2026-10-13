@@ -15,13 +15,15 @@ create table if not exists public.assessment_interpretation_releases (
   registered_at timestamptz not null default now(),
   runtime_verified_at timestamptz,
   runtime_verified_digest text check (runtime_verified_digest is null or runtime_verified_digest ~ '^[0-9a-f]{64}$'),
-  runtime_verified_edge_release_ref text
+  runtime_verified_edge_release_ref text,
+  runtime_verified_source_commit_sha text
 );
 
 alter table public.assessment_interpretation_releases
   add column if not exists runtime_verified_at timestamptz,
   add column if not exists runtime_verified_digest text,
-  add column if not exists runtime_verified_edge_release_ref text;
+  add column if not exists runtime_verified_edge_release_ref text,
+  add column if not exists runtime_verified_source_commit_sha text;
 
 alter table public.assessment_interpretation_releases enable row level security;
 revoke all on public.assessment_interpretation_releases from public, anon, authenticated;
@@ -142,7 +144,8 @@ begin
         registered_at = excluded.registered_at,
         runtime_verified_at = null,
         runtime_verified_digest = null,
-        runtime_verified_edge_release_ref = null
+        runtime_verified_edge_release_ref = null,
+        runtime_verified_source_commit_sha = null
   returning id into v_release_id;
 
   perform public.write_admin_audit(
@@ -178,7 +181,8 @@ grant execute on function public.register_assessment_interpretation_release_secu
 create or replace function public.mark_assessment_interpretation_release_runtime_verified_secure(
   p_assessment_type_id uuid,
   p_runtime_digest text,
-  p_runtime_edge_release_ref text
+  p_runtime_edge_release_ref text,
+  p_runtime_source_commit_sha text
 )
 returns jsonb
 language plpgsql
@@ -203,20 +207,25 @@ begin
   if nullif(trim(p_runtime_edge_release_ref), '') is null or p_runtime_edge_release_ref <> v_release.edge_release_ref then
     raise exception 'Runtime Edge release reference does not match the registered release' using errcode = '22023';
   end if;
+  if p_runtime_source_commit_sha is null or p_runtime_source_commit_sha <> v_release.source_commit_sha then
+    raise exception 'Runtime source commit does not match the registered release' using errcode = '22023';
+  end if;
 
   update public.assessment_interpretation_releases
      set runtime_verified_at = now(), runtime_verified_digest = p_runtime_digest,
-         runtime_verified_edge_release_ref = p_runtime_edge_release_ref
+         runtime_verified_edge_release_ref = p_runtime_edge_release_ref,
+         runtime_verified_source_commit_sha = p_runtime_source_commit_sha
    where assessment_type_id = p_assessment_type_id;
 
   return jsonb_build_object('success', true, 'assessment_type_id', p_assessment_type_id,
     'runtime_verified_at', now(), 'runtime_verified_digest', p_runtime_digest,
-    'runtime_verified_edge_release_ref', p_runtime_edge_release_ref);
+    'runtime_verified_edge_release_ref', p_runtime_edge_release_ref,
+    'runtime_verified_source_commit_sha', p_runtime_source_commit_sha);
 end;
 $$;
 
-revoke all on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text) from public, anon, authenticated;
-grant execute on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text) to service_role;
+revoke all on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text) from public, anon, authenticated;
+grant execute on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text) to service_role;
 
 create or replace function public.validate_assessment_version_secure(p_version_id uuid)
 returns jsonb
@@ -271,6 +280,7 @@ begin
        and r.runtime_verified_at is not null
        and r.runtime_verified_digest = r.registry_digest
        and r.runtime_verified_edge_release_ref = r.edge_release_ref
+       and r.runtime_verified_source_commit_sha = r.source_commit_sha
        and jsonb_array_length(r.option_manifest) = (
          select count(*)
            from public.questions q
