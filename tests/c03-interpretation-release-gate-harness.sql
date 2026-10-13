@@ -65,7 +65,7 @@ values ('ffffffff-ffff-4fff-8fff-ffffffffffff',
        ('11111111-1111-4111-8111-111111111111',
         'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 1, 1);
 
-\ir supabase/migrations/20261014120000_c03_interpretation_release_publication_gate.sql
+\ir ../supabase/migrations/20261014120000_c03_interpretation_release_publication_gate.sql
 
 do $test$
 declare
