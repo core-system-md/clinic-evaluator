@@ -588,3 +588,17 @@ The bounded runtime test is an engineering execution responsibility under the ow
 - The live E2E workflow is now present on `main` at `.github/workflows/c02-value70-live-e2e.yml`. It is manual-only and requires the exact dispatch input `RUN-C02-VALUE70` plus `SUPABASE_SERVICE_ROLE_KEY` in the `production-e2e` GitHub Actions environment. The workflow has **not** been dispatched from this session; no Production test session or answer was created.
 - Exact next action: open https://github.com/core-system-md/clinic-evaluator/actions/workflows/c02-value70-live-e2e.yml, choose **Run workflow**, enter `RUN-C02-VALUE70`, and run it only after confirming the `production-e2e` environment has the required service-role secret. The run must finish with successful scoring assertions and zero remaining run-tagged rows.
 - **C-02 remains NOT CLOSED** until the live run and cleanup evidence are recorded. Do not start C-03.
+
+
+## 22. Audit finding C-02 — Production live E2E closure (2026-10-13)
+
+This entry supersedes every earlier C-02 status in this register that says runtime verification is missing or C-02 is not closed. Detailed evidence: [C-02 Production Live E2E Closure Report](C-02-PRODUCTION-LIVE-E2E-CLOSURE-2026-10-13.md).
+
+- **Production runtime E2E:** PASS — [run #38387901746](https://github.com/core-system-md/clinic-evaluator/actions/runs/38387901746), artifact [c02-value70-live-e2e-evidence](https://github.com/core-system-md/clinic-evaluator/actions/runs/38387901746/artifacts/11807522611).
+- **Comprehensive Clinic final V1:** 36/36 answers persisted with source value 70; 36/36 V2 lineage entries; zero answer-to-lineage mismatches; component/layer and all six axis scores are 70; overall score 69.99999999999999 (floating-point representation of 70).
+- **Patient Journey final V1:** 25/25 answers persisted, including all 21 available eligible value-70 anchors; 25/25 V2 lineage entries; zero answer-to-lineage mismatches; overall score 65.8 for the mixed answer set.
+- **Completion:** both Production API completion calls returned HTTP 200 under Edge version 37; both persisted results are `P3_STRUCTURED_RESULT_V1`, `PRODUCTION`, interpretation version 2.
+- **Production implementation:** Edge Function `assessment-access` ACTIVE v37; bundle SHA `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`. The `answers_answer_value_compat_check` constraint allows `0,1,2,3,4,5,40,70,100`.
+- **Cleanup:** 2 access rows, 2 results, 11 score rows, 61 answer rows, 2 sessions, and 2 synthetic leads deleted by run-specific IDs/hashes. Post-cleanup verification returned zero rows for `sessions`, `answers`, `scores`, `assessment_results`, `leads`, and `assessment_session_access`; the global counts of those six tables are also zero.
+- **CI:** PR #93 run #38387798824 PASS across all four C-02/P3/P4 jobs; PR #91 P3 and WP-05 report projection checks passed. The separate WP-03 configuration semantics run #38387272452 has an unrelated assertion mismatch involving `DIRECT_ANCHOR` and `SEMANTIC_ONLY`; no WP-03 source/test changes were made in C-02.
+- **FINAL STATUS:** audit finding **C-02 CLOSED**. This is not a closure of the separately named work-package C2. Audit finding C-01 remains open and is the next item in the established sequence; C-03 must not start before C-01 is resolved.
