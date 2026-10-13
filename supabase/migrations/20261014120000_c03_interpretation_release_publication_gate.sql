@@ -308,6 +308,7 @@ begin
       and r.assessment_version = v.version and r.runtime_verified_at is not null
       and r.runtime_verified_digest = r.registry_digest
       and r.runtime_verified_edge_release_ref = r.edge_release_ref
+       and r.runtime_verified_source_commit_sha = r.source_commit_sha
   ) into v_release_runtime_verified;
 
   v_checks := jsonb_build_object(
