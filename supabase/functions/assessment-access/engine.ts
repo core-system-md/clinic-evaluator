@@ -318,6 +318,7 @@ export async function attestInterpretationRelease(
     assessmentVersion,
     interpretationVersion: binding.interpretationVersion,
     registryEntries,
+    runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
   });
 
   const { data: verification, error: verificationError } = await client.rpc(
@@ -486,6 +487,7 @@ export async function calculateAssessment(
       assessmentVersion,
       interpretationVersion: interpretationBinding.interpretationVersion,
       registryEntries: interpretationEntries,
+      runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
     })
     : {
       registryDigest: null,
