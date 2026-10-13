@@ -137,8 +137,9 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
     interpretationVersion: 1,
   },
   "comprehensive-clinic-assessment:1": {
-    registry,
-    interpretationVersion: 1,
+    // Final corrected content is published as product V1; its scoring semantics use interpretation registry V2.
+    registry: registryV2,
+    interpretationVersion: 2,
   },
   "comprehensive-clinic-assessment:2": {
     registry: registryV2,
@@ -149,8 +150,9 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
     interpretationVersion: 1,
   },
   "patient-journey:1": {
-    registry,
-    interpretationVersion: 1,
+    // Final corrected content is published as product V1; its scoring semantics use interpretation registry V2.
+    registry: registryV2,
+    interpretationVersion: 2,
   },
 };
 
@@ -278,6 +280,7 @@ function buildSelections(
   questionCode: string;
   optionId: string;
   optionIndex: number;
+  sourceOptionValue: number;
 }> {
   const questionMap = new Map(runtime.questions.map((question) => [question.code, question]));
   const selections = [];
@@ -304,6 +307,7 @@ function buildSelections(
       questionCode: question.code,
       optionId: option.id,
       optionIndex: Number(option.option_index),
+      sourceOptionValue: Number(option.option_value),
     });
   }
 

@@ -21,6 +21,7 @@ export type P3Selection = {
   questionCode: string;
   optionId: string;
   optionIndex: number;
+  sourceOptionValue?: number | null;
 };
 
 export type P3ResolvedSelection = P3ResolvedMeasurement & {
@@ -143,9 +144,11 @@ export function resolveP3Selections(
 
     const entry = entries.find(
       (candidate) =>
-        candidate.optionId === selection.optionId &&
         candidate.optionIndex === selection.optionIndex &&
-        candidate.interpretationVersion === interpretationVersion,
+        candidate.interpretationVersion === interpretationVersion &&
+        (selection.sourceOptionValue === undefined || selection.sourceOptionValue === null
+          ? candidate.optionId === selection.optionId
+          : Number(candidate.sourceOptionValue) === Number(selection.sourceOptionValue)),
     );
     if (!entry) {
       throw new Error(
