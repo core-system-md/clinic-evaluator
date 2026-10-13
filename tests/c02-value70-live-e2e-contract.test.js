@@ -14,7 +14,7 @@ test("C-02 runner is gated to the intended Production project", () => {
 test("C-02 runner verifies saved value 70, interpretation V2, and persisted Structured Result", () => {
   assert.match(runner, /Number\(o\.option_value\) === 70/);
   assert.match(runner, /Number\(a\.option_value\) === 70/);
-  assert.match(runner, /Number(entry.anchorScore) === 70/);
+  assert.match(runner, /Number\\(entry\\.anchorScore\\) === 70/);
   assert.match(runner, /interpretation_version/);
   assert.match(runner, /P3_STRUCTURED_RESULT_V1/);
 });
