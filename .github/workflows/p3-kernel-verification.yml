@@ -188,6 +188,35 @@ jobs:
           end $test$;
           SQL
 
+  c03-publication-release-gate:
+    name: C-03 publication release gate (disposable PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Apply C-03 migration and exercise manifest gate in disposable PostgreSQL
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -f tests/c03-interpretation-release-gate-harness.sql
+
   c02-answer-save-e2e:
     name: C-02 save_assessment_answer RPC (disposable PostgreSQL)
     runs-on: ubuntu-latest
