@@ -1,14 +1,12 @@
-name: C-02 Production value-70 E2E (automatic bounded production verification)
+name: C-02 Production value-70 E2E (agent-coordinated cleanup)
 
 on:
-  # Run once automatically when this guarded workflow is changed on main.
-  # This allows the owner-authorized recovery to execute without a manual dispatch.
+  # Run automatically only when this guarded workflow changes on main.
   push:
     branches:
       - main
     paths:
       - .github/workflows/c02-value70-live-e2e.yml
-  # Retain a manual rerun path for future diagnostics.
   workflow_dispatch:
     inputs:
       confirm_production_write:
@@ -25,19 +23,14 @@ jobs:
     if: ${{ github.event_name == 'push' || inputs.confirm_production_write == 'RUN-C02-VALUE70' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
-    environment: production-e2e
     env:
       EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
-      SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       ALLOW_LIVE_E2E: "true"
     steps:
       - uses: actions/checkout@v4
-      - name: Require cleanup credential
-        run: test -n "$SUPABASE_SERVICE_ROLE_KEY"
-      - name: Run bounded C-02 Production value-70 E2E
+      - name: Run bounded C-02 Production value-70 E2E (both published V1 families)
         run: node .github/scripts/c02-value70-live-e2e.mjs
-      - name: Upload C-02 evidence (including cleanup result)
+      - name: Upload C-02 evidence (agent cleanup remains a separate verified gate)
         if: always()
         uses: actions/upload-artifact@v4
         with:
