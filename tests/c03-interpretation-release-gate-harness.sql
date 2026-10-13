@@ -12,9 +12,9 @@ $roles$;
 create schema if not exists auth;
 create table auth.users (id uuid primary key);
 create or replace function auth.uid() returns uuid language sql stable as
-$ select 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid $;
+'select ''aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa''::uuid';
 create or replace function auth.role() returns text language sql stable as
-$ select current_setting('request.jwt.claim.role', true) $;
+'select current_setting(''request.jwt.claim.role'', true)';
 
 create table public.assessment_families (
   id uuid primary key,
