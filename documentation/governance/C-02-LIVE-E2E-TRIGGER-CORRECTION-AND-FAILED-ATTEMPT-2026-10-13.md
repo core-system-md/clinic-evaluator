@@ -21,7 +21,7 @@ PR #87 added a correct, bounded, cleanup-aware live E2E runner, but its workflow
 
 The automatic trigger worked. GitHub Actions run [#38385212278](https://github.com/core-system-md/clinic-evaluator/actions/runs/38385212278) was created by the merge push and completed with **failure**.
 
-Job: [c02-value70-live-e2e](https://github.com/github.com/core-system-md/clinic-evaluator/actions/runs/38385212278)
+Job: [c02-value70-live-e2e](https://github.com/core-system-md/clinic-evaluator/actions/runs/38385212278)
 
 The exact failed step was `Require cleanup credential`. The runner environment showed `SUPABASE_SERVICE_ROLE_KEY` as an empty string. The test runner did not start; therefore no session, answer, lead, score, result, or access token was created by this run. The evidence upload then failed because the runner had not produced its result JSON.
 
