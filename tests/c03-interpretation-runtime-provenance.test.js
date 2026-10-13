@@ -93,6 +93,15 @@ test("runtime release attestation rejects duplicate option identities", async ()
   );
 });
 
+test("runtime release attestation rejects a different Edge release identifier", async () => {
+  const release = await validRelease();
+  release.edge_release_ref = "assessment-access-v-unverified";
+  await assert.rejects(
+    provenance.assertInterpretationReleaseMatches({ release, ...expected }),
+    /does not match this runtime build/,
+  );
+});
+
 test("runtime release attestation rejects assessment or interpretation version drift", async () => {
   const release = await validRelease();
   release.assessment_version = 2;
