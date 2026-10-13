@@ -28,7 +28,7 @@ The current compatibility constraint allows `0,1,2,3,4,5,40,100`, while current 
 - P3 isolated kernel and P4 disposable PostgreSQL protected-completion checks: **PASS** in [P3 verification run #417](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328225).
 - The first dedicated PostgreSQL attempt failed because the harness contained a doubled backslash in the psql include directive. The harness was corrected in commit `b441e2fb1dff68c605a6acfe3f6203a2bdb20436`; the subsequent C-02 CI run passed.
 - Local PostgreSQL execution: **NOT RUN**; verification was performed by the disposable PostgreSQL GitHub Actions service.
-- Production constraint re-confirmation and row inspection in this C-02 run: **NOT VERIFIED**. The earlier D-14 read-only inventory recorded the old constraint and zero answer rows; this implementation run made no Production query/write.
+- Production read-only re-check (2026-10-13): **CONFIRMED** — `public.answers.answers_answer_value_compat_check` still allows `0,1,2,3,4,5,40,100`; `public.answers` currently contains 0 rows. This was metadata/count-only SQL. No Production DDL or data mutation was executed.
 - Actual deployed answer-save RPC E2E: **NOT VERIFIED**; the disposable harness tests the constraint-facing insert contract, not the complete deployed RPC dependency graph.
 
 ## Safety and closure
