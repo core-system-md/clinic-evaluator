@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
-import { writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync } from "node:fs";
 
 const EDGE_URL = process.env.EDGE_URL;
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const SLUG = "comprehensive-clinic-assessment";
 const PROJECT = "oaqpzaarppccbnepffxx";
+const REGISTRY_V2 = JSON.parse(readFileSync("supabase/functions/assessment-access/response-interpretation-registry-v2.json", "utf8"));
 const RUN_ID = "c02-value70-" + Date.now() + "-" + crypto.randomBytes(6).toString("hex");
 const evidence = { run_id: RUN_ID, started_at: new Date().toISOString(), assessment_slug: SLUG, checks: [], created: { tokenHashes: [], leadIds: [], sessionIds: [], email: null }, cleanup: { attempted: false, verified: false } };
 
@@ -124,12 +125,20 @@ async function main() {
   assert(Number(row.interpretation_version) === 2 && Number(result?.provenance?.interpretationVersion) === 2, "Persisted result is not interpretation V2");
   assert(result?.schemaVersion === "P3_STRUCTURED_RESULT_V1" && result?.status === "PRODUCTION", "Persisted result is not production Structured Result");
   assert(Array.isArray(result?.inputs?.responses), "Missing persisted response lineage");
-  const responses70 = result.inputs.responses.filter((x) => Number(x.sourceOptionValue) === 70 && Number(x.anchorScore) === 70 && x.scoreEligible === true);
-  assert(responses70.length === selected.length, "Expected " + selected.length + " interpreted 70 anchors, got " + responses70.length);
+  const responseByCode = new Map(result.inputs.responses.map((x) => [x.questionCode, x]));
+  const interpreted70 = selected.every((item) => {
+    const response = responseByCode.get(item.code);
+    const entry = REGISTRY_V2.entries.find((x) => x.assessmentSlug === SLUG && String(x.assessmentVersion) === String(row.assessment_version) && x.questionCode === item.code && Number(x.optionIndex) === item.optionIndex && Number(x.sourceOptionValue) === 70);
+    return Boolean(response && entry && Number(response.sourceOptionValue) === 70 && response.semanticStateKey === entry.semanticStateKey && Number(entry.anchorScore) === 70 && entry.scoreEligible === true);
+  });
+  assert(interpreted70, "Persisted response lineage does not match the V2 registry's score-70 anchors");
+  const components = result?.measurement?.profile?.components || [];
+  const layerScores = components.flatMap((component) => (component.layers || []).map((layer) => ({ componentCode: component.componentCode, measurementLayer: layer.measurementLayer, score: layer.score?.percentage })));
+  assert(layerScores.some((x) => Number(x.score) === 70), "No persisted component/layer score equals the value-70 anchor");
   assert(Array.isArray(result?.scores?.axes) && result.scores.axes.length > 0, "No persisted axis scores");
   assert(result.scores.axes.some((x) => Number(x.percentage ?? x.score) === 70), "No axis score equals the value-70 anchor");
   assert(Number.isFinite(Number(result?.scores?.overallScore)), "Persisted overall score is not numeric");
-  record("persisted value-70 anchors and Structured Result verified", { answers: answers.length, interpreted_70_anchors: responses70.length, axes: result.scores.axes.map((x) => ({ axisCode: x.axisCode, score: x.percentage ?? x.score })), overall_score: result.scores.overallScore, result_id: row.id });
+  record("persisted value-70 anchors and Structured Result verified", { answers: answers.length, interpreted_70_anchors: selected.length, component_layer_scores: layerScores, axes: result.scores.axes.map((x) => ({ axisCode: x.axisCode, score: x.percentage ?? x.score })), overall_score: result.scores.overallScore, result_id: row.id });
 }
 
 try {
