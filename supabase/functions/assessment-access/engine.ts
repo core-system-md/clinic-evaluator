@@ -17,6 +17,7 @@ import registry from "./response-interpretation-registry-v1.json" with { type: "
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
+import { assertInterpretationReleaseMatches, selectInterpretationEntries } from "./interpretation-release-provenance.mjs";
 
 type AssessmentRow = {
   id: string;
@@ -89,6 +90,9 @@ export type AssessmentComputation = {
     scoringEngineVersion: string;
     scoringContractVersion: string;
     assessmentConfigDigest: string;
+    interpretationRegistryDigest: string | null;
+    interpretationSourceCommitSha: string | null;
+    interpretationReleaseRef: string | null;
   };
 };
 
@@ -168,12 +172,11 @@ function resolveInterpretationBinding(
     );
   }
 
-  const entries = (binding.registry.entries as Array<Record<string, unknown>>)
-    .filter((entry) => entry.assessmentSlug === assessmentSlug)
-    .filter(
-      (entry) =>
-        Number(entry.interpretationVersion) === binding.interpretationVersion,
-    );
+  const entries = selectInterpretationEntries(
+    binding.registry,
+    assessmentSlug,
+    binding.interpretationVersion,
+  );
 
   if (!entries.length) {
     throw new Error(
@@ -385,6 +388,46 @@ export async function calculateAssessment(
     assessmentVersion,
   );
   const interpretationRegistry = interpretationBinding.registry;
+  const interpretationEntries = selectInterpretationEntries(
+    interpretationRegistry,
+    runtime.family.slug,
+    interpretationBinding.interpretationVersion,
+  );
+
+  // Legacy assessment versions may predate C-03 registration. Once a release
+  // exists for this assessment version, the deployed runtime must prove that its
+  // selected registry digest and exact option identities match that registration.
+  // Lookup errors fail closed; only an actual missing row follows the legacy path.
+  const {
+    data: interpretationRelease,
+    error: interpretationReleaseError,
+  } = await client
+    .from("assessment_interpretation_releases")
+    .select("assessment_type_id, family_id, assessment_version, interpretation_version, registry_digest, source_commit_sha, edge_release_ref, option_manifest")
+    .eq("assessment_type_id", runtime.assessment.id)
+    .maybeSingle();
+
+  if (interpretationReleaseError) {
+    throw new Error(
+      "Interpretation release lookup failed: " +
+        interpretationReleaseError.message,
+    );
+  }
+
+  const releaseProvenance = interpretationRelease
+    ? await assertInterpretationReleaseMatches({
+      release: interpretationRelease,
+      assessmentTypeId: runtime.assessment.id,
+      familyId: runtime.family.id,
+      assessmentVersion,
+      interpretationVersion: interpretationBinding.interpretationVersion,
+      registryEntries: interpretationEntries,
+    })
+    : {
+      registryDigest: null,
+      sourceCommitSha: null,
+      edgeReleaseRef: null,
+    };
 
   const versionedConfig = {
     assessment: {
@@ -511,6 +554,9 @@ export async function calculateAssessment(
       scoringEngineVersion: ENGINE_IDENTITY,
       scoringContractVersion: SCORING_CONTRACT_ID,
       assessmentConfigDigest,
+      interpretationRegistryDigest: releaseProvenance.registryDigest,
+      interpretationSourceCommitSha: releaseProvenance.sourceCommitSha,
+      interpretationReleaseRef: releaseProvenance.edgeReleaseRef,
     },
   };
 }
