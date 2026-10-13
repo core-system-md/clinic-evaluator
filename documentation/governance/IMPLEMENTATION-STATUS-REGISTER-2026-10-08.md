@@ -740,11 +740,14 @@ Per the no-silent-conflict rule, C-03 implementation is BLOCKED pending scope re
 
 This entry supersedes the earlier C-03 subsection's “not test-verified” status; it does **not** declare C-03 complete.
 
-- PR #96 remains a draft on `work/c03-publication-release-gate-20261014`; tested source commit: `f33a9117cbea773b63269fc375c1bcf69599bef0`.
-- CI run [#38477545145](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477545145) completed **SUCCESS**.
+- PR #96 remains a draft on `work/c03-publication-release-gate-20261014`; tested source commit: `760f73a74c90bf3b63e0b88429749714c5eba799`.
+- CI run [#38477545145](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) completed **SUCCESS**.
 - Full Node suite: 36 passed, 0 failed.
 - Disposable PostgreSQL 17 C-03 harness passed against a minimal fixture. It exercised migration application, incomplete-manifest rejection, valid-manifest registration, validator acceptance, and stale option-value rejection.
 - Two harness defects found by failed runs were corrected: relative `\ir` migration path and missing `anon`/`authenticated` roles.
 - No production migration, RPC, deployment, or merge occurred.
 - Remaining blocker: the migration stores the claimed registry digest, source commit and Edge release reference, but does not independently verify that the deployed Edge registry digest matches. Full live-schema compatibility is also not proven by the minimal fixture. C-03 remains **IN PROGRESS / NOT READY TO CLOSE**.
 - Next bounded engineering task: inspect and implement/test Edge-runtime provenance linkage and review validator parity, staying on the draft branch. C-01 remains out of scope.
+
+
+Verification provenance — latest check (2026-10-14): CI run [#38477746577](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) succeeded on implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`, including the PostgreSQL 17 C-03 migration harness and the full Node test suite. A read-only inspection of Production confirmed the baseline validator conditions match the validation logic being replaced and `options.option_value` is `integer`; no Production write was performed. Subsequent commits in this PR update documentation only.
