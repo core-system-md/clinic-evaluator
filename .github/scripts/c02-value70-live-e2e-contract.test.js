@@ -21,6 +21,8 @@ test("C-02 runner covers both published final V1 families using only eligible V2
   assert.match(runner, /Number\(entry\.sourceOptionValue\) === 70/);
   assert.match(runner, /Number\(entry\.anchorScore\) === 70/);
   assert.match(runner, /entry\.scoreEligible === true/);
+  assert.match(runner, /candidate\.sourceIsTrap !== true/);
+  assert.match(runner, /anchorScore: entry\.anchorScore === null/);
   assert.match(runner, /save_answer/);
   assert.match(runner, /interpretationVersion/);
   assert.match(runner, /C02_EVIDENCE_JSON=/);
