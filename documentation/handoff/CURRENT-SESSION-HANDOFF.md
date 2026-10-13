@@ -232,3 +232,6 @@ Keep PR #96 draft; do not merge, apply to Production, invoke the release RPC, or
 
 
 Verification provenance note: the successful CI run above tested implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`. Subsequent commits in this PR update documentation only; no migration, test, workflow, or application source changed after that verified implementation commit.
+
+
+Verification provenance — latest check (2026-10-14): CI run [#38477746577](https://github.com/core-system-md/clinic-evaluator/actions/runs/38477746577) succeeded on implementation commit `760f73a74c90bf3b63e0b88429749714c5eba799`, including the PostgreSQL 17 C-03 migration harness and the full Node test suite. A read-only inspection of Production confirmed the baseline validator conditions match the validation logic being replaced and `options.option_value` is `integer`; no Production write was performed. Subsequent commits in this PR update documentation only.
