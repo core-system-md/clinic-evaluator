@@ -42,8 +42,26 @@ D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INV
 ### D-14 — inventory/design result
 Read-only inventory is complete for the three specified migrations and relevant live contracts. The documented C-02 constraint repair is a design only. No production mutation was performed. This work package should close only after the D-14 documentation PR is reviewed and merged; do not infer that branch-only documentation is already on `main`.
 
-### Next bounded work package: C-02
-Implement a new forward-only migration to add 70 to `answers_answer_value_compat_check` while preserving legacy values. Test it on disposable PostgreSQL, including positive values `0,40,70,100`, retained legacy values, and rejection of unsupported values. Do not edit applied migration files or run the migration on Production without explicit approval.
+### C-02 — implementation candidate prepared; verification pending
+
+**PR:** [#86 — forward-only answer value 70 compatibility repair](https://github.com/core-system-md/clinic-evaluator/pull/86) — open, not merged.
+
+Prepared on branch `fix/c02-answer-value-70-2026-10-13`:
+- New migration `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql`; no applied migration was edited.
+- Migration checks for the expected constraint and aborts if existing non-null values fall outside the intended set, then replaces the constraint with `0,1,2,3,4,5,40,70,100`.
+- Disposable PostgreSQL harness covers accepted values, legacy preservation, matching `option_value`/`answer_value` persistence for 70, and rejection of unsupported 99.
+- Dedicated Node contract test and GitHub Actions workflow added.
+- Governance report: `documentation/governance/C-02-ANSWER-VALUE-70-COMPATIBILITY-REPAIR-2026-10-13.md`.
+
+**Verification checkpoint:** C-02 CI workflows were queued at the time of this update. No PASS claim is made until results are inspected. Local PostgreSQL execution is unavailable in the current execution environment. Full production answer-save RPC E2E remains **NOT VERIFIED**.
+
+Remaining to close C-02:
+1. Inspect both C-02 Node and disposable PostgreSQL CI results; fix any failures.
+2. Run the full repository test suite and record actual output.
+3. Reconfirm production constraint/rows only through read-only queries if needed; do not apply the migration.
+4. Update the C-02 governance report and this Handoff with exact test evidence and limitations.
+5. Stop after C-02; do not begin C-03 automatically.
+6. **Do not apply the migration to Production without separate explicit owner approval.**
 
 ### Remaining sequence
 - C-03: explicit interpretation-binding and complete option-identity coverage gate.
