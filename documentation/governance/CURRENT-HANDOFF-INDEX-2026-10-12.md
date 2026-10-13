@@ -125,3 +125,18 @@ The repository does contain a network-capable GitHub Actions route, but inspecti
 - The live E2E workflow is now present on `main` at `.github/workflows/c02-value70-live-e2e.yml`. It is manual-only and requires the exact dispatch input `RUN-C02-VALUE70` plus `SUPABASE_SERVICE_ROLE_KEY` in the `production-e2e` GitHub Actions environment. The workflow has **not** been dispatched from this session; no Production test session or answer was created.
 - Exact next action: open https://github.com/core-system-md/clinic-evaluator/actions/workflows/c02-value70-live-e2e.yml, choose **Run workflow**, enter `RUN-C02-VALUE70`, and run it only after confirming the `production-e2e` environment has the required service-role secret. The run must finish with successful scoring assertions and zero remaining run-tagged rows.
 - **C-02 remains NOT CLOSED** until the live run and cleanup evidence are recorded. Do not start C-03.
+
+
+## C-02 final Production E2E closure — 2026-10-13
+
+**This is the current C-02 state and supersedes all older sections below or above that say Production runtime is unverified, the Edge Function is v36, or C-02 remains open.** Full report: [C-02 Production Live E2E Closure](C-02-PRODUCTION-LIVE-E2E-CLOSURE-2026-10-13.md).
+
+- Live Production E2E [run #38387901746](https://github.com/core-system-md/clinic-evaluator/actions/runs/38387901746) **SUCCESS**; evidence artifact [11807522611](https://github.com/core-system-md/clinic-evaluator/actions/runs/38387901746/artifacts/11807522611).
+- Production `assessment-access` is ACTIVE at **v37**; deployment bundle SHA `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`.
+- Comprehensive Clinic final V1: 36/36 answers value 70; 36/36 result lineage entries source value 70; V2 interpretation; full component layer and all axes 70; overall 69.99999999999999 (floating-point representation of 70).
+- Patient Journey final V1: 25/25 answers; all 21 available value-70 anchors persisted with V2 lineage; no answer-to-lineage mismatches; overall score 65.8 for the mixed set.
+- Both completion requests returned HTTP 200 and persisted `P3_STRUCTURED_RESULT_V1` results with interpretation version 2.
+- Run-specific cleanup removed both sessions, both results, all 61 answers, 11 score rows, two synthetic leads, and both access-token records. Post-cleanup counts are zero for all six tracked tables; global counts are also zero.
+- Production constraint `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,70,100`. No migration or DDL change was executed in this E2E.
+- **Audit finding C-02: CLOSED.** Do not conflate this finding with work-package label C2. Audit finding C-01 remains OPEN and is the next item in the established sequence. C-03 remains NOT STARTED and must not be started before C-01 is resolved.
+- Separate CI note: WP-03 configuration semantics run #38387272452 failed an unrelated expectation that configured modes contain only `DIRECT_ANCHOR`, while current configuration also includes `SEMANTIC_ONLY`. This is outside C-02 and remains separately queued; C-02-specific live and CI gates passed.
