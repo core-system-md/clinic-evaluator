@@ -1,7 +1,7 @@
 name: C-02 Production value-70 E2E (agent-coordinated cleanup)
 
 on:
-  # One bounded rerun after hardening Patient Journey semantic-only fallback selection.
+  # Bounded evidence rerun: capture persisted DB lineage immediately after the live E2E.
   push:
     branches:
       - main
