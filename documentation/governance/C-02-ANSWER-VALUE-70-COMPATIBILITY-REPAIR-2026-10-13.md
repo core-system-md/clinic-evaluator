@@ -59,3 +59,17 @@ This section supersedes earlier statements that value-70 work was limited to per
 - **Supabase state:** read-only checks show migration `20261013110000 / c02_allow_answer_value_70` listed as applied, the live compatibility constraint allows `0,1,2,3,4,5,40,70,100`, and `public.answers` currently has 0 rows. The migration application actor/time is unknown. No Production RPC was executed and no answer/session data was created or changed during this activation.
 - **Status:** IMPLEMENTATION = IMPLEMENTED; TESTS = PASS; EDGE = DEPLOYED v36; PRODUCTION CONSTRAINT = OBSERVED COMPATIBLE; LIVE SCORING E2E = NOT VERIFIED; FINAL = scoring correction deployed, but full Production runtime closure remains open.
 - **Next boundary:** any controlled Production E2E requires explicit authorization to create/use a test session and answer data. Do not start C-03 automatically; PR #85 remains outside this work.
+
+
+## Owner authority clarification and continuation attempt — 2026-10-13
+
+The owner clarified that engineering execution within the approved work contract does not require repeated step-by-step authorization. This supersedes earlier wording in this report that demanded a separate owner approval solely to execute the bounded C-02 runtime verification. The engineering lead is responsible for carrying out that verification, using synthetic/tagged data, limiting the test to the value-70 path, and verifying cleanup. This does not authorize architecture/scope changes, destructive migrations, or unrelated Production mutations; C-03 remains gated on C-02 closure and recorded handoff.
+
+**Continuation evidence:**
+- Read-only Supabase metadata confirms assessment-access is ACTIVE at version 36 with deployed bundle SHA 82a26223caa92516016f17a70afeafc859c06766a53773bc6e895f6026145916.
+- Read-only published-version query confirms Comprehensive Clinic final V1 has 36 options with option_value=70; Patient Journey final V1 has 21 options with option_value=70.
+- Read-only count query returned 0 rows in sessions, answers, scores, assessment_results, leads, and assessment_session_access at the time of this check.
+- CI run #430 was rechecked: all four jobs completed successfully, including the P3 isolated kernel, full Node suite, P4 disposable PostgreSQL gate, and C-02 answer-save RPC on disposable PostgreSQL.
+- An external POST attempt to the deployed Edge endpoint could not reach the Supabase hostname from the available execution container (EAI_AGAIN DNS resolution failure). This is an execution-environment connectivity failure, not evidence of a Production function failure. No Production session, answer, or access row was created by this attempt.
+
+**Current status remains:** scoring correction implemented, CI verified, Edge v36 deployed, live Production scoring E2E NOT VERIFIED. The next engineering action is to run the bounded runtime test from an execution environment that can reach the deployed endpoint, then verify the resulting score and confirm cleanup. Do not restart the implementation or begin C-03.
