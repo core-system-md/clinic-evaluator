@@ -67,14 +67,14 @@ async function main() {
   const contentResponse = await edge("get_content", { assessment_key: SLUG });
   assert(contentResponse.status === 200 && contentResponse.body?.success, "get_content failed: " + contentResponse.status);
   const content = contentResponse.body.data;
-  assert(content.slug === SLUG && Array.isArray(content.questions) && content.questions.length > 0, "Published content unavailable");
+  assert(content.slug === SLUG && Number(content.version) === 1 && Array.isArray(content.questions) && content.questions.length > 0, "Published final product V1 content unavailable");
   assert(content.requires_login === false, "Assessment requires login; refusing public path");
   const accessResponse = await edge("issue_public_access", { assessment_key: SLUG });
   assert(accessResponse.status === 200 && accessResponse.body?.success, "issue_public_access failed");
   const token = accessResponse.body.data.token;
   const assessmentTypeId = accessResponse.body.data.assessment_type_id;
+  if (typeof token === "string") evidence.created.tokenHashes.push(crypto.createHash("sha256").update(token).digest("hex"));
   assert(typeof token === "string" && token.length >= 20 && typeof assessmentTypeId === "string", "Invalid public access response");
-  evidence.created.tokenHashes.push(crypto.createHash("sha256").update(token).digest("hex"));
   record("published final V1 and access acquired", { version: content.version, questions: content.questions.length });
 
   const dbQuestions = await rest("questions", "select=id,code,assessment_type_id&assessment_type_id=eq." + encodeURIComponent(assessmentTypeId));
