@@ -82,3 +82,12 @@ Read-only inventory is complete for the three specified migrations and relevant 
 - Mark absent runtime evidence **NOT VERIFIED**, not PASS.
 - No Production writes, migrations, Edge deployment, shared Cloudflare setting change, or Pages publication without explicit owner approval.
 - Do not repeat previously verified work unless new evidence shows a regression.
+
+
+## C-02 continuation — owner authority clarification and exact next action (2026-10-13)
+
+The owner clarified that routine engineering execution within the approved contract does not require separate approval for each step. For this bounded C-02 verification, earlier wording requiring separate authorization just to create/use synthetic runtime-test data is superseded. The engineering lead must perform the test with clearly tagged synthetic data, verify the 70 value through save → completion → persisted Structured Result, and verify cleanup. This is not permission for architectural changes, destructive migrations, or unrelated Production mutations.
+
+Current recheck: assessment-access is ACTIVE at version 36 (bundle SHA 82a26223caa92516016f17a70afeafc859c06766a53773bc6e895f6026145916). The current published Comprehensive Clinic final V1 has 36 options valued 70; Patient Journey final V1 has 21. Read-only counts for sessions, answers, scores, assessment_results, leads, and assessment_session_access are all zero. CI run #430 was rechecked and all four jobs passed.
+
+A direct external POST attempt failed before reaching Supabase because the current execution container could not resolve the project hostname (EAI_AGAIN). No Production writes occurred. This does not prove the deployed function is failing; it means the live endpoint could not be exercised from this environment. C-02 remains NOT CLOSED until the bounded live runtime test is run from a network-capable execution environment and its output plus cleanup are verified. Do not begin C-03 automatically.
