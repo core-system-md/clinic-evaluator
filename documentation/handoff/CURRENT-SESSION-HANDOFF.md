@@ -1,3 +1,37 @@
+# C-03 — Current Session Handoff (2026-10-14)
+
+> **Current override:** This block supersedes contradictory status statements in the historical handoff text below. C-02 is closed and its exact-ID cleanup was verified. C-01 must not be reopened. The owner resolved the C-03 scope by confirming that Guardrails decision 11 is the hybrid Git/Supabase configuration model with explicit synchronization/release; P3 Architecture D11 is a separate numbering scheme.
+
+## Current execution point
+- Repository: `core-system-md/clinic-evaluator`; Supabase project: `oaqpzaarppccbnepffxx`; production branch: `main`.
+- Baseline `main`: `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`.
+- Working branch: `work/c03-publication-release-gate-20261014`.
+- C-02: **CLOSED**. E2E run #38469121966 was cleaned by a bounded DELETE; post-cleanup checks returned zero for the exact synthetic identities and related records.
+- C-01: **OUT OF SCOPE / DO NOT REOPEN**, per explicit owner instruction.
+- C-03: **IMPLEMENTATION IN PROGRESS — repository-only, not production-applied**.
+- Read-only inspection found that `publish_assessment_version_secure` and `restore_public_assessment_secure` call `validate_assessment_version_secure`, but that validator currently checks structural integrity only; it does not require a versioned interpretation release or complete option-identity manifest.
+- Current C-03 change prepared on the working branch: migration adds an owner-only release-registration RPC and makes the shared publication validator require an exact manifest of all live option IDs, indices and source values, with registry digest, source commit SHA and Edge release reference recorded for traceability. A dedicated static contract test is added.
+- This is a **prepared implementation**, not yet verified by running the test suite, not merged, not applied to Supabase, and not deployed to Cloudflare/Edge.
+- No Production write, migration application, Edge deployment, or Pages deployment was performed as part of this C-03 implementation step.
+
+## Release sequence intended by the change
+1. Update the version-controlled interpretation registry/binding for the exact assessment family and version.
+2. Run registry/option identity coverage tests against the target version.
+3. Deploy the matching `assessment-access` Edge code and record the actual release reference.
+4. As owner, register the release manifest for the draft version, including the Git commit SHA and registry SHA-256.
+5. Run the database publication validator; publish only if the manifest still matches every live option identity.
+6. Verify the published version can complete before declaring the release operationally closed.
+
+## Remaining verification gates
+- Run the new C-03 test plus relevant existing tests in a repository-capable runner.
+- Review the migration for SQL syntax and compatibility with the live schema.
+- Obtain explicit authorization before applying the migration or invoking the release-registration RPC in Production.
+- After approval and application, verify direct publish and restore both reject absent/stale manifests and accept an exact complete manifest in a controlled test environment.
+- Verify the Edge runtime's registry binding matches the release manifest and that the published assessment completes successfully.
+- Do not merge to `main` until repository tests and migration review pass; a push to `main` triggers Cloudflare Pages auto-deployment.
+
+---
+
 # نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
 
 ## 1. الموضع

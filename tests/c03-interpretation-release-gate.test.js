@@ -1,0 +1,42 @@
+const fs = require("node:fs");
+const path = require("node:path");
+const assert = require("node:assert/strict");
+const test = require("node:test");
+
+const ROOT = process.cwd();
+const MIGRATION = path.join(ROOT, "supabase/migrations/20261014120000_c03_interpretation_release_publication_gate.sql");
+const PUBLISH_MIGRATION = path.join(ROOT, "supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql");
+const source = fs.readFileSync(MIGRATION, "utf8");
+const publishSource = fs.readFileSync(PUBLISH_MIGRATION, "utf8");
+
+test("C-03 registers an owner-controlled release with source and runtime provenance", () => {
+  assert.match(source, /register_assessment_interpretation_release_secure/);
+  assert.match(source, /if not public\.is_owner\(\)/);
+  assert.match(source, /registry_digest/);
+  assert.match(source, /source_commit_sha/);
+  assert.match(source, /edge_release_ref/);
+  assert.match(source, /status not in/);
+  assert.match(source, /assessment\.interpretation_release\.register/);
+});
+
+test("C-03 release manifest must cover each live option identity exactly once", () => {
+  assert.match(source, /Option manifest must cover every option exactly once/);
+  assert.match(source, /m\.option_id/);
+  assert.match(source, /m\.option_index/);
+  assert.match(source, /m\.source_option_value/);
+  assert.match(source, /unknown or mismatched question\/option identities/);
+});
+
+test("C-03 publication and restoration are guarded through the shared validator", () => {
+  assert.match(source, /interpretation_release_registered/);
+  assert.match(source, /and v_release_valid/);
+  assert.match(publishSource, /v_validation:=public\.validate_assessment_version_secure\(p_version_id\)/);
+  assert.match(publishSource, /validation:=public\.validate_assessment_version_secure\(p_version_id\)/);
+});
+
+test("C-03 release registration cannot be called by public or anonymous clients", () => {
+  assert.match(source, /revoke all on function public\.register_assessment_interpretation_release_secure\(uuid, integer, text, text, text, jsonb\) from public, anon/);
+  assert.match(source, /grant execute on function public\.register_assessment_interpretation_release_secure\(uuid, integer, text, text, text, jsonb\) to authenticated/);
+  assert.match(source, /assessment_interpretation_releases enable row level security/);
+  assert.match(source, /revoke all on public\.assessment_interpretation_releases from public, anon, authenticated/);
+});

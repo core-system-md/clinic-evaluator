@@ -722,3 +722,13 @@ The owner explicitly directed continuation to C-03, not C-01. However, authorita
 4. Older handoff/status text says C-03 must not start before C-01; the current owner instruction explicitly overrides that sequence by directing C-03 instead.
 
 Per the no-silent-conflict rule, C-03 implementation is BLOCKED pending scope reconciliation, not redirected to C-01. No C-03 code, schema, migration, deployment, or Production operation was started. Required decision: confirm the current prompt's C-03 scope (Git↔DB sync + published-admin completion safety) supersedes the handoff index's interpretation/option-identity definition, or specify the intended single scope. No implementation should begin until the scope is unambiguous.
+
+
+## C-03 — Interpretation release and publication gate (2026-10-14)
+
+- **Status:** IMPLEMENTATION PREPARED ON WORKING BRANCH; not test-verified, not merged, not applied to Production.
+- **Scope:** Guardrails owner decision 11 (hybrid Git/Supabase configuration with explicit synchronization/release) implemented as a release manifest and a shared publish/restore validation gate. C-01 remains explicitly out of scope.
+- **Repository change:** `supabase/migrations/20261014120000_c03_interpretation_release_publication_gate.sql` introduces owner-only release registration, stores registry digest/source commit/Edge release reference and a complete option identity manifest, and requires the manifest to exactly match live option IDs, question codes, indices and source values.
+- **Test added:** `tests/c03-interpretation-release-gate.test.js`; this is a static contract test only, not proof of PostgreSQL execution.
+- **Critical boundary:** No migration applied, no release RPC called in Production, no Edge or Pages deployment. Do not claim production protection until migration application and live rejection/acceptance tests are explicitly authorized and verified.
+- **Next bounded step:** run the C-03 and relevant regression tests, review SQL compatibility, fix any failures, then stop before Production mutation pending explicit authorization.

@@ -156,3 +156,10 @@ Latest observed main before documentation closeout: `b2cf8b3f66ddf4e3da7ec34ab97
 - C-02 = CLOSED: scoring PRODUCTION VERIFIED; latest-run cleanup and clean-state verification VERIFIED.
 - Owner explicitly directed C-03, not C-01. C-03 execution is blocked by conflicting scope definitions: current owner prompt §7 says Git↔DB synchronization (D11) plus preventing a published-admin completion crash; this index says interpretation-binding and complete option-identity coverage; documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md calls D11 “Classification / grade semantics”. The owner direction supersedes the old C-01-first sequence, but does not resolve this scope contradiction. Do not start C-01. Do not implement C-03 until its scope is unambiguous.
 - Current next step: reconcile the C-03 scope with the owner, then inspect the agreed paths read-only. No production operation is authorized by this note.
+
+
+## C-03 implementation update — 2026-10-14
+
+The owner resolved the numbering ambiguity: Guardrails decision 11 is the hybrid Git/Supabase configuration model with explicit synchronization/release. P3 Architecture D11 (“Classification / grade semantics”) is a separate document-local numbering scheme and is not the cited decision. C-01 remains out of scope.
+
+A repository-only C-03 implementation is prepared on branch `work/c03-publication-release-gate-20261014` from main `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`: migration `20261014120000_c03_interpretation_release_publication_gate.sql` and static contract test `tests/c03-interpretation-release-gate.test.js`. The migration adds owner-controlled release registration and requires a complete option identity manifest at the shared publish/restore validator. No tests have yet been run; no production migration/RPC/deployment has occurred. This status supersedes older C-03 “blocked by scope conflict” text above.
