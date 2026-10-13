@@ -5,13 +5,16 @@ do $roles$
 begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
   if not exists (select 1 from pg_roles where rolname = 'authenticated') then create role authenticated nologin; end if;
+  if not exists (select 1 from pg_roles where rolname = 'service_role') then create role service_role nologin; end if;
 end
 $roles$;
 
 create schema if not exists auth;
 create table auth.users (id uuid primary key);
 create or replace function auth.uid() returns uuid language sql stable as
-$$ select 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid $$;
+$ select 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid $;
+create or replace function auth.role() returns text language sql stable as
+$ select current_setting('request.jwt.claim.role', true) $;
 
 create table public.assessment_families (
   id uuid primary key,
@@ -100,8 +103,42 @@ begin
   end if;
 
   v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if coalesce((v_result->>'valid')::boolean, true) is not false then
+    raise exception 'Publication validator accepted a release before runtime attestation: %', v_result;
+  end if;
+
+  perform set_config('request.jwt.claim.role', 'authenticated', true);
+  v_rejected := false;
+  begin
+    perform public.mark_assessment_interpretation_release_runtime_verified_secure(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
+    );
+  exception when others then
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'Authenticated client was allowed to attest runtime release'; end if;
+
+  perform set_config('request.jwt.claim.role', 'service_role', true);
+  v_rejected := false;
+  begin
+    perform public.mark_assessment_interpretation_release_runtime_verified_secure(
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('c',64), 'edge-v-test'
+    );
+  exception when others then
+    v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'Runtime attestation accepted a mismatched digest'; end if;
+
+  v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test'
+  );
+  if coalesce((v_result->>'success')::boolean, false) is not true then
+    raise exception 'Runtime attestation failed: %', v_result;
+  end if;
+
+  v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   if coalesce((v_result->>'valid')::boolean, false) is not true then
-    raise exception 'Published-version validator rejected valid release: %', v_result;
+    raise exception 'Validator rejected release after runtime attestation: %', v_result;
   end if;
 
   update public.options set option_value = 99
