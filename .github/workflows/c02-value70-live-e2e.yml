@@ -1,6 +1,14 @@
-name: C-02 Production value-70 E2E (manual)
+name: C-02 Production value-70 E2E (automatic bounded production verification)
 
 on:
+  # Run once automatically when this guarded workflow is changed on main.
+  # This allows the owner-authorized recovery to execute without a manual dispatch.
+  push:
+    branches:
+      - main
+    paths:
+      - .github/workflows/c02-value70-live-e2e.yml
+  # Retain a manual rerun path for future diagnostics.
   workflow_dispatch:
     inputs:
       confirm_production_write:
@@ -14,7 +22,7 @@ permissions:
 
 jobs:
   c02-value70-live-e2e:
-    if: ${{ inputs.confirm_production_write == 'RUN-C02-VALUE70' }}
+    if: ${{ github.event_name == 'push' || inputs.confirm_production_write == 'RUN-C02-VALUE70' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     environment: production-e2e
