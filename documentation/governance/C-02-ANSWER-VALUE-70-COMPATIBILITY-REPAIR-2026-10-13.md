@@ -3,7 +3,7 @@
 **Date:** 2026-10-13  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
-**Status:** Implementation candidate prepared on an isolated branch; verification is pending CI execution.  
+**Status:** Implementation and disposable PostgreSQL verification passed in CI; production-state confirmation and deployed answer-save RPC E2E remain unverified. PR #86 is open and unmerged.  
 **Production mutation:** Not performed and not authorized.
 
 ## Finding
@@ -22,11 +22,15 @@ The current compatibility constraint allows `0,1,2,3,4,5,40,100`, while current 
 ## Verification state
 
 - Production constraint re-confirmation and row inspection: **NOT VERIFIED in this C-02 run**; the prior D-14 read-only inventory recorded the old constraint and zero answer rows. No production query/write was used to execute this migration.
-- Local PostgreSQL execution: **NOT RUN**; this execution environment has no `psql` or Docker binary.
-- Node test: pending execution after branch files are committed.
-- Disposable PostgreSQL workflow: pending PR CI.
-- Actual deployed answer-save RPC E2E: **NOT VERIFIED**; the harness models the constraint-facing insert contract and does not claim to execute the complete production RPC dependency graph.
+- Dedicated Node source-contract test: **PASS**, 2 tests, 0 failures in [C-02 CI run #5](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328799).
+- Disposable PostgreSQL harness: **PASS** in the same [C-02 CI run #5](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328799). It applied the forward-only migration against a fresh disposable PostgreSQL 17 instance, inserted all allowed values including 70, verified matching option/answer value persistence, confirmed legacy values remained accepted, and confirmed unsupported 99 was rejected.
+- Full Node test suite: **PASS** in [P3 verification run #417](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328225).
+- P3 isolated kernel and P4 disposable PostgreSQL protected-completion checks: **PASS** in [P3 verification run #417](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328225).
+- The first dedicated PostgreSQL attempt failed because the harness contained a doubled backslash in the psql include directive. The harness was corrected in commit `b441e2fb1dff68c605a6acfe3f6203a2bdb20436`; the subsequent C-02 CI run passed.
+- Local PostgreSQL execution: **NOT RUN**; verification was performed by the disposable PostgreSQL GitHub Actions service.
+- Production constraint re-confirmation and row inspection in this C-02 run: **NOT VERIFIED**. The earlier D-14 read-only inventory recorded the old constraint and zero answer rows; this implementation run made no Production query/write.
+- Actual deployed answer-save RPC E2E: **NOT VERIFIED**; the disposable harness tests the constraint-facing insert contract, not the complete deployed RPC dependency graph.
 
 ## Safety and closure
 
-No Supabase Production DDL/data write, migration application, migration-history change, Edge Function deployment, or Cloudflare Pages action was performed. Do not apply this migration to Production without separate explicit owner approval. C-03 must not start until the C-02 PostgreSQL CI passes, all verification limitations are recorded, and this package is reviewed and closed.
+No Supabase Production DDL/data write, migration application, migration-history change, Edge Function deployment, or Cloudflare Pages action was performed. Do not apply this migration to Production without separate explicit owner approval. C-02's repository implementation and disposable tests are passing, but do not claim the whole operational gate closed until PR review/merge authorization is separately resolved and the owner decides whether additional Production read-only confirmation or RPC-level testing is required. C-03 must not start automatically.
