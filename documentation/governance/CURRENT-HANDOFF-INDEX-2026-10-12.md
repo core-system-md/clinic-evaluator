@@ -25,7 +25,7 @@ The Supabase migration ledger confirms these three migrations are applied in Pro
 
 Read-only live checks found current published V1 content counts and 0–100 axis weight totals consistent with the reconstruction contract. The two `*_from_result` RPCs exist and are service-role-only; deployed `assessment-access` is version 35 and calls those RPCs. Current totals for leads, sessions, answers, scores, assessment_results, assessment_session_access, and historical_snapshots are all zero.
 
-One cross-migration defect was identified for C-02: the live `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,100`, while the reconstructed assessments contain 57 options valued 70 and the answer-save RPC writes the option value to `answer_value`. A forward-only constraint correction to include 70 is designed in the D-14 report; it has not been implemented or applied.
+One cross-migration defect was identified for C-02: the live `answers_answer_value_compat_check` allows `0,1,2,3,4,5,40,100`, while the reconstructed assessments contain 57 options valued 70 and the answer-save RPC writes the option value to `answer_value`. The forward-only correction has now been implemented on branch `fix/c02-answer-value-70-2026-10-13` and verified against disposable PostgreSQL in CI. It has **not** been applied to Production.
 
 D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INVENTORY-2026-10-12.md` on branch `d14-production-migration-impact-inventory-2026-10-12`. The report and updated handoff are branch-only until reviewed/merged.
 
@@ -42,7 +42,7 @@ D-14 report path: `documentation/governance/D-14-PRODUCTION-MIGRATION-IMPACT-INV
 ### D-14 — inventory/design result
 Read-only inventory is complete for the three specified migrations and relevant live contracts. The documented C-02 constraint repair is a design only. No production mutation was performed. This work package should close only after the D-14 documentation PR is reviewed and merged; do not infer that branch-only documentation is already on `main`.
 
-### C-02 — implementation candidate prepared; verification pending
+### C-02 — implementation and disposable verification passed; review/operational closure pending
 
 **PR:** [#86 — forward-only answer value 70 compatibility repair](https://github.com/core-system-md/clinic-evaluator/pull/86) — open, not merged.
 
@@ -53,13 +53,18 @@ Prepared on branch `fix/c02-answer-value-70-2026-10-13`:
 - Dedicated Node contract test and GitHub Actions workflow added.
 - Governance report: `documentation/governance/C-02-ANSWER-VALUE-70-COMPATIBILITY-REPAIR-2026-10-13.md`.
 
-**Verification checkpoint:** C-02 CI workflows were queued at the time of this update. No PASS claim is made until results are inspected. Local PostgreSQL execution is unavailable in the current execution environment. Full production answer-save RPC E2E remains **NOT VERIFIED**.
+**Verified results (2026-10-13):**
+- Dedicated C-02 CI run [#5](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328799): **PASS** — Node source-contract tests (2/2) and disposable PostgreSQL harness both passed.
+- Full Node suite, P3 isolated kernel, and P4 disposable PostgreSQL gate: **PASS** in [P3 verification run #417](https://github.com/core-system-md/clinic-evaluator/actions/runs/38363328225).
+- The first PostgreSQL harness attempt failed on a doubled backslash in the psql include directive. Fixed in commit `b441e2fb1dff68c605a6acfe3f6203a2bdb20436`; the subsequent PostgreSQL run passed.
+- Production constraint/row state was not re-queried during C-02; the prior D-14 read-only inventory recorded the old constraint and zero answer rows. No Production write was made.
+- Deployed answer-save RPC E2E remains **NOT VERIFIED**; the disposable harness covers the constraint-facing insert contract, not the full deployed RPC dependency graph.
 
 Remaining to close C-02:
-1. Inspect both C-02 Node and disposable PostgreSQL CI results; fix any failures.
-2. Run the full repository test suite and record actual output.
-3. Reconfirm production constraint/rows only through read-only queries if needed; do not apply the migration.
-4. Update the C-02 governance report and this Handoff with exact test evidence and limitations.
+1. Review PR #86 and resolve any review feedback within C-02 scope; do not merge without explicit authorization.
+2. If needed, perform read-only production constraint/row confirmation; do not apply the migration.
+3. Decide whether full deployed answer-save RPC E2E is required before declaring operational closure; it remains NOT VERIFIED.
+4. Keep the C-02 report and this Handoff aligned with the verified CI evidence.
 5. Stop after C-02; do not begin C-03 automatically.
 6. **Do not apply the migration to Production without separate explicit owner approval.**
 
