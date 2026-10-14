@@ -4,7 +4,14 @@ import { readFileSync, writeFileSync } from "node:fs";
 const EDGE_URL = process.env.EDGE_URL;
 const PROJECT = "oaqpzaarppccbnepffxx";
 const SLUGS = ["comprehensive-clinic-assessment", "patient-journey"];
-const REGISTRY = JSON.parse(readFileSync("supabase/functions/assessment-access/response-interpretation-registry-v2.json", "utf8"));
+const REGISTRIES = [
+  JSON.parse(readFileSync("supabase/functions/assessment-access/response-interpretation-registry-v2.json", "utf8")),
+  JSON.parse(readFileSync("supabase/functions/assessment-access/patient-journey-interpretation-registry-v2.json", "utf8"))
+];
+const REGISTRY = {
+  schemaVersion: REGISTRIES[0].schemaVersion,
+  entries: REGISTRIES.flatMap((registry) => registry.entries)
+};
 const RUN_ID = "c02-value70-" + Date.now() + "-" + crypto.randomBytes(6).toString("hex");
 const evidence = {
   run_id: RUN_ID,
@@ -143,6 +150,9 @@ async function runAssessment(slug) {
 try {
   assert(EDGE_URL && EDGE_URL.includes(PROJECT), "Refusing missing or unexpected Production Edge URL");
   assert(process.env.ALLOW_LIVE_E2E === "true", "Live Production writes require ALLOW_LIVE_E2E=true");
+  assert(REGISTRIES.every((registry) => registry.schemaVersion === "P3_RESPONSE_INTERPRETATION_REGISTRY_V2"), "Unexpected registry schema");
+  assert(REGISTRIES[0].entries.every((entry) => entry.assessmentSlug === "comprehensive-clinic-assessment"), "Comprehensive V2 registry contains an unexpected family");
+  assert(REGISTRIES[1].entries.every((entry) => entry.assessmentSlug === "patient-journey"), "Patient Journey V2 registry contains an unexpected family");
   assert(REGISTRY.schemaVersion === "P3_RESPONSE_INTERPRETATION_REGISTRY_V2", "Unexpected registry schema");
   for (const slug of SLUGS) await runAssessment(slug);
   evidence.e2e_success = evidence.cases.length === SLUGS.length && evidence.cases.every((item) => item.e2e_success === true);
