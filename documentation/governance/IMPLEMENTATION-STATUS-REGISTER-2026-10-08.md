@@ -734,3 +734,17 @@ Per the no-silent-conflict rule, C-03 implementation is BLOCKED pending scope re
 - Cloudflare Pages deployment for the merge commit succeeded: `c81e93df-279e-4902-998e-56c96c57969c`.
 - No Supabase Production migration or `assessment-access` Edge deployment was performed. The updated Edge source has not yet been exercised in a new runtime E2E; do not claim the new scorer is deployed in Production. Track Edge release/runtime E2E as a separate release gate, not as an open C-01 source-code repair.
 - PRs #56, #79, #84, and #85 are closed as superseded. PR #96 remains open and is not part of C-01.
+
+
+## 20. C-01 final runtime closure — 2026-10-14
+
+**Final state: C-01 FULLY CLOSED for the current published V1 families.** This section supersedes earlier C-01 notes that said the Edge deployment/runtime E2E remained pending.
+
+- PR #99 merged: `0be51e023da19d26a07fb6b503806af48fb5d433`. CI run `38628626164`: P3 isolated kernel, full Node suite, disposable PostgreSQL answer-save RPC, and P4 protected completion all SUCCESS.
+- Production Edge Function `assessment-access`: ACTIVE v38; SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`. All 16 deployed files match current `main`; JSON registry comparisons were semantic and source modules exact.
+- Runtime E2E evidence from Production: `get_content` HTTP 200 for both families; `issue_public_access` and `start_session` HTTP 200; all 61 `save_answer` calls succeeded (36 Comprehensive Clinic, 25 Patient Journey); both `complete` calls returned HTTP 200, `interpretationVersion=2`, and numeric scores. Persisted result rows recorded `result_status=PRODUCTION`, interpretation version 2, completed sessions, and expected answer counts.
+- Scoring evidence: Comprehensive Clinic 36/36 eligible value-70 anchors and overall score 69.99999999999999; Patient Journey 21 eligible value-70 anchors across 25 answers and overall score 65.8.
+- Cleanup: exact run-owned sessions, leads, answers, scores, results, snapshots, and access rows were removed. Post-cleanup verification returned zero for every exact-ID scope. The two earlier unbound synthetic access rows from the initial probe were removed as well. No global database-zero claim is made.
+- No migration or DDL was executed. The prior 248/248 live option identity reconciliation remains valid.
+
+C-01 closure gates are all PASS: source/CI, live option reconciliation, deployed-source parity, both-family Production runtime E2E, and scoped cleanup. Do not return to C-01 unless new evidence identifies a regression. C-03 remains a separate work item and was not started here.
