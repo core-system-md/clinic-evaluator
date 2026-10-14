@@ -13,9 +13,10 @@
 
 import registryV1 from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
+import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import { aggregateP3Profile, type P3ResolvedMeasurement } from "./component-aggregation-engine.mts";
 
-type RegistryEntry = (typeof registryV1.entries)[number];
+type RegistryEntry = (typeof registryV1.entries)[number] | (typeof registryV2.entries)[number] | (typeof patientJourneyRegistryV2.entries)[number];
 
 export type P3Selection = {
   questionCode: string;
@@ -46,10 +47,11 @@ export type P3ScorerV1Result = {
   profile: ReturnType<typeof aggregateP3Profile>;
 };
 
-function registryEntriesForVersion(interpretationVersion: number): RegistryEntry[] {
+function registryEntriesForVersion(assessmentSlug: string, interpretationVersion: number): RegistryEntry[] {
   if (interpretationVersion === 1) return registryV1.entries as RegistryEntry[];
-  if (interpretationVersion === 2) return registryV2.entries as RegistryEntry[];
-  throw new Error(`Unsupported interpretation version: ${interpretationVersion}`);
+  if (interpretationVersion === 2 && assessmentSlug === "patient-journey") return patientJourneyRegistryV2.entries as RegistryEntry[];
+  if (interpretationVersion === 2 && assessmentSlug === "comprehensive-clinic-assessment") return registryV2.entries as RegistryEntry[];
+  throw new Error(`Unsupported interpretation binding: ${assessmentSlug} / ${interpretationVersion}`);
 }
 
 function questionEntries(
@@ -57,7 +59,7 @@ function questionEntries(
   interpretationVersion: number,
 ): RegistryEntry[][] {
   const byQuestion = new Map<string, RegistryEntry[]>();
-  for (const entry of registryEntriesForVersion(interpretationVersion)) {
+  for (const entry of registryEntriesForVersion(assessmentSlug, interpretationVersion)) {
     const key = `${entry.assessmentSlug}|${entry.questionCode}`;
     const list = byQuestion.get(key) ?? [];
     list.push(entry);
@@ -144,11 +146,9 @@ export function resolveP3Selections(
 
     const entry = entries.find(
       (candidate) =>
+        candidate.optionId === selection.optionId &&
         candidate.optionIndex === selection.optionIndex &&
-        candidate.interpretationVersion === interpretationVersion &&
-        (selection.sourceOptionValue === undefined || selection.sourceOptionValue === null
-          ? candidate.optionId === selection.optionId
-          : Number(candidate.sourceOptionValue) === Number(selection.sourceOptionValue)),
+        candidate.interpretationVersion === interpretationVersion,
     );
     if (!entry) {
       throw new Error(
