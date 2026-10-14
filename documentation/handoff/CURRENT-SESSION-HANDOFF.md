@@ -4,27 +4,47 @@
 **Supabase Production:** `oaqpzaarppccbnepffxx`  
 **فرع الإنتاج:** `main`
 
-## الحالة الحالية المثبتة — تتقدم على أي لقطة تاريخية أدناه
+## الحالة الحية المثبتة
 
-- **Git main:** `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`؛ تم التحقق من `refs/heads/main` ومن commit endpoint.
-- **C-01:** مغلق بالكامل، بما في ذلك نشر `assessment-access` وتشغيل Production E2E للعائلتين والتنظيف المحدد النطاق. لا تعِد فتحه دون دليل regression جديد.
-- **C-02:** مغلق؛ نجاح scoring وE2E موثق، والتنظيف اللاحق موثق. قراءة Production الحالية أدناه مستقلة عن نتائج اللقطات التاريخية.
+- **Git main:** `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`.
+- **C-01 وC-02:** مغلقتان؛ لا تعِد فتحهما دون دليل regression جديد.
 - **Supabase migrations:** 52؛ آخر migration مطبق `20261013110000 / c02_allow_answer_value_70`.
 - **Edge Function `assessment-access`:** ACTIVE v38؛ bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`.
-- **Production row counts في قراءة 2026-10-15:** `leads=0`, `sessions=0`, `assessment_results=0`, `answers=0`, `scores=0`, `assessment_session_access=0`, `historical_snapshots=0`. هذه counts للقراءة الحالية، وليست ادعاءً بعدم وجود بيانات تاريخية في جداول أخرى.
-- **PR #96 / C-03:** ما زال مفتوحاً وDraft وغير مدمج؛ head `a6a79ea1105a6cb76bfb106170d37ffdc0a315eb`. بيانات PR ما زالت تسجل base SHA قديمًا `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`، بينما main الحالي `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`. لا تفترض أن PR مواكب لـmain أو قابل للدمج.
-- **نطاق C-03 الحاكم بحسب توجيه المالك المسجل:** Git↔DB synchronization، مع معالجة فشل إكمال تقييم منشور من الإدارة. سجل handoff الأقدم يصف C-03 بدلاً من ذلك بأنه interpretation binding/option identity coverage؛ وPR #96 يطبق interpretation-release/publication attestation، لذا لا يُفترض أنه ينفذ النطاق الحاكم ولا يُدمج تلقائياً. توجيه المالك الصريح يتقدم على handoff index الأقدم.
-- **تصحيح مرجعية D11/D17 بعد فحص وثيقة P3 الحية:** D11 في `P3-scoring-engine-architecture-2026-10-01.md` يعني `Classification / grade semantics` (هل Q1–Q4 تصنيفات فقط أم أيضاً `scores.grade`، وهل تتطابق حدود المحور والنتيجة الكلية). لا يعني Git↔DB synchronization. سؤال مصدر الحقيقة ومزامنة تعريفات التقييم بين Git وSupabase هو D17: `Assessment configuration source of truth`. لذلك الإحالة السابقة إلى D11 بوصفه تعارضاً على المزامنة غير دقيقة؛ تبقى مراجعة D17 مرتبطة بالتحقيق في نطاق C-03، ولا تبرر إعادة فتح قرارات P3 القديمة أو تغيير معناها.
-- **حاجز الاستئناف:** لا يبدأ التنفيذ أو أي عملية Production الآن. نقطة الاستئناف بعد تأكيد المالك هي تحقيق C-03 قراءة فقط وفق نطاقه الصريح، بدءاً من D17 ومسار إكمال التقييم المنشور، ثم مطابقة PR #96 لمعرفة ما إذا كان ذا صلة أو خارج النطاق.
-- **نطاق هذه المصالحة:** قراءة فقط لـGitHub/Supabase وكتابة توثيقية على فرع منفصل فقط. لم تُنفّذ SQL كتابة، أو migration، أو Edge/Pages deployment، أو E2E، ولم يُدمج أي شيء.
+- **Production counts الحالية:** `leads=0`, `sessions=0`, `assessment_results=0`, `answers=0`, `scores=0`, `assessment_session_access=0`, `historical_snapshots=0`.
+- **تعريف C-03 الملزم:** توجيه المالك المسجل في handoff يؤكد نموذج Git/Supabase الهجين بمزامنة/إصدار صريحين (Guardrails decision 11)، مع معالجة crash في إكمال تقييم منشور من مسار الإدارة. P3 Architecture D11 منفصل ويعني Classification/grade semantics؛ سؤال مصدر الحقيقة Git مقابل Supabase هو D17. لا تطلب إعادة حسم هذا التعارض.
+- **PR #96:** مفتوح وDraft وغير مدمج؛ head `a6a79ea1105a6cb76bfb106170d37ffdc0a315eb`; base المسجل `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`. المقارنة مع `main` الحالي تُظهر `diverged`, `ahead_by=90`, `behind_by=5`, merge base `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`. لا تدمجه مباشرة ولا تعتبره مواكباً لـmain.
+- **نطاق PR #96 الفعلي:** جدول/RPC لتسجيل interpretation release، manifest لهويات الخيارات، digest لسجلات التفسير، وruntime attestation مع بوابة نشر/استعادة. هذا ليس مزامنة كاملة لإعداد التقييم من Git إلى Supabase: لا يظهر digest أو آلية drift/sync تغطي كل حقول config (axes/weights/questions/traps/mappings وغيرها)، ولا يثبت إصلاح مسار إكمال الإدارة.
+- **Production release objects:** قراءة حية تؤكد أن `public.assessment_interpretation_releases` وجدولي RPC `register_assessment_interpretation_release_secure` و`mark_assessment_interpretation_release_runtime_verified_secure` غير موجودة. لم تطبق هجرة C-03.
+- **الإصدارات الحية:** توجد خمسة assessment versions، كلها `published` و`is_active=true` ومربوطة بـ`current_published_version_id`. مولّد PR #96 يقبل فقط `draft/archived`؛ لذلك لا يوجد هدف حي مؤهل لتسجيل release دون إصدار draft/archived جديد مصرح به.
+- **مسار إكمال الإدارة:** `assessment-access` الحالي يوجّه الجلسة المحمية إلى `complete_p4_assessment_from_result` والعامة إلى `complete_p4_public_assessment_from_result`. كود report model الحالي يتضمن slugs للعائلات الخمس، فلا يوجد دليل على غياب model لعائلة منشورة. سجلات `function_edge_logs` المتاحة في نافذة القراءة أظهرت طلبات POST بحالة 200 من E2E السابق؛ لكنها لا تثبت اختبار protected/admin completion ولا تنفي crash غير مُعاد إنتاجه. لا توجد sessions/results حالية لإعادة إنتاجه على بيانات موجودة.
+- **نطاق المصالحة المنفذ:** قراءة GitHub/Supabase والسجلات فقط؛ لا كتابة Production، لا SQL DDL/DML، لا migration، لا Edge/Pages deployment، ولا E2E جديد.
 
-## نقطة الاستئناف التالية
+## نتائج التحقيق C-03 — 2026-10-15
 
-1. بعد تأكيد المالك، ابدأ تحقيق C-03 قراءة فقط حسب النطاق الصريح: Git↔DB configuration source-of-truth/synchronization (D17) ومسار إكمال تقييم منشور من الإدارة.
-2. قارن هذا النطاق مع PR #96 ونتائج CI والفرع وmain؛ لا تدمج PR #96 ولا توسّع نطاقه تلقائياً.
-3. لا تبدأ أي تعديل تطبيقي أو عملية Production قبل اكتمال التحقيق ومراجعة عقد العمل واستيفاء شروط التفويض الخاصة بها.
+### مثبت
+1. C-03 ليس جاهزاً للدمج اعتماداً على PR #96 وحده؛ النطاق فيه جزئي بالنسبة إلى قرار Git/Supabase الهجين ومسار admin completion.
+2. PR #96 متباعد عن main الحالي (90 ahead / 5 behind)، ويجب نقل التغييرات المطلوبة بشكل انتقائي إلى فرع حديث بعد مراجعتها، لا دمجه مباشرة.
+3. الهجرة والجدول وRPCs الجديدة غير موجودة في Production؛ ادعاء نشر release gate أو تشغيله حيّاً سيكون غير صحيح.
+4. كل النسخ الحية منشورة؛ لا يوجد target draft/archived متاح لتسجيل release وفق شروط المهاجر المقترح.
+5. crash الإكمال لم يُعاد إنتاجه. وجود report models للعائلات الخمس وفصل RPCs المحمية/العامة مثبت، لكن ذلك ليس إثباتاً لنجاح E2E محمي.
 
-> **تنبيه تاريخي:** الأقسام أدناه تحفظ أدلة وسياق الجلسات السابقة. أي وصف قديم لـC-01 على أنه مفتوح، أو لـ`assessment-access` v37، أو لبيانات اختبار ما زالت في Production، أو لأي SHA أقدم لـmain، هو لقطة تاريخية ولا يصف الحالة الحية أعلاه. لا تحذف الأدلة التاريخية؛ استخدم هذا القسم بوصفه نقطة الحالة الحالية الحاكمة.
+### غير مثبت / المخاطر
+- ما زال سبب crash في مسار إكمال الإدارة غير محدد؛ لا تغيّر كود completion بناءً على تخمين.
+- لا يوجد في PR #96 عقد مزامنة كامل يحدد الحقول canonical، اتجاه المزامنة، سياسة كشف drift، والتعامل مع تعديلات DB اليدوية.
+- فحوص PostgreSQL المعزولة الحالية لا تمثل نسخة كاملة من schema Supabase؛ التوافق الكامل للمهاجر غير مثبت.
+- لا يوجد runtime Edge build attestation حقيقي لـC-03، ولا release مسجل، ولا publish/restore test بعد تطبيق الهجرة.
+
+## نقطة المتابعة الدقيقة
+
+**الخطوة التالية: C-03 / READ-ONLY INVESTIGATION CLOSED → ISOLATED REGRESSION REPRODUCTION + SYNC CONTRACT DESIGN.**
+
+1. بناء حالة اختبار معزولة لمسار protected/admin completion باستخدام definitions الحية لـ`prepare_assessment_submission` و`complete_p4_assessment_from_result`، مع تسجيل الخطأ الفعلي أو إثبات نجاح المسار؛ لا تستخدم Production لإنشاء جلسة.
+2. فحص مسار admin end-to-end في `index.ts` و`engine.ts` و`report-interpretation.mjs` وربطه بنتيجة الاختبار لتحديد root cause قبل أي إصلاح.
+3. تعريف contract لمزامنة Git/Supabase ضمن قرار المالك: canonical fields، deterministic config digest، drift detection، release/publish sequencing، وrollback behavior. قارن ذلك مع بوابة interpretation-only في PR #96.
+4. بعد إثبات السبب وتصميم العقد، أنشئ فرعاً حديثاً من `main` وانقل التغييرات الضرورية انتقائياً مع الاختبارات والتوثيق. لا تدمج PR #96 مباشرة.
+5. تبقى أي migration أو RPC registration أو Edge deployment أو اختبار يكتب إلى Production خارج النطاق الحالي إلى أن تُستوفى موافقات وحدود إصدار Production ذات الصلة.
+
+> **حالة العمل الآن:** القراءة الحية ومقارنة النطاق مكتملتان؛ implementation لم يبدأ. لا تعِد C-01/C-02 ولا تعِد سؤال المالك عن تعريف C-03 الذي سبق أن أكده.
 
 
 ---
