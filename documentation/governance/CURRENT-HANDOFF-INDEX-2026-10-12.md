@@ -156,3 +156,14 @@ Latest observed main before documentation closeout: `b2cf8b3f66ddf4e3da7ec34ab97
 - C-02 = CLOSED: scoring PRODUCTION VERIFIED; latest-run cleanup and clean-state verification VERIFIED.
 - Owner explicitly directed C-03, not C-01. C-03 execution is blocked by conflicting scope definitions: current owner prompt §7 says Git↔DB synchronization (D11) plus preventing a published-admin completion crash; this index says interpretation-binding and complete option-identity coverage; documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md calls D11 “Classification / grade semantics”. The owner direction supersedes the old C-01-first sequence, but does not resolve this scope contradiction. Do not start C-01. Do not implement C-03 until its scope is unambiguous.
 - Current next step: reconcile the C-03 scope with the owner, then inspect the agreed paths read-only. No production operation is authorized by this note.
+
+
+## Final C-01 closure update — 2026-10-14 (supersedes older C-01-open/runtime-pending notes)
+
+- **C-01: FULLY CLOSED** for the current published V1 families. Do not reopen or return to it absent new regression evidence.
+- Production `assessment-access` is ACTIVE v38 with SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; all 16 deployed files match current `main`.
+- Both-family Production runtime E2E passed: Comprehensive Clinic 36/36 answers and 36 eligible value-70 anchors; Patient Journey 25/25 answers and 21 eligible value-70 anchors. Both completion responses used interpretation version 2 and persisted `PRODUCTION` results with product version 1.
+- Exact run-owned Production test data and the two initial unbound access records were removed; exact-ID post-cleanup checks returned zero for sessions, leads, answers, scores, results, historical snapshots, and access rows.
+- Runtime runner/contract-test fix PR #99 merged at `0be51e023da19d26a07fb6b503806af48fb5d433`; CI run `38628626164` all four jobs SUCCESS.
+- No migration or DDL was run. Future-version publication/binding scope remains separate; C-03 was not started by this closure.
+- Use `documentation/handoff/CURRENT-SESSION-HANDOFF.md` for the exact current resume state; older contradictory C-01-pending statements above are historical and superseded by this addendum.

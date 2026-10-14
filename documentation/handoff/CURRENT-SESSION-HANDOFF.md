@@ -180,3 +180,20 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - Cloudflare Pages deployment `c81e93df-279e-4902-998e-56c96c57969c` succeeded for the merge commit.
 - PR #79, #56, #84, #85 closed; current open PR before this docs closeout was #96 (C-03).
 - C-01 source implementation is closed. Supabase Edge `assessment-access` was not deployed and new-code runtime E2E was not run; keep those explicitly separate from repository closure.
+
+
+## Latest verified state — C-01 fully closed — 2026-10-14
+
+**Resume point: do not return to C-01.** Its current published V1-family implementation and runtime release gates are complete.
+
+- Source/runner contract PR #99 merged as `0be51e023da19d26a07fb6b503806af48fb5d433`; CI run `38628626164` passed all four jobs.
+- Supabase Production `assessment-access` is ACTIVE v38, SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`. All 16 deployed files match `main` (JSON registries semantically; code files exactly).
+- Production runtime E2E completed for both published V1 families:
+  - Comprehensive Clinic: 36 questions/answers, 36 eligible value-70 anchors, `interpretationVersion=2`, overall score approximately 70.
+  - Patient Journey: 25 questions/answers, 21 eligible value-70 anchors, `interpretationVersion=2`, overall score 65.8.
+  - Both completion responses were HTTP 200; persisted result lineage showed product version 1, interpretation version 2, completed lifecycle, and `PRODUCTION` result status.
+- Cleanup was completed after evidence capture. Exact test session/lead IDs and all associated answer, score, result, snapshot, and access rows returned zero in post-cleanup verification. The two initial unbound synthetic access rows were removed. No global-zero claim is implied.
+- No migration or DDL was executed.
+- Existing 248/248 option-identity reconciliation and C-01 CI evidence remain in the architecture/status records.
+
+**Next step:** follow the independently authorized work queue; do not reopen C-01 or begin C-03 as part of this closure. C-03 scope reconciliation remains separate.

@@ -140,3 +140,20 @@ C-02 FINAL STATUS: CLOSED — scoring is PRODUCTION VERIFIED and the latest run 
 ## Owner-directed C-03 transition — 2026-10-14
 
 Owner explicitly directs C-03 instead of C-01. Implementation is blocked by a scope contradiction: current owner prompt §7 defines C-03 as Git/database synchronization (D11) plus safe completion of published admin assessments; the existing handoff index defines C-03 as interpretation binding/option identity coverage; the P3 architecture document calls D11 “Classification / grade semantics”. No C-03 implementation or Production operation was started. Obtain one authoritative scope definition before coding or changing data.
+
+
+## Later bounded runtime verification and cleanup — 2026-10-14
+
+This addendum records the C-01 post-deployment runtime gate. It supersedes any earlier statement in this report that Production `assessment-access` remained v37 or that no further E2E had run. Historical run #38469121966 evidence above is retained unchanged.
+
+- Deployed function: `assessment-access` ACTIVE v38, SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; all 16 deployed files matched current `main`.
+- The bounded E2E exercised the real Production endpoint for both published V1 families:
+  - Comprehensive Clinic: 36 answers accepted; 36/36 eligible V2 value-70 anchors; completion HTTP 200; interpretation version 2; overall score 69.99999999999999.
+  - Patient Journey: 25 answers accepted; 21/25 eligible V2 value-70 anchors; completion HTTP 200; interpretation version 2; overall score 65.8.
+  - Both persisted results had `result_status=PRODUCTION`, interpretation version 2, completed sessions, and the expected answer counts.
+- Request/response evidence in `net._http_response`: get-content requests 14 and 17; public-access requests 18 and 19; session-start requests 20 and 21; answer-save requests 22–82 (61/61 successful); completion requests 83 and 84 (both HTTP 200 and successful).
+- Test-owned sessions: `bcf892da-d54c-486e-a26a-d598e535689d` and `48fd4182-9048-4639-bed3-9ba8c9a4bd54`. Test-owned leads: `b46660a1-ebdc-4069-8ff2-532328832570` and `7de605cf-3277-4012-98e1-db9b336d0738`.
+- Cleanup removed these exact test-owned rows from sessions, leads, answers, scores, assessment_results, historical_snapshots, and assessment_session_access; the two earlier unbound synthetic access rows were also removed. A subsequent exact-scope query returned zero remaining rows for all seven tracked table groups.
+- No migration or DDL was run. Do not infer global database-zero state from this scoped cleanup.
+
+Runtime verification and cleanup for this bounded run: **PASS**.
