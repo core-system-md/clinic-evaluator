@@ -102,6 +102,14 @@ test("C-03 generator refuses an incomplete or mismatched option identity snapsho
   );
 });
 
+test("C-03 generator refuses published versions before creating a registration payload", async () => {
+  const published = { ...snapshot, status: "published" };
+  await assert.rejects(
+    generateReleasePayload({ snapshot: published, registry, sourceCommitSha }),
+    /only supports draft or archived/,
+  );
+});
+
 test("C-03 generator refuses invalid provenance instead of inventing it", async () => {
   await assert.rejects(
     generateReleasePayload({ snapshot, registry, sourceCommitSha: "not-a-commit" }),
