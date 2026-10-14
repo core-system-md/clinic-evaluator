@@ -13,14 +13,16 @@
 - **Edge Function `assessment-access`:** ACTIVE v38؛ bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`.
 - **Production row counts في قراءة 2026-10-15:** `leads=0`, `sessions=0`, `assessment_results=0`, `answers=0`, `scores=0`, `assessment_session_access=0`, `historical_snapshots=0`. هذه counts للقراءة الحالية، وليست ادعاءً بعدم وجود بيانات تاريخية في جداول أخرى.
 - **PR #96 / C-03:** ما زال مفتوحاً وDraft وغير مدمج؛ head `a6a79ea1105a6cb76bfb106170d37ffdc0a315eb`. بيانات PR ما زالت تسجل base SHA قديمًا `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`، بينما main الحالي `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`. لا تفترض أن PR مواكب لـmain أو قابل للدمج.
-- **حاجز الاستئناف:** الخطوة التالية في ترتيب العمل هي C-03، لكن لا يبدأ التنفيذ قبل حسم تعارض النطاق. PR #96 الحالي يطبق interpretation-release/publication attestation؛ سجل handoff الأقدم يصف C-03 بأنه Git↔DB synchronization وحماية نشر/إكمال الإدارة؛ كما يسجل تعارضاً مع تفسير D11 في وثائق P3. لا تختَر تعريفاً بصمت ولا تغيّر Production.
+- **نطاق C-03 الحاكم بحسب توجيه المالك المسجل:** Git↔DB synchronization، مع معالجة فشل إكمال تقييم منشور من الإدارة. سجل handoff الأقدم يصف C-03 بدلاً من ذلك بأنه interpretation binding/option identity coverage؛ وPR #96 يطبق interpretation-release/publication attestation، لذا لا يُفترض أنه ينفذ النطاق الحاكم ولا يُدمج تلقائياً. توجيه المالك الصريح يتقدم على handoff index الأقدم.
+- **تصحيح مرجعية D11/D17 بعد فحص وثيقة P3 الحية:** D11 في `P3-scoring-engine-architecture-2026-10-01.md` يعني `Classification / grade semantics` (هل Q1–Q4 تصنيفات فقط أم أيضاً `scores.grade`، وهل تتطابق حدود المحور والنتيجة الكلية). لا يعني Git↔DB synchronization. سؤال مصدر الحقيقة ومزامنة تعريفات التقييم بين Git وSupabase هو D17: `Assessment configuration source of truth`. لذلك الإحالة السابقة إلى D11 بوصفه تعارضاً على المزامنة غير دقيقة؛ تبقى مراجعة D17 مرتبطة بالتحقيق في نطاق C-03، ولا تبرر إعادة فتح قرارات P3 القديمة أو تغيير معناها.
+- **حاجز الاستئناف:** لا يبدأ التنفيذ أو أي عملية Production الآن. نقطة الاستئناف بعد تأكيد المالك هي تحقيق C-03 قراءة فقط وفق نطاقه الصريح، بدءاً من D17 ومسار إكمال التقييم المنشور، ثم مطابقة PR #96 لمعرفة ما إذا كان ذا صلة أو خارج النطاق.
 - **نطاق هذه المصالحة:** قراءة فقط لـGitHub/Supabase وكتابة توثيقية على فرع منفصل فقط. لم تُنفّذ SQL كتابة، أو migration، أو Edge/Pages deployment، أو E2E، ولم يُدمج أي شيء.
 
 ## نقطة الاستئناف التالية
 
-1. اطلب قرار المالك الذي يحدد تعريف C-03 الملزم، أو اتبع القرار الصريح الموجود في أول المحادثة إن كان قد حسم هذا التعارض فعلاً؛ يجب الرجوع إلى نصه الحرفي قبل الاستنتاج.
-2. بعد حسم النطاق، طابق PR #96 والفرع مع main الحالي وراجع عقد العمل ونتائج CI والقيود التقنية قبل تحديد ما إذا كان يُحدّث أو يُستبدل.
-3. لا تبدأ أي تعديل تطبيقي أو عملية Production قبل اكتمال المصالحة وتحقق شروط التفويض الخاصة بها.
+1. بعد تأكيد المالك، ابدأ تحقيق C-03 قراءة فقط حسب النطاق الصريح: Git↔DB configuration source-of-truth/synchronization (D17) ومسار إكمال تقييم منشور من الإدارة.
+2. قارن هذا النطاق مع PR #96 ونتائج CI والفرع وmain؛ لا تدمج PR #96 ولا توسّع نطاقه تلقائياً.
+3. لا تبدأ أي تعديل تطبيقي أو عملية Production قبل اكتمال التحقيق ومراجعة عقد العمل واستيفاء شروط التفويض الخاصة بها.
 
 > **تنبيه تاريخي:** الأقسام أدناه تحفظ أدلة وسياق الجلسات السابقة. أي وصف قديم لـC-01 على أنه مفتوح، أو لـ`assessment-access` v37، أو لبيانات اختبار ما زالت في Production، أو لأي SHA أقدم لـmain، هو لقطة تاريخية ولا يصف الحالة الحية أعلاه. لا تحذف الأدلة التاريخية؛ استخدم هذا القسم بوصفه نقطة الحالة الحالية الحاكمة.
 
@@ -188,13 +190,14 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - Read live migration ledger: 52 applied migrations, latest `20261013110000 / c02_allow_answer_value_70`.
 - Read live Edge Function inventory and function details: `assessment-access` is ACTIVE v38 with bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`.
 - Ran one read-only aggregate query against seven Production tables; each returned zero rows: `leads`, `sessions`, `assessment_results`, `answers`, `scores`, `assessment_session_access`, `historical_snapshots`.
-- Verified PR #96 remains open/Draft/unmerged and its recorded base SHA differs from current main. Its scope describes interpretation release registration/publication gate; the current handoff index's older C-03 description and the D11 reference remain a scope-authority conflict.
+- Verified PR #96 remains open/Draft/unmerged; its recorded base SHA differs from current main and requires fresh comparison before any integration decision. Its scope describes interpretation release registration/publication gate, which differs from the explicit owner-directed C-03 scope.
+- Inspected `documentation/architecture/P3-scoring-engine-architecture-2026-10-01.md`: D11 is Classification/grade semantics; D17 asks which source of truth governs assessment configuration (Git, Supabase, or controlled hybrid with explicit synchronization/release). The earlier handoff's D11-to-Git/DB association is incorrect.
 
 ### Evidence classification
 - **PROVEN:** main SHA, migration count/latest migration, live Edge version/hash, seven current table counts, PR #96 open/Draft and recorded head/base.
 - **CONTRADICTED / STALE DOCUMENTATION:** the prior handoff's earlier snapshot says Edge v37 and C-01 runtime E2E pending; later merged closure evidence and live Production establish v38 and completed C-01 runtime E2E.
-- **UNRESOLVED OWNER/SCOPE DECISION:** which C-03 definition governs. Do not equate PR #96's implementation scope with owner authorization.
+- **SCOPE RECONCILIATION:** the explicit owner-directed C-03 scope is Git↔DB synchronization plus safe completion of a published admin assessment. Older handoff index and PR #96 describe a different interpretation-release scope. D11 was previously misreferenced; the Git/Supabase source-of-truth decision is D17. The next step is read-only investigation under the owner-directed scope, not a new owner decision to restate that scope.
 - **NOT PERFORMED:** no production writes, migrations, deployment, live E2E, PR merge, or application-code change.
 
 ### Resume gate
-**Startup reconciliation is complete. Implementation has not started.** Resume only after the C-03 scope conflict is resolved under the owner decision and governing contract. Preserve all historical sections below for auditability.
+**Startup reconciliation is complete. Implementation has not started.** The owner-directed scope is identified; D11 was corrected to D17 for the Git/Supabase source-of-truth question. Resume after owner confirmation, starting with read-only C-03 investigation. Preserve all historical sections below for auditability.
