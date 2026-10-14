@@ -188,7 +188,7 @@ begin
     raise exception 'Re-registering a release retained stale runtime attestation: %', v_result;
   end if;
   v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('b',40)
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', v_registry_digest, v_edge_release_ref, v_source_commit_sha
   );
 
   update public.options set option_value = 99
