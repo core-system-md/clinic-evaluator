@@ -40,6 +40,59 @@ test("C-03 generator emits deterministic RPC-compatible arguments and complete s
   ]);
 });
 
+test("runtime attestation separates portable registry identity from exact live database UUID identity", async () => {
+  const payload = await generateReleasePayload({ snapshot, registry, sourceCommitSha });
+  const { assertInterpretationReleaseMatches } = await runtimeProvenance;
+  const runtimeOptionManifest = snapshot.questions.flatMap((question) =>
+    question.options.map((option) => ({
+      question_code: question.code,
+      option_id: option.id,
+      option_index: option.optionIndex,
+      source_option_value: option.optionValue,
+    }))
+  );
+  const release = {
+    assessment_type_id: snapshot.assessmentTypeId,
+    family_id: snapshot.familyId,
+    assessment_version: snapshot.assessmentVersion,
+    interpretation_version: snapshot.interpretationVersion,
+    registry_digest: payload.rpc.args.p_registry_digest,
+    source_commit_sha: sourceCommitSha,
+    edge_release_ref: DEFAULT_EDGE_RELEASE_REF,
+    option_manifest: payload.rpc.args.p_option_manifest,
+  };
+  const selectedEntries = registry.entries.filter((entry) =>
+    entry.assessmentSlug === snapshot.slug &&
+    Number(entry.interpretationVersion) === Number(snapshot.interpretationVersion)
+  );
+  await assertInterpretationReleaseMatches({
+    release,
+    assessmentTypeId: snapshot.assessmentTypeId,
+    familyId: snapshot.familyId,
+    assessmentVersion: snapshot.assessmentVersion,
+    interpretationVersion: snapshot.interpretationVersion,
+    registryEntries: selectedEntries,
+    runtimeOptionManifest,
+    runtimeSourceCommitSha: sourceCommitSha,
+  });
+
+  const wrongLiveIds = structuredClone(runtimeOptionManifest);
+  wrongLiveIds[0].option_id = "44444444-4444-4444-8444-444444444444";
+  await assert.rejects(
+    assertInterpretationReleaseMatches({
+      release,
+      assessmentTypeId: snapshot.assessmentTypeId,
+      familyId: snapshot.familyId,
+      assessmentVersion: snapshot.assessmentVersion,
+      interpretationVersion: snapshot.interpretationVersion,
+      registryEntries: selectedEntries,
+      runtimeOptionManifest: wrongLiveIds,
+      runtimeSourceCommitSha: sourceCommitSha,
+    }),
+    /does not exactly match live database option identities/,
+  );
+});
+
 test("C-03 generator refuses an incomplete or mismatched option identity snapshot", async () => {
   const incomplete = structuredClone(snapshot);
   incomplete.questions[0].options.pop();
