@@ -1,6 +1,6 @@
 # Current Handoff Index — 2026-10-12
 
-> **Latest reconciliation: 2026-10-14.** The canonical session handoff is `documentation/handoff/CURRENT-SESSION-HANDOFF.md`; latest C-02 run #38469121966 passed scoring but its cleanup is pending, as documented at the end of this index. This file name is retained as the canonical existing handoff index; the latest state is recorded in the C-02 section below and supersedes older contradictory C-02 status text.
+> **Current override: 2026-10-14.** C-02 is CLOSED and cleanup was verified; any older statement below saying cleanup is pending is historical and superseded. C-03 is in progress on Draft PR #96; the canonical detailed execution state and immediate test gate are in `documentation/handoff/CURRENT-SESSION-HANDOFF.md`.
 
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
@@ -8,6 +8,14 @@
 **Production branch:** `main`
 
 Use this index as the current work handoff. The 2026-10-10 Production Structured Result handoff remains historical context, not the current queue. For C-02, the dated post-merge reconciliation below supersedes any older C-02 branch-only/open-PR status in this file.
+
+## C-03 — current engineering gate (2026-10-14)
+
+- **State:** implementation in progress / not ready to close. PR #96 is still Draft/open; branch `work/c03-publication-release-gate-20261014`.
+- Generator: `.github/scripts/c03-generate-release-payload.cjs`; it deterministically computes the runtime-selected registry digest, complete sorted option identity manifest, supplied source commit SHA, fixed Edge runtime release reference, and RPC argument payload.
+- Generator unit test and fixture payload generation passed in CI run [38528344318](https://github.com/core-system-md/clinic-evaluator/actions/runs/38528344318). The SQL harness step failed before migration execution due to a malformed test-stub dollar-quote delimiter. The delimiter was corrected in commit `cdd91ef2e8376f6de00d6afb0a75a199ac9b714e`; a passing rerun is still required.
+- Read-only Supabase schema review found `write_admin_audit` requires eight arguments; the prepared migration was corrected from six to eight, and the harness stub now matches the live signature. No Production writes, migration application, RPC invocation, deployment, or merge occurred.
+- **Immediate next step:** verify the latest P3 CI run after the stub correction. If the C-03 SQL harness passes, continue the wider schema/constraint/function compatibility review and validate actual intended-release option snapshots against the registry. Keep PR #96 Draft and do not claim C-03 closure until those checks pass.
 
 ## Verified current state
 
