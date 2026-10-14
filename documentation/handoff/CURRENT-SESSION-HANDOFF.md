@@ -1,15 +1,15 @@
 # نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
 
 ## 1. الموضع
-- المرحلة: إغلاق C-02 ثم بوابة C-03 — الحالة: C-02 = CLOSED؛ C-03 = BLOCKED (scope conflict).
-- آخر خطوة منجزة: تنظيف سجلات التشغيل الاصطناعية الخاصة بـ #38469121966 بعد مطابقة المعرفات والمصدر والبريد والنتائج والهاشات. DELETE أعاد السجلين المتوقعين؛ استعلامات ما بعد الحذف أثبتت صفراً لكل المعرفات والعدادات العامة للجداول الستة.
-- الخطوة التالية بالضبط: حسم تعريف C-03 قبل التنفيذ. تعارض: برومبت المالك §7 = Git↔DB sync (D11) + منع crash عند إكمال تقييم منشور من الإدارة؛ handoff index = interpretation-binding/option-identity coverage؛ وثيقة P3 architecture تسمي D11 “Classification / grade semantics”. لا تبدأ C-01 ولا كود C-03 قبل إزالة التعارض.
+- المرحلة الحالية: C-01 repository implementation = CLOSED / MERGED؛ C-02 = CLOSED؛ C-03 = BLOCKED بسبب تعارض النطاق. آخر تحديث حاكم: 2026-10-14 بعد دمج PR #97.
+- آخر خطوة منجزة: دمج C-01 بعد إعادة بنائه على main؛ CI على الرأس النهائي نجح، ومقارنة قراءة فقط مع Production طابقت 248/248 هوية خيار (152 Comprehensive + 96 Patient Journey، دون نقص أو زيادات). نشر Cloudflare Pages المرتبط بالدمج نجح. لم يتم نشر Edge Function.
+- الخطوة التالية بالضبط: حسم تعريف C-03 قبل أي تنفيذ. التعارض قائم بين Git↔DB sync + حماية إكمال تقييم منشور من الإدارة وبين interpretation-binding/option-identity coverage وبين تعريف D11 في وثيقة P3. لا تبدأ C-03 قبل توحيد النطاق. Edge deployment وruntime E2E الخاصان بـC-01 يظلان بوابة إصدار منفصلة؛ لا تدّعِ أن Edge الجديد يعمل في Production.
 - الميزانية الزمنية: حد C-02 ثلاثة ساعات وفق العقد؛ الزمن الفعلي الكامل غير متاح بدليل موثوق. C-03 لم يبدأ تنفيذياً.
 
 ## 2. حالة المستودع
-- آخر commit على main قبل توثيق هذه المحادثة: 5e443a0183ef6fa9c126e384cdb08619eb412c61.
-- تغييرات التوثيق قيد التجهيز على فرع تجميعي مؤقت بسبب عدم إتاحة tree SHA من واجهة GitHub؛ الهدف نقلها إلى main بعملية fast-forward واحدة والتحقق من SHA النهائي. لا توجد تغييرات تطبيقية.
-- الاختبارات: لا اختبارات جديدة بعد التنظيف؛ لا حاجة لإعادة E2E. الدليل السابق: Actions #38469121966، artifact 11850662078.
+- آخر commit دمج على main لهذه المرحلة: `5879fe3f22da2fd693de571e806ac44cd51f7e27` (PR #97).
+- C-01 implementation merged on main. توثيق الإغلاق الحالي يُحدّث في PR مستقل. نشر Cloudflare Pages للـcommit أعلاه نجح؛ لا يوجد Edge Function deployment جديد ضمن هذه المرحلة.
+- اختبارات C-01: P3 kernel run `38614736937` (بما فيه full Node suite وdisposable PostgreSQL jobs) وWP-02 `38614737136` وWP-09 `38614737082` وWP-04 `38614737308` وWP-03 `38614737321` كلها SUCCESS. Live read-only identity comparison: 248/248 exact matches. لا يوجد runtime E2E جديد على Edge source المدمج.
 
 ## 3. حالة الإنتاج (آخر فحص حي: 2026-10-14؛ وقت الدقيقة غير متاح)
 - الهجرات: 52، آخرها 20261013110000 / c02_allow_answer_value_70.
@@ -21,11 +21,11 @@
 | المعرّف | الحالة | الدليل | ملاحظة |
 |---|---|---|---|
 | C-02 | CLOSED | #38469121966 + artifact 11850662078؛ exact-ID/hash checks all zero | لا تعِد تشغيل E2E |
-| C-01 | OPEN | لم يُنفذ في هذه المحادثة | المالك وجّه صراحةً إلى C-03 لا C-01 |
+| C-01 | CLOSED — repository implementation | PR #97 merged `5879fe3f22da2fd693de571e806ac44cd51f7e27`; 5 CI workflows passed; live mapping 248/248 exact matches | Edge deployment/runtime E2E remains separate release gate; not deployed here |
 | C-03 | BLOCKED | تعارض تعريف النطاق بين برومبت المالك، handoff index، وP3 architecture D11 | احسم التعريف قبل التنفيذ |
 
 ## 5. قرارات المالك الجديدة
-- 2026-10-14: «تابع التنظيف و اغلاق c02، و قم بعدها بالانتقال إلى c03 not c01» — تم تنظيف C-02؛ التنفيذ في C-03 متوقف فقط بسبب تعارض نطاقه الموثق.
+- 2026-10-14: صدر لاحقاً توجيه صريح بإعادة بناء C-01 على main وإغلاقه؛ نُفّذ ذلك عبر PR #97. التوجيه الأسبق بالانتقال من C-02 إلى C-03 لا يغيّر حالة C-01 الحالية. C-03 لا يزال متوقفاً بسبب تعارض النطاق.
 
 ## 6. سؤال مفتوح
 هل تعريف C-03 الملزم هو تعريف البرومبت الحالي §7 (Git↔DB sync + حماية إكمال تقييم منشور من crash) ويُعد تعريف handoff index القديم متجاوزاً؟ أم المقصود interpretation binding/option identity؟ يلزم تعريف واحد.
@@ -35,7 +35,7 @@
 - انحراف توثيق: تحديثات الوثائق تُجمع على فرع مؤقت ثم fast-forward واحد إلى main بسبب عدم إتاحة tree SHA في الموصل. لا PR ولا تغييرات تطبيقية.
 
 ## 8. تحذيرات الاستئناف
-- لا تبدأ C-01 خلافاً لتوجيه المالك الحالي.
+- لا تعِد فتح C-01 source repair؛ تم دمجه وإغلاق PR القديم #79. أي نشر Edge أو runtime E2E يُدار كبوابة إصدار منفصلة.
 - لا تبدأ تنفيذ C-03 قبل توحيد تعريف النطاق.
 - لا E2E جديد، ولا هجرة، ولا Edge deployment، ولا Production write آخر دون موافقة مستقلة محددة.
 
@@ -45,7 +45,7 @@
 | غير متاح | 2026-10-14 | تنظيف #38469121966؛ إثبات الصفر؛ إغلاق C-02؛ توثيق تعارض نطاق C-03 | C-02 CLOSED؛ C-03 BLOCKED | ينتظر التحقق من main |
 
 ## أمر الاستئناف
-«المتابعة. اقرأ هذا الملف، تحقق من main والإنتاج قراءة فقط، ثم اعرض سؤال حسم نطاق C-03؛ لا تبدأ C-01 أو أي تنفيذ قبل إزالة التعارض.»
+«المتابعة. اقرأ هذا الملف، تحقق من main والإنتاج قراءة فقط، ثم اعرض سؤال حسم نطاق C-03؛ لا تبدأ C-03 قبل إزالة التعارض، ولا تدّعِ نشر Edge الخاص بـC-01.»
 
 ---
 
@@ -170,3 +170,13 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 ```text
 المتابعة. استأنف من documentation/handoff/CURRENT-SESSION-HANDOFF.md ونفّذ بروتوكول البدء (القسم 1) كاملاً، وطابق الملف مع الواقع الحي، وأعلن نقطة الاستئناف، ولا تبدأ العمل قبل تأكيدي.
 ```
+
+
+## Latest verified closeout — C-01 — 2026-10-14
+
+- PR #97 merged: `5879fe3f22da2fd693de571e806ac44cd51f7e27`.
+- Exact-head CI: `38614736937`, `38614737136`, `38614737082`, `38614737308`, `38614737321` — all SUCCESS.
+- Production read-only identity reconciliation: 248 rows expected / 248 matched; Comprehensive Clinic 152, Patient Journey 96; missing 0, extra 0.
+- Cloudflare Pages deployment `c81e93df-279e-4902-998e-56c96c57969c` succeeded for the merge commit.
+- PR #79, #56, #84, #85 closed; current open PR before this docs closeout was #96 (C-03).
+- C-01 source implementation is closed. Supabase Edge `assessment-access` was not deployed and new-code runtime E2E was not run; keep those explicitly separate from repository closure.

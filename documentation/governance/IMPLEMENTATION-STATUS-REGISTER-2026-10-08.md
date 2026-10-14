@@ -722,3 +722,15 @@ The owner explicitly directed continuation to C-03, not C-01. However, authorita
 4. Older handoff/status text says C-03 must not start before C-01; the current owner instruction explicitly overrides that sequence by directing C-03 instead.
 
 Per the no-silent-conflict rule, C-03 implementation is BLOCKED pending scope reconciliation, not redirected to C-01. No C-03 code, schema, migration, deployment, or Production operation was started. Required decision: confirm the current prompt's C-03 scope (Git↔DB sync + published-admin completion safety) supersedes the handoff index's interpretation/option-identity definition, or specify the intended single scope. No implementation should begin until the scope is unambiguous.
+
+
+## 19. C-01 repository closure addendum — 2026-10-14
+
+**State: CLOSED / MERGED (repository implementation). Runtime release remains separate.**
+
+- PR #97 was rebuilt from current `main` and squash-merged as `5879fe3f22da2fd693de571e806ac44cd51f7e27`; the stale divergent PR #79 was closed as superseded.
+- Exact-head CI: P3 kernel `38614736937`, WP-02 `38614737136`, WP-09 `38614737082`, WP-04 `38614737308`, and WP-03 `38614737321` all succeeded. The P3 kernel workflow's four jobs passed, including the full Node suite and disposable PostgreSQL gates.
+- Read-only Production identity reconciliation matched 248/248 current options (Comprehensive Clinic 152, Patient Journey 96), including family, question code, option index, option ID, and source value; missing=0, extra=0.
+- Cloudflare Pages deployment for the merge commit succeeded: `c81e93df-279e-4902-998e-56c96c57969c`.
+- No Supabase Production migration or `assessment-access` Edge deployment was performed. The updated Edge source has not yet been exercised in a new runtime E2E; do not claim the new scorer is deployed in Production. Track Edge release/runtime E2E as a separate release gate, not as an open C-01 source-code repair.
+- PRs #56, #79, #84, and #85 are closed as superseded. PR #96 remains open and is not part of C-01.
