@@ -58,8 +58,8 @@ test("completion projection receives the pinned assessment family slug instead o
 });
 
 test("runner consumes both C-01 family-specific V2 registries", () => {
-  assert.match(runner, /patient-journey-interpretation-registry-v2\\.json/);
-  assert.match(runner, /REGISTRIES\\.flatMap/);
+  assert.match(runner, /patient-journey-interpretation-registry-v2\.json/);
+  assert.match(runner, /REGISTRIES\.flatMap/);
   const comprehensive = JSON.parse(fs.readFileSync("supabase/functions/assessment-access/response-interpretation-registry-v2.json", "utf8"));
   const patientJourney = JSON.parse(fs.readFileSync("supabase/functions/assessment-access/patient-journey-interpretation-registry-v2.json", "utf8"));
   assert.equal(comprehensive.entries.length, 152);
