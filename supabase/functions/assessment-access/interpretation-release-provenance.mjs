@@ -35,19 +35,33 @@ export async function digestInterpretationEntries(entries) {
     .join("");
 }
 
-function registryIdentity(entry) {
+function registryLogicalIdentity(entry) {
   const identity = [
     entry.questionCode,
-    entry.optionId,
     Number(entry.optionIndex),
     Number(entry.sourceOptionValue),
   ];
   if (
     typeof identity[0] !== "string" || !identity[0] ||
-    typeof identity[1] !== "string" || !identity[1] ||
-    !Number.isInteger(identity[2]) || !Number.isFinite(identity[3])
+    typeof entry.optionId !== "string" || !entry.optionId ||
+    !Number.isInteger(identity[1]) || !Number.isFinite(identity[2])
   ) {
-    throw new Error("Interpretation registry contains an invalid option identity");
+    throw new Error("Interpretation registry contains an invalid logical option identity");
+  }
+  return JSON.stringify(identity);
+}
+
+function manifestLogicalIdentity(entry) {
+  const identity = [
+    entry.question_code,
+    Number(entry.option_index),
+    Number(entry.source_option_value),
+  ];
+  if (
+    typeof identity[0] !== "string" || !identity[0] ||
+    !Number.isInteger(identity[1]) || !Number.isFinite(identity[2])
+  ) {
+    throw new Error("Registered option manifest contains an invalid logical option identity");
   }
   return JSON.stringify(identity);
 }
@@ -89,6 +103,7 @@ export async function assertInterpretationReleaseMatches({
   assessmentVersion,
   interpretationVersion,
   registryEntries,
+  runtimeOptionManifest,
   runtimeSourceCommitSha,
 }) {
   if (!release) throw new Error("Registered interpretation release is missing");
@@ -131,17 +146,36 @@ export async function assertInterpretationReleaseMatches({
     throw new Error("Deployed interpretation registry digest does not match the registered release");
   }
 
+  // Registry option UUIDs are not portable across environments. Compare semantic identity
+  // (question code + option index + source value) to the registry, then bind the full UUID-bearing
+  // manifest to the actual options loaded from this database.
   const registryIdentities = uniqueSortedIdentities(
-    registryEntries, registryIdentity, "Runtime interpretation registry",
+    registryEntries, registryLogicalIdentity, "Runtime interpretation registry",
   );
-  const manifestIdentities = uniqueSortedIdentities(
-    release.option_manifest, manifestIdentity, "Registered option manifest",
+  const manifestLogicalIdentities = uniqueSortedIdentities(
+    release.option_manifest, manifestLogicalIdentity, "Registered option manifest",
   );
   if (
-    registryIdentities.length !== manifestIdentities.length ||
-    registryIdentities.some((identity, index) => identity !== manifestIdentities[index])
+    registryIdentities.length !== manifestLogicalIdentities.length ||
+    registryIdentities.some((identity, index) => identity !== manifestLogicalIdentities[index])
   ) {
-    throw new Error("Runtime interpretation registry does not exactly cover the registered option manifest");
+    throw new Error("Runtime interpretation registry does not exactly cover the registered logical option manifest");
+  }
+
+  if (!Array.isArray(runtimeOptionManifest)) {
+    throw new Error("Runtime database option manifest is missing");
+  }
+  const registeredIdentities = uniqueSortedIdentities(
+    release.option_manifest, manifestIdentity, "Registered option manifest",
+  );
+  const liveIdentities = uniqueSortedIdentities(
+    runtimeOptionManifest, manifestIdentity, "Runtime database option manifest",
+  );
+  if (
+    registeredIdentities.length !== liveIdentities.length ||
+    registeredIdentities.some((identity, index) => identity !== liveIdentities[index])
+  ) {
+    throw new Error("Registered option manifest does not exactly match live database option identities");
   }
 
   return {
