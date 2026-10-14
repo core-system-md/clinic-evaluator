@@ -47,3 +47,19 @@ The live production database returned zero sessions and zero assessment results 
 ## Future-version rule
 
 A future product version must not inherit this mapping implicitly. Its publication gate must prove exact option identity coverage and an explicit interpretation binding before publication. That enforcement is tracked under C-03, not claimed as complete by this C-01 change.
+
+
+## Final release closure — 2026-10-14 (supersedes the runtime/release boundary above)
+
+**C-01 status: FULLY CLOSED for the current published V1 families.** This addendum supersedes the earlier statement that Edge deployment and runtime E2E remained pending.
+
+- Runtime runner compatibility was fixed and merged in [PR #99](https://github.com/core-system-md/clinic-evaluator/pull/99), commit `0be51e023da19d26a07fb6b503806af48fb5d433`. Exact-head workflow run `38628626164` passed all four jobs: P3 isolated kernel, full Node suite, disposable C-02 answer-save RPC, and P4 protected completion.
+- Supabase Production `assessment-access` is ACTIVE at version **38**, bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`. All 16 deployed files match current `main` (JSON registries compared semantically; source modules byte-for-byte).
+- Live Production E2E passed for both currently published V1 families:
+  - Comprehensive Clinic: 36/36 answers saved; 36 eligible V2 value-70 anchors; completion HTTP 200; `interpretationVersion=2`; numeric overall score 69.99999999999999; persisted result status `PRODUCTION`.
+  - Patient Journey: 25/25 answers saved; 21 eligible V2 value-70 anchors; completion HTTP 200; `interpretationVersion=2`; numeric overall score 65.8; persisted result status `PRODUCTION`.
+  - Both sessions persisted product version 1 separately from interpretation version 2, with completed lifecycle state, result JSON, config digest, and all expected answers.
+- Run-scoped synthetic data was removed after evidence capture. Post-cleanup queries verified zero remaining rows for the exact test sessions/leads and their answers, scores, results, historical snapshots, and access rows. The two earlier unbound test access rows were also removed. This is exact-ID cleanup evidence, not a claim that the whole Production database is empty.
+- No migration or DDL was run.
+
+**Final C-01 gate:** source merge PASS; CI PASS; 248/248 live option identities reconciled; Edge deployment/source parity PASS; both-family Production runtime E2E PASS; run-scoped cleanup PASS. Do not reopen C-01 for these completed gates. Future product-version publication/binding enforcement remains a separate C-03 concern.
