@@ -47,54 +47,33 @@
 
 ---
 
-# نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
+# نقطة الاستئناف الحالية — 2026-10-14 (إغلاق الجلسة)
 
-## 1. الموضع
-- المرحلة: إغلاق C-02 ثم بوابة C-03 — الحالة: C-02 = CLOSED؛ C-03 = BLOCKED (scope conflict).
-- آخر خطوة منجزة: تنظيف سجلات التشغيل الاصطناعية الخاصة بـ #38469121966 بعد مطابقة المعرفات والمصدر والبريد والنتائج والهاشات. DELETE أعاد السجلين المتوقعين؛ استعلامات ما بعد الحذف أثبتت صفراً لكل المعرفات والعدادات العامة للجداول الستة.
-- الخطوة التالية بالضبط: حسم تعريف C-03 قبل التنفيذ. تعارض: برومبت المالك §7 = Git↔DB sync (D11) + منع crash عند إكمال تقييم منشور من الإدارة؛ handoff index = interpretation-binding/option-identity coverage؛ وثيقة P3 architecture تسمي D11 “Classification / grade semantics”. لا تبدأ C-01 ولا كود C-03 قبل إزالة التعارض.
-- الميزانية الزمنية: حد C-02 ثلاثة ساعات وفق العقد؛ الزمن الفعلي الكامل غير متاح بدليل موثوق. C-03 لم يبدأ تنفيذياً.
-
-## 2. حالة المستودع
-- آخر commit على main قبل توثيق هذه المحادثة: 5e443a0183ef6fa9c126e384cdb08619eb412c61.
-- تغييرات التوثيق قيد التجهيز على فرع تجميعي مؤقت بسبب عدم إتاحة tree SHA من واجهة GitHub؛ الهدف نقلها إلى main بعملية fast-forward واحدة والتحقق من SHA النهائي. لا توجد تغييرات تطبيقية.
-- الاختبارات: لا اختبارات جديدة بعد التنظيف؛ لا حاجة لإعادة E2E. الدليل السابق: Actions #38469121966، artifact 11850662078.
-
-## 3. حالة الإنتاج (آخر فحص حي: 2026-10-14؛ وقت الدقيقة غير متاح)
-- الهجرات: 52، آخرها 20261013110000 / c02_allow_answer_value_70.
-- Edge assessment-access: ACTIVE v37، SHA-256 bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36.
-- counts: leads/sessions/results = 0/0/0؛ answers/scores/access = 0/0/0؛ historical_snapshots للجلستين = 0.
-- عملية الإنتاج: DELETE واحد محدود بالمعرفين الدقيقين للـleads مع source marker وsynthetic email suffix؛ cascades أزالت السجلات التابعة. موافقة المالك: «تابع التنظيف و اغلاق c02، و قم بعدها بالانتقال إلى c03 not c01».
-
-## 4. جدول البنود
-| المعرّف | الحالة | الدليل | ملاحظة |
-|---|---|---|---|
-| C-02 | CLOSED | #38469121966 + artifact 11850662078؛ exact-ID/hash checks all zero | لا تعِد تشغيل E2E |
-| C-01 | OPEN | لم يُنفذ في هذه المحادثة | المالك وجّه صراحةً إلى C-03 لا C-01 |
-| C-03 | BLOCKED | تعارض تعريف النطاق بين برومبت المالك، handoff index، وP3 architecture D11 | احسم التعريف قبل التنفيذ |
-
-## 5. قرارات المالك الجديدة
-- 2026-10-14: «تابع التنظيف و اغلاق c02، و قم بعدها بالانتقال إلى c03 not c01» — تم تنظيف C-02؛ التنفيذ في C-03 متوقف فقط بسبب تعارض نطاقه الموثق.
-
-## 6. سؤال مفتوح
-هل تعريف C-03 الملزم هو تعريف البرومبت الحالي §7 (Git↔DB sync + حماية إكمال تقييم منشور من crash) ويُعد تعريف handoff index القديم متجاوزاً؟ أم المقصود interpretation binding/option identity؟ يلزم تعريف واحد.
-
-## 7. الانحرافات والمخاطر
-- تعارض توثيقي في تعريف C-03؛ سُجل صراحة ولم يُحسم بصمت.
-- انحراف توثيق: تحديثات الوثائق تُجمع على فرع مؤقت ثم fast-forward واحد إلى main بسبب عدم إتاحة tree SHA في الموصل. لا PR ولا تغييرات تطبيقية.
-
-## 8. تحذيرات الاستئناف
-- لا تبدأ C-01 خلافاً لتوجيه المالك الحالي.
-- لا تبدأ تنفيذ C-03 قبل توحيد تعريف النطاق.
-- لا E2E جديد، ولا هجرة، ولا Edge deployment، ولا Production write آخر دون موافقة مستقلة محددة.
+- **المرحلة / البند / الحالة:** C-03 — مولّد حمولة الإصدار وبوابة تسجيل/نشر تفسير التقييم؛ المولّد واختبارات الوحدة وPostgreSQL المعزول **VERIFIED** على CI؛ إغلاق C-03 ككل **BLOCKED / NOT READY TO CLOSE**.
+- **آخر commit على main:** `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d` — **مدفوع: نعم**؛ GitHub يعرضه حالياً كرأس `refs/heads/main`. لا توجد checkout محلية مكشوفة عبر الموصل.
+- **فرع العمل / PR:** `work/c03-publication-release-gate-20261014`, PR #96؛ مفتوح **Draft**، غير مدموج. رأس التنفيذ الذي اختبره CI هو `84eb44a0f5da1167c95569b14338c3e665e6c877`؛ توجد فوقه تغييرات توثيقية فقط من إغلاق الجلسة، ويجب إعادة قراءة رأس الفرع الحي عند الاستئناف.
+- **آخر اختبار:** Actions [#38533016713](https://github.com/core-system-md/clinic-evaluator/actions/runs/38533016713), head `84eb44a0f5da1167c95569b14338c3e665e6c877`, **SUCCESS**؛ خمس وظائف ناجحة. الأمر `npm test`: 52 passed / 0 failed. مولّد C-03 وRPC payload اختُبرا عبر PostgreSQL 17 مؤقت؛ ليس مخطط Supabase كاملاً.
+- **الإنتاج — قراءة فقط بتاريخ 2026-10-14:** 52 migration؛ آخرها `20261013110000 / c02_allow_answer_value_70`. `assessment-access` ACTIVE v37، SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`. الأعداد `leads/sessions/assessment_results=0/0/0`. `public.assessment_interpretation_releases` غير موجود. لم تُطبق هجرة C-03 ولم يُستدعَ RPC في الإنتاج ولم يحدث نشر أو دمج.
+- **الخطوة التالية بالضبط:** في المحادثة الجديدة، اقرأ هذا الملف ونفّذ بروتوكول البدء §1 قراءةً فقط: تحقق من رأس `main` وفرع العمل وPR #96 وآخر CI وسجل الهجرات وإصدار Edge وبصمته ووجود جدول release والأعداد الحية؛ طابق النتائج وأعلن نقطة الاستئناف، ثم **توقف منتظراً تأكيد المالك قبل أي تنفيذ**.
+- **ينتظر قرار المالك:** لا قرار نطاق C-03 مفتوح. لكن دفع التوثيق إلى `main` متوقف لأن `clinicevaluat` موثق بأنه ينشر تلقائياً عند كل commit على `main`، ولم يُثبت مسار آمن يمنع النشر أثناء الدفع.
+- **تحذير حالة:** توافق الهجرة مع مخطط Supabase كامل ومعزول غير مثبت؛ مصدر Edge المنشور وبصمة registry غير مثبتين؛ لا يوجد جدول release ولا هدف draft/archived مصرّح به في الإنتاج. فشل WP-03 المنفصل في #38532734419 بسبب `SEMANTIC_ONLY` مقابل assertion يتوقع `DIRECT_ANCHOR` فقط؛ خارج النطاق.
+- **تغييرات الإغلاق المقصودة:** ملفات التوثيق الثلاثة الموجودة فقط: هذا الملف، سجل الحالة، وسجل التنفيذ الوظيفي. لم تُنشأ ميزة أو إصلاح كود أو هجرة. الموصل لا يكشف working tree محلياً، لذلك لا يمكن الجزم بحالة الملفات غير الملتزم بها محلياً.
+- **الوقت:** بداية الإغلاق المرصودة نحو 19:37 (+03)؛ لا توجد بيانات موثوقة لتوقيت كل بند أو الوقت المتبقي، ولن تُختلق أرقام.
+- **ملف الاستئناف:** `documentation/handoff/CURRENT-SESSION-HANDOFF.md`
 
 ## سجل المحادثات
+
 | # | التاريخ | ما أُنجز | الحالة عند الإغلاق | commit |
 |---|---|---|---|---|
 | غير متاح | 2026-10-14 | تنظيف #38469121966؛ إثبات الصفر؛ إغلاق C-02؛ توثيق تعارض نطاق C-03 | C-02 CLOSED؛ C-03 BLOCKED | ينتظر التحقق من main |
+| جديد | 2026-10-14 | فحص حي للفرع وPR وCI والهجرات وEdge والأعداد؛ تحديث التوثيق فقط | C-03 BLOCKED / NOT READY TO CLOSE؛ PR #96 Draft | توثيق على فرع العمل؛ دفع main متوقف لتجنب نشر غير مصرح |
 
 ## أمر الاستئناف
-«المتابعة. اقرأ هذا الملف، تحقق من main والإنتاج قراءة فقط، ثم اعرض سؤال حسم نطاق C-03؛ لا تبدأ C-01 أو أي تنفيذ قبل إزالة التعارض.»
+
+```text
+المتابعة. استأنف من documentation/handoff/CURRENT-SESSION-HANDOFF.md ونفّذ بروتوكول البدء (القسم 1) كاملاً، وطابق الملف مع الواقع الحي، وأعلن نقطة الاستئناف، ولا تبدأ العمل قبل تأكيدي.
+```
+
 
 ---
 
@@ -106,13 +85,13 @@
 **Cloudflare Pages project:** `clinicevaluat`  
 **Production branch:** `main`
 
-## نقطة الاستئناف الحالية
+## نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14؛ supersedes stale C-02-pending state)
 
-- **المرحلة / البند / الحالة:** Audit finding **C-02 — value-70 acceptance and scoring**: scoring behavior **PRODUCTION VERIFIED** for both published final V1 assessment families; latest repeat-run cleanup **PENDING / NOT VERIFIED**. Do not conflate audit finding C-02 with work-package label C2.
-- **آخر commit على main قبل توثيق الإغلاق:** `b2cf8b3f66ddf4e3da7ec34ab97ac8b45deb2cd4` — **مدفوع: نعم**؛ the GitHub `refs/heads/main` ref matched this SHA. The documentation-only closeout commit supersedes it; on resumption, verify the current remote ref before any work.
-- **الخطوة التالية بالضبط:** after the owner explicitly confirms resumption, perform run-scoped cleanup for Production E2E run **#38469121966** only, using the exact two session IDs, two lead IDs and two access-token hashes in this handoff; then run read-only verification showing zero rows for those identifiers and no residual tagged rows. Do not execute this step before the owner confirms.
-- **ينتظر قرار المالك:** confirmation to resume and authorize the narrowly scoped cleanup of the two synthetic datasets created by run #38469121966. No other product/architecture decision is required for this cleanup.
-- **تحذير حالة:** the E2E assertions passed, but the runner's own artifact states `cleanup.status=PENDING_AGENT_SQL_CLEANUP` and `cleanup.verified=false`. Production currently contains 2 test leads, 2 sessions, 2 results, 61 answers, 11 scores and 2 access rows. Do not claim current zero-residue closure. No C-03 work, new E2E, deployment, migration or unrelated Production operation before explicit resumption.
+- **المرحلة / البند / الحالة:** C-03 generator + interpretation release gate. Generator and generated-payload PostgreSQL fixture **VERIFIED** by run #38533016713; overall C-03 **BLOCKED / NOT READY TO CLOSE**.
+- **آخر commit على main:** `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`, current GitHub remote `main`. Branch `work/c03-publication-release-gate-20261014` at `84eb44a0f5da1167c95569b14338c3e665e6c877`; PR #96 remains open Draft.
+- **الخطوة التالية بالضبط:** in a new session, perform the read-only start protocol; reconcile main, branch/PR, latest CI, migration ledger, Edge version/hash, release-table existence, and live counts; report the exact resume point and wait for owner confirmation.
+- **ينتظر قرار المالك:** no C-03 scope decision remains. Main push is withheld because Pages `clinicevaluat` is documented as auto-deploying main, and no verified deployment-suppression mechanism was established.
+- **تحذير حالة:** migration ledger 52; latest `20261013110000 / c02_allow_answer_value_70`; Edge `assessment-access` ACTIVE v37 SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; counts `leads/sessions/assessment_results=0/0/0`; release table absent. No C-03 Production migration/RPC/deployment/merge.
 - **ملف الاستئناف:** `documentation/handoff/CURRENT-SESSION-HANDOFF.md`
 
 ## 1. Latest verified reality
@@ -266,3 +245,17 @@ Verification provenance — latest check (2026-10-14): CI run [#38477746577](htt
 - Production boundary unchanged: live `assessment_interpretation_releases` table is absent; Edge `assessment-access` remains ACTIVE v37 with SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; `main` remains `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`. No Production migration, release RPC, Edge/Pages deployment, or merge occurred.
 
 **C-03 remains IN PROGRESS / NOT READY TO CLOSE.** The runtime attestation mechanism is implemented and isolated-tested, but it is not deployed or exercised against the live release table. The release-manifest generation/sync operation and full live-schema compatibility still require bounded verification. Next exact task: add/test a deterministic release-payload generator for the chosen registry + option identities, then validate its payload against the disposable PostgreSQL harness. Do not merge, migrate, register releases, or deploy without explicit authorization. C-01 remains out of scope.
+
+
+---
+
+## Session closeout reconciliation — 2026-10-14 (latest state)
+
+- Remote GitHub refs before the documentation-only closeout commit: `main=b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`; implementation/tested head `84eb44a0f5da1167c95569b14338c3e665e6c877`; the closeout adds documentation only above that implementation head. Re-read the live branch head on resumption. PR #96 remains OPEN/DRAFT, not merged.
+- Latest CI [#38533016713](https://github.com/core-system-md/clinic-evaluator/actions/runs/38533016713) passed all five jobs. `npm test`: 52 passed, 0 failed. C-03 generated payload was exercised against the targeted migration in disposable PostgreSQL 17; not a full Supabase-schema clone.
+- Live read-only state: 52 migrations, latest `20261013110000 / c02_allow_answer_value_70`; Edge v37 SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; `leads=0`, `sessions=0`, `assessment_results=0`; `public.assessment_interpretation_releases` absent.
+- C-03 remains **BLOCKED / NOT READY TO CLOSE** pending full isolated-schema compatibility and proof of deployed Edge source/registry attestation. No Production write, migration, release RPC, Edge/Pages deployment or merge occurred.
+- WP-03 run #38532734419 failed an independent assertion because actual modes include `SEMANTIC_ONLY` as well as `DIRECT_ANCHOR`; leave outside C-03 scope.
+- GitHub connector exposes no local working tree, so local uncommitted/untracked files cannot be inventoried. No code files were changed in this closeout; intended edits are only the three existing documentation files.
+- Cloudflare Pages `clinicevaluat` is recorded as auto-deploying main. No verified no-deploy bypass was established; main push is withheld to avoid unintended Production deployment.
+- Closeout began around 19:37 (+03); per-task elapsed time is unavailable from remote APIs and is not fabricated. On resumption, run the read-only start protocol, announce reconciled resume point, then wait for owner confirmation.

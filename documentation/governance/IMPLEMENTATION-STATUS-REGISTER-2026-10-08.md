@@ -783,3 +783,25 @@ Status: **IN PROGRESS — implementation gate passed in isolation; production re
 - Production unchanged: release table absent; Edge v37 SHA `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; `main` SHA `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`; no migration/RPC/deploy/merge.
 
 Next bounded step: deterministic release-payload generator + isolated verification against the PostgreSQL registration gate. Keep PR #96 draft. C-01 is out of scope.
+
+
+## 25. C-03 closeout reconciliation — 2026-10-14 (latest evidence)
+
+- PR #96 remains **OPEN / DRAFT / NOT MERGED**. Remote main: `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`; branch `work/c03-publication-release-gate-20261014` head `84eb44a0f5da1167c95569b14338c3e665e6c877`.
+- CI [#38533016713](https://github.com/core-system-md/clinic-evaluator/actions/runs/38533016713) **SUCCESS**: P3 isolated kernel, C-02 disposable PostgreSQL, C-03 generated-payload disposable PostgreSQL, full Node suite, P4 disposable PostgreSQL. Command `npm test`: **52 passed / 0 failed**. The generated payload was tested through the C-03 migration in disposable PostgreSQL 17, not a full clone of Supabase.
+- Live read-only state: 52 migrations; latest `20261013110000 / c02_allow_answer_value_70`; `assessment-access` ACTIVE v37 SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; `leads/sessions/assessment_results=0/0/0`; `to_regclass('public.assessment_interpretation_releases')=null`.
+
+| Gate | State | Evidence / limit |
+|---|---|---|
+| Deterministic generator and option manifest | **VERIFIED** | CI #38533016713 |
+| Generated RPC payload through migration in disposable PostgreSQL | **VERIFIED** | CI #38533016713; fixture only |
+| Full isolated Supabase-schema compatibility | **IMPLEMENTED — UNVERIFIED** | Full schema clone not run |
+| Deployed Edge SHA / registry attestation | **BLOCKED / UNVERIFIED** | Edge remains v37; C-03 not deployed; release table absent |
+| Production registration/publication gate | **BLOCKED** | No production migration/RPC/deployment performed |
+| Overall C-03 | **BLOCKED / NOT READY TO CLOSE** | Full-schema and deployed-runtime provenance gates remain open |
+
+- Separate WP-03 run #38532734419 failed its config assertion: actual semantics include `SEMANTIC_ONLY` as well as `DIRECT_ANCHOR`; its disposable PostgreSQL job passed. Out of C-03 scope.
+- Connector exposes no local working tree; local uncommitted/untracked status cannot be asserted. Closeout edits only the three existing documentation files; no application code or migration was changed.
+- `clinicevaluat` Pages is recorded as auto-deploying `main`. Since deployment is prohibited and no verified skip path was established, no main push is made. This is a safety block, not a claim that the commit was pushed.
+- Time accounting: start observed around 19:37 (+03), 2026-10-14. Per-item elapsed times unavailable from remote APIs; no estimates invented.
+- Next exact step: read-only start protocol in the Handoff, reconcile live refs/CI/migrations/Edge/table/counts, announce resume point, wait for owner confirmation.

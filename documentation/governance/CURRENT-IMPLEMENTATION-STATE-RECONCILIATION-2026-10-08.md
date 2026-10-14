@@ -342,3 +342,15 @@ This dated addendum supersedes prior next-transition statements in this historic
 - Deployed `assessment-access` v35 bundle SHA-256 `ca4ac509657ed8af46e6301256017914a9e87f44cfb81066abb1f09ab5a6c937`; all 15 runtime files exactly match main commit `28b70f3d90167f4ebded47aa3316f4b436c7ccb9`; `verify_jwt=false` preserved.
 - Valid deployed completion/persistence/report-read E2E remains NOT VERIFIED because no approved disposable Production session/path was available and no fake data was created. Overall release remains NOT CLOSED.
 - **Only remaining task:** identify/use an approved isolated E2E route, verify completion → persisted Structured Result → user-report read and invalid/expired-token rejection, or document the safety/authorization blocker and stop. Do not redo closed gates or mutate Production to manufacture test evidence.
+
+
+## 14. C-03 release-payload verification and session closeout — 2026-10-14
+
+- Remote main `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`; CI-tested implementation head `84eb44a0f5da1167c95569b14338c3e665e6c877` (documentation-only closeout is added above it); PR #96 Draft/open, not merged.
+- Latest CI #38533016713 passed all five jobs. Exact full Node command: `npm test`; output `# tests 52 / # pass 52 / # fail 0`, runner duration 1332.5 ms. C-03 job generated the RPC payload and applied/tested the migration in disposable PostgreSQL 17; this is not a complete isolated Supabase schema test.
+- Live read-only: 52 migrations, latest `20261013110000 / c02_allow_answer_value_70`; Edge `assessment-access` ACTIVE v37 SHA-256 `bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36`; leads=0, sessions=0, assessment_results=0; release table absent.
+- Generator and targeted isolated migration behavior: **VERIFIED**. Full isolated Supabase-schema compatibility: **IMPLEMENTED — UNVERIFIED**. Deployed Edge source SHA/registry attestation: **BLOCKED / UNVERIFIED**. C-03 overall: **BLOCKED / NOT READY TO CLOSE**.
+- WP-03 #38532734419 independently failed its config assertion because actual modes include `SEMANTIC_ONLY` in addition to `DIRECT_ANCHOR`; not changed here.
+- No production write, migration, release RPC, Edge deployment, Pages deployment or merge. Connector exposes no local working tree, so local dirty/untracked files cannot be enumerated. Only three existing documentation files are intended to change.
+- Cloudflare Pages `clinicevaluat` is recorded as auto-deploying `main`; no verified deployment-suppression path was established. Main push is withheld under the no-deploy instruction.
+- Time: closeout start observed around 19:37 (+03); per-item elapsed time is unavailable. Next: perform read-only start protocol from the Handoff and wait for owner confirmation.
