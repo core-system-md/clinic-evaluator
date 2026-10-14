@@ -3,7 +3,6 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { pathToFileURL } = require("node:url");
 
 const DEFAULT_EDGE_RELEASE_REF = "assessment-access-c03-registry-attestation-v1";
 const SHA_RE = /^[0-9a-f]{40}([0-9a-f]{24})?$/;
@@ -178,7 +177,7 @@ async function main() {
   process.stdout.write(JSON.stringify(payload.rpc.args) + "\n");
 }
 
-if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {
+if (require.main === module) {
   main().catch((error) => {
     process.stderr.write("C03 release payload generation failed: " + error.message + "\n");
     process.exitCode = 1;
