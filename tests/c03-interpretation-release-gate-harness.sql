@@ -55,7 +55,7 @@ create table public.options (
 create or replace function public.is_owner() returns boolean language sql stable as $$ select true $$;
 create or replace function public.require_admin_capability(text) returns void language plpgsql as $$ begin return; end $$;
 create or replace function public.write_admin_audit(text, text, uuid, uuid, jsonb, jsonb, boolean, text)
-returns uuid language plpgsql as $ begin return 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid; end $;
+returns uuid language plpgsql as $audit$ begin return 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid; end $audit$;
 
 insert into auth.users(id) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
 insert into public.assessment_families(id) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
