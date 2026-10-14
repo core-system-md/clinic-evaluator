@@ -80,6 +80,22 @@ type StoredAnswer = {
   option_value: number | null;
 };
 
+function buildRuntimeOptionManifest(runtime: Runtime) {
+  const questionCodeById = new Map(
+    runtime.questions.map((question) => [question.id, question.code]),
+  );
+  return runtime.options.map((option) => {
+    const questionCode = questionCodeById.get(option.question_id);
+    if (!questionCode) throw new Error("Runtime option references an unknown question");
+    return {
+      question_code: questionCode,
+      option_id: option.id,
+      option_index: Number(option.option_index),
+      source_option_value: Number(option.option_value),
+    };
+  });
+}
+
 export type AssessmentComputation = {
   result: P3IntegratedResult;
   scoreRows: Array<Record<string, unknown>>;
@@ -318,6 +334,7 @@ export async function attestInterpretationRelease(
     assessmentVersion,
     interpretationVersion: binding.interpretationVersion,
     registryEntries,
+    runtimeOptionManifest: buildRuntimeOptionManifest(runtime),
     runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
   });
 
@@ -488,6 +505,7 @@ export async function calculateAssessment(
       assessmentVersion,
       interpretationVersion: interpretationBinding.interpretationVersion,
       registryEntries: interpretationEntries,
+      runtimeOptionManifest: buildRuntimeOptionManifest(runtime),
       runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
     })
     : {
