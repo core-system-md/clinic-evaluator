@@ -16,64 +16,177 @@ create or replace function auth.uid() returns uuid language sql stable as
 create or replace function auth.role() returns text language sql stable as
 'select current_setting(''request.jwt.claim.role'', true)';
 
+-- Mirror the live Supabase schema shape for the C-03 migration's direct dependencies.
 create table public.assessment_families (
-  id uuid primary key,
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique,
   current_published_version_id uuid,
-  updated_at timestamptz default now()
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  created_by uuid references auth.users(id)
 );
 create table public.assessment_types (
   id uuid primary key,
-  family_id uuid not null references public.assessment_families(id),
-  version integer not null,
-  status text not null,
-  question_count integer not null,
-  axis_count integer not null,
-  is_active boolean default false,
+  slug text not null unique,
+  title_ar text not null,
+  title_en text,
+  description text,
+  question_count integer not null default 0,
+  axis_count integer not null default 0,
+  has_traps boolean default false,
+  has_ev_simulator boolean default false,
+  config_version integer default 1,
+  is_active boolean default true,
+  created_at timestamptz default now(),
+  status varchar default 'published' check (status in ('draft', 'published', 'archived')),
+  version integer default 1,
+  updated_at timestamptz default now(),
   published_at timestamptz,
   archived_at timestamptz,
-  updated_at timestamptz default now()
+  created_by uuid references auth.users(id),
+  parent_id uuid references public.assessment_types(id),
+  kpi_mappings jsonb,
+  ev_mappings jsonb,
+  axis_roles jsonb,
+  family_id uuid not null references public.assessment_families(id),
+  unique (family_id, version)
 );
+create unique index assessment_types_one_published_per_family_uidx
+  on public.assessment_types(family_id) where status = 'published';
+alter table public.assessment_families
+  add constraint assessment_families_current_published_version_fkey
+  foreign key (current_published_version_id) references public.assessment_types(id);
+
 create table public.axes (
   id uuid primary key,
   assessment_type_id uuid not null references public.assessment_types(id),
-  weight numeric not null
+  code varchar not null,
+  title varchar not null,
+  title_ar varchar,
+  description text,
+  weight numeric not null default 0.00,
+  display_order integer not null default 0,
+  status varchar default 'active',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
 );
 create table public.questions (
   id uuid primary key,
+  axis_id uuid not null references public.axes(id),
   assessment_type_id uuid not null references public.assessment_types(id),
-  axis_id uuid,
-  code text not null,
-  is_required boolean not null default true
+  code varchar not null,
+  question_text text not null,
+  question_text_ar text,
+  question_type varchar default 'likert',
+  display_order integer not null default 0,
+  is_required boolean default true,
+  trap_index integer,
+  status varchar default 'active',
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  impact text default 'medium',
+  layer text default 'A',
+  trap_for jsonb default '[]'::jsonb
 );
 create table public.options (
   id uuid primary key,
   question_id uuid not null references public.questions(id),
   option_index integer not null,
-  option_value integer not null
+  option_value integer not null,
+  label varchar not null,
+  label_ar varchar,
+  display_text text,
+  display_text_ar text,
+  is_trap boolean default false,
+  display_order integer not null default 0,
+  created_at timestamptz default now(),
+  unique (question_id, option_index)
 );
 
-create or replace function public.is_owner() returns boolean language sql stable as $$ select true $$;
-create or replace function public.require_admin_capability(text) returns void language plpgsql as $$ begin return; end $$;
-create or replace function public.write_admin_audit(text, text, uuid, uuid, jsonb, jsonb, boolean, text)
-returns uuid language plpgsql as $audit$ begin return 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'::uuid; end $audit$;
+create table public.admin_users (
+  user_id uuid primary key references auth.users(id),
+  role text not null default 'admin' check (role in ('owner', 'admin')),
+  active boolean not null default true,
+  created_at timestamptz not null default now(),
+  created_by uuid references auth.users(id),
+  display_name text
+);
+create table public.admin_audit_log (
+  id uuid primary key default gen_random_uuid(),
+  actor_user_id uuid references auth.users(id),
+  action text not null,
+  entity_type text not null,
+  entity_id uuid,
+  family_id uuid references public.assessment_families(id),
+  before_data jsonb,
+  after_data jsonb,
+  created_at timestamptz not null default now(),
+  correlation_id uuid not null default gen_random_uuid(),
+  success boolean not null default true,
+  failure_reason text
+);
+
+create or replace function public.is_owner() returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select exists (
+    select 1 from public.admin_users
+    where user_id = (select auth.uid()) and active = true and role = 'owner'
+  )
+$$;
+create or replace function public.has_admin_capability(p_capability text) returns boolean
+language sql stable security definer set search_path = public, pg_temp as $$
+  select public.is_owner()
+$$;
+create or replace function public.require_admin_capability(p_capability text) returns void
+language plpgsql security definer set search_path = public, pg_temp as $$
+begin
+  if not public.has_admin_capability(p_capability) then
+    raise exception 'admin capability required: %', p_capability using errcode = '42501';
+  end if;
+end
+$$;
+create or replace function public.write_admin_audit(
+  p_action text, p_entity_type text, p_entity_id uuid, p_family_id uuid,
+  p_before jsonb default null, p_after jsonb default null,
+  p_success boolean default true, p_failure_reason text default null
+) returns uuid
+language plpgsql security definer set search_path = public, pg_temp as $audit$
+declare v_id uuid;
+begin
+  insert into public.admin_audit_log(
+    actor_user_id, action, entity_type, entity_id, family_id,
+    before_data, after_data, success, failure_reason
+  ) values (
+    (select auth.uid()), p_action, p_entity_type, p_entity_id, p_family_id,
+    p_before, p_after, p_success, p_failure_reason
+  ) returning id into v_id;
+  return v_id;
+end
+$audit$;
 
 insert into auth.users(id) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
-insert into public.assessment_families(id) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
-insert into public.assessment_types(id, family_id, version, status, question_count, axis_count)
-values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+insert into public.admin_users(user_id, role, active)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa', 'owner', true);
+insert into public.assessment_families(id, slug, created_by)
+values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 'c03-fixture-family',
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+insert into public.assessment_types(
+  id, slug, title_ar, family_id, version, status, question_count, axis_count
+)
+values ('cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'c03-fixture-v1', 'C03 fixture',
         'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb', 1, 'draft', 1, 1);
-insert into public.axes(id, assessment_type_id, weight)
+insert into public.axes(id, assessment_type_id, code, title, weight)
 values ('dddddddd-dddd-4ddd-8ddd-dddddddddddd',
-        'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 100);
-insert into public.questions(id, assessment_type_id, axis_id, code, is_required)
+        'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 'AX1', 'Axis 1', 100);
+insert into public.questions(id, assessment_type_id, axis_id, code, question_text, display_order, is_required)
 values ('eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
         'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
-        'dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'Q1', true);
-insert into public.options(id, question_id, option_index, option_value)
+        'dddddddd-dddd-4ddd-8ddd-dddddddddddd', 'Q1', 'Question 1', 1, true);
+insert into public.options(id, question_id, option_index, option_value, label, display_order)
 values ('ffffffff-ffff-4fff-8fff-ffffffffffff',
-        'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 0, 0),
+        'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 0, 0, 'Option 0', 1),
        ('11111111-1111-4111-8111-111111111111',
-        'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 1, 1);
+        'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 1, 1, 'Option 1', 2);
 
 \ir ../supabase/migrations/20261014120000_c03_interpretation_release_publication_gate.sql
 
@@ -199,5 +312,24 @@ begin
   end if;
 end
 $test$;
+
+do $audit_assert$
+begin
+  if (select count(*) from public.admin_audit_log
+      where action = 'assessment.interpretation_release.register') <> 2 then
+    raise exception 'Expected two audit rows from the two successful registrations';
+  end if;
+  if not exists (
+    select 1 from public.admin_audit_log
+     where action = 'assessment.interpretation_release.register'
+       and entity_type = 'assessment_interpretation_releases'
+       and family_id = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'
+       and success = true
+       and after_data->>'option_count' = '2'
+  ) then
+    raise exception 'Expected release audit row with the correct family and option count';
+  end if;
+end
+$audit_assert$;
 
 select 'C-03 isolated migration harness passed' as result;
