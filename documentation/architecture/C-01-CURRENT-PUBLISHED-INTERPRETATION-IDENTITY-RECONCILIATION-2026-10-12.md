@@ -33,14 +33,16 @@ The scorer resolves a selected answer by the tuple `questionCode + optionId + op
 
 The live production database returned zero sessions and zero assessment results for each current published version at inspection time. This is a time-specific observation, not a claim about historical data.
 
-## Verification boundary
+## Closure evidence — 2026-10-14
 
-This is a source-level repair on a non-production branch. It does not prove a deployed completion flow. The following remain required before closure:
-1. Run the dedicated C-01 test and all affected Node tests in CI.
-2. Verify that the workflow runs against the exact branch head and that no test is skipped.
-3. Re-run a read-only live mapping comparison before any release.
-4. Perform a safe disposable end-to-end completion/read test before any Production deployment.
-5. Do not change Supabase Production, deploy `assessment-access`, or publish Cloudflare Pages as part of this branch without a separate explicit Production release approval.
+**Repository implementation status: CLOSED / MERGED.**
+
+- Rebuilt from current `main` in PR [#97](https://github.com/core-system-md/clinic-evaluator/pull/97), then squash-merged as `5879fe3f22da2fd693de571e806ac44cd51f7e27`.
+- Exact-head CI passed: P3 kernel run `38614736937` (P3 isolated kernel, full Node suite, disposable C-02 PostgreSQL RPC, P4 protected completion all PASS); WP-02 run `38614737136`; WP-09 run `38614737082`; WP-04 run `38614737308`; WP-03 run `38614737321` — all successful.
+- Read-only comparison against current Production rows matched **248/248** exact tuples `family + question code + option index + option ID + source value`: Comprehensive Clinic **152/152**, Patient Journey **96/96**; **0 missing and 0 extra** identities.
+- Cloudflare Pages deployment for merge commit `5879fe3f22da2fd693de571e806ac44cd51f7e27` succeeded as deployment `c81e93df-279e-4902-998e-56c96c57969c`.
+
+**Runtime/release boundary (not part of repository closure):** this work did not deploy the updated `assessment-access` Edge Function or run a new end-to-end assessment through that new Edge code. Therefore the merged source and Pages deployment must not be represented as proof that the new scorer is already running in Supabase Production. Edge deployment and runtime E2E remain a separate release gate requiring its own controlled verification and authorization.
 
 ## Future-version rule
 
