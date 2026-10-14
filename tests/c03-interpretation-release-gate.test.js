@@ -51,6 +51,8 @@ test("C-03 runtime fails closed on release lookup errors and attests the selecte
   assert.match(engineSource, /Interpretation release lookup failed/);
   assert.match(engineSource, /interpretationRegistryDigest/);
   assert.match(engineSource, /C03_SOURCE_COMMIT_SHA/);
+  assert.equal((engineSource.match(/runtimeOptionManifest: buildRuntimeOptionManifest\(runtime\)/g) || []).length, 2);
+  assert.match(engineSource, /question_code: questionCode/);
 });
 
 test("C-03 publication requires a runtime attestation from the Edge service role", () => {
@@ -60,6 +62,7 @@ test("C-03 publication requires a runtime attestation from the Edge service role
   assert.match(source, /auth\.role\(\).*service_role/);
   assert.match(source, /grant execute on function public\.mark_assessment_interpretation_release_runtime_verified_secure\(uuid, text, text, text\)\s+to service_role/);
   assert.match(source, /runtime_verified_source_commit_sha = r\.source_commit_sha/);
+  assert.match(source, /public\.write_admin_audit\([\s\S]*true,[\s\S]*null/);
 });
 
 test("C-03 Edge attestation action is owner-authorized and records runtime verification", () => {
