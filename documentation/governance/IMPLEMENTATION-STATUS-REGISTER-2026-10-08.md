@@ -5,6 +5,20 @@
 **Governing contract:** `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`  
 **Purpose:** Canonical engineering record of completed work packages and their evidence at the transition point of 2026-10-08.
 
+## Current override — C-03 release payload and compatibility gate (2026-10-14)
+
+This dated section supersedes any older C-03 state recorded in this historical register.
+
+- **C-03:** IN PROGRESS / NOT READY TO CLOSE. PR #96 remains Draft/open on `work/c03-publication-release-gate-20261014`.
+- **Implemented in the working branch:** deterministic generator `.github/scripts/c03-generate-release-payload.cjs`; deterministic manifest/digest tests; synthetic fixtures; C-03 PostgreSQL harness wired to consume generated RPC arguments; workflow step to generate and pass the payload into PostgreSQL.
+- **Digest contract:** generator uses stable serialization and SHA-256 over the selected entries for the exact assessment slug + interpretation version; the unit test compares its output against the Edge runtime's `digestInterpretationEntries`. The generator rejects incomplete or mismatched option identity sets and requires an explicit commit SHA; it does not infer release provenance.
+- **Schema compatibility finding:** read-only Production inspection confirmed the live `public.write_admin_audit` signature has eight arguments. The prepared migration originally called it with six; the migration and harness were corrected to use the live eight-argument shape. No Production mutation was performed.
+- **Latest test evidence before correction:** CI run [38528344318](https://github.com/core-system-md/clinic-evaluator/actions/runs/38528344318) passed the full Node suite, P3 kernel, generator unit test, and fixture payload generation. The C-03 SQL step failed on a malformed test-stub dollar-quote delimiter before the migration was exercised. The delimiter was corrected in commit `cdd91ef2e8376f6de00d6afb0a75a199ac9b714e`; the corrected SQL rerun remains the immediate gate.
+- **No Production action:** no migration applied, no release RPC executed in Production, no Edge/Pages deploy, no PR merge. Synthetic SHA and assessment IDs are test-only.
+- **Next exact action:** inspect the latest P3 workflow run for the branch; require the generator tests and generated-payload PostgreSQL harness to pass. Then continue broader read-only Supabase schema compatibility checks and compare real intended-release snapshots to registry identities. Do not mark C-03 closed until all gates have evidence.
+
+---
+
 ## 1. Mandatory interpretation of this register
 
 This file is the consolidated status record. Individual WP documents remain the detailed source records for each stage.
