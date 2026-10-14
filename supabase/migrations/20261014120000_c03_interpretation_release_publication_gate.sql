@@ -162,7 +162,9 @@ begin
       'source_commit_sha', p_source_commit_sha,
       'edge_release_ref', trim(p_edge_release_ref),
       'option_count', v_manifest_count
-    )
+    ),
+    true,
+    null
   );
 
   return jsonb_build_object(
