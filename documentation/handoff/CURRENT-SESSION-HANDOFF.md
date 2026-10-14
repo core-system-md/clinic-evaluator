@@ -1,51 +1,29 @@
-# نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
+# نقطة الاستئناف الحالية — 2026-10-15
 
-## 1. الموضع
-- المرحلة الحالية: C-01 repository implementation = CLOSED / MERGED؛ C-02 = CLOSED؛ C-03 = BLOCKED بسبب تعارض النطاق. آخر تحديث حاكم: 2026-10-14 بعد دمج PR #97.
-- آخر خطوة منجزة: دمج C-01 بعد إعادة بنائه على main؛ CI على الرأس النهائي نجح، ومقارنة قراءة فقط مع Production طابقت 248/248 هوية خيار (152 Comprehensive + 96 Patient Journey، دون نقص أو زيادات). نشر Cloudflare Pages المرتبط بالدمج نجح. لم يتم نشر Edge Function.
-- الخطوة التالية بالضبط: حسم تعريف C-03 قبل أي تنفيذ. التعارض قائم بين Git↔DB sync + حماية إكمال تقييم منشور من الإدارة وبين interpretation-binding/option-identity coverage وبين تعريف D11 في وثيقة P3. لا تبدأ C-03 قبل توحيد النطاق. Edge deployment وruntime E2E الخاصان بـC-01 يظلان بوابة إصدار منفصلة؛ لا تدّعِ أن Edge الجديد يعمل في Production.
-- الميزانية الزمنية: حد C-02 ثلاثة ساعات وفق العقد؛ الزمن الفعلي الكامل غير متاح بدليل موثوق. C-03 لم يبدأ تنفيذياً.
+**المستودع:** `core-system-md/clinic-evaluator`  
+**Supabase Production:** `oaqpzaarppccbnepffxx`  
+**فرع الإنتاج:** `main`
 
-## 2. حالة المستودع
-- آخر commit دمج على main لهذه المرحلة: `5879fe3f22da2fd693de571e806ac44cd51f7e27` (PR #97).
-- C-01 implementation merged on main. توثيق الإغلاق الحالي يُحدّث في PR مستقل. نشر Cloudflare Pages للـcommit أعلاه نجح؛ لا يوجد Edge Function deployment جديد ضمن هذه المرحلة.
-- اختبارات C-01: P3 kernel run `38614736937` (بما فيه full Node suite وdisposable PostgreSQL jobs) وWP-02 `38614737136` وWP-09 `38614737082` وWP-04 `38614737308` وWP-03 `38614737321` كلها SUCCESS. Live read-only identity comparison: 248/248 exact matches. لا يوجد runtime E2E جديد على Edge source المدمج.
+## الحالة الحالية المثبتة — تتقدم على أي لقطة تاريخية أدناه
 
-## 3. حالة الإنتاج (آخر فحص حي: 2026-10-14؛ وقت الدقيقة غير متاح)
-- الهجرات: 52، آخرها 20261013110000 / c02_allow_answer_value_70.
-- Edge assessment-access: ACTIVE v37، SHA-256 bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36.
-- counts: leads/sessions/results = 0/0/0؛ answers/scores/access = 0/0/0؛ historical_snapshots للجلستين = 0.
-- عملية الإنتاج: DELETE واحد محدود بالمعرفين الدقيقين للـleads مع source marker وsynthetic email suffix؛ cascades أزالت السجلات التابعة. موافقة المالك: «تابع التنظيف و اغلاق c02، و قم بعدها بالانتقال إلى c03 not c01».
+- **Git main:** `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`؛ تم التحقق من `refs/heads/main` ومن commit endpoint.
+- **C-01:** مغلق بالكامل، بما في ذلك نشر `assessment-access` وتشغيل Production E2E للعائلتين والتنظيف المحدد النطاق. لا تعِد فتحه دون دليل regression جديد.
+- **C-02:** مغلق؛ نجاح scoring وE2E موثق، والتنظيف اللاحق موثق. قراءة Production الحالية أدناه مستقلة عن نتائج اللقطات التاريخية.
+- **Supabase migrations:** 52؛ آخر migration مطبق `20261013110000 / c02_allow_answer_value_70`.
+- **Edge Function `assessment-access`:** ACTIVE v38؛ bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`.
+- **Production row counts في قراءة 2026-10-15:** `leads=0`, `sessions=0`, `assessment_results=0`, `answers=0`, `scores=0`, `assessment_session_access=0`, `historical_snapshots=0`. هذه counts للقراءة الحالية، وليست ادعاءً بعدم وجود بيانات تاريخية في جداول أخرى.
+- **PR #96 / C-03:** ما زال مفتوحاً وDraft وغير مدمج؛ head `a6a79ea1105a6cb76bfb106170d37ffdc0a315eb`. بيانات PR ما زالت تسجل base SHA قديمًا `b8bc22dd68815d1fdb56fe9a76cd9f05c35f5a8d`، بينما main الحالي `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`. لا تفترض أن PR مواكب لـmain أو قابل للدمج.
+- **حاجز الاستئناف:** الخطوة التالية في ترتيب العمل هي C-03، لكن لا يبدأ التنفيذ قبل حسم تعارض النطاق. PR #96 الحالي يطبق interpretation-release/publication attestation؛ سجل handoff الأقدم يصف C-03 بأنه Git↔DB synchronization وحماية نشر/إكمال الإدارة؛ كما يسجل تعارضاً مع تفسير D11 في وثائق P3. لا تختَر تعريفاً بصمت ولا تغيّر Production.
+- **نطاق هذه المصالحة:** قراءة فقط لـGitHub/Supabase وكتابة توثيقية على فرع منفصل فقط. لم تُنفّذ SQL كتابة، أو migration، أو Edge/Pages deployment، أو E2E، ولم يُدمج أي شيء.
 
-## 4. جدول البنود
-| المعرّف | الحالة | الدليل | ملاحظة |
-|---|---|---|---|
-| C-02 | CLOSED | #38469121966 + artifact 11850662078؛ exact-ID/hash checks all zero | لا تعِد تشغيل E2E |
-| C-01 | CLOSED — repository implementation | PR #97 merged `5879fe3f22da2fd693de571e806ac44cd51f7e27`; 5 CI workflows passed; live mapping 248/248 exact matches | Edge deployment/runtime E2E remains separate release gate; not deployed here |
-| C-03 | BLOCKED | تعارض تعريف النطاق بين برومبت المالك، handoff index، وP3 architecture D11 | احسم التعريف قبل التنفيذ |
+## نقطة الاستئناف التالية
 
-## 5. قرارات المالك الجديدة
-- 2026-10-14: صدر لاحقاً توجيه صريح بإعادة بناء C-01 على main وإغلاقه؛ نُفّذ ذلك عبر PR #97. التوجيه الأسبق بالانتقال من C-02 إلى C-03 لا يغيّر حالة C-01 الحالية. C-03 لا يزال متوقفاً بسبب تعارض النطاق.
+1. اطلب قرار المالك الذي يحدد تعريف C-03 الملزم، أو اتبع القرار الصريح الموجود في أول المحادثة إن كان قد حسم هذا التعارض فعلاً؛ يجب الرجوع إلى نصه الحرفي قبل الاستنتاج.
+2. بعد حسم النطاق، طابق PR #96 والفرع مع main الحالي وراجع عقد العمل ونتائج CI والقيود التقنية قبل تحديد ما إذا كان يُحدّث أو يُستبدل.
+3. لا تبدأ أي تعديل تطبيقي أو عملية Production قبل اكتمال المصالحة وتحقق شروط التفويض الخاصة بها.
 
-## 6. سؤال مفتوح
-هل تعريف C-03 الملزم هو تعريف البرومبت الحالي §7 (Git↔DB sync + حماية إكمال تقييم منشور من crash) ويُعد تعريف handoff index القديم متجاوزاً؟ أم المقصود interpretation binding/option identity؟ يلزم تعريف واحد.
+> **تنبيه تاريخي:** الأقسام أدناه تحفظ أدلة وسياق الجلسات السابقة. أي وصف قديم لـC-01 على أنه مفتوح، أو لـ`assessment-access` v37، أو لبيانات اختبار ما زالت في Production، أو لأي SHA أقدم لـmain، هو لقطة تاريخية ولا يصف الحالة الحية أعلاه. لا تحذف الأدلة التاريخية؛ استخدم هذا القسم بوصفه نقطة الحالة الحالية الحاكمة.
 
-## 7. الانحرافات والمخاطر
-- تعارض توثيقي في تعريف C-03؛ سُجل صراحة ولم يُحسم بصمت.
-- انحراف توثيق: تحديثات الوثائق تُجمع على فرع مؤقت ثم fast-forward واحد إلى main بسبب عدم إتاحة tree SHA في الموصل. لا PR ولا تغييرات تطبيقية.
-
-## 8. تحذيرات الاستئناف
-- لا تعِد فتح C-01 source repair؛ تم دمجه وإغلاق PR القديم #79. أي نشر Edge أو runtime E2E يُدار كبوابة إصدار منفصلة.
-- لا تبدأ تنفيذ C-03 قبل توحيد تعريف النطاق.
-- لا E2E جديد، ولا هجرة، ولا Edge deployment، ولا Production write آخر دون موافقة مستقلة محددة.
-
-## سجل المحادثات
-| # | التاريخ | ما أُنجز | الحالة عند الإغلاق | commit |
-|---|---|---|---|---|
-| غير متاح | 2026-10-14 | تنظيف #38469121966؛ إثبات الصفر؛ إغلاق C-02؛ توثيق تعارض نطاق C-03 | C-02 CLOSED؛ C-03 BLOCKED | ينتظر التحقق من main |
-
-## أمر الاستئناف
-«المتابعة. اقرأ هذا الملف، تحقق من main والإنتاج قراءة فقط، ثم اعرض سؤال حسم نطاق C-03؛ لا تبدأ C-03 قبل إزالة التعارض، ولا تدّعِ نشر Edge الخاص بـC-01.»
 
 ---
 
@@ -66,7 +44,7 @@
 - **تحذير حالة:** the E2E assertions passed, but the runner's own artifact states `cleanup.status=PENDING_AGENT_SQL_CLEANUP` and `cleanup.verified=false`. Production currently contains 2 test leads, 2 sessions, 2 results, 61 answers, 11 scores and 2 access rows. Do not claim current zero-residue closure. No C-03 work, new E2E, deployment, migration or unrelated Production operation before explicit resumption.
 - **ملف الاستئناف:** `documentation/handoff/CURRENT-SESSION-HANDOFF.md`
 
-## 1. Latest verified reality
+## Historical snapshot — latest verified reality at the time of the prior closeout (superseded by the current state at the top)
 
 ### Source control
 
@@ -102,7 +80,7 @@ Access token hashes emitted by the runner:
 
 The latest run created two completed sessions, two `PRODUCTION` results with interpretation version 2, 61 answer rows, 11 score rows and two access rows. The previous run #38387901746 was cleaned and verified at that time; this later run created a new dataset and invalidated the current global-zero assertion.
 
-## 2. Implementation and verification status
+## Historical implementation and verification status (preserved; see current status at the top)
 
 | Item | Status | Evidence |
 |---|---|---|
@@ -197,3 +175,26 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - Existing 248/248 option-identity reconciliation and C-01 CI evidence remain in the architecture/status records.
 
 **Next step:** follow the independently authorized work queue; do not reopen C-01 or begin C-03 as part of this closure. C-03 scope reconciliation remains separate.
+
+
+---
+
+## Startup protocol reconciliation — 2026-10-15
+
+### Checks performed
+- Read this handoff first, then the current handoff index, implementation status register, C-02 closure report, C-01 identity reconciliation, and the binding AI Engineering Operating Contract.
+- Verified repository default branch is `main`; `refs/heads/main` and the main commit endpoint agree on `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`.
+- Verified live Supabase project is `oaqpzaarppccbnepffxx`, status `ACTIVE_HEALTHY`, PostgreSQL 17.6.
+- Read live migration ledger: 52 applied migrations, latest `20261013110000 / c02_allow_answer_value_70`.
+- Read live Edge Function inventory and function details: `assessment-access` is ACTIVE v38 with bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`.
+- Ran one read-only aggregate query against seven Production tables; each returned zero rows: `leads`, `sessions`, `assessment_results`, `answers`, `scores`, `assessment_session_access`, `historical_snapshots`.
+- Verified PR #96 remains open/Draft/unmerged and its recorded base SHA differs from current main. Its scope describes interpretation release registration/publication gate; the current handoff index's older C-03 description and the D11 reference remain a scope-authority conflict.
+
+### Evidence classification
+- **PROVEN:** main SHA, migration count/latest migration, live Edge version/hash, seven current table counts, PR #96 open/Draft and recorded head/base.
+- **CONTRADICTED / STALE DOCUMENTATION:** the prior handoff's earlier snapshot says Edge v37 and C-01 runtime E2E pending; later merged closure evidence and live Production establish v38 and completed C-01 runtime E2E.
+- **UNRESOLVED OWNER/SCOPE DECISION:** which C-03 definition governs. Do not equate PR #96's implementation scope with owner authorization.
+- **NOT PERFORMED:** no production writes, migrations, deployment, live E2E, PR merge, or application-code change.
+
+### Resume gate
+**Startup reconciliation is complete. Implementation has not started.** Resume only after the C-03 scope conflict is resolved under the owner decision and governing contract. Preserve all historical sections below for auditability.
