@@ -3,6 +3,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const test = require("node:test");
 const { generateReleasePayload, DEFAULT_EDGE_RELEASE_REF } = require("../.github/scripts/c03-generate-release-payload.cjs");
+const runtimeProvenance = import("../supabase/functions/assessment-access/interpretation-release-provenance.mjs");
 
 const ROOT = path.resolve(__dirname, "..");
 const snapshot = JSON.parse(fs.readFileSync(path.join(ROOT, "tests/fixtures/c03-release-snapshot.json"), "utf8"));
@@ -19,6 +20,15 @@ test("C-03 generator emits deterministic RPC-compatible arguments and complete s
     "p_option_manifest", "p_registry_digest", "p_source_commit_sha",
   ].sort());
   assert.equal(first.provenance.registry_digest, first.rpc.args.p_registry_digest);
+  const { digestInterpretationEntries } = await runtimeProvenance;
+  const runtimeDigest = await digestInterpretationEntries(
+    registry.entries.filter((entry) =>
+      entry.assessmentSlug === snapshot.slug &&
+      Number(entry.interpretationVersion) === Number(snapshot.interpretationVersion)
+    ),
+  );
+  assert.equal(first.rpc.args.p_registry_digest, runtimeDigest,
+    "generator digest must match the Edge runtime's exact digest implementation");
   assert.match(first.rpc.args.p_registry_digest, /^[0-9a-f]{64}$/);
   assert.equal(first.rpc.args.p_source_commit_sha, sourceCommitSha);
   assert.equal(first.rpc.args.p_edge_release_ref, DEFAULT_EDGE_RELEASE_REF);
