@@ -77,11 +77,26 @@ values ('ffffffff-ffff-4fff-8fff-ffffffffffff',
 
 \ir ../supabase/migrations/20261014120000_c03_interpretation_release_publication_gate.sql
 
+-- The CI job supplies this JSON directly from the deterministic generator's RPC args.
+create temporary table c03_generated_payload(payload jsonb not null);
+insert into c03_generated_payload(payload) values (:'release_payload'::jsonb);
+
 do $test$
 declare
   v_result jsonb;
+  v_payload jsonb;
   v_rejected boolean := false;
+  v_registry_digest text;
+  v_source_commit_sha text;
+  v_edge_release_ref text;
+  v_option_manifest jsonb;
 begin
+  select payload into v_payload from c03_generated_payload;
+  v_registry_digest := v_payload->>'p_registry_digest';
+  v_source_commit_sha := v_payload->>'p_source_commit_sha';
+  v_edge_release_ref := v_payload->>'p_edge_release_ref';
+  v_option_manifest := v_payload->'p_option_manifest';
+
   begin
     perform public.register_assessment_interpretation_release_secure(
       'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1, repeat('a',64), repeat('b',40),
@@ -94,9 +109,9 @@ begin
   if not v_rejected then raise exception 'Incomplete option manifest was accepted'; end if;
 
   v_result := public.register_assessment_interpretation_release_secure(
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1, repeat('a',64), repeat('b',40),
-    'edge-v-test',
-    '[{"question_code":"Q1","option_id":"ffffffff-ffff-4fff-8fff-ffffffffffff","option_index":0,"source_option_value":0},{"question_code":"Q1","option_id":"11111111-1111-4111-8111-111111111111","option_index":1,"source_option_value":1}]'::jsonb
+    (v_payload->>'p_assessment_type_id')::uuid,
+    (v_payload->>'p_interpretation_version')::integer,
+    v_registry_digest, v_source_commit_sha, v_edge_release_ref, v_option_manifest
   );
   if coalesce((v_result->>'success')::boolean, false) is not true then
     raise exception 'Valid manifest registration failed: %', v_result;
@@ -111,7 +126,7 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('b',40)
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', v_registry_digest, v_edge_release_ref, v_source_commit_sha
     );
   exception when others then
     v_rejected := true;
@@ -122,7 +137,7 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('c',64), 'edge-v-test', repeat('b',40)
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('c',64), v_edge_release_ref, v_source_commit_sha
     );
   exception when others then
     v_rejected := true;
@@ -132,7 +147,7 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'wrong-edge-ref', repeat('b',40)
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', v_registry_digest, 'wrong-edge-ref', v_source_commit_sha
     );
   exception when others then
     v_rejected := true;
@@ -142,7 +157,7 @@ begin
   v_rejected := false;
   begin
     perform public.mark_assessment_interpretation_release_runtime_verified_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('d',40)
+      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', v_registry_digest, v_edge_release_ref, repeat('d',40)
     );
   exception when others then
     v_rejected := true;
@@ -163,9 +178,9 @@ begin
 
   -- Re-registering a release must invalidate the previous runtime attestation.
   v_result := public.register_assessment_interpretation_release_secure(
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1, repeat('a',64), repeat('b',40),
-    'edge-v-test',
-    '[{"question_code":"Q1","option_id":"ffffffff-ffff-4fff-8fff-ffffffffffff","option_index":0,"source_option_value":0},{"question_code":"Q1","option_id":"11111111-1111-4111-8111-111111111111","option_index":1,"source_option_value":1}]'::jsonb
+    (v_payload->>'p_assessment_type_id')::uuid,
+    (v_payload->>'p_interpretation_version')::integer,
+    v_registry_digest, v_source_commit_sha, v_edge_release_ref, v_option_manifest
   );
   v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   if coalesce((v_result->>'valid')::boolean, true) is not false then
