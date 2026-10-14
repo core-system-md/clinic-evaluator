@@ -99,9 +99,10 @@ begin
 
   begin
     perform public.register_assessment_interpretation_release_secure(
-      'cccccccc-cccc-4ccc-8ccc-cccccccccccc', 1, repeat('a',64), repeat('b',40),
-      'edge-v-test',
-      '[{"question_code":"Q1","option_id":"ffffffff-ffff-4fff-8fff-ffffffffffff","option_index":0,"source_option_value":0}]'::jsonb
+      (v_payload->>'p_assessment_type_id')::uuid,
+      (v_payload->>'p_interpretation_version')::integer,
+      v_registry_digest, v_source_commit_sha, v_edge_release_ref,
+      jsonb_build_array(v_option_manifest->0)
     );
   exception when others then
     v_rejected := true;
@@ -165,7 +166,7 @@ begin
   if not v_rejected then raise exception 'Runtime attestation accepted a mismatched source commit'; end if;
 
   v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
-    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', repeat('a',64), 'edge-v-test', repeat('b',40)
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc', v_registry_digest, v_edge_release_ref, v_source_commit_sha
   );
   if coalesce((v_result->>'success')::boolean, false) is not true then
     raise exception 'Runtime attestation failed: %', v_result;
