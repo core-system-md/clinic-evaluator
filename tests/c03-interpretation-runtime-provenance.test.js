@@ -56,6 +56,7 @@ const expected = {
   assessmentVersion: 1,
   interpretationVersion: 1,
   registryEntries: entries,
+  runtimeOptionManifest: manifestFrom(entries),
   runtimeSourceCommitSha: "c".repeat(40),
 };
 
