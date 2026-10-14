@@ -15,6 +15,7 @@ import { projectScoreRowsFromStructuredResult } from "./result-persistence-proje
 import { type P3ConsistencyRule } from "./consistency-engine.mts";
 import registry from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
+import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
 
@@ -120,7 +121,7 @@ const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
 const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
 
 type InterpretationBinding = {
-  registry: typeof registry | typeof registryV2;
+  registry: typeof registry | typeof registryV2 | typeof patientJourneyRegistryV2;
   interpretationVersion: number;
 };
 
@@ -142,17 +143,13 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
     registry: registryV2,
     interpretationVersion: 2,
   },
-  "comprehensive-clinic-assessment:2": {
-    registry: registryV2,
-    interpretationVersion: 2,
-  },
   "medical-team-assessment:1": {
     registry,
     interpretationVersion: 1,
   },
   "patient-journey:1": {
-    // Final corrected content is published as product V1; its scoring semantics use interpretation registry V2.
-    registry: registryV2,
+    // Current published product V1 uses the family-specific interpretation V2 registry.
+    registry: patientJourneyRegistryV2,
     interpretationVersion: 2,
   },
 };
@@ -281,7 +278,6 @@ function buildSelections(
   questionCode: string;
   optionId: string;
   optionIndex: number;
-  sourceOptionValue: number;
 }> {
   const questionMap = new Map(runtime.questions.map((question) => [question.code, question]));
   const selections = [];
@@ -308,7 +304,6 @@ function buildSelections(
       questionCode: question.code,
       optionId: option.id,
       optionIndex: Number(option.option_index),
-      sourceOptionValue: Number(option.option_value),
     });
   }
 
@@ -434,7 +429,7 @@ export async function calculateAssessment(
       interpretationVersion: interpretationBinding.interpretationVersion,
       entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
         .filter((entry) => entry.assessmentSlug === runtime.family.slug)
-        .filter((entry) => String(entry.assessmentVersion ?? String(assessmentVersion)) === String(assessmentVersion))
+        .filter((entry) => Number(entry.interpretationVersion) === interpretationBinding.interpretationVersion)
         .sort(
           (a, b) =>
             String(a.questionCode).localeCompare(String(b.questionCode)) ||

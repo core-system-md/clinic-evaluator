@@ -3,6 +3,10 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import canonicalRegistry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V1.json" with { type: "json" };
 import packagedRegistry from "../supabase/functions/assessment-access/response-interpretation-registry-v1.json" with { type: "json" };
+import canonicalRegistryV2 from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
+import packagedRegistryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
+import canonicalPatientJourneyRegistryV2 from "../documentation/architecture/P3-PATIENT-JOURNEY-INTERPRETATION-REGISTRY-V2.json" with { type: "json" };
+import packagedPatientJourneyRegistryV2 from "../supabase/functions/assessment-access/patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 
@@ -21,6 +25,26 @@ function firstSelection(slug) {
 test("production function registry is byte-equivalent to canonical registry artifact", () => {
   assert.deepEqual(packagedRegistry, canonicalRegistry);
 });
+
+test("Comprehensive interpretation registry v2 is canonical and family-scoped", () => {
+  assert.deepEqual(packagedRegistryV2, canonicalRegistryV2);
+  assert.equal(packagedRegistryV2.entries.length, 152);
+  assert.equal(new Set(packagedRegistryV2.entries.map((entry) => entry.optionId)).size, 152);
+  assert.ok(packagedRegistryV2.entries.every((entry) => entry.assessmentSlug === "comprehensive-clinic-assessment"));
+  assert.ok(packagedRegistryV2.entries.every((entry) => String(entry.assessmentVersion) === "1"));
+  assert.ok(packagedRegistryV2.entries.every((entry) => Number(entry.interpretationVersion) === 2));
+});
+
+test("Patient Journey interpretation registry v2 is canonical and family-scoped", () => {
+  assert.deepEqual(packagedPatientJourneyRegistryV2, canonicalPatientJourneyRegistryV2);
+  assert.equal(packagedPatientJourneyRegistryV2.entries.length, 96);
+  assert.equal(new Set(packagedPatientJourneyRegistryV2.entries.map((entry) => entry.optionId)).size, 96);
+  assert.ok(packagedPatientJourneyRegistryV2.entries.every((entry) => entry.assessmentSlug === "patient-journey"));
+  assert.ok(packagedPatientJourneyRegistryV2.entries.every((entry) => String(entry.assessmentVersion) === "1"));
+  assert.ok(packagedPatientJourneyRegistryV2.entries.every((entry) => Number(entry.interpretationVersion) === 2));
+});
+
+
 
 test("integrated scorer emits a production-valid structured result without changing score construction", () => {
   const family = config.families["patient-journey"];
