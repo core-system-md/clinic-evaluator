@@ -31,6 +31,14 @@ function identity(questionCode, optionId, optionIndex, sourceOptionValue) {
   return JSON.stringify([questionCode, optionId, Number(optionIndex), Number(sourceOptionValue)]);
 }
 
+function logicalIdentity(questionCode, optionIndex, sourceOptionValue) {
+  if (typeof questionCode !== "string" || !questionCode.trim()) throw new Error("Question code is required");
+  if (!Number.isInteger(Number(optionIndex)) || !Number.isFinite(Number(sourceOptionValue))) {
+    throw new Error("Option index/value must be numeric; option index must be an integer");
+  }
+  return JSON.stringify([questionCode, Number(optionIndex), Number(sourceOptionValue)]);
+}
+
 function buildOptionManifest(snapshot) {
   if (!snapshot || !Array.isArray(snapshot.questions) || snapshot.questions.length === 0) {
     throw new Error("Snapshot must contain a non-empty questions array");
@@ -104,20 +112,22 @@ async function generateReleasePayload({
   if (!DIGEST_RE.test(registryDigest)) throw new Error("Internal error: invalid registry digest");
 
   const optionManifest = buildOptionManifest(snapshot);
+  // Registry option UUIDs can differ between environments. The stable semantic identity is
+  // question code + option index + source value; the manifest separately binds live DB UUIDs.
   const runtimeIdentities = selectedEntries.map((entry) =>
-    identity(entry.questionCode, entry.optionId, entry.optionIndex, entry.sourceOptionValue)
+    logicalIdentity(entry.questionCode, entry.optionIndex, entry.sourceOptionValue)
   );
   const manifestIdentities = optionManifest.map((entry) =>
-    identity(entry.question_code, entry.option_id, entry.option_index, entry.source_option_value)
+    logicalIdentity(entry.question_code, entry.option_index, entry.source_option_value)
   );
   if (new Set(runtimeIdentities).size !== runtimeIdentities.length) {
-    throw new Error("Selected interpretation registry contains duplicate option identities");
+    throw new Error("Selected interpretation registry contains duplicate logical option identities");
   }
   const sortedRuntime = [...runtimeIdentities].sort();
   const sortedManifest = [...manifestIdentities].sort();
   if (sortedRuntime.length !== sortedManifest.length ||
       sortedRuntime.some((value, index) => value !== sortedManifest[index])) {
-    throw new Error("Snapshot option identities do not exactly match the selected interpretation registry");
+    throw new Error("Snapshot logical option identities do not exactly match the selected interpretation registry");
   }
 
   return {
