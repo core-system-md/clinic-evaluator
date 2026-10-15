@@ -213,7 +213,7 @@ begin
 
   select * into v_release from public.assessment_config_releases where id = p_release_id for update;
   if not found then raise exception 'Assessment release not found' using errcode = 'P0002'; end if;
-  if v_release.state <> 'VERIFIED'
+  if v_release.state not in ('VERIFIED','PUBLISHED')
      or v_release.verified_config_digest is distinct from v_release.config_digest
      or v_release.verified_registry_digest is distinct from v_release.interpretation_registry_digest
      or v_release.verified_git_commit_sha is distinct from v_release.git_commit_sha
@@ -224,6 +224,9 @@ begin
 
   select * into v_family from public.assessment_families where id = v_release.family_id for update;
   if not found then raise exception 'Assessment family not found' using errcode = 'P0002'; end if;
+  if v_release.state = 'PUBLISHED' and v_family.current_release_id is distinct from p_release_id then
+    raise exception 'Published release is not the current release pointer; refusing stale reactivation' using errcode = '55000';
+  end if;
   if v_family.current_published_version_id is distinct from p_expected_published_version_id
      or v_family.current_published_version_id is distinct from v_release.assessment_type_id then
     raise exception 'Published pointer compare-and-swap failed' using errcode = '40001';
