@@ -7,6 +7,10 @@ on:
       - ".github/workflows/c03-full-config-release-digest.yml"
       - "supabase/migrations/20261015130000_c03_full_configuration_release_digest.sql"
       - "tests/c03-full-config-release-digest-harness.sql"
+      - ".github/scripts/c03-generate-release-payload.cjs"
+      - "tests/c03-release-payload-generator.test.js"
+      - "tests/fixtures/c03-release-*.json"
+      - "supabase/functions/assessment-access/interpretation-release-provenance.mjs"
   workflow_dispatch:
 
 permissions:
@@ -31,6 +35,8 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
+      - name: Test deterministic release payload generator
+        run: node --test tests/c03-release-payload-generator.test.js
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Apply migration and exercise full configuration digest on disposable PostgreSQL
