@@ -201,6 +201,25 @@ values ('ffffffff-ffff-4fff-8fff-ffffffffffff',
        ('11111111-1111-4111-8111-111111111111',
         'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee', 1, 1, 'Option 1', 2);
 
+insert into public.assessment_families(id,slug,created_by)
+values ('abababab-abab-4bab-8bab-abababababab','c03-backfill-family',
+        'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+insert into public.assessment_types(
+  id,slug,title_ar,family_id,version,status,question_count,axis_count
+) values (
+  'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd','c03-backfill-v1','C03 published backfill',
+  'abababab-abab-4bab-8bab-abababababab',1,'published',1,1
+);
+insert into public.assessment_settings(assessment_key,auth_enabled)
+values ('c03-backfill-family',true);
+insert into public.axes(id,assessment_type_id,code,title,weight)
+values ('dededede-dede-4ede-8ede-dededededede','cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd','AXB','Backfill axis',100);
+insert into public.questions(id,assessment_type_id,axis_id,code,question_text,display_order,is_required)
+values ('efefefef-efef-4fef-8fef-efefefefefef','cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd',
+        'dededede-dede-4ede-8ede-dededededede','QB','Backfill question',1,true);
+insert into public.options(id,question_id,option_index,option_value,label,display_order)
+values ('fefefefe-fefe-4efe-8efe-fefefefefefe','efefefef-efef-4fef-8fef-efefefefefef',0,0,'Backfill option',1);
+
 create table public.traps (
   id uuid primary key,
   assessment_type_id uuid not null references public.assessment_types(id),
@@ -244,6 +263,9 @@ declare
   v_first_release_id uuid;
   v_second_release_id uuid;
   v_release_count integer;
+  v_backfill_digest text;
+  v_backfill_manifest jsonb;
+  v_backfill_release_id uuid;
 begin
   v_config_digest := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   v_config_digest_after := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
@@ -397,6 +419,53 @@ begin
   if v_settings_digest_after = v_trap_digest_after then
     raise exception 'Full configuration digest did not change after access-policy mutation';
   end if;
+
+  -- Existing live published versions need a one-time, content-verified backfill;
+  -- a second registration for that published version must be rejected.
+  perform set_config('request.jwt.claim.role','authenticated',true);
+  v_backfill_digest := public.assessment_configuration_digest('cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd');
+  select jsonb_agg(jsonb_build_object(
+    'question_code',q.code,'option_id',o.id,'option_index',o.option_index,
+    'source_option_value',o.option_value
+  ) order by q.display_order,q.id,o.display_order,o.id)
+  into v_backfill_manifest
+  from public.questions q join public.options o on o.question_id=q.id
+  where q.assessment_type_id='cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd';
+
+  v_result := public.register_assessment_interpretation_release_secure(
+    'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd',1,repeat('e',64),v_backfill_digest,
+    'c03-assessment-config-canonicalizer-v1',v_source_commit_sha,v_edge_release_ref,v_backfill_manifest
+  );
+  v_backfill_release_id := (v_result->>'release_id')::uuid;
+  if (select state from public.assessment_interpretation_releases where id=v_backfill_release_id) <> 'PREPARED' then
+    raise exception 'Published backfill did not enter PREPARED state';
+  end if;
+
+  perform set_config('request.jwt.claim.role','service_role',true);
+  v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
+    'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd',repeat('e',64),v_backfill_digest,
+    v_edge_release_ref,v_source_commit_sha
+  );
+  if coalesce((v_result->>'success')::boolean,false) is not true then
+    raise exception 'Published backfill runtime attestation failed: %',v_result;
+  end if;
+  if (select state from public.assessment_interpretation_releases where id=v_backfill_release_id) <> 'PUBLISHED' then
+    raise exception 'Attested published backfill did not enter PUBLISHED state';
+  end if;
+  v_result := public.validate_assessment_version_secure('cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd');
+  if coalesce((v_result->>'valid')::boolean,false) is not true then
+    raise exception 'Published backfill failed release validation: %',v_result;
+  end if;
+
+  v_rejected := false;
+  begin
+    perform public.register_assessment_interpretation_release_secure(
+      'cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd',1,repeat('e',64),v_backfill_digest,
+      'c03-assessment-config-canonicalizer-v1',v_source_commit_sha,v_edge_release_ref,v_backfill_manifest
+    );
+  exception when others then v_rejected := true;
+  end;
+  if not v_rejected then raise exception 'Second release registration for a published backfill was accepted'; end if;
 end
 $test$;
 
