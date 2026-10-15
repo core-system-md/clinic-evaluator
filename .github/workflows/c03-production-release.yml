@@ -1,5 +1,5 @@
 name: C-03 guarded Production release and bounded E2E
-# Owner-authorized one-time release trigger [release-c03]; waits for the connected Supabase deployment to attest this exact commit.
+# Explicitly dispatched, confirmation-gated release; requires a verified GitHub OIDC workload identity.
 
 on:
   workflow_dispatch:
@@ -63,7 +63,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run digest, attestation, and release sequencing tests
-        run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs
+        run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs tests/c03-github-oidc-token.test.mjs
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
@@ -72,7 +72,7 @@ jobs:
           SUPABASE_URL: https://example.supabase.co
           SUPABASE_ANON_KEY: test-only-anon-key
           SUPABASE_SERVICE_ROLE_KEY: test-only-service-role-key
-        run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
+        run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Load canonical admin authorization functions
