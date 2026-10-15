@@ -14,6 +14,12 @@ import {
 import { projectScoreRowsFromStructuredResult } from "./result-persistence-projection.mts";
 import { type P3ConsistencyRule } from "./consistency-engine.mts";
 import { digestAssessmentConfig } from "./assessment-config-digest.mjs";
+import {
+  assertInterpretationReleaseMatches,
+  digestInterpretationEntries,
+  RUNTIME_EDGE_RELEASE_REF,
+  selectInterpretationEntries,
+} from "./interpretation-release-provenance.mjs";
 import registry from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
@@ -442,6 +448,27 @@ function buildVersionedConfig(runtime: Runtime, assessmentVersion: number) {
   };
 }
 
+function buildRuntimeOptionManifest(runtime: Runtime) {
+  const questionCodeById = new Map(
+    runtime.questions.map((question) => [question.id, question.code]),
+  );
+  return runtime.options.map((option) => {
+    const questionCode = questionCodeById.get(option.question_id);
+    if (!questionCode) throw new Error("Runtime option references an unknown question");
+    return {
+      question_code: questionCode,
+      option_id: option.id,
+      option_index: Number(option.option_index),
+      source_option_value: Number(option.option_value),
+    };
+  }).sort(
+    (a, b) =>
+      a.question_code.localeCompare(b.question_code) ||
+      a.option_index - b.option_index ||
+      a.option_id.localeCompare(b.option_id),
+  );
+}
+
 export async function getAssessmentConfigAttestation(
   client: SupabaseClient,
   assessmentTypeId: string,
@@ -452,6 +479,11 @@ export async function getAssessmentConfigAttestation(
   );
   const { versionedConfig, interpretationBinding, databaseConfigManifest } =
     buildVersionedConfig(runtime, assessmentVersion);
+  const registryEntries = selectInterpretationEntries(
+    interpretationBinding.registry,
+    runtime.family.slug,
+    interpretationBinding.interpretationVersion,
+  );
   return {
     assessmentTypeId: runtime.assessment.id,
     familyId: runtime.family.id,
@@ -460,7 +492,97 @@ export async function getAssessmentConfigAttestation(
     interpretationVersion: interpretationBinding.interpretationVersion,
     configDigest: await digestAssessmentConfig(versionedConfig),
     configManifest: databaseConfigManifest,
+    registryDigest: await digestInterpretationEntries(registryEntries),
+    optionManifest: buildRuntimeOptionManifest(runtime),
+    sourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
+    edgeReleaseRef: RUNTIME_EDGE_RELEASE_REF,
   };
+}
+
+export async function registerInterpretationRelease(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+  registeredBy: string,
+) {
+  const attestation = await getAssessmentConfigAttestation(client, assessmentTypeId);
+  if (!attestation.sourceCommitSha) {
+    throw new Error("C03_SOURCE_COMMIT_SHA must identify the deployed Edge source before registration");
+  }
+  const { data, error } = await client.rpc("register_assessment_interpretation_release_secure", {
+    p_assessment_type_id: attestation.assessmentTypeId,
+    p_interpretation_version: attestation.interpretationVersion,
+    p_registry_digest: attestation.registryDigest,
+    p_assessment_config_digest: attestation.configDigest,
+    p_source_commit_sha: attestation.sourceCommitSha,
+    p_edge_release_ref: attestation.edgeReleaseRef,
+    p_option_manifest: attestation.optionManifest,
+    p_config_manifest: attestation.configManifest,
+    p_registered_by: registeredBy,
+  });
+  if (error) {
+    throw new Error("Configuration release registration failed: " + error.message);
+  }
+  if (data?.success !== true) {
+    throw new Error("Configuration release registration did not return success");
+  }
+  return { ...attestation, registration: data };
+}
+
+export async function attestInterpretationRelease(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const attestation = await getAssessmentConfigAttestation(client, assessmentTypeId);
+  const { data: release, error: releaseError } = await client
+    .from("assessment_interpretation_releases")
+    .select("assessment_type_id, family_id, assessment_version, interpretation_version, registry_digest, assessment_config_digest, config_manifest, source_commit_sha, edge_release_ref, option_manifest, release_state")
+    .eq("assessment_type_id", attestation.assessmentTypeId)
+    .maybeSingle();
+
+  if (releaseError) {
+    throw new Error("Configuration release lookup failed: " + releaseError.message);
+  }
+  if (!release) throw new Error("Configuration release must be registered before runtime attestation");
+
+  const verified = await assertInterpretationReleaseMatches({
+    release,
+    assessmentTypeId: attestation.assessmentTypeId,
+    familyId: attestation.familyId,
+    assessmentVersion: attestation.assessmentVersion,
+    interpretationVersion: attestation.interpretationVersion,
+    registryEntries: selectInterpretationEntries(
+      // Resolve the same family/version registry the scoring runtime actually selects.
+      (await loadRuntime(client, assessmentTypeId), resolveInterpretationBinding(
+        attestation.assessmentSlug,
+        attestation.assessmentVersion,
+      )).registry,
+      attestation.assessmentSlug,
+      attestation.interpretationVersion,
+    ),
+    runtimeOptionManifest: attestation.optionManifest,
+    runtimeSourceCommitSha: attestation.sourceCommitSha,
+    runtimeConfigDigest: attestation.configDigest,
+    runtimeConfigManifest: attestation.configManifest,
+  });
+
+  const { data: verification, error: verificationError } = await client.rpc(
+    "mark_assessment_interpretation_release_runtime_verified_secure",
+    {
+      p_assessment_type_id: attestation.assessmentTypeId,
+      p_runtime_digest: verified.registryDigest,
+      p_runtime_config_digest: verified.assessmentConfigDigest,
+      p_runtime_edge_release_ref: verified.edgeReleaseRef,
+      p_runtime_source_commit_sha: verified.sourceCommitSha,
+    },
+  );
+  if (verificationError) {
+    throw new Error("Runtime attestation could not be recorded: " + verificationError.message);
+  }
+  if (verification?.success !== true) {
+    throw new Error("Runtime attestation failed closed: " + String(verification?.reason || "unknown mismatch"));
+  }
+
+  return { ...attestation, ...verified, verification };
 }
 
 export async function calculateAssessment(
