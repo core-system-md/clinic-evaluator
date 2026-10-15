@@ -25,7 +25,7 @@ function fakeFetch({ rejectVerifySlug = null } = {}) {
       return response({ success: true, data: { release_id: "release-" + body.assessment_type_id, assessment_type_id: body.assessment_type_id, state: "PREPARED" } });
     }
     if (body.action === "verify") {
-      const reject = rejectVerifySlug && body.release_id === "release-version-" + families.find(f => f.slug === rejectVerifySlug)?.current_published_version_id;
+      const reject = rejectVerifySlug && body.release_id === "release-" + families.find(f => f.slug === rejectVerifySlug)?.current_published_version_id;
       return response(reject
         ? { success: false, data: { state: "REJECTED" } }
         : { success: true, data: { state: "VERIFIED" } });
