@@ -14,7 +14,7 @@ const provenance = fs.readFileSync(
 );
 
 test("C-03 release registration is service-role-only and records the owner identity", () => {
-  assert.match(migration, /auth\.role\(\).*service_role/);
+  assert.match(migration, /current_setting\('request.jwt.claim.role', true\).*service_role/);
   assert.match(migration, /p_registered_by uuid/);
   assert.match(migration, /role = 'owner'/);
   assert.match(migration, /assessment_config_digest/);
