@@ -484,7 +484,7 @@ export async function calculateAssessment(
       enabled: Boolean(runtime.assessment.has_ev_simulator),
       deltaCMax: 0.35,
     },
-  };;
+  };
 
   const consistencyConfiguration = scopedConsistencyConfiguration(
     runtime.family.slug,
