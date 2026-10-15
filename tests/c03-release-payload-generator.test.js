@@ -17,9 +17,12 @@ test("C-03 generator emits deterministic RPC-compatible arguments and complete s
   assert.equal(first.rpc.function, "register_assessment_interpretation_release_secure");
   assert.deepEqual(Object.keys(first.rpc.args).sort(), [
     "p_assessment_type_id", "p_edge_release_ref", "p_interpretation_version",
-    "p_option_manifest", "p_registry_digest", "p_source_commit_sha",
+    "p_option_manifest", "p_registry_digest", "p_config_digest", "p_config_canonicalizer_version", "p_source_commit_sha",
   ].sort());
   assert.equal(first.provenance.registry_digest, first.rpc.args.p_registry_digest);
+  assert.equal(first.provenance.config_digest, snapshot.configDigest);
+  assert.equal(first.rpc.args.p_config_digest, snapshot.configDigest);
+  assert.equal(first.rpc.args.p_config_canonicalizer_version, "c03-assessment-config-canonicalizer-v1");
   const { digestInterpretationEntries } = await runtimeProvenance;
   const runtimeDigest = await digestInterpretationEntries(
     registry.entries.filter((entry) =>
@@ -118,5 +121,12 @@ test("C-03 generator refuses invalid provenance instead of inventing it", async 
   await assert.rejects(
     generateReleasePayload({ snapshot, registry, sourceCommitSha, edgeReleaseRef: "latest" }),
     /must match the Edge runtime constant/,
+  );
+});
+
+test("C-03 generator refuses a missing or malformed full configuration digest", async () => {
+  await assert.rejects(
+    generateReleasePayload({ snapshot: { ...snapshot, configDigest: "" }, registry, sourceCommitSha }),
+    /configDigest must be a lowercase SHA-256 digest/,
   );
 });
