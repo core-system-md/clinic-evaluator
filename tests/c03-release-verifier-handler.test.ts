@@ -103,6 +103,7 @@ Deno.test("release verifier sends live config and runtime identity to the servic
   if (call.payload.p_actual_family_id !== evidence.familyId) throw new Error("Family identity not attested.");
   if (call.payload.p_actual_assessment_type_id !== evidence.assessmentTypeId) throw new Error("Version identity not attested.");
   if (call.payload.p_actual_config_digest !== evidence.configDigest) throw new Error("Full config digest not attested.");
+  if (call.payload.p_actual_canonicalizer_version !== evidence.canonicalizerVersion) throw new Error("Canonicalizer version not attested.");
   if (call.payload.p_actual_registry_digest !== evidence.interpretationRegistryDigest) throw new Error("Registry digest not attested.");
   if (call.payload.p_actual_git_commit_sha !== runtimeMetadata.gitCommitSha) throw new Error("Git release identity not attested.");
 });
