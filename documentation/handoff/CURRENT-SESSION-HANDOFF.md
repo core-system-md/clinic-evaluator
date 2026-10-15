@@ -197,3 +197,28 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - Existing 248/248 option-identity reconciliation and C-01 CI evidence remain in the architecture/status records.
 
 **Next step:** follow the independently authorized work queue; do not reopen C-01 or begin C-03 as part of this closure. C-03 scope reconciliation remains separate.
+
+
+---
+
+## C-03 review checkpoint — 2026-10-15 (PR #106 / PR #107)
+
+**Status: implementation review in progress; C-03 NOT CLOSED.** This section supersedes older statements in this file that C-03 has not started, because the owner has now explicitly directed continuation and the repository contains active C-03 implementation PRs. It does not silently resolve unrelated historical scope conflicts; the active implementation under review is the persisted-result report recovery plus hybrid configuration release gate represented by PR #106 and PR #107.
+
+### Exact-head status (read-only)
+
+- PR #106 is OPEN / DRAFT / not merged. Head `bf57c44a97a90ec389f61e5366434ac5c831a517`. Its exact-head workflow inventory showed protected Edge handler regression plus P3 kernel, WP-02, WP-03, WP-04, WP-05 and WP-09; all reported SUCCESS.
+- PR #107 is OPEN / DRAFT / not merged. Head `abec5e31268bd9d1c6339e95d4a6bd1d5a3d68e9`. Its exact-head workflow inventory showed the C-03 hybrid config release gate (all three jobs succeeded), plus P3 kernel, WP-02, WP-04 and WP-09; all reported SUCCESS.
+- PR #96 remains OPEN / DRAFT / not merged. PR #105 is CLOSED / not merged. Neither was merged, cherry-picked, or otherwise modified during this checkpoint.
+- Review evidence and outstanding gates are recorded in `documentation/governance/C-03-PR106-PR107-ENGINEERING-REVIEW-2026-10-15.md`.
+
+### Findings and limits
+
+- PR #106's actual dispatcher test covers the protected completed-retry path when persisted `assessmentSlug` is missing and a first-completion routing path. The first-completion test stubs the calculation and uses a fake backend; this is not a replay of the historical Production crash.
+- PR #107's isolated PostgreSQL harness passes its release state-machine assertions. It substitutes test implementations for `require_admin_capability`, `publish_assessment_version_secure`, and `restore_public_assessment_secure`; therefore it does not prove integration with the real existing authorization/publication routines.
+- The release-gate workflow's success is isolated CI evidence only. No migration was applied to Production, no Edge Function was deployed, no Production write or live Production E2E was performed, and no release authorization was inferred.
+- Do not close C-03 until the remaining integration/security review and all authorized release gates have actual evidence. Do not merge PR #96 or PR #105.
+
+### Next exact action
+
+Continue review of PR #106 and PR #107 against the live repository contract, close or document each actionable finding, add regression coverage where required, and update this handoff after each review/fix package. Keep all Production-targeted actions blocked pending explicit release authorization.
