@@ -98,56 +98,73 @@ C-03 is not closed until the canonical PR is merged with green exact-head CI, th
 
 ---
 
-# نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
+# نقطة الاستئناف الحالية (آخر تحديث: 2026-10-15 17:55 +03:00، المحادثة الحالية)
 
-## 1. الموضع
-- المرحلة الحالية: C-01 repository implementation = CLOSED / MERGED؛ C-02 = CLOSED؛ C-03 = BLOCKED بسبب تعارض النطاق. آخر تحديث حاكم: 2026-10-14 بعد دمج PR #97.
-- آخر خطوة منجزة: دمج C-01 بعد إعادة بنائه على main؛ CI على الرأس النهائي نجح، ومقارنة قراءة فقط مع Production طابقت 248/248 هوية خيار (152 Comprehensive + 96 Patient Journey، دون نقص أو زيادات). نشر Cloudflare Pages المرتبط بالدمج نجح. لم يتم نشر Edge Function.
-- الخطوة التالية بالضبط: حسم تعريف C-03 قبل أي تنفيذ. التعارض قائم بين Git↔DB sync + حماية إكمال تقييم منشور من الإدارة وبين interpretation-binding/option-identity coverage وبين تعريف D11 في وثيقة P3. لا تبدأ C-03 قبل توحيد النطاق. Edge deployment وruntime E2E الخاصان بـC-01 يظلان بوابة إصدار منفصلة؛ لا تدّعِ أن Edge الجديد يعمل في Production.
-- الميزانية الزمنية: حد C-02 ثلاثة ساعات وفق العقد؛ الزمن الفعلي الكامل غير متاح بدليل موثوق. C-03 لم يبدأ تنفيذياً.
+## 1. الموضع والحالة
+- المرحلة / البند / الحالة: C-03 Production Release — BLOCKED / NOT CLOSED. التنفيذ البرمجي المدمج والاختبارات المعزولة ناجحة؛ بوابة إصدار Production لم تُنفذ بسبب نقص اعتماد المالك في بيئة GitHub Actions.
+- الحالة الفرعية: migration PRODUCTION VERIFIED — APPLIED؛ assessment-access runtime PRODUCTION VERIFIED على v38؛ assessment-config-release NOT DEPLOYED؛ release records = 0؛ active release pointers = 0؛ gate DISABLED.
+- لا تعُد إلى C-01 أو C-02؛ كلاهما مغلق حسب أدلتهما التاريخية الحالية. لا تعِد فتح PRs C-03 البديلة المغلقة.
 
-## 2. حالة المستودع
-- آخر commit دمج على main لهذه المرحلة: `5879fe3f22da2fd693de571e806ac44cd51f7e27` (PR #97).
-- C-01 implementation merged on main. توثيق الإغلاق الحالي يُحدّث في PR مستقل. نشر Cloudflare Pages للـcommit أعلاه نجح؛ لا يوجد Edge Function deployment جديد ضمن هذه المرحلة.
-- اختبارات C-01: P3 kernel run `38614736937` (بما فيه full Node suite وdisposable PostgreSQL jobs) وWP-02 `38614737136` وWP-09 `38614737082` وWP-04 `38614737308` وWP-03 `38614737321` كلها SUCCESS. Live read-only identity comparison: 248/248 exact matches. لا يوجد runtime E2E جديد على Edge source المدمج.
+## 2. آخر خطوة منجزة ودليلها
+- فُحصت GitHub Actions وسجلات التشغيل وSupabase Production قراءة فقط.
+- أحدث تشغيل تشخيصي: https://github.com/core-system-md/clinic-evaluator/actions/runs/38756301379، commit المشغّل 17a5105aaf5d5a8e69864fb44958f8961560d1fe: job نطاق أسرار المستودع SUCCESS؛ job بيئة production-e2e FAILURE لأن C03_OWNER_JWT وصل فارغاً. وصل SUPABASE_ANON_KEY وSUPABASE_SERVICE_ROLE_KEY في النطاقين؛ استعلامات القراءة في نطاق المستودع نجحت.
+- آخر تشغيل إصدار محمي: https://github.com/core-system-md/clinic-evaluator/actions/runs/38746879746: فحوص Node وDeno وPostgreSQL المعزولة نجحت؛ خطوة Validate credentials and Production release preconditions before deployment فشلت؛ attestation والنشر وتسجيل/تفعيل الإصدارات وتغيير البوابة وlive E2E كلها SKIPPED.
+- لم تحدث كتابة Production أو هجرة أو نشر خلال هذه الجلسة.
 
-## 3. حالة الإنتاج (آخر فحص حي: 2026-10-14؛ وقت الدقيقة غير متاح)
-- الهجرات: 52، آخرها 20261013110000 / c02_allow_answer_value_70.
-- Edge assessment-access: ACTIVE v37، SHA-256 bd73200ea55c8f3682c2af80a1ccb57dc3e227f43563cfe28ce2e226b2005c36.
-- counts: leads/sessions/results = 0/0/0؛ answers/scores/access = 0/0/0؛ historical_snapshots للجلستين = 0.
-- عملية الإنتاج: DELETE واحد محدود بالمعرفين الدقيقين للـleads مع source marker وsynthetic email suffix؛ cascades أزالت السجلات التابعة. موافقة المالك: «تابع التنظيف و اغلاق c02، و قم بعدها بالانتقال إلى c03 not c01».
+## 3. حالة المستودع
+- main قبل إغلاق التوثيق: 6e5858fe5779a06de5c98e983060c83b8ddc52bf، رسالة docs(C-03): reconcile engineering review with merged and live release state. تمت قراءة ref البعيد عبر GitHub API؛ وهو مرجع main الذي جرى التحقق منه قبل هذا الإغلاق.
+- المسار الفعلي لبوابة الإصدار: .github/workflows/c03-production-release.yml، والاسم الظاهر C-03 guarded Production release and bounded E2E.
+- المسار الفعلي للتشخيص: .github/workflows/c03-credential-preflight.yml، والاسم الظاهر C-03 Credential Preflight — Read-only.
+- لم تُعدّل ملفات التطبيق أو الاختبارات أو migrations أو workflow أثناء إغلاق التوثيق الحالي. لا يتيح موصل GitHub فحص working tree محلي؛ لذلك لا يمكن إثبات حالة ملفات محلية غير مدفوعة. كل تغييرات المستودع التي تمت عبر الموصل تظهر كـ commits بعيدة.
+- لا PRs جديدة ولا merge لبدائل C-03 ضمن هذا الإغلاق.
 
-## 4. جدول البنود
-| المعرّف | الحالة | الدليل | ملاحظة |
-|---|---|---|---|
-| C-02 | CLOSED | #38469121966 + artifact 11850662078؛ exact-ID/hash checks all zero | لا تعِد تشغيل E2E |
-| C-01 | CLOSED — repository implementation | PR #97 merged `5879fe3f22da2fd693de571e806ac44cd51f7e27`; 5 CI workflows passed; live mapping 248/248 exact matches | Edge deployment/runtime E2E remains separate release gate; not deployed here |
-| C-03 | BLOCKED | تعارض تعريف النطاق بين برومبت المالك، handoff index، وP3 architecture D11 | احسم التعريف قبل التنفيذ |
+## 4. حالة Production الحية (قراءة فقط)
+- المشروع: oaqpzaarppccbnepffxx، الحالة ACTIVE_HEALTHY حسب آخر سجل موثق.
+- سجل الهجرات: 53؛ آخر هجرة 20261015100000 / c03_hybrid_config_release_gate.
+- assessment-access: ACTIVE v38، SHA-256 fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b.
+- assessment-config-release: غير موجودة ضمن Edge Functions المنشورة.
+- assessment_config_release_settings.enabled=false؛ assessment_config_releases=0؛ current release pointers = 0؛ current published families = 5.
+- counts الحية: leads=0, sessions=0, assessment_results=0, answers=0, scores=0, assessment_session_access=0.
+- لم تُنفذ أي عملية إنتاج أثناء الإغلاق. لا تفسر تطبيق الهجرة على أنه إغلاق C-03.
 
-## 5. قرارات المالك الجديدة
-- 2026-10-14: صدر لاحقاً توجيه صريح بإعادة بناء C-01 على main وإغلاقه؛ نُفّذ ذلك عبر PR #97. التوجيه الأسبق بالانتقال من C-02 إلى C-03 لا يغيّر حالة C-01 الحالية. C-03 لا يزال متوقفاً بسبب تعارض النطاق.
+## 5. نتائج الاختبارات والأوامر
+- Run #38746879746 — اختبارات معزولة PASS:
+  - node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs
+  - deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
+  - psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
+- النتيجة النهائية لذلك التشغيل FAILURE عند فحص الاعتمادات قبل أي نشر، بسبب متغير C03_OWNER_JWT الفارغ. لا تُصنف التشغيل على أنه نجاح إصدار.
+- Run #38756301379: فحص حقن أسرار المستودع وقراءة حالة Production SUCCESS؛ فحص حقن الأسرار داخل production-e2e FAILURE عند C03_OWNER_JWT. لا يوجد أمر اختبار منتج منفصل في هذا التشغيل؛ نفذ preflight للمتغيرات ثم طلبات REST للقراءة فقط.
 
-## 6. سؤال مفتوح
-هل تعريف C-03 الملزم هو تعريف البرومبت الحالي §7 (Git↔DB sync + حماية إكمال تقييم منشور من crash) ويُعد تعريف handoff index القديم متجاوزاً؟ أم المقصود interpretation binding/option identity؟ يلزم تعريف واحد.
+## 6. الخطوة التالية بالضبط
+- بعد التأكد من توفر JWT حقيقي للمالك، تحقق من وجود السر C03_OWNER_JWT غير الفارغ في GitHub → Settings → Environments → production-e2e → Environment secrets. لا تطلب القيمة في المحادثة ولا تطبعها في logs.
+- شغّل workflow باسم C-03 Credential Preflight — Read-only من https://github.com/core-system-md/clinic-evaluator/actions/workflows/c03-credential-preflight.yml، ثم تحقق من أن job production-e2e يمر بفحص السر ويجتاز استعلام القراءة فقط. هذه الخطوة تشخيصية فقط؛ لا تشغّل Workflow الإصدار بعدها دون تفويض منفصل.
+- لا تُغيّر workflow أو تبدّل scopes بالتخمين. لا تستخدم service-role key بديلاً عن JWT المالك ولا تتجاوز Edge authorization.
 
-## 7. الانحرافات والمخاطر
-- تعارض توثيقي في تعريف C-03؛ سُجل صراحة ولم يُحسم بصمت.
-- انحراف توثيق: تحديثات الوثائق تُجمع على فرع مؤقت ثم fast-forward واحد إلى main بسبب عدم إتاحة tree SHA في الموصل. لا PR ولا تغييرات تطبيقية.
+## 7. قرارات المالك والأسئلة المفتوحة
+- لا يوجد قرار نطاق C-03 مفتوح في هذه المرحلة: PR #109 هو التنفيذ المرجعي المدمج، وحالة العمل الحالية هي إطلاق النسخة المحروسة.
+- ينتظر الإعداد الآمن: توفير C03_OWNER_JWT في بيئة production-e2e دون كشف القيمة. لا يوجد أي طلب لإرسال secret إلى المحادثة.
+- يظل تفويض إصدار Production مستقلاً عن فحص الاعتمادات؛ لا تُنفذ نشر Edge أو تسجيل/تفعيل releases أو تمكين gate أو live E2E دون التفويض المطلوب في مسار الإصدار المحروس.
 
-## 8. تحذيرات الاستئناف
-- لا تعِد فتح C-01 source repair؛ تم دمجه وإغلاق PR القديم #79. أي نشر Edge أو runtime E2E يُدار كبوابة إصدار منفصلة.
-- لا تبدأ تنفيذ C-03 قبل توحيد تعريف النطاق.
-- لا E2E جديد، ولا هجرة، ولا Edge deployment، ولا Production write آخر دون موافقة مستقلة محددة.
+## 8. الانحرافات والمخاطر والوقت
+- انحرافات العملية المسجلة بتاريخ 2026-10-15: توجيه المالك إلى اسم Workflow غير مطابق لاسم الواجهة؛ تغييرات متكررة في environment دون إثبات root cause؛ وإضافة فحص تشخيصي قبل إكمال مطابقة كل متطلبات الاعتماد. هذه أخطاء تنفيذ هندسي، ولا تُحمّل للمالك.
+- السبب المباشر المؤكد حالياً: C03_OWNER_JWT فارغ في job بيئة production-e2e. السبب الإعدادي الدقيق داخل GitHub settings غير متاح عبر الموصل.
+- الميزانية التي ذكرها المالك للعمل هي 7–10 ساعات؛ المالك أفاد أن C-03 امتد ثلاثة أيام. وقت البدء الكامل للعمل والوقت الفعلي التراكمي غير متاحين كسجل زمني موثوق؛ المقارنة الرقمية الدقيقة بالميزانية UNVERIFIED، ولا يجوز اختلاق عدد ساعات.
+- وقت إغلاق هذه الجلسة المسجل من ساعة النظام: 2026-10-15 17:55 +03:00. لا توجد عملية إنتاج جارية بحسب سجلات Actions المقروءة؛ آخر التشغيلات المعنية مكتملة.
+
+## 9. المحظورات عند الاستئناف
+- لا تنشر Edge Functions، لا تطبق migrations، لا تسجل أو تفعل release records، لا تمكّن gate، ولا تشغّل live E2E/cleanup في هذه الخطوة.
+- لا تدمج PRs البديلة المغلقة (#96، #101–#104، #106–#108، #110–#112) ولا تستخدم PR #105.
+- لا تغيّر main بعد إصدار ناجح مربوط ببصمة attestation من دون مسار إصدار جديد مصرح به.
+- بعد تحديث هذا الملف، يجب أن يكون commit توثيقي واحد على main، والتحقق من أن ref البعيد يطابق commit الإغلاق.
 
 ## سجل المحادثات
 | # | التاريخ | ما أُنجز | الحالة عند الإغلاق | commit |
 |---|---|---|---|---|
 | غير متاح | 2026-10-14 | تنظيف #38469121966؛ إثبات الصفر؛ إغلاق C-02؛ توثيق تعارض نطاق C-03 | C-02 CLOSED؛ C-03 BLOCKED | ينتظر التحقق من main |
+| المحادثة الحالية | 2026-10-15 | مطابقة عقود العمل مع حالة GitHub Actions وSupabase؛ تثبيت سبب الحظر المباشر C03_OWNER_JWT؛ توثيق الانحرافات؛ إغلاق توثيقي فقط | C-03 BLOCKED / NOT CLOSED؛ Production untouched | سيُتحقق من commit الإغلاق بعد الدفع |
 
 ## أمر الاستئناف
-«المتابعة. اقرأ هذا الملف، تحقق من main والإنتاج قراءة فقط، ثم اعرض سؤال حسم نطاق C-03؛ لا تبدأ C-03 قبل إزالة التعارض، ولا تدّعِ نشر Edge الخاص بـC-01.»
-
----
+المتابعة
 
 # CURRENT SESSION HANDOFF
 

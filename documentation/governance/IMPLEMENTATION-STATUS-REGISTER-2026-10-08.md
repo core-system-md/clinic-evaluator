@@ -748,3 +748,36 @@ Per the no-silent-conflict rule, C-03 implementation is BLOCKED pending scope re
 - No migration or DDL was executed. The prior 248/248 live option identity reconciliation remains valid.
 
 C-01 closure gates are all PASS: source/CI, live option reconciliation, deployed-source parity, both-family Production runtime E2E, and scoped cleanup. Do not return to C-01 unless new evidence identifies a regression. C-03 remains a separate work item and was not started here.
+
+
+## 25. C-03 Production release credential reconciliation and session closeout — 2026-10-15
+
+**Authoritative status:** C-03 = IMPLEMENTED / ISOLATED CI PASS / MIGRATION PRODUCTION VERIFIED / RELEASE BLOCKED / NOT CLOSED.
+
+### Current source-control and execution evidence
+- Remote main read immediately before this documentation closeout: 6e5858fe5779a06de5c98e983060c83b8ddc52bf, commit message docs(C-03): reconcile engineering review with merged and live release state. The GitHub API returned this SHA for commits/main; the closeout must create one documentation-only commit and then verify the remote main ref equals it.
+- The actual release workflow UI name is C-03 guarded Production release and bounded E2E, path .github/workflows/c03-production-release.yml. The read-only diagnostic is C-03 Credential Preflight — Read-only, path .github/workflows/c03-credential-preflight.yml. Do not refer to the release workflow by an invented UI name.
+- Run #38746879746: Node digest/attestation/release tests, Deno protected/public Edge handler tests, and disposable PostgreSQL release/authorization harness all SUCCESS. Credential/Production preflight failed before attestation or any Production operation; all later release steps were skipped.
+- Exact isolated test commands from the workflow:
+  - node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs
+  - deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
+  - psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
+- Latest diagnostic run #38756301379: repository credential injection and read-only Supabase state check SUCCESS; protected production-e2e credential check FAILURE because C03_OWNER_JWT is empty. SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY were injected in both scopes. The exact setting responsible for the missing JWT is not observable through the connector.
+- No production write, migration, Edge deployment, release registration/activation, gate change, live E2E, or cleanup was performed during this closeout.
+
+### Current live Production state (read-only)
+- Migration ledger: 53 entries; latest 20261015100000 / c03_hybrid_config_release_gate.
+- assessment-access: ACTIVE v38, SHA-256 fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b.
+- assessment-config-release: not deployed.
+- C-03 release settings singleton: enabled=false; release rows = 0; current release pointers = 0; current published families = 5.
+- Live table counts: leads=0, sessions=0, assessment_results=0, answers=0, scores=0, assessment_session_access=0.
+- The migration is applied, but that is not evidence of C-03 release closure.
+
+### Process deviation and corrective boundary
+- On 2026-10-15 the owner was directed to a workflow name that did not match the actual GitHub Actions display name. Environment-only changes were attempted without first proving the root cause, and the diagnostic workflow was added before reconciling all required credential injection. These deviations conflict with the binding truth-first, root-cause, bounded-work, no-guess, anti-spiral and evidence-matched status rules in AI-ENGINEERING-OPERATING-CONTRACT.md.
+- The directly observed remaining blocker is the empty C03_OWNER_JWT in the protected production-e2e job. Do not substitute the service-role key, impersonate the owner, expose the JWT, or bypass the owner-authenticated Edge API.
+- Next exact step: ensure a real owner JWT is configured as a protected, non-empty environment secret under GitHub Settings → Environments → production-e2e → Environment secrets; then run C-03 Credential Preflight — Read-only and verify its protected environment job and read-only state query. Do not run the release workflow unless a separate release authorization is present and preflight is green.
+- The owner reported C-03 had consumed three days against an intended 7–10 hour work budget. The start timestamp and cumulative execution hours are not available in a reliable machine record; total actual hours vs budget remain UNVERIFIED. Do not estimate them.
+- GitHub connector does not expose a local working tree; therefore local uncommitted filesystem files cannot be independently inventoried. This closeout changes documentation only; no source-code/workflow/test/migration changes are part of the closeout commit.
+
+**Final state for this session: C-03 BLOCKED / NOT CLOSED; Production untouched during closeout; documentation-only closure required.**

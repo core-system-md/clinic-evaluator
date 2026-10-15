@@ -9,7 +9,7 @@
 | Check | Observed value |
 |---|---|
 | Project health | `ACTIVE_HEALTHY` |
-| Latest applied migration | `20261013110000` — `c02_allow_answer_value_70` |
+| Latest applied migration | `20261015100000` — `c03_hybrid_config_release_gate` |
 | C-03 migration | `20261015100000_c03_hybrid_config_release_gate` — applied (live migration ledger verified 2026-10-15) |
 | `assessment_config_releases` | present; 0 release rows |
 | `assessment_config_release_settings` | present; singleton gate `enabled=false` |
@@ -111,3 +111,41 @@ Corrected diagnostic workflow run [#38756301379](https://github.com/core-system-
 **Current directly observed blocker:** runtime injection of `C03_OWNER_JWT` is empty in the protected `production-e2e` job. This credential is required for owner-authenticated read-only attestation and release actions. The repository-scope read-only credential and state checks now pass. Do not substitute the service-role key, impersonate an owner, bypass the Edge API with privileged SQL, or expose the JWT. The precise GitHub setting responsible for the empty environment value remains unverified.
 
 **Current status:** MIGRATION APPLIED / ISOLATED CI PASS / REPOSITORY READ-ONLY PREFLIGHT PASS / PROTECTED ENVIRONMENT OWNER-JWT INJECTION BLOCKED / EDGE RELEASE NOT DEPLOYED / GATE DISABLED / C-03 NOT CLOSED.
+
+
+## Session-closeout execution reconciliation — 2026-10-15
+
+This addendum supersedes earlier statements in this file that the C-03 migration was absent or that the service-role injection remained the directly observed blocker. Historical snapshots above are retained as historical evidence.
+
+### Live read-only snapshot at closeout
+- GitHub main immediately before this documentation closeout: 6e5858fe5779a06de5c98e983060c83b8ddc52bf; commit docs(C-03): reconcile engineering review with merged and live release state.
+- Supabase migration ledger contains 53 entries. Latest: 20261015100000 / c03_hybrid_config_release_gate.
+- assessment-access: ACTIVE v38, SHA-256 fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b.
+- assessment-config-release: not deployed.
+- Release gate enabled=false; release records = 0; active release pointers = 0; current published families = 5.
+- Counts: leads=0, sessions=0, assessment_results=0, answers=0, scores=0, assessment_session_access=0.
+- All queries in this closeout were read-only. No migration, deployment, release write, gate mutation, live E2E, or cleanup was run.
+
+### Latest guarded release workflow result
+Run #38746879746, path .github/workflows/c03-production-release.yml, actual UI name C-03 guarded Production release and bounded E2E:
+- node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs — PASS.
+- deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts — PASS.
+- psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql — PASS.
+- Step Validate credentials and Production release preconditions before deployment — FAILURE. Attestation preparation, deployed-bundle wait, release registration/activation, gate enablement/readback and bounded live E2E were SKIPPED. No release artifact indicates a completed production release.
+
+### Latest credential diagnostic
+Run #38756301379, actual UI name C-03 Credential Preflight — Read-only:
+- Repository-scope job: SUCCESS; SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY injected; read-only API authentication and expected disabled gate/five-family inventory verified.
+- production-e2e job: FAILURE at C03_OWNER_JWT injection; the value was empty. SUPABASE_ANON_KEY and SUPABASE_SERVICE_ROLE_KEY were injected in that environment.
+- The run stopped before its environment-scope API read. No Production mutation occurred.
+- Proven root cause boundary: the owner JWT is unavailable to the protected job. The exact GitHub settings entry causing this is not observable through the connector; a same-name environment secret may override a repository secret, but that mechanism is not yet proven.
+
+### Exact next action / stop boundary
+1. Securely configure a valid owner JWT as a non-empty secret in GitHub → Settings → Environments → production-e2e → Environment secrets. Never send its value to chat or expose it in logs.
+2. Run C-03 Credential Preflight — Read-only and verify both jobs, especially the protected environment's credential injection and read-only state query.
+3. Keep Production release blocked until this diagnostic passes and separate release authorization is present. Do not use the service-role key as a substitute for owner authentication, bypass the Edge API, or perform any Production write as a workaround.
+
+### Time accounting / contract deviation
+- The owner stated that C-03 has consumed three days against an intended 7–10 hours of work. Start time and cumulative active execution time are not available as reliable machine evidence; total actual hours vs budget remains UNVERIFIED.
+- Process deviation: workflow display name was misstated to the owner; environment-only patches were attempted without root-cause proof; the diagnostic workflow was added before all credential requirements were reconciled. These are recorded as engineering-process errors under the binding truth-first, no-guess, root-cause, bounded-work and anti-spiral contract.
+- This is documentation-only closeout. No source/workflow/test/migration changes are intended in this documentation commit.
