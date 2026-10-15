@@ -24,7 +24,13 @@ function setup(valid: boolean) {
   return { handler, count: () => rpcCount };
 }
 function request(body: unknown, token = "signed-token") {
-  return new Request("https://local.test", { method: "POST", headers: { authorization: token ? "Bearer " + token : "", "content-type": "application/json" }, body: JSON.stringify(body) });
+  const ciAction = String((body as any)?.action || "").startsWith("ci_");
+  const headers: Record<string, string> = {
+    authorization: ciAction ? "Bearer anon-token" : token ? "Bearer " + token : "",
+    "content-type": "application/json",
+  };
+  if (ciAction && token) headers["x-c03-github-oidc"] = token;
+  return new Request("https://local.test", { method: "POST", headers, body: JSON.stringify(body) });
 }
 Deno.test("invalid GitHub workload identity is rejected before any RPC", async () => {
   const state = setup(false);
