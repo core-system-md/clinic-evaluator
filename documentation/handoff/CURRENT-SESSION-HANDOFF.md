@@ -12,9 +12,9 @@
 ## Verified Production state after deployment
 - Supabase project: `oaqpzaarppccbnepffxx`.
 - Migration `20261015120000_c03_github_oidc_release_authorization` is recorded as applied; all four CI RPC signatures are present.
-- `assessment-access`: ACTIVE v39, `verify_jwt=false` (preserved public endpoint configuration).
-- `assessment-config-release`: ACTIVE v1, `verify_jwt=true`; GitHub OIDC is passed in a dedicated header so the Supabase gateway continues to verify its normal JWT.
-- Both deployed Edge functions currently embed the same attestation: source SHA `4eef11cae8c83201e7d89c21d27f99750d8f7d3d`, edge source digest `sha256:0257e577e67f157aabc8b512dc76a6b252229263597156ceef4853b2e496763f`.
+- `assessment-access`: ACTIVE v40, `verify_jwt=false` (preserved public endpoint configuration).
+- `assessment-config-release`: ACTIVE v2, `verify_jwt=true`; GitHub OIDC is passed in a dedicated header so the Supabase gateway continues to verify its normal JWT.
+- Both deployed Edge functions embed the same attestation and edge source digest `sha256:0257e577e67f157aabc8b512dc76a6b252229263597156ceef4853b2e496763f`. The attested Git SHA must be read from both deployed files after the latest main commit; documentation-only changes require refreshing that SHA before release.
 - Read-only Production verification: migration recorded = true; gate `enabled=false`; release rows = 0; active release pointers = 0; published families = 5; published families without a release = 5.
 - No release registration/verification/activation, gate enablement, live E2E, or cleanup has been performed. C-03 is **not yet Production-closed**.
 
