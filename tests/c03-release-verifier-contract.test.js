@@ -1,0 +1,39 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+
+const verifier = fs.readFileSync(
+  'supabase/functions/assessment-config-release/index.ts',
+  'utf8',
+);
+const engine = fs.readFileSync(
+  'supabase/functions/assessment-access/engine.ts',
+  'utf8',
+);
+
+test('C-03 release verifier requires authenticated owner before export or verification', () => {
+  assert.match(verifier, /async function requireOwner\(req: Request\)/);
+  assert.match(verifier, /userClient\.auth\.getUser/);
+  assert.match(verifier, /userClient\.rpc\("is_owner"\)/);
+  assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "export")'));
+  assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "verify")'));
+});
+
+test('C-03 release verifier exports canonical config and attests live runtime evidence only', () => {
+  assert.match(engine, /export async function computeAssessmentConfigReleaseEvidence\(/);
+  assert.match(verifier, /canonicalConfig: evidence\.canonicalConfig/);
+  assert.match(verifier, /verify_assessment_config_release_secure/);
+  assert.match(verifier, /p_actual_config_digest: evidence\.configDigest/);
+  assert.match(verifier, /p_actual_registry_digest: evidence\.interpretationRegistryDigest/);
+  assert.match(verifier, /p_actual_family_id: evidence\.familyId/);
+  assert.match(verifier, /p_actual_assessment_type_id: evidence\.assessmentTypeId/);
+});
+
+test('C-03 release verifier fails closed when runtime release metadata is absent', () => {
+  assert.match(verifier, /C03_GIT_COMMIT_SHA/);
+  assert.match(verifier, /C03_EDGE_RELEASE_REF/);
+  assert.match(verifier, /C03_FIXTURE_SET_VERSION/);
+  assert.match(verifier, /C03_MIGRATION_CONTRACT_VERSION/);
+  assert.match(verifier, /C-03 runtime release metadata is not configured/);
+  assert.match(verifier, /return json\(\{ error: "C-03 runtime release metadata is not configured" \}, 503\)/);
+});
