@@ -136,3 +136,27 @@ C-03 is not closed until both owner-directed tracks are evidenced:
 3. **Release gates:** verify target-environment migration/RPC compatibility and deployed Edge source/bundle. Any Production migration, Edge deployment, or production-writing E2E requires its own explicit gate and exact cleanup plan.
 
 Until all three criteria pass, status remains **IN PROGRESS / NOT CLOSED**.
+
+
+## 9. Implementation status addendum — 2026-10-15 closeout
+
+This addendum supersedes only the implementation-status statements in §7; the contract and exit criteria in §8 remain binding.
+
+### Protected completion
+- PR #106: https://github.com/core-system-md/clinic-evaluator/pull/106
+- Latest checked head: `bf57c44a97a90ec389f61e5366434ac5c831a517`.
+- The implementation adds persisted-result family identity recovery and an injectable request-handler factory.
+- Actual Deno handler regression run [#38705496464](https://github.com/core-system-md/clinic-evaluator/actions/runs/38705496464) passed 2/2 tests: (a) completed-retry/report projection with a persisted result missing `assessmentSlug`, and (b) first-time protected completion routing and payload/identity checks. The first-time test stubs calculation and uses a fake backend; the protected SQL RPC remains covered separately by disposable PostgreSQL.
+- This proves and covers a missing-family-context failure class. It does **not** conclusively identify that class as the exact historical Production crash. Review and target-runtime validation remain required.
+
+### Hybrid configuration release gate
+- PR #107: https://github.com/core-system-md/clinic-evaluator/pull/107
+- Latest checked head: `abec5e31268bd9d1c6339e95d4a6bd1d5a3d68e9`, based on current `main` `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`.
+- Implements the full-runtime configuration projection/digest, release registration/verification, owner-authenticated `assessment-config-release` handler, service-role attestation, pointer compare-and-swap, rollback, release pinning, drift rejection, and a disabled-by-default gate.
+- Exact-head CI passed: C-03 release gate [#38706962125](https://github.com/core-system-md/clinic-evaluator/actions/runs/38706962125), P3 [#38706962080](https://github.com/core-system-md/clinic-evaluator/actions/runs/38706962080), WP-02 [#38706962076](https://github.com/core-system-md/clinic-evaluator/actions/runs/38706962076), WP-04 [#38706962043](https://github.com/core-system-md/clinic-evaluator/actions/runs/38706962043), and WP-09 [#38706962161](https://github.com/core-system-md/clinic-evaluator/actions/runs/38706962161).
+- PR #105 is closed unmerged and superseded by #107. PR #96 remains open/Draft/diverged; do not merge it directly.
+
+### Production boundary and current closure status
+- No C-03 migration was applied to Production; no release was registered, verified, or activated there; no C-03 Edge Function was deployed; no production-writing E2E was run. The release gate remains absent from Production.
+- Production rollout still requires a schema/RPC compatibility review, complete digest/release coverage for all five current published versions, runtime metadata configuration, explicit preflight, authorized migration/deployment/E2E, and exact-ID cleanup verification.
+- **C-03 remains IN PROGRESS / NOT CLOSED.** Isolated CI is not Production verification. Continue to enforce §8 exit criteria and the explicit Production authorization boundary.
