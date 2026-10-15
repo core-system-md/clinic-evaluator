@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { execFileSync } from "node:child_process";
 import { readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { getC03GithubOidcToken } from "./c03-github-oidc-token.mjs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
@@ -105,7 +106,7 @@ export async function verifyDeployedAttestation({
   assessmentTypeId,
   baseUrl: suppliedBaseUrl,
   anonKey: suppliedAnonKey,
-  ownerJwt: suppliedOwnerJwt,
+  oidcToken: suppliedOidcToken,
   fetchImpl = fetch,
 } = {}) {
   const actualHead = gitHead(root);
@@ -116,19 +117,19 @@ export async function verifyDeployedAttestation({
   const expected = await buildRuntimeAttestation({ root, commitSha: actualHead });
   const baseUrl = String(suppliedBaseUrl || process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const anonKey = String(suppliedAnonKey || process.env.SUPABASE_ANON_KEY || "");
-  const ownerJwt = String(suppliedOwnerJwt || process.env.C03_OWNER_JWT || "");
+  const oidcToken = String(suppliedOidcToken || await getC03GithubOidcToken());
   const selectedAssessmentTypeId = String(assessmentTypeId || process.env.C03_ASSESSMENT_TYPE_ID || "").trim();
-  if (!baseUrl || !anonKey || !ownerJwt || !selectedAssessmentTypeId) {
-    throw new Error("Read-only deployed attestation verification requires SUPABASE_URL, SUPABASE_ANON_KEY, C03_OWNER_JWT, and C03_ASSESSMENT_TYPE_ID.");
+  if (!baseUrl || !anonKey || !oidcToken || !selectedAssessmentTypeId) {
+    throw new Error("Read-only deployed attestation verification requires SUPABASE_URL, SUPABASE_ANON_KEY, GitHub Actions OIDC, and C03_ASSESSMENT_TYPE_ID.");
   }
   const response = await fetchImpl(baseUrl + "/functions/v1/assessment-config-release", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "apikey": anonKey,
-      "Authorization": "Bearer " + ownerJwt,
+      "Authorization": "Bearer " + oidcToken,
     },
-    body: JSON.stringify({ action: "export", assessment_type_id: selectedAssessmentTypeId }),
+    body: JSON.stringify({ action: "ci_export", assessment_type_id: selectedAssessmentTypeId }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload?.success !== true) {
