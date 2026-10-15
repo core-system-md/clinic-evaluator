@@ -5,16 +5,24 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/c03-hybrid-config-release.yml"
+      - ".github/workflows/c03-production-release.yml"
+      - ".github/workflows/c03-credential-preflight.yml"
       - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
+      - "supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql"
+      - "supabase/functions/_shared/c03-github-oidc.ts"
       - "tests/c03-hybrid-config-release-harness.sql"
       - "supabase/functions/assessment-access/**"
       - "supabase/functions/assessment-config-release/**"
       - ".github/scripts/c03-*.mjs"
+      - ".github/scripts/c03-*.ts"
       - "tests/c03-config-digest-coverage.test.js"
       - "tests/c03-release-verifier-contract.test.js"
       - "tests/c03-release-verifier-handler.test.ts"
       - "tests/c03-runtime-attestation.test.mjs"
       - "tests/c03-production-release.test.mjs"
+      - "tests/c03-github-oidc-token.test.mjs"
+      - "tests/c03-github-oidc-claims.test.ts"
+      - "tests/c03-oidc-handler-auth.test.ts"
   workflow_dispatch:
 
 permissions:
@@ -54,7 +62,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs
+      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs tests/c03-github-oidc-token.test.mjs
 
 
   release-verifier-handler:
@@ -70,4 +78,5 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts
+      - run: deno check .github/scripts/c03-oidc-preflight.ts
+      - run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-github-oidc-claims.test.ts

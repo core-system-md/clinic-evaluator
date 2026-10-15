@@ -1,3 +1,31 @@
+# CURRENT OWNER-DIRECTED RESUMPTION — C-03 OIDC AUTHORIZATION — 2026-10-15
+
+**This section supersedes the earlier status below that treats `C03_OWNER_JWT` as the remaining release path. The owner explicitly authorized a reviewed alternative authorization design and continued C-03 Production completion.**
+
+## Current implementation package
+- Draft PR #113: https://github.com/core-system-md/clinic-evaluator/pull/113
+- Branch: `c03/oidc-release-authorization`
+- Implementation/test head before this documentation reconciliation: `dfdff3f04c30996f30503a1bbda53519cfef3d0d`.
+- Design: `documentation/governance/C-03-GITHUB-OIDC-RELEASE-AUTHORIZATION-DESIGN-2026-10-15.md`.
+- The design review approves implementation in an isolated branch only. PR #113 is open and ready for review; it has not been merged. It uses short-lived GitHub Actions OIDC workload identity, strict issuer/audience/repository/ref/workflow/environment/event/subject/owner-actor/SHA/run validation, a dedicated header so Supabase's normal JWT gateway validation remains enabled, separate `ci_*` Edge actions, narrow service-role-only C-03 RPCs, exact release confirmation, and immutable runtime attestation.
+- Existing human-owner actions retain `auth.getUser`, `is_owner()`, and current admin capability enforcement. No owner endpoint was weakened.
+- New migration: `20261015120000_c03_github_oidc_release_authorization.sql`; the already-applied migration was not edited. The disposable SQL harness now loads this migration and exercises CI-only registration/activation/gate RPCs and non-service-role rejection.
+- The guarded release workflow now accepts only explicit `workflow_dispatch` with exact `ENABLE-C03-PRODUCTION`; a normal push cannot start a Production release.
+- Added Node/Deno tests for OIDC token acquisition, claim allowlisting, handler authorization separation, and release sequencing. Exact-head CI on `dfdff3f04c30996f30503a1bbda53519cfef3d0d` is PASS: C-03 workflow run `38766376032` (digest/contract, handler tests, disposable PostgreSQL migration/RPC harness), P3 kernel run `38766375841`, and WP-09 run `38766376245` all SUCCESS. The handler and SQL jobs passed after fixing the first test failures. The latest documentation-only commits change the Git SHA, so re-check CI and recompute immutable Edge attestation for the final merge SHA.
+
+## Required review findings before any Production operation
+1. Confirm the PR's full CI suite passes at its exact current head; inspect logs, not just the aggregate state.
+2. Review the new SQL migration against the disposable PostgreSQL harness and confirm all three CI RPC signatures, grants, confirmation checks, workflow-SHA checks, and five-family gate preconditions.
+3. The actual `production-e2e` required-reviewer configuration is not exposed by the available connector. The design additionally allowlists the repository-owner dispatcher using signed `actor=core-system-md` and `actor_id=290540122` claims. Verify these claims in a protected test run before release; retain environment reviewer protection as defense-in-depth.
+4. Confirm the exact `workflow_ref`, `sub`, and `environment` claims from a real token in a protected test run without logging the token. If claims differ from the strict validator, revise and retest rather than weakening checks.
+5. Merge only after code review and CI success. Then apply the new migration, deploy both Edge functions from the same exact prepared commit, and run the guarded workflow manually. The deploy must not happen before this exact-head attestation path is ready.
+6. After the guarded release, require five current releases verified and activated, gate read-back including workflow run/SHA audit fields, live E2E, exact-run cleanup, and a final read-only state check before closing C-03.
+
+## Production status at this checkpoint
+No new Production migration, Edge deployment, release registration/activation, gate update, or live E2E was performed by this branch work. The last confirmed state remains: C-03 base migration applied; gate disabled; zero release rows; zero active release pointers; `assessment-access` ACTIVE v38; `assessment-config-release` not deployed. Do not describe C-03 as Production-closed.
+
+---
+
 # OWNER-DIRECTED C-03 CONTRACT RECONCILIATION — 2026-10-15
 
 **This section supersedes the earlier “rollout deferred” disposition because the owner has now explicitly directed Production completion. It does not claim the release has succeeded.**

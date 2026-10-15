@@ -1,11 +1,7 @@
 name: C-03 guarded Production release and bounded E2E
-# Owner-authorized one-time release trigger [release-c03]; waits for the connected Supabase deployment to attest this exact commit.
+# Explicitly dispatched, confirmation-gated release; requires a verified GitHub OIDC workload identity.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/c03-production-release.yml"
   workflow_dispatch:
     inputs:
       confirm_production_release:
@@ -13,6 +9,11 @@ on:
         required: true
         type: string
         default: ""
+      preflight_only:
+        description: "Validate the live GitHub OIDC identity only; do not perform Production operations"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,10 +23,30 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  release:
-    if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[release-c03]')) || (github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION') }}
+  oidc-preflight:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' }}
     runs-on: ubuntu-latest
     environment: production-e2e
+    permissions:
+      contents: read
+      id-token: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Verify signed OIDC token and allowlisted dispatcher claims without logging token
+        run: deno run --allow-env --allow-net .github/scripts/c03-oidc-preflight.ts
+
+  release:
+    needs: oidc-preflight
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' && inputs.preflight_only != true }}
+    runs-on: ubuntu-latest
+    environment: production-e2e
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 35
     services:
       postgres:
@@ -44,8 +65,8 @@ jobs:
       SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      C03_OWNER_JWT: ${{ secrets.C03_OWNER_JWT }}
-      C03_PRODUCTION_RELEASE_CONFIRMATION: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[release-c03]') && 'ENABLE-C03-PRODUCTION' || inputs.confirm_production_release }}
+
+      C03_PRODUCTION_RELEASE_CONFIRMATION: ${{ inputs.confirm_production_release }}
     steps:
       - uses: actions/checkout@v4
       - name: Refuse stale release commit before any Production operation
@@ -65,7 +86,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Run digest, attestation, and release sequencing tests
-        run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs
+        run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs tests/c03-github-oidc-token.test.mjs
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
@@ -74,7 +95,7 @@ jobs:
           SUPABASE_URL: https://example.supabase.co
           SUPABASE_ANON_KEY: test-only-anon-key
           SUPABASE_SERVICE_ROLE_KEY: test-only-service-role-key
-        run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
+        run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-github-oidc-claims.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Load canonical admin authorization functions
@@ -85,7 +106,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY C03_OWNER_JWT; do
+          for name in SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY; do
             if [ -z "${!name:-}" ]; then echo "::error::Required GitHub Actions secret is missing: $name"; exit 1; fi
           done
           if [ "$SUPABASE_PROJECT_REF" != "oaqpzaarppccbnepffxx" ] || [ "$SUPABASE_URL" != "https://oaqpzaarppccbnepffxx.supabase.co" ]; then
@@ -106,6 +127,24 @@ jobs:
           expected='["admin-reception-assessment","clinic-performance","comprehensive-clinic-assessment","medical-team-assessment","patient-journey"]'
           echo "$families" | jq -e --argjson expected "$expected" 'map(.slug) == $expected and all(.[]; .current_published_version_id != null)' >/dev/null
           echo "Production preflight passed: migration tables exist, gate is disabled, and the exact five-family inventory is present."
+      - name: Verify OIDC release RPC migration before any deployment or writes
+        shell: bash
+        run: |
+          set -euo pipefail
+          payload="$(jq -cn --arg sha "$GITHUB_SHA" '{p_workflow_run_id:"1",p_workflow_run_attempt:"1",p_workflow_sha:$sha,p_confirmation:"INVALID-PREFLIGHT-ONLY"}')"
+          response="$(curl --silent --show-error \
+            -X POST \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d "$payload" \
+            "$SUPABASE_URL/rest/v1/rpc/c03_require_ci_release_context")"
+          echo "$response" | jq -e '.code == "42501"' >/dev/null || {
+            echo "::error::The new C-03 OIDC authorization migration/RPC is missing or did not fail closed as expected."
+            exit 1
+          }
+          echo "C-03 OIDC release RPC exists and rejected an intentionally invalid confirmation without writing data."
+
       - name: Prepare immutable runtime attestation for this exact main commit
         run: node .github/scripts/c03-release-attestation.mjs prepare
       - name: Select one current published version for read-only attestation
@@ -139,15 +178,15 @@ jobs:
       - name: Register, verify, activate all five current releases, then enable the gate
         id: production_release
         run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
-      - name: Verify persisted gate and five active release pointers
+      - name: Verify persisted gate, workflow audit identity, and five active release pointers
         shell: bash
         run: |
           set -euo pipefail
           settings="$(curl --fail --silent --show-error \
             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled&singleton=eq.true")"
-          echo "$settings" | jq -e 'length == 1 and .[0].enabled == true' >/dev/null
+            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled,enabled_by_workflow_run_id,enabled_by_workflow_sha&singleton=eq.true")"
+          echo "$settings" | jq -e --arg run "$GITHUB_RUN_ID" --arg sha "$GITHUB_SHA" 'length == 1 and .[0].enabled == true and .[0].enabled_by_workflow_run_id == $run and .[0].enabled_by_workflow_sha == $sha' >/dev/null
           families="$(curl --fail --silent --show-error \
             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \

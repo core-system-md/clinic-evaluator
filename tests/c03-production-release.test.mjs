@@ -21,17 +21,17 @@ function fakeFetch({ rejectVerifySlug = null } = {}) {
     }
     if (url.includes("/rest/v1/assessment_families")) return response(families);
     const body = JSON.parse(options.body || "{}");
-    if (body.action === "register") {
+    if (body.action === "ci_register") {
       return response({ success: true, data: { release_id: "release-" + body.assessment_type_id, assessment_type_id: body.assessment_type_id, state: "PREPARED" } });
     }
-    if (body.action === "verify") {
+    if (body.action === "ci_verify") {
       const reject = rejectVerifySlug && body.release_id === "release-" + families.find(f => f.slug === rejectVerifySlug)?.current_published_version_id;
       return response(reject
         ? { success: false, data: { state: "REJECTED" } }
         : { success: true, data: { state: "VERIFIED" } });
     }
-    if (body.action === "activate_existing") return response({ success: true, data: { state: "PUBLISHED" } });
-    if (body.action === "enable_gate") {
+    if (body.action === "ci_activate_existing") return response({ success: true, data: { state: "PUBLISHED" } });
+    if (body.action === "ci_enable_gate") {
       enabled = true;
       return response({ success: true, data: { enabled: true } });
     }
@@ -51,7 +51,7 @@ test("C-03 production release requires the explicit confirmation before network 
       baseUrl: "https://example.supabase.co",
       anonKey: "anon",
       serviceRoleKey: "service",
-      ownerJwt: "owner",
+      getOidcToken: async () => "signed-oidc",
       confirmation: "",
       fetchImpl,
       verifyAttestation: async () => {},
@@ -69,7 +69,7 @@ test("C-03 production release performs no writes when deployed bundle attestatio
       baseUrl: "https://example.supabase.co",
       anonKey: "anon",
       serviceRoleKey: "service",
-      ownerJwt: "owner",
+      getOidcToken: async () => "signed-oidc",
       confirmation: "ENABLE-C03-PRODUCTION",
       fetchImpl,
       verifyAttestation: async () => {
@@ -88,7 +88,7 @@ test("C-03 release verifies all five bundles and versions before enabling the ga
     baseUrl: "https://example.supabase.co/",
     anonKey: "anon",
     serviceRoleKey: "service",
-    ownerJwt: "owner",
+    getOidcToken: async () => "signed-oidc",
     confirmation: "ENABLE-C03-PRODUCTION",
     fetchImpl,
     verifyAttestation: async ({ assessmentTypeId }) => {
@@ -100,10 +100,10 @@ test("C-03 release verifies all five bundles and versions before enabling the ga
   assert.equal(result.activated.length, 5);
   assert.equal(isEnabled(), true);
   const actions = calls.filter(call => call.method === "POST").map(call => call.body.action);
-  assert.equal(actions.filter(action => action === "register").length, 5);
-  assert.equal(actions.filter(action => action === "verify").length, 5);
-  assert.equal(actions.filter(action => action === "activate_existing").length, 5);
-  assert.equal(actions.at(-1), "enable_gate");
+  assert.equal(actions.filter(action => action === "ci_register").length, 5);
+  assert.equal(actions.filter(action => action === "ci_verify").length, 5);
+  assert.equal(actions.filter(action => action === "ci_activate_existing").length, 5);
+  assert.equal(actions.at(-1), "ci_enable_gate");
 });
 
 test("C-03 release stops before any activation if one published version fails verification", async () => {
@@ -114,7 +114,7 @@ test("C-03 release stops before any activation if one published version fails ve
       baseUrl: "https://example.supabase.co",
       anonKey: "anon",
       serviceRoleKey: "service",
-      ownerJwt: "owner",
+      getOidcToken: async () => "signed-oidc",
       confirmation: "ENABLE-C03-PRODUCTION",
       fetchImpl,
       verifyAttestation: async () => {},
@@ -122,7 +122,7 @@ test("C-03 release stops before any activation if one published version fails ve
     /Release verification failed/,
   );
   const actions = calls.filter(call => call.method === "POST").map(call => call.body.action);
-  assert.equal(actions.includes("activate_existing"), false);
-  assert.equal(actions.includes("enable_gate"), false);
+  assert.equal(actions.includes("ci_activate_existing"), false);
+  assert.equal(actions.includes("ci_enable_gate"), false);
   assert.equal(isEnabled(), false);
 });

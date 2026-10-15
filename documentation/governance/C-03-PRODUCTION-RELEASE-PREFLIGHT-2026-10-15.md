@@ -1,3 +1,17 @@
+# OWNER-DIRECTED AUTHORIZATION REDESIGN — 2026-10-15
+
+**This section supersedes the earlier deferred-rollout disposition because the owner has explicitly authorized a reviewed alternative and continuation. It does not claim Production release completion.**
+
+- Implementation is in draft PR #113: https://github.com/core-system-md/clinic-evaluator/pull/113.
+- The literal `C03_OWNER_JWT` dependency is being removed from the guarded CI path; human-owner API actions keep their existing identity and admin-capability checks.
+- The proposed replacement is GitHub Actions OIDC, validated at the Edge handler against signed issuer/audience plus exact repository, ref, workflow, protected environment subject, dispatch event, full SHA, and run identity. CI writes use separate narrow service-role-only database routines, explicit confirmation, SHA-bound attestation, and audit metadata.
+- The new migration `20261015120000_c03_github_oidc_release_authorization.sql` is a proposal on the PR branch only. It has **not** been applied to Production.
+- The guarded release workflow has been changed to manual dispatch only. A push must never trigger a Production release.
+- **Production remains blocked** pending exact-head CI and review, verification of actual GitHub Environment required-reviewer protection, validation of real OIDC claim shape in a protected test run, merge, new migration application, exact-source Edge deployment/attestation, five-family activation, gate read-back, live E2E, and exact-run cleanup.
+- Last confirmed Production state remains gate disabled, release rows zero, active release pointers zero, `assessment-access` ACTIVE v38, and `assessment-config-release` not deployed.
+
+---
+
 # AUTHORITATIVE C-03 DISPOSITION — 2026-10-15
 
 **Status: C-03 PHASE CLOSED; GUARDED PRODUCTION ROLLOUT DEFERRED BY OWNER DIRECTION.**

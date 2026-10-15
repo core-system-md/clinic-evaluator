@@ -11,12 +11,16 @@ const engine = fs.readFileSync(
   'utf8',
 );
 
-test('C-03 release verifier requires authenticated owner before export or verification', () => {
+test('C-03 owner actions require a real owner; CI actions use a separate OIDC verifier', () => {
   assert.match(verifier, /async function requireOwner\(/);
   assert.match(verifier, /userClient\.auth\.getUser/);
   assert.match(verifier, /userClient\.rpc\("is_owner"\)/);
-  assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "export")'));
-  assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "verify")'));
+  assert.match(verifier, /const isCiAction = action\.startsWith\("ci_"\)/);
+  assert.match(verifier, /verifyCiTokenFn\(oidcToken\)/);
+  assert.match(verifier, /if \(action === "export" \|\| action === "ci_export"\)/);
+  assert.match(verifier, /if \(action === "register" \|\| action === "ci_register"\)/);
+  assert.match(verifier, /owner!\.userClient\.rpc\("register_assessment_config_release_secure"/);
+  assert.match(verifier, /dbClient\.rpc\("register_assessment_config_release_ci_secure"/);
 });
 
 test('C-03 release verifier exports canonical config and attests live runtime evidence only', () => {
@@ -40,7 +44,7 @@ test('C-03 release verifier binds immutable build-time attestation and fails clo
   assert.match(verifier, /edgeReleaseRef: C03_RUNTIME_ATTESTATION\.edgeReleaseRef/);
   assert.match(verifier, /fixtureSetVersion: C03_RUNTIME_ATTESTATION\.fixtureSetVersion/);
   assert.match(verifier, /migrationContractVersion: C03_RUNTIME_ATTESTATION\.migrationContractVersion/);
-  assert.match(verifier, /Object\.values\(runtimeMetadata\)\.some\(\(value\) => !value\.trim\(\)\)/);
+  assert.match(verifier, /Object\.values\(runtimeMetadata\)\.some\(\(value\) => typeof value !== "string" \|\| !value\.trim\(\)\)/);
   assert.match(verifier, /C-03 runtime release metadata is not configured/);
   assert.doesNotMatch(verifier, /Deno\.env\.get\("C03_(?:GIT_COMMIT_SHA|EDGE_RELEASE_REF|FIXTURE_SET_VERSION|MIGRATION_CONTRACT_VERSION)"\)/);
   assert.match(attestation, /gitCommitSha: ""/);
