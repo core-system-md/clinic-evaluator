@@ -306,6 +306,7 @@ export async function computeAssessmentConfigReleaseEvidence(
     scoringEngineVersion: ENGINE_IDENTITY,
     scoringContractVersion: SCORING_CONTRACT_ID,
     reportModelVersion: "REPORT_MODEL_V1",
+    canonicalConfig: projection,
   };
 }
 
