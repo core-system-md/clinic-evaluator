@@ -99,7 +99,7 @@ function runtimeFixture(assessmentTypeId: string, slug: string) {
   const axes = axisCodes.map((code, i) => ({
     id: "a0000000-0000-4000-8000-" + String(i + 1).padStart(12, "0"),
     assessment_type_id: assessmentTypeId, code, title: "Axis " + code, title_ar: "محور " + code,
-    weight: 100 / axisCodes.length, display_order: i + 1,
+    description: "Synthetic axis description", weight: 100 / axisCodes.length, display_order: i + 1,
   }));
   const axisIds = new Map(axes.map((a) => [a.code, a.id]));
   const codes = [...new Set(entries.map((e) => e.questionCode))].sort();
