@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { attestInterpretationRelease, calculateAssessment } from "./engine.ts";
+import { assertAssessmentReleaseReady, attestInterpretationRelease, calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 import { projectCompletionResponse } from "./report-interpretation.mjs";
 
@@ -23,6 +23,15 @@ const WINDOW_MS = 60_000;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
+}
+
+async function assertReleaseGateIfEnforced(assessmentTypeId: string) {
+  if (Deno.env.get("C03_RELEASE_GATE_ENFORCED") !== "true") return;
+  try {
+    await assertAssessmentReleaseReady(supabase, assessmentTypeId);
+  } catch (_error) {
+    throw Object.assign(new Error("Assessment release is not ready for new sessions"), { status: 503 });
+  }
 }
 
 async function isOwnerRequest(req: Request): Promise<boolean> {
@@ -393,6 +402,8 @@ async function issuePublicAccess(assessmentKey: string) {
     throw Object.assign(new Error("Assessment requires login"), { status: 403 });
   }
 
+  await assertReleaseGateIfEnforced(family.current_published_version_id);
+
   const token = randomToken();
   const tokenHash = await sha256Hex(token);
   const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
@@ -456,6 +467,7 @@ Deno.serve(async (req) => {
         return json({ error: "Assessment unavailable" }, 404);
       }
 
+      await assertReleaseGateIfEnforced(family.current_published_version_id);
       const requiresLogin = await getRequiresLogin(assessmentKey);
       const runtime = await loadAssessment(family.current_published_version_id, family);
       return json({ success: true, data: safeContent(runtime, requiresLogin) });
@@ -539,6 +551,7 @@ Deno.serve(async (req) => {
       if (!user.active) return json({ error: "Account disabled" }, 403);
       if (user.expires_at && new Date(user.expires_at) <= new Date()) return json({ error: "Account expired" }, 403);
       if (Number(user.used_count ?? 0) >= Number(user.max_uses ?? 1)) return json({ error: "Usage limit exceeded" }, 403);
+      await assertReleaseGateIfEnforced(family.current_published_version_id);
 
       const token = randomToken();
       const tokenHash = await sha256Hex(token);
@@ -577,6 +590,7 @@ Deno.serve(async (req) => {
       const access = await getAccess(token);
       if (!access) return json({ error: "Invalid or expired assessment access" }, 401);
       if (access.session_id) return json({ success: true, data: { session_id: access.session_id, resumed: true, lead_id: null, expires_at: access.expires_at } });
+      await assertReleaseGateIfEnforced(access.assessment_type_id);
 
       if (!access.assessment_user_id) {
         const { data: publicVersion, error: publicVersionError } = await supabase
