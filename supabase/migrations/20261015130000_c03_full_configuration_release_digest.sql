@@ -175,8 +175,15 @@ begin
   if not found then
     raise exception 'Assessment version not found' using errcode = 'P0002';
   end if;
-  if v_assessment.status not in ('draft', 'archived') then
-    raise exception 'Interpretation release can only be registered for a draft or archived version'
+  if v_assessment.status not in ('draft', 'archived', 'published') then
+    raise exception 'Interpretation release registration requires a draft, archived, or one-time published backfill target'
+      using errcode = '55000';
+  end if;
+  if v_assessment.status = 'published' and exists (
+    select 1 from public.assessment_interpretation_releases
+     where assessment_type_id = v_assessment.id
+  ) then
+    raise exception 'Published versions may only receive a one-time initial release backfill'
       using errcode = '55000';
   end if;
   if p_interpretation_version is null or p_interpretation_version < 1 then
@@ -274,6 +281,7 @@ begin
       'registry_digest', p_registry_digest,
       'config_digest', p_config_digest,
       'config_canonicalizer_version', p_config_canonicalizer_version,
+      'registration_mode', case when v_assessment.status='published' then 'LEGACY_PUBLISHED_BACKFILL' else 'DRAFT_OR_ARCHIVED' end,
       'source_commit_sha', p_source_commit_sha,
       'edge_release_ref', trim(p_edge_release_ref),
       'option_count', v_manifest_count
@@ -337,7 +345,10 @@ begin
   update public.assessment_interpretation_releases
      set runtime_verified_at = now(), runtime_verified_digest = p_runtime_digest,
          runtime_verified_config_digest = p_runtime_config_digest,
-         state = 'VERIFIED', verified_at = now(), failure_reason = null,
+         state = case when (select status from public.assessment_types where id=p_assessment_type_id) = 'published' then 'PUBLISHED' else 'VERIFIED' end,
+         verified_at = now(),
+         published_at = case when (select status from public.assessment_types where id=p_assessment_type_id) = 'published' then coalesce(published_at,now()) else published_at end,
+         failure_reason = null,
          runtime_verified_edge_release_ref = p_runtime_edge_release_ref,
          runtime_verified_source_commit_sha = p_runtime_source_commit_sha
    where assessment_type_id = p_assessment_type_id and is_current = true;
