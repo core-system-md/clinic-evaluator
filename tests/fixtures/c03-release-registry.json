@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "C03_TEST_FIXTURE_V1",
+  "entries": [
+    {
+      "assessmentSlug": "fixture-assessment",
+      "questionCode": "Q1",
+      "optionId": "22222222-2222-4222-8222-222222222222",
+      "optionIndex": 0,
+      "sourceOptionValue": 0,
+      "interpretationVersion": 1,
+      "semanticStateKey": "Q1_ZERO"
+    },
+    {
+      "assessmentSlug": "fixture-assessment",
+      "questionCode": "Q1",
+      "optionId": "33333333-3333-4333-8333-333333333333",
+      "optionIndex": 1,
+      "sourceOptionValue": 1,
+      "interpretationVersion": 1,
+      "semanticStateKey": "Q1_ONE"
+    }
+  ]
+}
