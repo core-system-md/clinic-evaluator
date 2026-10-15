@@ -554,7 +554,9 @@ export async function attestInterpretationRelease(
     runtime.family.slug,
     binding.interpretationVersion,
   );
-  const verified = await assertInterpretationReleaseMatches({
+  let verified: Awaited<ReturnType<typeof assertInterpretationReleaseMatches>>;
+  try {
+    verified = await assertInterpretationReleaseMatches({
     release,
     assessmentTypeId: attestation.assessmentTypeId,
     familyId: attestation.familyId,
@@ -566,6 +568,17 @@ export async function attestInterpretationRelease(
     runtimeConfigDigest: attestation.configDigest,
     runtimeConfigManifest: attestation.configManifest,
   });
+  } catch (error) {
+    const reason = error instanceof Error ? error.message : "Runtime attestation mismatch";
+    const { error: degradedError } = await client.rpc(
+      "mark_assessment_interpretation_release_degraded_secure",
+      { p_assessment_type_id: attestation.assessmentTypeId, p_reason: reason },
+    );
+    if (degradedError) {
+      throw new Error(reason + "; failed to persist DEGRADED state: " + degradedError.message);
+    }
+    throw error;
+  }
 
   const { data: verification, error: verificationError } = await client.rpc(
     "mark_assessment_interpretation_release_runtime_verified_secure",
