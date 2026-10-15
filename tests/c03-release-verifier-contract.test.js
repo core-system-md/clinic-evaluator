@@ -11,12 +11,16 @@ const engine = fs.readFileSync(
   'utf8',
 );
 
-test('C-03 release verifier requires authenticated owner before export or verification', () => {
+test('C-03 owner actions require a real owner; CI actions use a separate OIDC verifier', () => {
   assert.match(verifier, /async function requireOwner\(/);
   assert.match(verifier, /userClient\.auth\.getUser/);
   assert.match(verifier, /userClient\.rpc\("is_owner"\)/);
-  assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "export")'));
-  assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "verify")'));
+  assert.match(verifier, /const isCiAction = action\.startsWith\("ci_"\)/);
+  assert.match(verifier, /verifyCiTokenFn\(match\[1\]\)/);
+  assert.match(verifier, /if \(action === "export" \|\| action === "ci_export"\)/);
+  assert.match(verifier, /if \(action === "register" \|\| action === "ci_register"\)/);
+  assert.match(verifier, /owner!\.userClient\.rpc\("register_assessment_config_release_secure"/);
+  assert.match(verifier, /dbClient\.rpc\("register_assessment_config_release_ci_secure"/);
 });
 
 test('C-03 release verifier exports canonical config and attests live runtime evidence only', () => {
