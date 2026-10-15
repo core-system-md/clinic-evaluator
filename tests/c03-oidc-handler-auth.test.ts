@@ -17,7 +17,7 @@ function setup(valid: boolean) {
     computeEvidenceFn: async () => evidence,
     verifyCiTokenFn: async () => {
       if (!valid) throw new Error("invalid");
-      return { repository: "core-system-md/clinic-evaluator", repositoryOwner: "core-system-md", sha: metadata.gitCommitSha, runId: "123", runAttempt: "1", workflowRef: "expected", environment: "production-e2e" };
+      return { repository: "core-system-md/clinic-evaluator", repositoryOwner: "core-system-md", actor: "core-system-md", actorId: "290540122", sha: metadata.gitCommitSha, runId: "123", runAttempt: "1", workflowRef: "expected", environment: "production-e2e" };
     },
     getRuntimeMetadata: () => metadata,
   });
