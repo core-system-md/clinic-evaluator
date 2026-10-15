@@ -1,7 +1,8 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
-import { projectCompletionResponse } from "./report-interpretation.mjs";
+import { ensureAssessmentSlug, projectCompletionResponse } from "./report-interpretation.mjs";
+import { C03_RUNTIME_ATTESTATION } from "../assessment-config-release/runtime-attestation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,7 +11,7 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
-const supabase = createClient(
+let supabase = createClient(
   Deno.env.get("SUPABASE_URL") || "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
   { auth: { persistSession: false } },
@@ -320,6 +321,45 @@ async function findLeadHistory(
 }
 
 
+async function resolvePersistedAssessmentSlug(structuredResult: any, assessmentTypeId: string) {
+  const existingSlug = structuredResult?.provenance?.assessmentSlug ||
+    structuredResult?.identity?.assessmentSlug;
+  if (typeof existingSlug === "string" && existingSlug.trim()) {
+    return ensureAssessmentSlug(structuredResult, existingSlug);
+  }
+
+  let familyId = structuredResult?.identity?.assessmentFamilyId;
+  if (typeof familyId !== "string" || !familyId.trim()) {
+    const { data: assessment, error: assessmentError } = await supabase
+      .from("assessment_types")
+      .select("family_id")
+      .eq("id", assessmentTypeId)
+      .maybeSingle();
+    if (assessmentError) throw assessmentError;
+    familyId = assessment?.family_id;
+  }
+  if (typeof familyId !== "string" || !familyId.trim()) {
+    throw Object.assign(
+      new Error("Assessment family identity is unavailable for the stored result."),
+      { status: 409 },
+    );
+  }
+
+  const { data: family, error: familyError } = await supabase
+    .from("assessment_families")
+    .select("slug")
+    .eq("id", familyId)
+    .maybeSingle();
+  if (familyError) throw familyError;
+  if (typeof family?.slug !== "string" || !family.slug.trim()) {
+    throw Object.assign(
+      new Error("Assessment family slug is unavailable for the stored result."),
+      { status: 409 },
+    );
+  }
+  return ensureAssessmentSlug(structuredResult, family.slug);
+}
+
 async function getPreviousAssessmentSessionData(session: any) {
   if (!session?.lead_id || !session?.assessment_type_id) return null;
   const { data: lead, error: leadError } = await supabase
@@ -388,7 +428,19 @@ async function issuePublicAccess(assessmentKey: string) {
   return { token, expires_at: expiresAt, assessment_type_id: family.current_published_version_id };
 }
 
-Deno.serve(async (req) => {
+export function createAssessmentAccessHandler(
+  client = supabase,
+  dependencies: {
+    calculateAssessmentFn?: typeof calculateAssessment;
+    calculateEconomicFn?: typeof calculateP3RecursiveReferralEconomic;
+  } = {},
+) {
+  // The production handler binds its service client once; dependency injection permits
+  // deterministic tests of the actual request dispatcher without Production writes.
+  supabase = client;
+  const calculateAssessmentFn = dependencies.calculateAssessmentFn || calculateAssessment;
+  const calculateEconomicFn = dependencies.calculateEconomicFn || calculateP3RecursiveReferralEconomic;
+  return async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -396,6 +448,11 @@ Deno.serve(async (req) => {
     const body = await req.json();
     const action = body?.action;
     const data = body?.data || {};
+
+    // Public, read-only identity of this deployed Edge bundle; contains no secrets.
+    if (action === "c03_runtime_attestation") {
+      return json({ success: true, data: { runtimeMetadata: C03_RUNTIME_ATTESTATION } });
+    }
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
 
     if (action === "get_content") {
@@ -701,7 +758,7 @@ Deno.serve(async (req) => {
       }
 
       const safeStoredResult = storedResult?.result
-        ? { userReport: projectCompletionResponse(storedResult.result, await getPreviousAssessmentSessionData(session)).userReport,
+        ? { userReport: projectCompletionResponse(await resolvePersistedAssessmentSlug(storedResult.result, session.assessment_type_id), await getPreviousAssessmentSessionData(session)).userReport,
             assessment_version: storedResult.assessment_version, interpretation_version: storedResult.interpretation_version,
             scoring_engine_version: storedResult.scoring_engine_version, scoring_contract_version: storedResult.scoring_contract_version,
             assessment_config_digest: storedResult.assessment_config_digest, calculated_at: storedResult.calculated_at,
@@ -818,7 +875,7 @@ Deno.serve(async (req) => {
               kpis,
               evSimulator: null,
               traps: [],
-              ...projectCompletionResponse(structured, previousSessionData),
+              ...projectCompletionResponse(await resolvePersistedAssessmentSlug(structured, session.assessment_type_id), previousSessionData),
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -906,7 +963,7 @@ Deno.serve(async (req) => {
             ),
             evSimulator: null,
             traps: [],
-            userReport: structured ? projectCompletionResponse(structured, previousSessionData).userReport : null,
+            userReport: structured ? projectCompletionResponse(await resolvePersistedAssessmentSlug(structured, session.assessment_type_id), previousSessionData).userReport : null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -941,7 +998,7 @@ Deno.serve(async (req) => {
           }
         : undefined;
 
-      const computed = await calculateAssessment(supabase, {
+      const computed = await calculateAssessmentFn(supabase, {
         sessionId: session.id,
         economicInput: frozenEconomicInput,
         answerSnapshot,
@@ -1026,7 +1083,7 @@ Deno.serve(async (req) => {
         return json({ error: "Invalid referral percentage" }, 400);
       }
 
-      const economic = calculateP3RecursiveReferralEconomic({
+      const economic = calculateEconomicFn({
         averageVisitValue: avg,
         relationshipYears: years,
         referralPercentage: referralRaw,
@@ -1053,4 +1110,9 @@ Deno.serve(async (req) => {
     const status = Number((error as any)?.status) || 500;
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
-});
+  };
+}
+
+if (import.meta.main) {
+  Deno.serve(createAssessmentAccessHandler());
+}

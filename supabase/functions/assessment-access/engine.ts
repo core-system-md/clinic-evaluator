@@ -18,6 +18,8 @@ import registryV2 from "./response-interpretation-registry-v2.json" with { type:
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
+import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, CONFIG_CANONICALIZER_VERSION, sha256Hex } from "./assessment-config-digest.mjs";
+import { C03_RUNTIME_ATTESTATION } from "../assessment-config-release/runtime-attestation.ts";
 
 type AssessmentRow = {
   id: string;
@@ -42,6 +44,7 @@ type AxisRow = {
   code: string;
   title: string;
   title_ar: string | null;
+  description: string | null;
   weight: number;
   display_order: number;
 };
@@ -57,6 +60,7 @@ type QuestionRow = {
   is_required: boolean | null;
   impact: string | null;
   layer: string | null;
+  trap_for: string | null;
 };
 
 type OptionRow = {
@@ -64,6 +68,21 @@ type OptionRow = {
   question_id: string;
   option_index: number;
   option_value: number;
+  label: string | null;
+  label_ar: string | null;
+  is_trap: boolean | null;
+  display_order: number;
+};
+
+type TrapRow = {
+  name: string;
+  message: string | null;
+  message_ar: string | null;
+  question_id: string;
+  validates: string | null;
+  target_axis: string | null;
+  penalty_base: number | null;
+  penalty_max: number | null;
 };
 
 type Runtime = {
@@ -72,6 +91,7 @@ type Runtime = {
   axes: AxisRow[];
   questions: QuestionRow[];
   options: OptionRow[];
+  traps: TrapRow[];
 };
 
 type StoredAnswer = {
@@ -92,30 +112,6 @@ export type AssessmentComputation = {
     assessmentConfigDigest: string;
   };
 };
-
-function stable(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return "[" + value.map(stable).join(",") + "]";
-  const record = value as Record<string, unknown>;
-  return (
-    "{" +
-    Object.keys(record)
-      .sort()
-      .map((key) => JSON.stringify(key) + ":" + stable(record[key]))
-      .join(",") +
-    "}"
-  );
-}
-
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
 const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
@@ -215,31 +211,39 @@ async function loadRuntime(
   client: SupabaseClient,
   assessmentTypeId: string,
 ): Promise<Runtime> {
-  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }] =
-    await Promise.all([
-      client
-        .from("assessment_types")
-        .select(
-          "id, slug, family_id, title_ar, title_en, description, version, config_version, question_count, axis_count, has_traps, has_ev_simulator, axis_roles, kpi_mappings, ev_mappings",
-        )
-        .eq("id", assessmentTypeId)
-        .maybeSingle(),
-      client
-        .from("axes")
-        .select("id, code, title, title_ar, weight, display_order")
-        .eq("assessment_type_id", assessmentTypeId)
-        .order("display_order", { ascending: true }),
-      client
-        .from("questions")
-        .select(
-          "id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer",
-        )
-        .eq("assessment_type_id", assessmentTypeId)
-        .order("display_order", { ascending: true }),
-    ]);
+  const [
+    { data: assessment, error: assessmentError },
+    { data: axes, error: axesError },
+    { data: questions, error: questionsError },
+    { data: traps, error: trapsError },
+  ] = await Promise.all([
+    client
+      .from("assessment_types")
+      .select(
+        "id, slug, family_id, title_ar, title_en, description, version, config_version, question_count, axis_count, has_traps, has_ev_simulator, axis_roles, kpi_mappings, ev_mappings",
+      )
+      .eq("id", assessmentTypeId)
+      .maybeSingle(),
+    client
+      .from("axes")
+      .select("id, code, title, title_ar, description, weight, display_order")
+      .eq("assessment_type_id", assessmentTypeId)
+      .order("display_order", { ascending: true }),
+    client
+      .from("questions")
+      .select(
+        "id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer, trap_for",
+      )
+      .eq("assessment_type_id", assessmentTypeId)
+      .order("display_order", { ascending: true }),
+    client
+      .from("traps")
+      .select("name, message, message_ar, question_id, validates, target_axis, penalty_base, penalty_max")
+      .eq("assessment_type_id", assessmentTypeId),
+  ]);
 
-  if (assessmentError || axesError || questionsError) {
-    throw assessmentError || axesError || questionsError;
+  if (assessmentError || axesError || questionsError || trapsError) {
+    throw assessmentError || axesError || questionsError || trapsError;
   }
   if (!assessment) throw new Error("Assessment not found");
 
@@ -255,7 +259,7 @@ async function loadRuntime(
   const { data: options, error: optionsError } = questionIds.length
     ? await client
         .from("options")
-        .select("id, question_id, option_index, option_value")
+        .select("id, question_id, option_index, option_value, label, label_ar, is_trap, display_order")
         .in("question_id", questionIds)
         .order("display_order", { ascending: true })
     : { data: [], error: null };
@@ -268,6 +272,40 @@ async function loadRuntime(
     axes: (axes || []) as AxisRow[],
     questions: (questions || []) as QuestionRow[],
     options: (options || []) as OptionRow[],
+    traps: (traps || []) as TrapRow[],
+  };
+}
+
+export async function computeAssessmentConfigReleaseEvidence(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const assessmentVersion = Number(
+    runtime.assessment.version ?? runtime.assessment.config_version ?? 1,
+  );
+  const binding = resolveInterpretationBinding(runtime.family.slug, assessmentVersion);
+  const projection = buildAssessmentConfigProjection({
+    runtime,
+    assessmentVersion,
+    interpretationRegistry: binding.registry,
+    interpretationVersion: binding.interpretationVersion,
+    consistencyRuleRegistry,
+    consistencyPairRegistry,
+  });
+  return {
+    familyId: runtime.family.id,
+    familySlug: runtime.family.slug,
+    assessmentTypeId: runtime.assessment.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    configDigest: await sha256Hex(canonicalizeAssessmentConfig(projection)),
+    interpretationRegistryDigest: await sha256Hex(canonicalizeAssessmentConfig(projection.interpretation)),
+    scoringEngineVersion: ENGINE_IDENTITY,
+    scoringContractVersion: SCORING_CONTRACT_ID,
+    reportModelVersion: "REPORT_MODEL_V1",
+    canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
+    canonicalConfig: projection,
   };
 }
 
@@ -321,7 +359,7 @@ export async function calculateAssessment(
   const { data: session, error: sessionError } = await client
     .from("sessions")
     .select(
-      "id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status",
+      "id, lead_id, assessment_type_id, assessment_user_id, assessment_version, assessment_release_id, status",
     )
     .eq("id", input.sessionId)
     .maybeSingle();
@@ -381,83 +419,74 @@ export async function calculateAssessment(
   );
   const interpretationRegistry = interpretationBinding.registry;
 
-  const versionedConfig = {
-    assessment: {
-      id: runtime.assessment.id,
-      familyId: runtime.family.id,
-      slug: runtime.family.slug,
-      version: assessmentVersion,
-      configVersion: runtime.assessment.config_version ?? null,
-      questionCount: runtime.questions.length,
-      axisCount: runtime.axes.length,
-      axisRoles: runtime.assessment.axis_roles ?? {},
-      kpiMappings: runtime.assessment.kpi_mappings ?? {},
-    },
-    axes: runtime.axes
-      .map((axis) => ({
-        id: axis.id,
-        code: axis.code,
-        weight: Number(axis.weight),
-        title: axis.title,
-        titleAr: axis.title_ar,
-      }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
-    questions: runtime.questions
-      .map((question) => ({
-        id: question.id,
-        code: question.code,
-        axisId: question.axis_id,
-        layer: question.layer ?? null,
-        impact: question.impact ?? null,
-        required: question.is_required !== false,
-      }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
-    options: runtime.options
-      .map((option) => ({
-        id: option.id,
-        questionId: option.question_id,
-        optionIndex: Number(option.option_index),
-        optionValue: Number(option.option_value),
-      }))
-      .sort(
-        (a, b) =>
-          a.questionId.localeCompare(b.questionId) ||
-          a.optionIndex - b.optionIndex,
-      ),
-    interpretation: {
-      schemaVersion: interpretationRegistry.schemaVersion,
-      interpretationVersion: interpretationBinding.interpretationVersion,
-      entries: (interpretationRegistry.entries as Array<Record<string, unknown>>)
-        .filter((entry) => entry.assessmentSlug === runtime.family.slug)
-        .filter((entry) => Number(entry.interpretationVersion) === interpretationBinding.interpretationVersion)
-        .sort(
-          (a, b) =>
-            String(a.questionCode).localeCompare(String(b.questionCode)) ||
-            Number(a.optionIndex) - Number(b.optionIndex),
-        )
-        .map((entry) => ({ ...entry })),
-    },
-    consistency: {
-      schemaVersion: consistencyRuleRegistry.schemaVersion,
-      ruleRegistryVersion: consistencyRuleRegistry.schemaVersion,
-      rules: (consistencyRuleRegistry.rules as Array<Record<string, unknown>>).map((rule) => ({ ...rule })),
-      pairRegistryVersion: consistencyPairRegistry.schemaVersion,
-      pairs: (consistencyPairRegistry.pairs as RuntimeConsistencyPair[])
-        .filter(
-          (pair) =>
-            pair.assessmentSlug === runtime.family.slug &&
-            pair.assessmentVersion === String(assessmentVersion),
-        )
-        .map((pair) => ({ ...pair })),
-    },
-  };
+  const versionedConfig = buildAssessmentConfigProjection({
+    runtime,
+    assessmentVersion,
+    interpretationRegistry,
+    interpretationVersion: interpretationBinding.interpretationVersion,
+    consistencyRuleRegistry,
+    consistencyPairRegistry,
+  });
 
   const consistencyConfiguration = scopedConsistencyConfiguration(
     runtime.family.slug,
     assessmentVersion,
   );
 
-  const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
+  const assessmentConfigDigest = await sha256Hex(canonicalizeAssessmentConfig(versionedConfig));
+
+  const { data: releaseSettings, error: releaseSettingsError } = await client
+    .from("assessment_config_release_settings")
+    .select("enabled")
+    .eq("singleton", true)
+    .maybeSingle();
+  if (releaseSettingsError) throw releaseSettingsError;
+
+  if (releaseSettings?.enabled === true) {
+    if (!session.assessment_release_id) {
+      assertPinnedAssessmentRelease({
+        session,
+        release: null,
+        runtime,
+        assessmentVersion,
+        assessmentConfigDigest,
+        runtimeRegistryDigest: "",
+        interpretationVersion: interpretationBinding.interpretationVersion,
+        engineIdentity: ENGINE_IDENTITY,
+        scoringContractVersion: SCORING_CONTRACT_ID,
+        canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
+        runtimeMetadata: { gitCommitSha: "", edgeReleaseRef: "", fixtureSetVersion: "", migrationContractVersion: "" },
+      });
+    }
+
+    const { data: release, error: releaseError } = await client
+      .from("assessment_config_releases")
+      .select("id, family_id, assessment_type_id, assessment_version, git_commit_sha, canonicalizer_version, config_digest, interpretation_version, interpretation_registry_digest, scoring_engine_version, scoring_contract_version, report_model_version, fixture_set_version, migration_contract_version, edge_release_ref, state, verified_config_digest, verified_registry_digest")
+      .eq("id", session.assessment_release_id)
+      .maybeSingle();
+    if (releaseError) throw releaseError;
+
+    const runtimeRegistryDigest = await sha256Hex(canonicalizeAssessmentConfig(versionedConfig.interpretation));
+    assertPinnedAssessmentRelease({
+      session,
+      release,
+      runtime,
+      assessmentVersion,
+      assessmentConfigDigest,
+      runtimeRegistryDigest,
+      interpretationVersion: interpretationBinding.interpretationVersion,
+      engineIdentity: ENGINE_IDENTITY,
+      scoringContractVersion: SCORING_CONTRACT_ID,
+        canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
+      runtimeMetadata: {
+        gitCommitSha: C03_RUNTIME_ATTESTATION.gitCommitSha,
+        edgeReleaseRef: C03_RUNTIME_ATTESTATION.edgeReleaseRef,
+        fixtureSetVersion: C03_RUNTIME_ATTESTATION.fixtureSetVersion,
+        migrationContractVersion: C03_RUNTIME_ATTESTATION.migrationContractVersion,
+      },
+    });
+  }
+
   const resultId = crypto.randomUUID();
   const calculatedAt = new Date().toISOString();
 

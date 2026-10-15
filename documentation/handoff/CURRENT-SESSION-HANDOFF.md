@@ -1,3 +1,30 @@
+# CURRENT C-03 RELEASE HANDOFF — integrated closeout checkpoint (2026-10-15)
+
+**Repository:** `core-system-md/clinic-evaluator`  
+**Canonical implementation PR:** [#109](https://github.com/core-system-md/clinic-evaluator/pull/109)  
+**Production Supabase project:** `oaqpzaarppccbnepffxx`
+
+## Current implementation consolidation
+
+- PR #109 is the canonical integrated candidate for the protected report-projection fix and full hybrid configuration release gate. It now includes the immutable Edge runtime attestation contract and the protected Production release orchestrator/tests originally developed on PR #107.
+- The C-03 migration is `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`; do not also apply the alternative PR #96 or PR #111 migrations.
+- The authorization harness loads the real `require_admin_capability` family from `20261003170912_p5_admin_architecture.sql` and uses the actual publication/restoration routines. Disposable validation/audit support remains explicitly test-scoped.
+- The protected production orchestrator refuses to run without `C03_PRODUCTION_RELEASE_CONFIRMATION=ENABLE-C03-PRODUCTION`; it checks both deployed Edge attestations, validates the five-family inventory, verifies all five releases before activating any, and only then enables the gate.
+- The attestation module is intentionally fail-closed in Git. Before deployment, prepare it for the exact final `main` SHA in a clean checkout, deploy both functions from that same checkout, and verify both deployed attestations before any release writes.
+
+## Production state at last live read (2026-10-15)
+
+- Project `oaqpzaarppccbnepffxx` is `ACTIVE_HEALTHY`; latest applied migration is `20261013110000`.
+- `assessment-access` is ACTIVE v38; `assessment-config-release` does not yet exist.
+- The C-03 migration is not applied, and the release tables do not exist.
+- No C-03 release registration, activation, or gate enablement has occurred in this work package.
+
+## Closure rule
+
+C-03 is not closed until the canonical PR is merged with green exact-head CI, the reviewed migration is applied, both Edge functions are deployed with the exact main SHA/source-manifest attestation, all five current published versions are registered and verified, activation succeeds against the expected current-version pointers, the gate is enabled and read back as enabled, and bounded live E2E checks pass with exact-ID cleanup. Close all superseded C-03 PRs only after their non-duplicate work is preserved in the canonical PR. Do not close unrelated project PRs.
+
+---
+
 # نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
 
 ## 1. الموضع
@@ -197,3 +224,51 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - Existing 248/248 option-identity reconciliation and C-01 CI evidence remain in the architecture/status records.
 
 **Next step:** follow the independently authorized work queue; do not reopen C-01 or begin C-03 as part of this closure. C-03 scope reconciliation remains separate.
+
+
+---
+
+## C-03 review checkpoint — 2026-10-15 (PR #106 / PR #107)
+
+**Status: implementation review in progress; C-03 NOT CLOSED.** This section supersedes older statements in this file that C-03 has not started, because the owner has now explicitly directed continuation and the repository contains active C-03 implementation PRs. It does not silently resolve unrelated historical scope conflicts; the active implementation under review is the persisted-result report recovery plus hybrid configuration release gate represented by PR #106 and PR #107.
+
+### Exact-head status (read-only)
+
+- PR #106 is OPEN / DRAFT / not merged. Head `bf57c44a97a90ec389f61e5366434ac5c831a517`. Its exact-head workflow inventory showed protected Edge handler regression plus P3 kernel, WP-02, WP-03, WP-04, WP-05 and WP-09; all reported SUCCESS.
+- PR #107 is OPEN / DRAFT / not merged. Head `abec5e31268bd9d1c6339e95d4a6bd1d5a3d68e9`. Its exact-head workflow inventory showed the C-03 hybrid config release gate (all three jobs succeeded), plus P3 kernel, WP-02, WP-04 and WP-09; all reported SUCCESS.
+- PR #96 remains OPEN / DRAFT / not merged. PR #105 is CLOSED / not merged. Neither was merged, cherry-picked, or otherwise modified during this checkpoint.
+- Review evidence and outstanding gates are recorded in `documentation/governance/C-03-PR106-PR107-ENGINEERING-REVIEW-2026-10-15.md`.
+
+### Findings and limits
+
+- PR #106's actual dispatcher test covers the protected completed-retry path when persisted `assessmentSlug` is missing and a first-completion routing path. The first-completion test stubs the calculation and uses a fake backend; this is not a replay of the historical Production crash.
+- PR #107's isolated PostgreSQL harness passes its release state-machine assertions. It substitutes test implementations for `require_admin_capability`, `publish_assessment_version_secure`, and `restore_public_assessment_secure`; therefore it does not prove integration with the real existing authorization/publication routines.
+- The release-gate workflow's success is isolated CI evidence only. No migration was applied to Production, no Edge Function was deployed, no Production write or live Production E2E was performed, and no release authorization was inferred.
+- Do not close C-03 until the remaining integration/security review and all authorized release gates have actual evidence. Do not merge PR #96 or PR #105.
+
+### Next exact action
+
+Continue review of PR #106 and PR #107 against the live repository contract, close or document each actionable finding, add regression coverage where required, and update this handoff after each review/fix package. Keep all Production-targeted actions blocked pending explicit release authorization.
+
+
+### PR review comments posted — 2026-10-15
+- PR #106 review comment `5532077039`: requests regression coverage for family-identity fallback and fail-closed unresolved-family behavior; records that Production crash replay remains unauthorized/unperformed.
+- PR #107 review comment `5532077420`: requests isolated integration coverage using real authorization/publication routines and an auditable binding between runtime metadata and deployed Edge bundle; gate remains disabled and Production changes unauthorized.
+- These are review comments, not approvals. C-03 remains open.
+
+
+### Follow-up implementation package — 2026-10-15
+
+- PR #106: added two deterministic protected-handler regressions: fallback from missing persisted family ID to `assessment_types.family_id`, and fail-closed HTTP 409 when neither family ID nor family slug can be resolved. The first new assertion initially failed because the report correctly does not fabricate a missing persisted family ID; the assertion was corrected to verify that the resolved slug selects the approved `clinic-performance` report model while identity remains explicitly null. Latest protected-handler run #38730312717 passed, and the related WP-02/WP-03/WP-04/WP-05/WP-09/P3 runs for head `48194a7611b6040271ad874b7ff08aa565d2106b` passed.
+- PR #107: changed the disposable PostgreSQL harness to load the repository's actual `20261003175645_p5_p2_immutability_lifecycle_compat.sql` publication/restoration routines instead of stubbing those two functions. The harness now uses a capability-checking test implementation and validation/audit fixtures. Exact-head workflow run #38730407260 is still in progress at the time of this update; do not count this package as passing until all jobs finish successfully.
+- These are test-only/CI changes. No Production migration, write, Edge deployment, or live E2E was performed. C-03 remains open; the deployment metadata-to-Edge-bundle binding and authorized target-environment release gates remain unresolved.
+
+- Follow-up detail: the first PR #107 PostgreSQL harness attempt failed immediately on malformed dollar-quote delimiters in the new test helper functions (not in the production migration). The delimiters were corrected to named `$c03$` blocks in commit `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`. The rerun for that exact head is pending verification; do not claim the release-state-machine job passes until observed.
+
+
+### CI result confirmation — 2026-10-15
+
+- PR #106 exact head `48194a7611b6040271ad874b7ff08aa565d2106b`: protected Edge handler regression, WP-02, WP-03, WP-04, WP-05, WP-09 and P3 kernel all SUCCESS. Protected handler run: [#38730312717](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730312717).
+- PR #107 exact head `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`: C-03 hybrid release-gate jobs (PostgreSQL state machine, digest contract, verifier handler), WP-02, WP-04, WP-09 and P3 kernel all SUCCESS. Release-gate run: [#38730540804](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730540804).
+- The publication/restoration stub gap is now closed in the disposable harness by loading the actual repository lifecycle SQL definitions. The harness still uses a test implementation of `require_admin_capability` and fixture implementations for validation/audit; exact integration with the production authorization routine remains open.
+- Runtime metadata is still supplied through environment variables and is not independently bound to the deployed Edge bundle by an auditable deploy process. This remains a release-blocking gap. C-03 is NOT CLOSED.
