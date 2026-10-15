@@ -1,3 +1,9 @@
+function compareText(left, right) {
+  const a = String(left);
+  const b = String(right);
+  return a < b ? -1 : a > b ? 1 : 0;
+}
+
 export const CONFIG_CANONICALIZER_VERSION = "C03_CANONICAL_V1";
 
 function normalizeJsonValue(value) {
@@ -55,19 +61,19 @@ export function buildAssessmentConfigProjection({
     .filter((entry) => Number(entry.interpretationVersion) === interpretationVersion)
     .map((entry) => ({ ...entry }))
     .sort((a, b) =>
-      String(a.questionCode).localeCompare(String(b.questionCode)) ||
+      compareText(a.questionCode, b.questionCode) ||
       Number(a.optionIndex) - Number(b.optionIndex)
     );
   const consistencyRules = [...(consistencyRuleRegistry.rules || [])]
     .map((rule) => ({ ...rule }))
-    .sort((a, b) => canonicalizeAssessmentConfig(a).localeCompare(canonicalizeAssessmentConfig(b)));
+    .sort((a, b) => compareText(canonicalizeAssessmentConfig(a), canonicalizeAssessmentConfig(b)));
   const consistencyPairs = (consistencyPairRegistry.pairs || [])
     .filter((pair) => pair.assessmentSlug === slug && pair.assessmentVersion === version)
     .map((pair) => ({ ...pair }))
     .sort((a, b) =>
-      String(a.validatorQuestionCode).localeCompare(String(b.validatorQuestionCode)) ||
-      String(a.targetQuestionCode).localeCompare(String(b.targetQuestionCode)) ||
-      String(a.relationshipType).localeCompare(String(b.relationshipType))
+      compareText(a.validatorQuestionCode, b.validatorQuestionCode) ||
+      compareText(a.targetQuestionCode, b.targetQuestionCode) ||
+      compareText(a.relationshipType, b.relationshipType)
     );
 
   return {
@@ -99,7 +105,7 @@ export function buildAssessmentConfigProjection({
       titleAr: axis.title_ar,
       description: axis.description,
       displayOrder: Number(axis.display_order),
-    })).sort((a, b) => a.id.localeCompare(b.id)),
+    })).sort((a, b) => compareText(a.id, b.id)),
     questions: runtime.questions.map((question) => ({
       id: question.id,
       code: question.code,
@@ -112,7 +118,7 @@ export function buildAssessmentConfigProjection({
       impact: question.impact ?? null,
       trapFor: question.trap_for ?? null,
       required: question.is_required !== false,
-    })).sort((a, b) => a.id.localeCompare(b.id)),
+    })).sort((a, b) => compareText(a.id, b.id)),
     options: runtime.options.map((option) => ({
       id: option.id,
       questionId: option.question_id,
@@ -122,12 +128,12 @@ export function buildAssessmentConfigProjection({
       labelAr: option.label_ar,
       isTrap: option.is_trap ?? false,
       displayOrder: Number(option.display_order),
-    })).sort((a, b) => a.id.localeCompare(b.id)),
+    })).sort((a, b) => compareText(a.id, b.id)),
     traps: [...(runtime.traps || [])]
       .map((trap) => ({ ...trap }))
       .sort((a, b) =>
-        String(a.question_id).localeCompare(String(b.question_id)) ||
-        String(a.name).localeCompare(String(b.name))
+        compareText(a.question_id, b.question_id) ||
+        compareText(a.name, b.name)
       ),
     interpretation: {
       schemaVersion: interpretationRegistry.schemaVersion,
