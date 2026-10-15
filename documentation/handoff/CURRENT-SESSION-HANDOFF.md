@@ -1,3 +1,15 @@
+# C-03 AUTHORIZATION REQUIREMENT CORRECTION — OWNER DIRECTIVE — 2026-10-15
+
+**Authoritative correction:** The protected GitHub Actions C-03 CI path does **not** require `C03_OWNER_JWT` or a human-owner JWT. The `assessment-config-release` handler authenticates `ci_*` actions with the verified GitHub Actions OIDC workload token and checks the deployed bundle SHA; only non-CI human/admin actions use the existing `requireOwner` path. Earlier handoff statements treating owner-JWT injection as a blocker for the OIDC release path are superseded and must not be used to request a JWT or restart credential troubleshooting.
+
+- The OIDC implementation and migration replace the former owner-JWT dependency in the CI release path; they do not add a requirement to obtain owner authentication.
+- Preserve existing owner/admin authorization on human-facing API actions. It is distinct from the CI workload path.
+- The guarded release still checks signed workload identity, exact repository/ref/workflow/environment/event/SHA/run claims, current-main SHA, release preconditions, tests, and post-release evidence. No owner JWT or owner-authentication conversation is required for CI release execution.
+- Current release state remains: gate disabled; zero release rows; zero active release pointers; five published families. This correction does not claim the production release or live E2E has completed.
+- The available GitHub connector has no workflow-dispatch action. No workflow was dispatched by this documentation correction; do not claim deployment completion without a real run and its evidence.
+
+---
+
 # C-03 OWNER-DIRECTED OIDC RELEASE — CURRENT PRODUCTION HANDOFF — 2026-10-15
 
 **This section supersedes all earlier statements below that C-03 rollout is deferred or that `C03_OWNER_JWT` remains a release prerequisite.**
