@@ -22,7 +22,7 @@ function fakeFetch({ rejectVerifySlug = null } = {}) {
     if (url.includes("/rest/v1/assessment_families")) return response(families);
     const body = JSON.parse(options.body || "{}");
     if (body.action === "register") {
-      return response({ success: true, data: { release_id: "release-" + body.assessment_type_id, state: "PREPARED" } });
+      return response({ success: true, data: { release_id: "release-" + body.assessment_type_id, assessment_type_id: body.assessment_type_id, state: "PREPARED" } });
     }
     if (body.action === "verify") {
       const reject = rejectVerifySlug && body.release_id === "release-version-" + families.find(f => f.slug === rejectVerifySlug)?.current_published_version_id;
