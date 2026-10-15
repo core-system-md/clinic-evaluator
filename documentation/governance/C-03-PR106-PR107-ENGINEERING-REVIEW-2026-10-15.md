@@ -127,12 +127,12 @@ The historical Production HTTP 500 has not been replayed against a Production se
 **Status at this checkpoint: SCHEMA APPLIED / EDGE DEPLOYMENT AND RELEASE ACTIVATION NOT YET VERIFIED.**
 
 
-## Latest Production runner result — blocked before any deployment (2026-10-15)
+## Latest Production runner results — credential injection unresolved (2026-10-15)
 
-- [Workflow #38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) passed Node, Deno, protected/public Edge handler and real authorization SQL tests.
-- Credential preflight failed because the repository Actions secret `SUPABASE_SERVICE_ROLE_KEY` is absent. No attestation preparation, Edge deployment, release registration, activation, or gate write occurred.
-- The live C-03 migration remains applied with the gate disabled, no release rows, no active release pointers, and only the existing `assessment-access` v38 deployed.
-- The required secret must be added in GitHub repository Actions settings; the owner JWT must also be present and current. Do not place either value in chat.
-- No PRs remain open. The guarded workflow's manual input is `ENABLE-C03-PRODUCTION`; it waits for both Edge bundles to match the exact current `main` SHA before proceeding.
+- [Run #38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) passed Node, Deno, protected/public Edge handler, and authorization SQL tests; preflight received an empty `SUPABASE_SERVICE_ROLE_KEY`.
+- Commit `50b2e9c9b766c3103074f1d58e558294fab01943` switched both C-03 jobs to `production-e2e`, based on documented secret scope. [Run #38746879746](https://github.com/core-system-md/clinic-evaluator/actions/runs/38746879746) reproduced the same empty runtime value.
+- Do not state that the key is absent from GitHub: available evidence establishes only that it is empty inside the runner. Secret configuration cannot be inspected by this session's GitHub connector. Root cause (name, scope, shadowing, or other Actions configuration) remains unresolved.
+- No attestation preparation, Edge deployment, release registration, activation, gate write, or live E2E occurred. Live migration is applied; gate disabled; release rows and active pointers are zero; `assessment-access` v38 is deployed; `assessment-config-release` is not deployed.
+- No PRs remain open. Continue by verifying the actual secret name/scope and restoring non-empty injection; keep preflight fail-closed and do not expose credentials in chat.
 
-**Status: CODE AND TEST GATES PASS / PRODUCTION RELEASE BLOCKED BY SECRET CONFIGURATION.**
+**Status: ISOLATED TEST GATES PASS / RUNNER SECRET VALUE EMPTY / ROOT CAUSE UNVERIFIED / C-03 NOT CLOSED.**
