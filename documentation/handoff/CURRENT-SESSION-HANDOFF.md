@@ -1,3 +1,36 @@
+# C-03 OWNER-DIRECTED OIDC RELEASE — CURRENT PRODUCTION HANDOFF — 2026-10-15
+
+**This section supersedes all earlier statements below that C-03 rollout is deferred or that `C03_OWNER_JWT` remains a release prerequisite.**
+
+## Implementation and review
+- PR #113 merged: https://github.com/core-system-md/clinic-evaluator/pull/113 — guarded GitHub OIDC release authorization replaces the literal `C03_OWNER_JWT` dependency.
+- PR #114 merged: https://github.com/core-system-md/clinic-evaluator/pull/114 — C-03 CI emits the exact source-manifest attestation for release evidence.
+- C-03 CI passed at the reviewed implementation head, including Node/Deno tests and the disposable PostgreSQL harness that loads the new migration and exercises the CI-only RPC authorization/state transitions.
+- Existing human-owner checks remain unchanged. The new workload verifier checks GitHub signature, issuer/audience, repository, repository owner, allowlisted dispatcher (`actor=core-system-md`, `actor_id=290540122`), protected-environment subject, main ref, exact workflow, manual dispatch event, commit SHA, and run identity.
+- Release workflow now has a no-write `preflight_only` mode and a pre-deployment migration/RPC preflight. A normal push cannot trigger Production release.
+
+## Verified Production state after deployment
+- Supabase project: `oaqpzaarppccbnepffxx`.
+- Migration `20261015120000_c03_github_oidc_release_authorization` is recorded as applied; all four CI RPC signatures are present.
+- `assessment-access`: ACTIVE v39, `verify_jwt=false` (preserved public endpoint configuration).
+- `assessment-config-release`: ACTIVE v1, `verify_jwt=true`; GitHub OIDC is passed in a dedicated header so the Supabase gateway continues to verify its normal JWT.
+- Both deployed Edge functions currently embed the same attestation: source SHA `4eef11cae8c83201e7d89c21d27f99750d8f7d3d`, edge source digest `sha256:0257e577e67f157aabc8b512dc76a6b252229263597156ceef4853b2e496763f`.
+- Read-only Production verification: migration recorded = true; gate `enabled=false`; release rows = 0; active release pointers = 0; published families = 5; published families without a release = 5.
+- No release registration/verification/activation, gate enablement, live E2E, or cleanup has been performed. C-03 is **not yet Production-closed**.
+
+## Exact next action
+The connected GitHub interface available here does not expose a workflow-dispatch action. The guarded workflow is ready, but a human must start it in GitHub Actions:
+1. Open Actions → **C-03 guarded Production release and bounded E2E**.
+2. Select branch `main`.
+3. Set `confirm_production_release` exactly to `ENABLE-C03-PRODUCTION`.
+4. Leave `preflight_only=false` to continue after the OIDC preflight; use `true` only for a no-write identity test.
+5. Monitor the run. The OIDC preflight must pass before the release job can start. If actor/subject/workflow claims do not match, the release job will not proceed.
+6. Require all five releases to be verified and activated, gate read-back to show the exact workflow run ID and SHA, live E2E to pass, cleanup to complete, and final read-only state checks to pass before closing C-03.
+
+Do not paste any JWT or secret into chat. Do not bypass the workflow by calling privileged RPCs directly.
+
+---
+
 # CURRENT OWNER-DIRECTED RESUMPTION — C-03 OIDC AUTHORIZATION — 2026-10-15
 
 **This section supersedes the earlier status below that treats `C03_OWNER_JWT` as the remaining release path. The owner explicitly authorized a reviewed alternative authorization design and continued C-03 Production completion.**
