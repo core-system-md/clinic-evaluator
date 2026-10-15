@@ -1,3 +1,19 @@
+# C-03 OIDC PRODUCTION RELEASE PREFLIGHT — LIVE STATUS — 2026-10-15
+
+**This section supersedes earlier deferred-rollout statements below.** The owner authorized the OIDC replacement and Production completion.
+
+- PR #113 and PR #114 are merged.
+- The new migration `20261015120000_c03_github_oidc_release_authorization` is recorded as applied in Production; the helper, register, activate, and gate CI RPCs exist.
+- `assessment-access` is ACTIVE v39 with `verify_jwt=false`; `assessment-config-release` is ACTIVE v1 with `verify_jwt=true`.
+- Both Edge functions embed the same source attestation: commit `4eef11cae8c83201e7d89c21d27f99750d8f7d3d`, digest `sha256:0257e577e67f157aabc8b512dc76a6b252229263597156ceef4853b2e496763f`.
+- Live read-only state: gate disabled; release rows 0; active release pointers 0; five published families; all five currently lack a release record.
+- No release writes, gate activation, live E2E, or cleanup have occurred. **Production closure is still pending.**
+
+## Remaining execution gate
+Start **C-03 guarded Production release and bounded E2E** manually from GitHub Actions on `main`, with `confirm_production_release=ENABLE-C03-PRODUCTION` and `preflight_only=false`. The workflow first validates the signed GitHub OIDC identity and then verifies the new migration/RPCs and exact deployed source attestation before any release writes. Do not call privileged RPCs directly or disclose any JWT/secret. Close C-03 only after five-family activation, gate audit read-back, live E2E, exact-run cleanup, and final read-only verification.
+
+---
+
 # OWNER-DIRECTED AUTHORIZATION REDESIGN — 2026-10-15
 
 **This section supersedes the earlier deferred-rollout disposition because the owner has explicitly authorized a reviewed alternative and continuation. It does not claim Production release completion.**
