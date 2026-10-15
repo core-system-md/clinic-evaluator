@@ -21,5 +21,6 @@
       ]
     }
   ],
-  "status": "draft"
+  "status": "draft",
+  "configDigest": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
 }
