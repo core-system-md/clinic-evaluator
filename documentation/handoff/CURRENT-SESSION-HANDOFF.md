@@ -1,23 +1,31 @@
 # C-03 FINAL CONSOLIDATION CHECKPOINT — 2026-10-15
 
 **Canonical implementation:** PR [#109](https://github.com/core-system-md/clinic-evaluator/pull/109), merged as `0e03b8311ebf8a48cde96d2450b01a2d7b19fca2`.  
-**Code:** persisted-result family identity fix, full configuration digest/state machine, immutable build-time Edge attestation, actual authorization-function harness, guarded five-family release orchestrator.  
-**Exact-head CI before merge:** [C-03 release gate](https://github.com/core-system-md/clinic-evaluator/actions/runs/38734379126) and all cross-work-package checks passed.
+**Production Supabase project:** `oaqpzaarppccbnepffxx`.
 
-## Pull request disposition
+## Code and PR state
 
-- PR #109 is merged.
-- Superseded C-03 PRs #96, #101, #102, #103, #104, #106, #107, #108, #110, #111 and #112 are closed without merge; applicable implementation/tests/docs were consolidated into #109.
-- PR #105 was already closed without merge.
+- Canonical integrated implementation contains the persisted-result family-identity fix, full configuration digest/state machine, immutable build-time Edge attestation, real admin authorization function harness, and guarded five-family release orchestrator.
+- Exact-head candidate CI passed the C-03 PostgreSQL release state machine, source-derived authorization checks, runtime digest/attestation and release sequencing tests, protected Edge handler tests, actual Edge handler regression, P3 kernel, WP-02/WP-03/WP-04/WP-05/WP-09.
+- PR #109 is merged. Superseded C-03 PRs #96, #101, #102, #103, #104, #106, #107, #108, #110, #111 and #112 are closed without merge. PR #105 was already closed without merge. No repository PRs remain open in the latest read.
 - Do not reopen or merge the alternative #96/#111 migration branches.
 
-## Production remains an explicit unresolved gate
+## Live Production state after schema migration
 
-The latest verified live read showed Production still at migration `20261013110000`, `assessment-access` v38, and no C-03 release tables or `assessment-config-release` function. This repository merge does not change those facts.
+- The live migration ledger now includes `20261015100000_c03_hybrid_config_release_gate`; both C-03 release tables exist.
+- Read-only state query: gate `enabled=false`, release rows `0`, current-release pointers `0`, and five current published families remain unchanged.
+- `assessment-access` remains ACTIVE v38 with the pre-C-03 bundle hash; `assessment-config-release` has not yet been deployed.
+- No release registration, release activation, gate enablement, or C-03 live E2E has been observed as complete.
 
-The migration, function deployment, five-family registration/verification/activation, gate enablement, and bounded live E2E cleanup must be executed and evidenced before declaring C-03 closed. The available connector cannot perform the required owner-authenticated Edge HTTP calls; do not substitute privileged SQL or claim the release passed without those calls. Keep `C03_OWNER_JWT` and the service-role key in a secure release runner only.
+## Guarded Production release runner
 
-**Current status:** `CODE MERGED / EXACT-HEAD CI PASS / PRODUCTION RELEASE NOT EXECUTED / C-03 NOT CLOSED`.
+`.github/workflows/c03-production-release.yml` is the one-time, guarded release path. It runs all C-03 isolated tests and the real authorization SQL harness first, confirms the live gate is disabled and the exact five-family inventory is present, prepares the immutable attestation on the exact triggering `main` SHA, deploys both Edge functions from that checkout, verifies both deployed identities, registers/verifies/activates all five current versions, enables/read-backs the gate, then runs bounded public completion E2E and exact-ID cleanup verification.
+
+The first run requires GitHub Actions secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a current `C03_OWNER_JWT`. Missing secrets or any failed preflight must stop before deployment or release writes. The workflow refuses stale commits and refuses to re-enable an already-enabled gate.
+
+**Do not change `main` after the successful release workflow deploys.** The deployed attestation intentionally binds the exact commit SHA. The workflow uploads the release and E2E/cleanup evidence artifacts. If the run fails, inspect its failed step and artifacts before deciding on a new release commit.
+
+**Status at this documentation checkpoint:** `CODE MERGED / C-03 CI PASS / SCHEMA MIGRATION APPLIED / EDGE RELEASE AND LIVE E2E STILL PENDING`.
 
 ---
 
