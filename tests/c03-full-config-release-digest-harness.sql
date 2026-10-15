@@ -237,6 +237,7 @@ declare
   v_config_digest text;
   v_config_digest_after text;
   v_trap_digest_after text;
+  v_settings_digest_after text;
   v_source_commit_sha text := repeat('b',40);
   v_edge_release_ref text := 'assessment-access-c03-registry-attestation-v1';
   v_option_manifest jsonb;
@@ -388,6 +389,13 @@ begin
   v_trap_digest_after := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   if v_trap_digest_after = v_config_digest_after then
     raise exception 'Full configuration digest did not change after trap configuration mutation';
+  end if;
+
+  update public.assessment_settings set auth_enabled=false
+   where assessment_key='c03-fixture-family';
+  v_settings_digest_after := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if v_settings_digest_after = v_trap_digest_after then
+    raise exception 'Full configuration digest did not change after access-policy mutation';
   end if;
 end
 $test$;
