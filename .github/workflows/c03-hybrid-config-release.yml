@@ -9,6 +9,7 @@ on:
       - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
       - "tests/c03-hybrid-config-release.test.js"
       - "tests/c03-hybrid-config-release-harness.sql"
+      - "tests/c03-interpretation-runtime-provenance.test.js"
       - "tests/c03-full-config-digest.test.js"
   workflow_dispatch:
 
