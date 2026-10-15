@@ -5,14 +5,11 @@ on:
     branches: [main]
     paths:
       - ".github/workflows/c03-hybrid-config-release.yml"
-      - ".github/scripts/c03-generate-release-payload.cjs"
       - "supabase/functions/assessment-access/**"
       - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
       - "tests/c03-hybrid-config-release.test.js"
       - "tests/c03-hybrid-config-release-harness.sql"
-      - "tests/c03-release-payload-generator.test.js"
       - "tests/c03-full-config-digest.test.js"
-      - "tests/fixtures/c03-release-*.json"
   workflow_dispatch:
 
 permissions:
@@ -30,16 +27,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/c03-hybrid-config-release.test.js tests/c03-full-config-digest.test.js tests/c03-release-payload-generator.test.js
-      - name: Generate deterministic release payload
-        run: |
-          node .github/scripts/c03-generate-release-payload.cjs \
-            --snapshot tests/fixtures/c03-release-snapshot.json \
-            --registry tests/fixtures/c03-release-registry.json \
-            --source-commit-sha bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
-            > /tmp/c03-release-payload.json
-          node -e "const p=require('/tmp/c03-release-payload.json'); if (!Array.isArray(p.p_option_manifest) || p.p_option_manifest.length !== 2) process.exit(1); console.log('Generated deterministic option manifest with', p.p_option_manifest.length, 'entries')"
-
+      - run: node --test tests/c03-hybrid-config-release.test.js tests/c03-full-config-digest.test.js tests/c03-interpretation-runtime-provenance.test.js
   postgres-release-state-machine:
     name: C-03 release lifecycle, drift, and publication gate (disposable PostgreSQL)
     runs-on: ubuntu-latest
@@ -61,13 +49,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Generate test payload
+      - name: Prepare deterministic SQL-only release fixture
         run: |
-          node .github/scripts/c03-generate-release-payload.cjs \
-            --snapshot tests/fixtures/c03-release-snapshot.json \
-            --registry tests/fixtures/c03-release-registry.json \
-            --source-commit-sha bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
-            > /tmp/c03-release-payload.json
+          cat > /tmp/c03-release-payload.json <<'JSON'
+          {"p_assessment_type_id":"cccccccc-cccc-4ccc-8ccc-cccccccccccc","p_interpretation_version":1,"p_registry_digest":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","p_source_commit_sha":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","p_edge_release_ref":"assessment-access-c03-registry-attestation-v1","p_option_manifest":[{"question_code":"Q1","option_id":"ffffffff-ffff-4fff-8fff-ffffffffffff","option_index":0,"source_option_value":0},{"question_code":"Q1","option_id":"11111111-1111-4111-8111-111111111111","option_index":1,"source_option_value":1}]}
+          JSON
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Apply migration and exercise full-config release state machine
