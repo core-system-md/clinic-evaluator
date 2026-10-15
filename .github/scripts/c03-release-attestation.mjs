@@ -99,28 +99,36 @@ export async function prepareAttestation({ root = REPO_ROOT, commitSha, outputPa
   return attestation;
 }
 
-export async function verifyDeployedAttestation({ root = REPO_ROOT, commitSha } = {}) {
+export async function verifyDeployedAttestation({
+  root = REPO_ROOT,
+  commitSha,
+  assessmentTypeId,
+  baseUrl: suppliedBaseUrl,
+  anonKey: suppliedAnonKey,
+  ownerJwt: suppliedOwnerJwt,
+  fetchImpl = fetch,
+} = {}) {
   const actualHead = gitHead(root);
   const requestedCommit = String(commitSha || actualHead).trim().toLowerCase();
   if (requestedCommit !== actualHead) {
     throw new Error("C-03 verification commit must equal the checked-out HEAD: " + actualHead);
   }
   const expected = await buildRuntimeAttestation({ root, commitSha: actualHead });
-  const baseUrl = String(process.env.SUPABASE_URL || "").replace(/\/$/, "");
-  const anonKey = String(process.env.SUPABASE_ANON_KEY || "");
-  const ownerJwt = String(process.env.C03_OWNER_JWT || "");
-  const assessmentTypeId = String(process.env.C03_ASSESSMENT_TYPE_ID || "").trim();
-  if (!baseUrl || !anonKey || !ownerJwt || !assessmentTypeId) {
+  const baseUrl = String(suppliedBaseUrl || process.env.SUPABASE_URL || "").replace(/\/$/, "");
+  const anonKey = String(suppliedAnonKey || process.env.SUPABASE_ANON_KEY || "");
+  const ownerJwt = String(suppliedOwnerJwt || process.env.C03_OWNER_JWT || "");
+  const selectedAssessmentTypeId = String(assessmentTypeId || process.env.C03_ASSESSMENT_TYPE_ID || "").trim();
+  if (!baseUrl || !anonKey || !ownerJwt || !selectedAssessmentTypeId) {
     throw new Error("Read-only deployed attestation verification requires SUPABASE_URL, SUPABASE_ANON_KEY, C03_OWNER_JWT, and C03_ASSESSMENT_TYPE_ID.");
   }
-  const response = await fetch(baseUrl + "/functions/v1/assessment-config-release", {
+  const response = await fetchImpl(baseUrl + "/functions/v1/assessment-config-release", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       "apikey": anonKey,
       "Authorization": "Bearer " + ownerJwt,
     },
-    body: JSON.stringify({ action: "export", assessment_type_id: assessmentTypeId }),
+    body: JSON.stringify({ action: "export", assessment_type_id: selectedAssessmentTypeId }),
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || payload?.success !== true) {
@@ -133,7 +141,7 @@ export async function verifyDeployedAttestation({ root = REPO_ROOT, commitSha } 
     }
   }
 
-  const scorerResponse = await fetch(baseUrl + "/functions/v1/assessment-access", {
+  const scorerResponse = await fetchImpl(baseUrl + "/functions/v1/assessment-access", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -152,7 +160,7 @@ export async function verifyDeployedAttestation({ root = REPO_ROOT, commitSha } 
       throw new Error("Deployed scorer attestation mismatch for " + key + ": expected " + expected[key] + ", got " + String(scorerActual?.[key]));
     }
   }
-  return { expected, verifier: actual, scorer: scorerActual, assessmentTypeId };
+  return { expected, verifier: actual, scorer: scorerActual, assessmentTypeId: selectedAssessmentTypeId };
 }
 
 async function main() {
