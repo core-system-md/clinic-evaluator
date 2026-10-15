@@ -86,3 +86,13 @@ This script does **not** apply the migration or deploy functions. Those remain e
 
 **Status at this checkpoint: SCHEMA APPLIED / EDGE DEPLOYMENT AND RELEASE ACTIVATION NOT YET VERIFIED.**
 
+
+## Latest guarded release attempt — preflight blocked (2026-10-15)
+
+- Workflow [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) passed all code and disposable database tests, then stopped before deployment because repository Actions secret `SUPABASE_SERVICE_ROLE_KEY` is missing.
+- No runtime attestation was prepared and no Edge deployment, release registration, activation, or gate write occurred in this attempt.
+- Live read still shows the C-03 migration applied, gate disabled, zero release rows, zero active pointers, `assessment-access` v38, and `assessment-config-release` undeployed.
+- Required owner action: add `SUPABASE_SERVICE_ROLE_KEY` in repository Settings → Secrets and variables → Actions; verify a current `C03_OWNER_JWT` is also present. Do not send either credential through chat. Then run the guarded workflow manually with `ENABLE-C03-PRODUCTION`.
+- No PRs remain open. The next run must use the exact current `main` SHA and wait for matching attestations from both deployed functions before any release writes.
+
+**Status: RELEASE PREFLIGHT BLOCKED / C-03 NOT CLOSED.**
