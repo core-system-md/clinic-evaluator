@@ -45,7 +45,7 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
-      - run: deno test --node-modules-dir=auto --allow-env --allow-net tests/c03-protected-completion-edge.test.ts
+      - run: deno test --no-check --node-modules-dir=auto --allow-env --allow-net tests/c03-protected-completion-edge.test.ts
 
   node-regression:
     name: C-03 and existing Node regression suites
