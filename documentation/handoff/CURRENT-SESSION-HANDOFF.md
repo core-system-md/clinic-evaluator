@@ -8,14 +8,16 @@
 
 ## Exact engineering state
 
-- PR #107 head: `d42be73122fde63dd3b97854f0769d79bc1a1e20`, open/Draft/not merged.
+- PR #107 head: `56e9ad20748dde428af970be6009e1198e36a03e`, open/Draft/not merged.
 - PR #106 head: `48194a7611b6040271ad874b7ff08aa565d2106b`, open/Draft/not merged.
 - PR #112 is documentation-only and remains open/Draft.
 - PR #96 remains open/unmerged; PR #105 remains closed/unmerged. Do not merge either.
-- PR #107 CI run [#38731852239](https://github.com/core-system-md/clinic-evaluator/actions/runs/38731852239) passed the isolated PostgreSQL release state machine, digest/attestation tests, and owner-authenticated verifier handler. P3 kernel and WP-02/WP-03/WP-04/WP-05/WP-09 passed for the same head.
-- The PostgreSQL harness now extracts `is_owner`, `has_admin_capability`, and `require_admin_capability` directly from `supabase/migrations/20261003170912_p5_admin_architecture.sql`; source SHA-256 observed in CI: `000bab15cbc643483166fff0e400ad76ae70531feeebfda526560478e811366f`. It uses the real lifecycle publish/restore/stop SQL routines, while validation/audit support functions remain explicit isolated-test fixtures.
-- Runtime identity is now build-attested, not environment-overridden. `.github/scripts/c03-release-attestation.mjs prepare` requires the checked-out full commit SHA, pins fixture/migration contract versions from `release-contract.json`, and computes `edgeReleaseRef=sha256:<source-manifest-digest>` over the sorted Edge source tree. Both `assessment-access` and `assessment-config-release` import the same generated module. The script's read-only `verify` mode checks both deployed runtime endpoints against the expected attestation.
-- The checked-in attestation module is deliberately blank/fail-closed. Do not deploy it without running the prepare step against the exact intended commit.
+- Exact-head CI run [#38732936474](https://github.com/core-system-md/clinic-evaluator/actions/runs/38732936474) passed: C-03 verifier handler, PostgreSQL release state machine, runtime digest/attestation/production-orchestrator tests, P3 kernel, WP-02/WP-03/WP-04/WP-05/WP-09.
+- The PostgreSQL harness extracts `is_owner`, `has_admin_capability`, and `require_admin_capability` directly from `supabase/migrations/20261003170912_p5_admin_architecture.sql`; source SHA-256 observed in CI: `000bab15cbc643483166fff0e400ad76ae70531feeebfda526560478e811366f`. It proves unauthorized publish is denied without mutation and authorized publication reaches the real lifecycle routine, updates the pointer and audit row, then clears the test family before release-gate tests. Validation/audit support functions remain explicit disposable-test fixtures.
+- Runtime identity is build-attested, not environment-overridden. `.github/scripts/c03-release-attestation.mjs` requires the full Git SHA to match checked-out HEAD, pins contract versions from `release-contract.json`, and computes `edgeReleaseRef=sha256:<source-manifest-digest>` over sorted source inputs for both Edge functions, including `.mts` modules and JSON registries while excluding only the generated attestation module.
+- Both Edge functions consume the same generated metadata. The scorer exposes a read-only `c03_runtime_attestation` action; the verifier export exposes its own metadata. The read-only verifier compares both deployed endpoints against the exact expected commit/source digest.
+- `.github/scripts/c03-production-release.mjs` orchestrates Production release registration/verification/activation for the exact five reviewed family slugs. It requires the explicit `ENABLE-C03-PRODUCTION` confirmation, checks that the gate is currently disabled, verifies both Edge identities before any writes, registers all five, verifies all five before activating any, then enables the gate and checks persisted state. Tests prove it performs no writes on attestation failure and no activation if any version fails verification.
+- The checked-in attestation module remains deliberately blank/fail-closed. Do not deploy without running `node .github/scripts/c03-release-attestation.mjs prepare` on the exact intended commit.
 
 ## Production read-only preflight (2026-10-15)
 
@@ -29,7 +31,7 @@
 
 ## Next exact gate
 
-Do not enable C-03 yet. First integrate the reviewed implementation on `main`, apply only the reviewed C-03 migration, prepare and deploy both Edge functions from the exact same main commit, and run the read-only deployed-attestation verifier. Then register, verify, and activate each of the five current published version IDs; enable the gate only if all five attestations match and the migration/Edge/runtime preflights pass. The current tool connection does not expose a way to invoke the live Edge HTTP endpoints with an authenticated owner JWT, so the owner-authenticated registration/verification sequence must run through the checked-in verification script in an authorized release runner. Do not bypass it with privileged SQL or mark C-03 closed without its evidence.
+The engineering CI gates are green, but C-03 is **not closed**. Integrate the reviewed PRs on `main`, apply only the reviewed C-03 migration after checking the migration dry-run, run the prepare step on the resulting exact `main` SHA, deploy both Edge functions from that prepared checkout, and run the read-only attestation verifier. Then run the protected production release orchestrator with the service-role key and current owner JWT supplied only through secure environment variables. It must register/verify/activate all five current versions before enabling the gate. The current connector does not expose an authenticated HTTP invocation tool for live Edge endpoints, so this session could not execute the owner-authenticated registration/verification sequence; do not bypass it with privileged SQL or mark C-03 closed without live evidence.
 
 ---
 
