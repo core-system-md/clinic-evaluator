@@ -645,6 +645,10 @@ Deno.serve(async (req) => {
         result = response.data;
       }
 
+      if (result?.error) {
+        return json({ error: String(result.error) }, pgErrorStatus({ code: result.code || "40906" }));
+      }
+
       if (result?.resumed && leadId && result.lead_id && result.lead_id !== leadId) {
         await supabase.from("leads").delete().eq("id", leadId);
       }
@@ -875,8 +879,12 @@ Deno.serve(async (req) => {
           { status: pgErrorStatus(releaseCheck.error) },
         );
       }
-      if (!releaseCheck.data?.release_id || !releaseCheck.data?.config_digest) {
-        return json({ error: "Pinned configuration release is unavailable" }, 409);
+      if (
+        !releaseCheck.data?.release_id ||
+        !releaseCheck.data?.config_digest ||
+        releaseCheck.data?.state !== "PUBLISHED"
+      ) {
+        return json({ error: "Pinned configuration release is unavailable or degraded" }, 409);
       }
 
       const preparation = await supabase.rpc("prepare_assessment_submission", {
