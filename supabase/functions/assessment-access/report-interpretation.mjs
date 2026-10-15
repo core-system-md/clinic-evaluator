@@ -99,6 +99,28 @@ export function compatibleTrend(current, previous) {
   };
 }
 
+export function ensureAssessmentSlug(structuredResult, fallbackSlug) {
+  if (!structuredResult || typeof structuredResult !== "object") {
+    throw new Error("A persisted Structured Result is required.");
+  }
+  const existingSlug = String(
+    structuredResult?.provenance?.assessmentSlug ||
+    structuredResult?.identity?.assessmentSlug ||
+    "",
+  ).trim();
+  const resolvedSlug = existingSlug || String(fallbackSlug || "").trim();
+  if (!resolvedSlug) {
+    throw new Error("Assessment family slug is required to project a persisted Structured Result.");
+  }
+  return {
+    ...structuredResult,
+    provenance: {
+      ...(structuredResult.provenance || {}),
+      assessmentSlug: resolvedSlug,
+    },
+  };
+}
+
 export function projectCompletionResponse(structuredResult, previousSession = null) {
   if (!structuredResult || !structuredResult.identity || !structuredResult.scores ||
       !Array.isArray(structuredResult.scores.axes) || !structuredResult.classification) {
