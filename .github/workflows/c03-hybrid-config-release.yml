@@ -52,7 +52,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js
+      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs
 
 
   release-verifier-handler:
