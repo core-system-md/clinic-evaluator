@@ -80,3 +80,27 @@ The historical Production HTTP 500 has not been replayed against a Production se
 - PR #107 head `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`: all listed runs SUCCESS — C-03 release state machine/digest/verifier, WP-02, WP-04, WP-09, P3. Release workflow [#38730540804](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730540804).
 - The disposable harness now uses the actual repository lifecycle SQL definitions for publication and restoration. However, it still uses a test implementation of `require_admin_capability` and test fixtures for validation/audit dependencies. Exact integration with the production authorization function remains open.
 - **Release blocker:** the environment-based runtime metadata has not been independently proven to identify the deployed Edge bundle. No production migration, data write, Edge deployment, or live E2E was performed. C-03 remains NOT CLOSED.
+
+## 9. Follow-up — authorization integration and runtime attestation (2026-10-15)
+
+### Exact-head implementation and CI
+
+- Latest PR #107 head at this checkpoint: `d42be73122fde63dd3b97854f0769d79bc1a1e20`.
+- Full C-03 workflow: [#38731852239](https://github.com/core-system-md/clinic-evaluator/actions/runs/38731852239) — PASS. The PostgreSQL harness extracted the canonical authorization definitions from `20261003170912_p5_admin_architecture.sql`; the log recorded source SHA-256 `000bab15cbc643483166fff0e400ad76ae70531feeebfda526560478e811366f`. It proves unauthorized publish is denied without mutating the draft/current pointer; authorized publish reaches the real lifecycle routine, updates the pointer and audit record, and test state is then stopped/cleared before the C-03 release-state tests.
+- The same head passed P3 kernel and WP-02/WP-03/WP-04/WP-05/WP-09. PR #106's protected-handler head remains `48194a7611b6040271ad874b7ff08aa565d2106b`, with its previously verified CI passing.
+- Validation and audit functions in the disposable harness remain fixture implementations; only the authorization functions and lifecycle publication/restoration routines are sourced from repository migrations. This limitation is explicit.
+
+### Immutable Edge identity contract
+
+- Added `.github/scripts/c03-release-attestation.mjs`, `supabase/functions/assessment-config-release/release-contract.json`, and a fail-closed `runtime-attestation.ts` placeholder.
+- The build script requires the generated attestation commit to equal the checked-out Git HEAD; fixture and migration-contract versions come from the versioned contract file. The Edge source manifest digest is deterministic and excludes the generated attestation module to avoid a self-referential digest.
+- Both the scorer and verifier read the same baked-in metadata. The scorer exposes a read-only `c03_runtime_attestation` action; verifier export exposes its own metadata. Script `verify` compares both live endpoints to the expected commit and source digest. Runtime environment variables can no longer impersonate another build.
+- Node tests cover deterministic digest, immutable commit format, versioned contract values, fail-closed defaults, and read-only comparison of both endpoints. These tests passed in workflow #38731852239.
+
+### Production reality and stop condition
+
+- Production was inspected read-only: latest migration `20261013110000`; C-03 tables absent; `assessment-access` v38 active; `assessment-config-release` absent; exactly five families have current published versions.
+- Current published version IDs: admin-reception-assessment `6395ed4b-de13-4621-8577-4c0596ff0e61`; clinic-performance `61034435-ee97-4086-9341-ce0ddc95b4e6`; comprehensive-clinic-assessment `8a28f8e2-d041-4040-bab4-f98b3a76a02e`; medical-team-assessment `8b7f9a77-6df9-4fe8-90de-f6a789297dc5`; patient-journey `50a1cdba-f7ab-4166-b6e4-a63751e1627a`.
+- No Production mutation occurred. The authenticated owner registration/verification/activation workflow has not run. The available Supabase connector supports deploy/read/SQL operations but does not provide an authenticated HTTP invocation tool for the live Edge endpoints; the checked-in `verify` script requires `C03_OWNER_JWT` supplied only through a protected release runner/secret. Do not bypass owner authorization with direct privileged SQL.
+- C-03 remains OPEN until both Edge bundles attest the exact deployed commit/source digest, all five current versions are registered/verified/activated, the release gate is enabled only after all preflights pass, and the protected-handler target-runtime replay passes with run-scoped cleanup evidence.
+
