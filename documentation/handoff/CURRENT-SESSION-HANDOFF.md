@@ -19,11 +19,11 @@
 
 ## Guarded Production release runner
 
-`.github/workflows/c03-production-release.yml` is the one-time, guarded release path. It runs all C-03 isolated tests and the real authorization SQL harness first, confirms the live gate is disabled and the exact five-family inventory is present, prepares the immutable attestation on the exact triggering `main` SHA, deploys both Edge functions from that checkout, verifies both deployed identities, registers/verifies/activates all five current versions, enables/read-backs the gate, then runs bounded public completion E2E and exact-ID cleanup verification.
+`.github/workflows/c03-production-release.yml` is the one-time, guarded release path. It runs all C-03 isolated tests and the real authorization SQL harness first, confirms the live gate is disabled and the exact five-family inventory is present, prepares the immutable attestation on the exact triggering `main` SHA, waits for both Edge functions to be deployed through the connected Supabase deployment tool from that same source/attestation, verifies both deployed identities, registers/verifies/activates all five current versions, enables/read-backs the gate, then runs bounded public completion E2E and exact-ID cleanup verification.
 
-The first run requires GitHub Actions secrets `SUPABASE_ACCESS_TOKEN`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a current `C03_OWNER_JWT`. Missing secrets or any failed preflight must stop before deployment or release writes. The workflow refuses stale commits and refuses to re-enable an already-enabled gate.
+The release workflow requires GitHub Actions secrets `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a current `C03_OWNER_JWT`; Edge deployment is performed through the connected Supabase tool from the exact source bundle. Missing secrets or any failed preflight must stop before deployment or release writes. The workflow refuses stale commits and refuses to re-enable an already-enabled gate.
 
-**Do not change `main` after the successful release workflow deploys.** The deployed attestation intentionally binds the exact commit SHA. The workflow uploads the release and E2E/cleanup evidence artifacts. If the run fails, inspect its failed step and artifacts before deciding on a new release commit.
+**Do not change `main` after the successful release workflow deploys.** The deployed attestation intentionally binds the exact commit SHA. The workflow uploads the release and E2E/cleanup evidence artifacts. The run waits up to 20 minutes for both exact attested Edge bundles. If it fails, inspect the attestation artifact and failed step before deciding on a new release commit.
 
 **Status at this documentation checkpoint:** `CODE MERGED / C-03 CI PASS / SCHEMA MIGRATION APPLIED / EDGE RELEASE AND LIVE E2E STILL PENDING`.
 
