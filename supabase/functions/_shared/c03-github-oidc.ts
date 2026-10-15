@@ -46,7 +46,7 @@ export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubRe
   if (environment !== EXPECTED_ENVIRONMENT || eventName !== "workflow_dispatch") {
     throw new Error("C-03 release requires the protected environment and explicit workflow_dispatch event.");
   }
-  if (!/^[0-9a-f]{40}$/.test(sha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt)) {
+  if (!/^[0-9a-f]{40}$/.test(sha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt) || Number(runId) < 1 || Number(runAttempt) < 1) {
     throw new Error("GitHub OIDC commit or run identity is malformed.");
   }
   return { repository, repositoryOwner, sha, runId, runAttempt, workflowRef, environment };
