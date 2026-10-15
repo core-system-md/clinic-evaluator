@@ -1,12 +1,12 @@
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-Deno.test("C-03 protected completion invokes the real Edge handler through its protected RPC", async () => {
+async function exerciseProtectedCompletion(slug: string, registryFile: string, interpretationVersion: number, importSuffix: string) {
   const registry = JSON.parse(await Deno.readTextFile(
-    new URL("../supabase/functions/assessment-access/response-interpretation-registry-v1.json", import.meta.url),
+    new URL("../supabase/functions/assessment-access/" + registryFile, import.meta.url),
   ));
   const entries = registry.entries.filter((entry: any) =>
-    entry.assessmentSlug === "admin-reception-assessment" &&
-    entry.interpretationVersion === 1
+    entry.assessmentSlug === slug &&
+    entry.interpretationVersion === interpretationVersion
   );
   assert(entries.length > 0, "fixture registry entries must exist");
 
@@ -78,7 +78,7 @@ Deno.test("C-03 protected completion invokes the real Edge handler through its p
   const tokenHash = [...new Uint8Array(tokenHashBytes)].map((b) => b.toString(16).padStart(2, "0")).join("");
   const family = {
     id: "88888888-8888-4888-8888-888888888888",
-    slug: "admin-reception-assessment",
+    slug,
   };
   const assessment = {
     id: assessmentTypeId,
@@ -171,7 +171,7 @@ Deno.test("C-03 protected completion invokes the real Edge handler through its p
   }) as typeof fetch;
 
   try {
-    const { handler } = await import("../supabase/functions/assessment-access/index.ts");
+    const { handler } = await import("../supabase/functions/assessment-access/index.ts?" + importSuffix);
     const response = await handler(new Request("http://edge.test", {
       method: "POST",
       headers: { "content-type": "application/json", "x-forwarded-for": "127.0.0.1" },
@@ -200,6 +200,19 @@ Deno.test("C-03 protected completion invokes the real Edge handler through its p
     globalThis.fetch = originalFetch;
     if (oldUrl === undefined) Deno.env.delete("SUPABASE_URL"); else Deno.env.set("SUPABASE_URL", oldUrl);
     if (oldKey === undefined) Deno.env.delete("SUPABASE_SERVICE_ROLE_KEY"); else Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", oldKey);
+  }
+}
+
+Deno.test("C-03 protected completion runs through the real Edge handler for all five family contracts", async () => {
+  const fixtures = [
+    ["admin-reception-assessment", "response-interpretation-registry-v1.json", 1],
+    ["clinic-performance", "response-interpretation-registry-v1.json", 1],
+    ["comprehensive-clinic-assessment", "response-interpretation-registry-v2.json", 2],
+    ["medical-team-assessment", "response-interpretation-registry-v1.json", 1],
+    ["patient-journey", "patient-journey-interpretation-registry-v2.json", 2],
+  ] as const;
+  for (const [slug, registryFile, interpretationVersion] of fixtures) {
+    await exerciseProtectedCompletion(slug, registryFile, interpretationVersion, "c03-" + slug);
   }
 });
 
