@@ -63,6 +63,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
   // Environment overrides are deliberately not accepted: stale or hand-edited
   // deployment variables must not be able to impersonate a different bundle.
   const getRuntimeMetadata = dependencies.getRuntimeMetadata || (() => ({
+    schemaVersion: C03_RUNTIME_ATTESTATION.schemaVersion,
     gitCommitSha: C03_RUNTIME_ATTESTATION.gitCommitSha,
     edgeReleaseRef: C03_RUNTIME_ATTESTATION.edgeReleaseRef,
     fixtureSetVersion: C03_RUNTIME_ATTESTATION.fixtureSetVersion,
