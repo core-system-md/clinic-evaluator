@@ -104,3 +104,13 @@ The historical Production HTTP 500 has not been replayed against a Production se
 - No Production mutation occurred. The authenticated owner registration/verification/activation workflow has not run. The available Supabase connector supports deploy/read/SQL operations but does not provide an authenticated HTTP invocation tool for the live Edge endpoints; the checked-in `verify` script requires `C03_OWNER_JWT` supplied only through a protected release runner/secret. Do not bypass owner authorization with direct privileged SQL.
 - C-03 remains OPEN until both Edge bundles attest the exact deployed commit/source digest, all five current versions are registered/verified/activated, the release gate is enabled only after all preflights pass, and the protected-handler target-runtime replay passes with run-scoped cleanup evidence.
 
+
+## 10. Final engineering checkpoint — protected production orchestrator (2026-10-15)
+
+- Final PR #107 head: `56e9ad20748dde428af970be6009e1198e36a03e`.
+- Final exact-head workflow [#38732936474](https://github.com/core-system-md/clinic-evaluator/actions/runs/38732936474) is green across C-03, P3 kernel, WP-02, WP-03, WP-04, WP-05 and WP-09.
+- Added `.github/scripts/c03-production-release.mjs`. It requires exact confirmation `ENABLE-C03-PRODUCTION`, requires the C-03 settings singleton to exist and be disabled, checks that Production has exactly the five reviewed family slugs, validates both deployed Edge attestations before writes, registers all five current published versions, verifies all five before activating any, activates against compare-and-swap version IDs, then enables the gate and verifies persisted state.
+- Added mocked orchestration tests proving: missing confirmation causes no network calls; an attestation mismatch causes no writes; a failed version verification prevents all activations and gate enablement; all five must verify before activation.
+- Expanded source manifest inputs to include `.mts`, `.mjs`, `.ts`, JSON registries, and other supported function-source inputs. `edgeReleaseRef` is explicitly a SHA-256 source-manifest digest, not a claim about Supabase's internal compiled-byte hash.
+- Production state is unchanged. The migration remains unapplied, `assessment-access` remains v38, and `assessment-config-release` remains undeployed. PR #107 is still Draft/unmerged. The session's Supabase connector cannot invoke live Edge HTTP endpoints with the owner JWT; therefore the protected orchestrator was tested with mocks but not executed against Production. C-03 remains OPEN.
+
