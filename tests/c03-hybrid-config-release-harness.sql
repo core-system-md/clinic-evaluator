@@ -86,7 +86,7 @@ select public.register_assessment_config_release_secure(
 
 select set_config('request.jwt.claim.role','service_role',false);
 select public.verify_assessment_config_release_secure(
-  :'release1'::jsonb->>'release_id'::uuid,
+  (:'release1'::jsonb->>'release_id')::uuid,
   repeat('b',64), repeat('c',64), repeat('a',40), 'edge-v1', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
@@ -100,14 +100,10 @@ select public.activate_existing_assessment_release_secure(
 );
 insert into public.sessions(id,assessment_type_id)
 values ('55555555-5555-4555-8555-555555555555','22222222-2222-4222-8222-222222222222');
-do $assert_pin$
-begin
-  if (select assessment_release_id from public.sessions where id='55555555-5555-4555-8555-555555555555')
-     is distinct from (:'release1'::jsonb->>'release_id')::uuid then
-    raise exception 'session did not pin the active release';
-  end if;
-end
-$assert_pin$;
+select 1 / ((
+  select assessment_release_id = (:'release1'::jsonb->>'release_id')::uuid
+  from public.sessions where id='55555555-5555-4555-8555-555555555555'
+)::int) as session_release_pinned;
 
 select public.enable_assessment_config_release_gate_secure();
 
@@ -129,20 +125,17 @@ select public.publish_assessment_config_release_secure(
   (:'release2'::jsonb->>'release_id')::uuid,
   '22222222-2222-4222-8222-222222222222'
 );
-do $assert_publish$
-begin
-  if (select current_published_version_id from public.assessment_families where id='11111111-1111-4111-8111-111111111111')
-     <> '33333333-3333-4333-8333-333333333333'::uuid then raise exception 'new version was not published'; end if;
-  if (select current_release_id from public.assessment_families where id='11111111-1111-4111-8111-111111111111')
-     <> (:'release2'::jsonb->>'release_id')::uuid then raise exception 'new release was not activated'; end if;
-end
-$assert_publish$;
+select 1 / ((
+  select current_published_version_id = '33333333-3333-4333-8333-333333333333'::uuid
+     and current_release_id = (:'release2'::jsonb->>'release_id')::uuid
+  from public.assessment_families where id='11111111-1111-4111-8111-111111111111'
+)::int) as verified_release_published;
 
 do $assert_stale_cas$
 begin
   begin
     perform public.publish_assessment_config_release_secure(
-      (:'release1'::jsonb->>'release_id')::uuid,
+      (select id from public.assessment_config_releases where config_digest=repeat('b',64)),
       '22222222-2222-4222-8222-222222222222'
     );
     raise exception 'stale pointer compare-and-swap unexpectedly succeeded';
@@ -155,14 +148,15 @@ select public.publish_assessment_config_release_secure(
   (:'release1'::jsonb->>'release_id')::uuid,
   '33333333-3333-4333-8333-333333333333'
 );
-do $assert_rollback$
-begin
-  if (select current_published_version_id from public.assessment_families where id='11111111-1111-4111-8111-111111111111')
-     <> '22222222-2222-4222-8222-222222222222'::uuid then raise exception 'rollback did not restore previous version'; end if;
-  if (select state from public.assessment_config_releases where id=(:'release1'::jsonb->>'release_id')::uuid)
-     <> 'PUBLISHED' then raise exception 'rollback release is not marked published'; end if;
-end
-$assert_rollback$;
+select 1 / ((
+  select current_published_version_id = '22222222-2222-4222-8222-222222222222'::uuid
+     and current_release_id = (:'release1'::jsonb->>'release_id')::uuid
+  from public.assessment_families where id='11111111-1111-4111-8111-111111111111'
+)::int) as rollback_restored_verified_release;
+select 1 / ((
+  select state = 'PUBLISHED' from public.assessment_config_releases
+  where id=(:'release1'::jsonb->>'release_id')::uuid
+)::int) as rollback_release_state_verified;
 
 select public.register_assessment_config_release_secure(
   '44444444-4444-4444-8444-444444444444',
@@ -177,16 +171,18 @@ select public.verify_assessment_config_release_secure(
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"intentional mismatch"}'::jsonb
 ) as rejected_bad \gset
-select case when (:'rejected_bad'::jsonb->>'state')='REJECTED' then true else (select 1/0=1) end;
+select 1 / (((:'rejected_bad'::jsonb)::jsonb->>'state') = 'REJECTED')::int as drift_rejected;
 
 do $assert_immutable$
+declare v_blocked boolean := false;
 begin
   begin
     update public.assessment_config_releases set config_digest=repeat('0',64)
-      where id=(:'release1'::jsonb->>'release_id')::uuid;
-    raise exception 'verified release identity unexpectedly mutable';
-  exception when sqlstate '55000' then null;
+    where id=(select id from public.assessment_config_releases where config_digest=repeat('b',64));
+  exception when sqlstate '55000' then
+    v_blocked := true;
   end;
+  if not v_blocked then raise exception 'verified release identity unexpectedly mutable'; end if;
 end
 $assert_immutable$;
 
