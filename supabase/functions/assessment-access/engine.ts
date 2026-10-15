@@ -469,6 +469,9 @@ export async function calculateAssessment(
   if (interpretationReleaseError) {
     throw new Error("Interpretation release lookup failed: " + interpretationReleaseError.message);
   }
+  if (!interpretationRelease && Deno.env.get("C03_RELEASE_GATE_ENFORCED") === "true") {
+    throw new Error("No verified C-03 interpretation/configuration release is registered for this assessment version");
+  }
 
   let releaseProvenance: {
     registryDigest: string | null;
