@@ -423,7 +423,7 @@ async function issuePublicAccess(assessmentKey: string) {
   return { token, expires_at: expiresAt, assessment_type_id: family.current_published_version_id };
 }
 
-Deno.serve(async (req) => {
+export const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -1110,4 +1110,6 @@ Deno.serve(async (req) => {
     const status = Number((error as any)?.status) || 500;
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
-});
+};
+
+if (import.meta.main) Deno.serve(handler);
