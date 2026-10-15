@@ -154,6 +154,7 @@ export function assertPinnedAssessmentRelease({
   interpretationVersion,
   engineIdentity,
   scoringContractVersion,
+  canonicalizerVersion,
   runtimeMetadata,
 }) {
   const conflict = (message) => Object.assign(new Error(message), { status: 409, code: "C03_RELEASE_MISMATCH" });
@@ -167,6 +168,7 @@ export function assertPinnedAssessmentRelease({
   if (release.family_id !== runtime.family.id) mismatches.push("family_id");
   if (release.assessment_type_id !== runtime.assessment.id) mismatches.push("assessment_type_id");
   if (Number(release.assessment_version) !== Number(assessmentVersion)) mismatches.push("assessment_version");
+  if (release.canonicalizer_version !== canonicalizerVersion) mismatches.push("canonicalizer_version");
   if (release.config_digest !== assessmentConfigDigest) mismatches.push("config_digest");
   if (release.verified_config_digest !== assessmentConfigDigest) mismatches.push("verified_config_digest");
   if (Number(release.interpretation_version) !== Number(interpretationVersion)) mismatches.push("interpretation_version");
