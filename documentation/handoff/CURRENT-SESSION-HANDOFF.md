@@ -1,3 +1,26 @@
+# C-03 FINAL CONSOLIDATION CHECKPOINT — 2026-10-15
+
+**Canonical implementation:** PR [#109](https://github.com/core-system-md/clinic-evaluator/pull/109), merged as `0e03b8311ebf8a48cde96d2450b01a2d7b19fca2`.  
+**Code:** persisted-result family identity fix, full configuration digest/state machine, immutable build-time Edge attestation, actual authorization-function harness, guarded five-family release orchestrator.  
+**Exact-head CI before merge:** [C-03 release gate](https://github.com/core-system-md/clinic-evaluator/actions/runs/38734379126) and all cross-work-package checks passed.
+
+## Pull request disposition
+
+- PR #109 is merged.
+- Superseded C-03 PRs #96, #101, #102, #103, #104, #106, #107, #108, #110, #111 and #112 are closed without merge; applicable implementation/tests/docs were consolidated into #109.
+- PR #105 was already closed without merge.
+- Do not reopen or merge the alternative #96/#111 migration branches.
+
+## Production remains an explicit unresolved gate
+
+The latest verified live read showed Production still at migration `20261013110000`, `assessment-access` v38, and no C-03 release tables or `assessment-config-release` function. This repository merge does not change those facts.
+
+The migration, function deployment, five-family registration/verification/activation, gate enablement, and bounded live E2E cleanup must be executed and evidenced before declaring C-03 closed. The available connector cannot perform the required owner-authenticated Edge HTTP calls; do not substitute privileged SQL or claim the release passed without those calls. Keep `C03_OWNER_JWT` and the service-role key in a secure release runner only.
+
+**Current status:** `CODE MERGED / EXACT-HEAD CI PASS / PRODUCTION RELEASE NOT EXECUTED / C-03 NOT CLOSED`.
+
+---
+
 # CURRENT C-03 RELEASE HANDOFF — integrated closeout checkpoint (2026-10-15)
 
 **Repository:** `core-system-md/clinic-evaluator`  
