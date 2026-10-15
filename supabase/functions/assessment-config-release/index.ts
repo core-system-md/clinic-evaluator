@@ -82,11 +82,10 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
       let ciIdentity: C03GithubReleaseIdentity | null = null;
 
       if (isCiAction) {
-        const authorization = req.headers.get("authorization") || "";
-        const match = authorization.match(/^Bearer\s+(.+)$/i);
-        if (!match) return json({ error: "GitHub OIDC workload authentication required" }, 401);
+        const oidcToken = req.headers.get("x-c03-github-oidc") || "";
+        if (!oidcToken.trim()) return json({ error: "GitHub OIDC workload authentication required" }, 401);
         try {
-          ciIdentity = await verifyCiTokenFn(match[1]);
+          ciIdentity = await verifyCiTokenFn(oidcToken);
         } catch (_error) {
           return json({ error: "GitHub OIDC workload identity rejected" }, 401);
         }
