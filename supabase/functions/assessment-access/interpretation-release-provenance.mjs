@@ -104,6 +104,7 @@ export async function assertInterpretationReleaseMatches({
   interpretationVersion,
   registryEntries,
   runtimeOptionManifest,
+  runtimeConfigDigest,
   runtimeSourceCommitSha,
 }) {
   if (!release) throw new Error("Registered interpretation release is missing");
@@ -139,6 +140,15 @@ export async function assertInterpretationReleaseMatches({
   }
   if (!Array.isArray(release.option_manifest)) {
     throw new Error("Interpretation release option manifest is missing");
+  }
+  if (release.config_canonicalizer_version !== "c03-assessment-config-canonicalizer-v1") {
+    throw new Error("Registered assessment configuration canonicalizer is missing or unsupported");
+  }
+  if (!/^[0-9a-f]{64}$/.test(runtimeConfigDigest || "")) {
+    throw new Error("Runtime assessment configuration digest is unavailable");
+  }
+  if (release.config_digest !== runtimeConfigDigest) {
+    throw new Error("Persisted assessment configuration digest does not match the registered release");
   }
 
   const runtimeDigest = await digestInterpretationEntries(registryEntries);
@@ -180,6 +190,7 @@ export async function assertInterpretationReleaseMatches({
 
   return {
     registryDigest: runtimeDigest,
+    configDigest: runtimeConfigDigest,
     sourceCommitSha: release.source_commit_sha,
     edgeReleaseRef: release.edge_release_ref,
   };
