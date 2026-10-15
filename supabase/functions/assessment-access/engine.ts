@@ -278,6 +278,37 @@ async function loadRuntime(
   };
 }
 
+export async function computeAssessmentConfigReleaseEvidence(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const assessmentVersion = Number(
+    runtime.assessment.version ?? runtime.assessment.config_version ?? 1,
+  );
+  const binding = resolveInterpretationBinding(runtime.family.slug, assessmentVersion);
+  const projection = buildAssessmentConfigProjection({
+    runtime,
+    assessmentVersion,
+    interpretationRegistry: binding.registry,
+    interpretationVersion: binding.interpretationVersion,
+    consistencyRuleRegistry,
+    consistencyPairRegistry,
+  });
+  return {
+    familyId: runtime.family.id,
+    familySlug: runtime.family.slug,
+    assessmentTypeId: runtime.assessment.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    configDigest: await sha256Hex(canonicalizeAssessmentConfig(projection)),
+    interpretationRegistryDigest: await sha256Hex(canonicalizeAssessmentConfig(projection.interpretation)),
+    scoringEngineVersion: ENGINE_IDENTITY,
+    scoringContractVersion: SCORING_CONTRACT_ID,
+    reportModelVersion: "REPORT_MODEL_V1",
+  };
+}
+
 function buildSelections(
   runtime: Runtime,
   answers: StoredAnswer[],
