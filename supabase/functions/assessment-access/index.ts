@@ -2,7 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 import { ensureAssessmentSlug, projectCompletionResponse } from "./report-interpretation.mjs";
-import { C03_RUNTIME_ATTESTATION } from "../assessment-config-release/runtime-attestation.ts";
+import { C03_RUNTIME_ATTESTATION } from "../_shared/c03-runtime-attestation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
