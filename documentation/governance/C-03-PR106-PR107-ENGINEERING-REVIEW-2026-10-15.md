@@ -72,3 +72,11 @@ The historical Production HTTP 500 has not been replayed against a Production se
 - This improves integration evidence but does not constitute a Production release or prove that deployment environment metadata is bound to the running Edge bundle. C-03 remains open.
 
 - The first integration-harness run failed at harness setup because the new helper functions used malformed dollar-quote delimiters; the production migration was not applied to any external database. The harness was corrected to named `$c03$` delimiters in commit `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`. Verify the new exact-head CI result before proceeding.
+
+
+## 8. Exact-head CI after follow-up
+
+- PR #106 head `48194a7611b6040271ad874b7ff08aa565d2106b`: all listed runs SUCCESS — protected Edge handler, WP-02, WP-03, WP-04, WP-05, WP-09, P3. Handler run [#38730312717](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730312717).
+- PR #107 head `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`: all listed runs SUCCESS — C-03 release state machine/digest/verifier, WP-02, WP-04, WP-09, P3. Release workflow [#38730540804](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730540804).
+- The disposable harness now uses the actual repository lifecycle SQL definitions for publication and restoration. However, it still uses a test implementation of `require_admin_capability` and test fixtures for validation/audit dependencies. Exact integration with the production authorization function remains open.
+- **Release blocker:** the environment-based runtime metadata has not been independently proven to identify the deployed Edge bundle. No production migration, data write, Edge deployment, or live E2E was performed. C-03 remains NOT CLOSED.
