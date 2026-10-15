@@ -44,7 +44,7 @@ test('C-03 release verifier binds immutable build-time attestation and fails clo
   assert.match(verifier, /edgeReleaseRef: C03_RUNTIME_ATTESTATION\.edgeReleaseRef/);
   assert.match(verifier, /fixtureSetVersion: C03_RUNTIME_ATTESTATION\.fixtureSetVersion/);
   assert.match(verifier, /migrationContractVersion: C03_RUNTIME_ATTESTATION\.migrationContractVersion/);
-  assert.match(verifier, /Object\.values\(runtimeMetadata\)\.some\(\(value\) => !value\.trim\(\)\)/);
+  assert.match(verifier, /Object\.values\(runtimeMetadata\)\.some\(\(value\) => typeof value !== "string" \|\| !value\.trim\(\)\)/);
   assert.match(verifier, /C-03 runtime release metadata is not configured/);
   assert.doesNotMatch(verifier, /Deno\.env\.get\("C03_(?:GIT_COMMIT_SHA|EDGE_RELEASE_REF|FIXTURE_SET_VERSION|MIGRATION_CONTRACT_VERSION)"\)/);
   assert.match(attestation, /gitCommitSha: ""/);
