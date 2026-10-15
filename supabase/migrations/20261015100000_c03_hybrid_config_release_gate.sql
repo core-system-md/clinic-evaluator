@@ -8,22 +8,104 @@ create table if not exists public.assessment_interpretation_releases (
   assessment_version integer not null check (assessment_version > 0),
   interpretation_version integer not null check (interpretation_version > 0),
   registry_digest text not null check (registry_digest ~ '^[0-9a-f]{64}$'),
+  assessment_config_digest text not null check (assessment_config_digest ~ '^[0-9a-f]{64}$'),
+  config_manifest jsonb not null check (jsonb_typeof(config_manifest) = 'object'),
   source_commit_sha text not null check (source_commit_sha ~ '^[0-9a-f]{40}([0-9a-f]{24})?$'),
   edge_release_ref text not null check (length(trim(edge_release_ref)) > 0),
   option_manifest jsonb not null check (jsonb_typeof(option_manifest) = 'array'),
+  release_state text not null default 'PREPARED'
+    check (release_state in ('PREPARED', 'VERIFIED', 'PUBLISHED', 'REJECTED', 'DEGRADED')),
+  degraded_reason text,
   registered_by uuid not null references auth.users(id),
   registered_at timestamptz not null default now(),
+  published_at timestamptz,
   runtime_verified_at timestamptz,
   runtime_verified_digest text check (runtime_verified_digest is null or runtime_verified_digest ~ '^[0-9a-f]{64}$'),
+  runtime_verified_config_digest text check (runtime_verified_config_digest is null or runtime_verified_config_digest ~ '^[0-9a-f]{64}$'),
   runtime_verified_edge_release_ref text,
   runtime_verified_source_commit_sha text
 );
 
 alter table public.assessment_interpretation_releases
+  add column if not exists assessment_config_digest text,
+  add column if not exists config_manifest jsonb,
+  add column if not exists release_state text not null default 'PREPARED',
+  add column if not exists degraded_reason text,
+  add column if not exists published_at timestamptz,
   add column if not exists runtime_verified_at timestamptz,
   add column if not exists runtime_verified_digest text,
+  add column if not exists runtime_verified_config_digest text,
   add column if not exists runtime_verified_edge_release_ref text,
   add column if not exists runtime_verified_source_commit_sha text;
+
+create or replace function public.assessment_config_manifest_secure(p_version_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = public, pg_temp
+as $$
+  select jsonb_build_object(
+    'assessment', jsonb_build_object(
+      'id', v.id,
+      'familyId', v.family_id,
+      'slug', f.slug,
+      'titleAr', v.title_ar,
+      'titleEn', v.title_en,
+      'description', v.description,
+      'version', v.version,
+      'configVersion', v.config_version,
+      'declaredQuestionCount', v.question_count,
+      'declaredAxisCount', v.axis_count,
+      'actualQuestionCount', (select count(*) from public.questions q where q.assessment_type_id = v.id),
+      'actualAxisCount', (select count(*) from public.axes a where a.assessment_type_id = v.id),
+      'hasTraps', coalesce(v.has_traps, false),
+      'hasEvSimulator', coalesce(v.has_ev_simulator, false),
+      'axisRoles', coalesce(v.axis_roles, '{}'::jsonb),
+      'kpiMappings', coalesce(v.kpi_mappings, '{}'::jsonb),
+      'evMappings', coalesce(v.ev_mappings, '{}'::jsonb)
+    ),
+    'axes', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', a.id, 'code', a.code, 'weight', a.weight,
+        'title', a.title, 'titleAr', a.title_ar, 'displayOrder', a.display_order
+      ) order by a.code, a.id)
+      from public.axes a where a.assessment_type_id = v.id
+    ), '[]'::jsonb),
+    'questions', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', q.id, 'code', q.code, 'axisId', q.axis_id,
+        'text', q.question_text, 'textAr', q.question_text_ar,
+        'type', q.question_type, 'displayOrder', q.display_order,
+        'required', (q.is_required is distinct from false),
+        'impact', q.impact, 'layer', q.layer
+      ) order by q.code, q.id)
+      from public.questions q where q.assessment_type_id = v.id
+    ), '[]'::jsonb),
+    'options', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'id', o.id, 'questionId', o.question_id,
+        'optionIndex', o.option_index, 'optionValue', o.option_value,
+        'label', o.label, 'labelAr', o.label_ar,
+        'isTrap', coalesce(o.is_trap, false), 'displayOrder', o.display_order
+      ) order by o.question_id, o.option_index, o.id)
+      from public.options o
+      join public.questions q on q.id = o.question_id
+      where q.assessment_type_id = v.id
+    ), '[]'::jsonb),
+    'traps', coalesce((
+      select jsonb_agg(jsonb_build_object(
+        'name', t.name, 'message', t.message, 'messageAr', t.message_ar,
+        'questionId', t.question_id, 'validates', t.validates,
+        'targetAxis', t.target_axis, 'penaltyBase', t.penalty_base, 'penaltyMax', t.penalty_max
+      ) order by t.question_id, t.name)
+      from public.traps t where t.assessment_type_id = v.id
+    ), '[]'::jsonb)
+  )
+  from public.assessment_types v
+  join public.assessment_families f on f.id = v.family_id
+  where v.id = p_version_id
+$$;
 
 alter table public.assessment_interpretation_releases enable row level security;
 revoke all on public.assessment_interpretation_releases from public, anon, authenticated;
