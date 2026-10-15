@@ -520,3 +520,247 @@ grant execute on function public.c03_publish_configuration_release(uuid,uuid) to
 grant execute on function public.c03_rollback_configuration_release(uuid,uuid,uuid) to service_role;
 grant execute on function public.c03_resolve_active_configuration_release(uuid) to service_role;
 grant execute on function public.c03_assert_session_configuration_release(uuid) to service_role;
+
+
+-- Pin each new session to the exact verified release, and fail closed on the legacy overload.
+create or replace function public.start_assessment_session(
+  p_access_token_hash text,
+  p_assessment_user_id uuid,
+  p_assessment_type_id uuid,
+  p_lead_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_access public.assessment_session_access%rowtype;
+  v_user public.assessment_users%rowtype;
+  v_session public.sessions%rowtype;
+  v_assessment_version integer;
+  v_expiry timestamptz;
+  v_release jsonb;
+  v_release_id uuid;
+begin
+  select * into v_access
+  from public.assessment_session_access
+  where token_hash = p_access_token_hash
+    and assessment_user_id = p_assessment_user_id
+    and assessment_type_id = p_assessment_type_id
+    and revoked_at is null
+    and expires_at > now()
+  for update;
+  if not found then raise exception using errcode = '28000', message = 'Invalid or expired assessment access'; end if;
+
+  select * into v_user from public.assessment_users where id = p_assessment_user_id for update;
+  if not found or not v_user.active then raise exception using errcode = '28000', message = 'Assessment access is inactive'; end if;
+  if v_user.expires_at is not null and v_user.expires_at <= now() then
+    raise exception using errcode = '28000', message = 'Assessment access is expired';
+  end if;
+  if v_user.assessment_key is distinct from (
+    select at.slug from public.assessment_types at where at.id = p_assessment_type_id
+  ) then raise exception using errcode = '42501', message = 'Assessment mismatch'; end if;
+
+  select * into v_session
+  from public.sessions
+  where assessment_user_id = p_assessment_user_id
+    and assessment_type_id = p_assessment_type_id
+    and status = 'in_progress'
+    and submission_state in ('draft','processing')
+    and last_activity_at >= now() - interval '7 days'
+  order by last_activity_at desc
+  limit 1
+  for update;
+
+  if found then
+    perform public.c03_assert_session_configuration_release(v_session.id);
+    v_assessment_version := v_session.assessment_version;
+  else
+    if coalesce(v_user.used_count, 0) >= coalesce(v_user.max_uses, 1) then
+      raise exception using errcode = '42501', message = 'Usage limit exceeded';
+    end if;
+    v_release := public.c03_resolve_active_configuration_release(p_assessment_type_id);
+    v_release_id := (v_release->>'release_id')::uuid;
+    select at.version into v_assessment_version
+    from public.assessment_types at
+    where at.id = p_assessment_type_id and at.status = 'published';
+    if v_assessment_version is null then raise exception using errcode = '42501', message = 'Assessment unavailable'; end if;
+
+    insert into public.sessions (
+      lead_id, assessment_type_id, assessment_user_id, status, submission_state,
+      current_question, started_at, last_activity_at, assessment_version,
+      scoring_engine_version, assessment_release_id
+    ) values (
+      p_lead_id, p_assessment_type_id, p_assessment_user_id, 'in_progress', 'draft',
+      0, now(), now(), v_assessment_version, 'server-score-v1', v_release_id
+    ) returning * into v_session;
+  end if;
+
+  v_expiry := least(now() + interval '24 hours', coalesce(v_user.expires_at, now() + interval '24 hours'));
+  update public.assessment_session_access
+    set session_id = v_session.id, last_seen_at = now(), expires_at = v_expiry
+    where id = v_access.id;
+  update public.sessions set last_activity_at = now() where id = v_session.id;
+
+  return jsonb_build_object(
+    'success', true, 'session_id', v_session.id, 'lead_id', v_session.lead_id,
+    'assessment_version', v_session.assessment_version,
+    'scoring_engine_version', v_session.scoring_engine_version,
+    'assessment_release_id', v_session.assessment_release_id,
+    'expires_at', v_expiry, 'resumed', true
+  );
+end;
+$function$;
+
+create or replace function public.start_public_assessment_session(
+  p_access_token_hash text,
+  p_assessment_type_id uuid,
+  p_lead_id uuid,
+  p_attempt_key_hash text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_access public.assessment_session_access%rowtype;
+  v_session public.sessions%rowtype;
+  v_assessment_version integer;
+  v_existing_session public.sessions%rowtype;
+  v_expiry timestamptz;
+  v_release jsonb;
+  v_release_id uuid;
+begin
+  if nullif(btrim(coalesce(p_attempt_key_hash,'')), '') is null then
+    raise exception using errcode = '22023', message = 'Attempt key is required';
+  end if;
+  perform pg_advisory_xact_lock(hashtext(p_attempt_key_hash));
+
+  select * into v_access
+  from public.assessment_session_access
+  where token_hash = p_access_token_hash
+    and assessment_type_id = p_assessment_type_id
+    and assessment_user_id is null and session_id is null
+    and revoked_at is null and expires_at > now()
+  for update;
+  if not found then raise exception using errcode = '28000', message = 'Invalid or expired public assessment access'; end if;
+
+  update public.sessions set status = 'abandoned', last_activity_at = now()
+  where assessment_type_id = p_assessment_type_id
+    and attempt_key_hash = p_attempt_key_hash and status = 'in_progress'
+    and last_activity_at < now() - interval '7 days';
+
+  select * into v_existing_session
+  from public.sessions
+  where assessment_type_id = p_assessment_type_id
+    and attempt_key_hash = p_attempt_key_hash
+    and status = 'in_progress' and submission_state = 'draft'
+    and last_activity_at >= now() - interval '7 days'
+  order by last_activity_at desc limit 1 for update;
+
+  if found then
+    perform public.c03_assert_session_configuration_release(v_existing_session.id);
+    v_expiry := least(now() + interval '24 hours', v_access.expires_at);
+    update public.assessment_session_access
+      set session_id = v_existing_session.id, last_seen_at = now(), expires_at = v_expiry
+      where id = v_access.id;
+    update public.sessions set last_activity_at = now() where id = v_existing_session.id;
+    return jsonb_build_object(
+      'success', true, 'session_id', v_existing_session.id, 'lead_id', v_existing_session.lead_id,
+      'assessment_version', v_existing_session.assessment_version,
+      'scoring_engine_version', v_existing_session.scoring_engine_version,
+      'assessment_release_id', v_existing_session.assessment_release_id,
+      'expires_at', v_expiry, 'resumed', true
+    );
+  end if;
+
+  v_release := public.c03_resolve_active_configuration_release(p_assessment_type_id);
+  v_release_id := (v_release->>'release_id')::uuid;
+  select at.version into v_assessment_version
+  from public.assessment_types at
+  where at.id = p_assessment_type_id and at.status = 'published';
+  if v_assessment_version is null then raise exception using errcode = '42501', message = 'Assessment unavailable'; end if;
+
+  insert into public.sessions (
+    lead_id, assessment_type_id, assessment_user_id, status, submission_state,
+    current_question, started_at, last_activity_at, attempt_key_hash,
+    assessment_version, scoring_engine_version, assessment_release_id
+  ) values (
+    p_lead_id, p_assessment_type_id, null, 'in_progress', 'draft',
+    0, now(), now(), p_attempt_key_hash,
+    v_assessment_version, 'server-score-v1', v_release_id
+  ) returning * into v_session;
+
+  update public.assessment_session_access
+    set session_id = v_session.id, last_seen_at = now()
+    where id = v_access.id;
+
+  return jsonb_build_object(
+    'success', true, 'session_id', v_session.id, 'lead_id', v_session.lead_id,
+    'assessment_version', v_session.assessment_version,
+    'scoring_engine_version', v_session.scoring_engine_version,
+    'assessment_release_id', v_session.assessment_release_id,
+    'expires_at', v_access.expires_at, 'resumed', false
+  );
+end;
+$function$;
+
+-- The historical overload lacks the attempt-key/idempotency contract. Disable it so it cannot bypass release pinning.
+create or replace function public.start_public_assessment_session(
+  p_access_token_hash text,
+  p_assessment_type_id uuid,
+  p_lead_id uuid
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+begin
+  raise exception using errcode = '40905', message = 'Deprecated session-start overload; use the attempt-key signature';
+end;
+$function$;
+
+create or replace function public.c03_validate_result_release_pin()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_session public.sessions%rowtype;
+  v_release public.assessment_configuration_releases%rowtype;
+begin
+  if new.result is null then return new; end if;
+  select * into v_session from public.sessions where id = new.session_id;
+  if not found or v_session.assessment_release_id is null then
+    raise exception using errcode = '40905', message = 'Result session has no pinned configuration release';
+  end if;
+  select * into v_release from public.assessment_configuration_releases
+    where id = v_session.assessment_release_id
+      and assessment_type_id = new.assessment_type_id
+      and state = 'PUBLISHED';
+  if not found then raise exception using errcode = '40905', message = 'Result release pin is unavailable'; end if;
+  if new.result->'provenance'->>'configurationReleaseId' is distinct from v_release.id::text
+     or new.result->'provenance'->>'configurationReleaseDigest' is distinct from v_release.config_digest then
+    raise exception using errcode = '40906', message = 'Structured Result release identity does not match the session pin';
+  end if;
+  return new;
+end;
+$function$;
+
+drop trigger if exists c03_validate_result_release_pin on public.assessment_results;
+create trigger c03_validate_result_release_pin
+before insert or update of result, assessment_type_id, session_id
+on public.assessment_results
+for each row execute function public.c03_validate_result_release_pin();
+
+revoke all on function public.start_assessment_session(text,uuid,uuid,uuid) from public, anon, authenticated;
+revoke all on function public.start_public_assessment_session(text,uuid,uuid,text) from public, anon, authenticated;
+revoke all on function public.start_public_assessment_session(text,uuid,uuid) from public, anon, authenticated;
+revoke all on function public.c03_validate_result_release_pin() from public, anon, authenticated;
+grant execute on function public.start_assessment_session(text,uuid,uuid,uuid) to service_role;
+grant execute on function public.start_public_assessment_session(text,uuid,uuid,text) to service_role;
+grant execute on function public.start_public_assessment_session(text,uuid,uuid) to service_role;
