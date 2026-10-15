@@ -45,6 +45,7 @@ type AxisRow = {
   code: string;
   title: string;
   title_ar: string | null;
+  description: string | null;
   weight: number;
   display_order: number;
 };
@@ -250,7 +251,7 @@ async function loadRuntime(
       .maybeSingle(),
     client
       .from("axes")
-      .select("id, code, title, title_ar, weight, display_order")
+      .select("id, code, title, title_ar, description, weight, display_order")
       .eq("assessment_type_id", assessmentTypeId)
       .order("display_order", { ascending: true }),
     client
@@ -415,6 +416,7 @@ export async function calculateAssessment(
       id: runtime.assessment.id,
       familyId: runtime.family.id,
       slug: runtime.family.slug,
+      versionSlug: runtime.assessment.slug,
       version: assessmentVersion,
       configVersion: runtime.assessment.config_version ?? null,
       titleAr: runtime.assessment.title_ar,
@@ -437,6 +439,7 @@ export async function calculateAssessment(
         weight: Number(axis.weight),
         title: axis.title,
         titleAr: axis.title_ar,
+        description: axis.description,
         displayOrder: Number(axis.display_order),
       }))
       .sort((a, b) => a.id.localeCompare(b.id)),
