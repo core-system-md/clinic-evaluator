@@ -3,18 +3,25 @@ import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 import { projectCompletionResponse } from "./report-interpretation.mjs";
 
-const corsHeaders = {
+export function createAssessmentAccessHandler(dependencies: {
+  supabaseClient?: any;
+  calculateAssessmentFn?: typeof calculateAssessment;
+  projectCompletionResponseFn?: typeof projectCompletionResponse;
+} = {}) {
+  const supabase = dependencies.supabaseClient ?? createClient(
+    Deno.env.get("SUPABASE_URL") || "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
+    { auth: { persistSession: false } },
+  );
+  const calculate = dependencies.calculateAssessmentFn ?? calculateAssessment;
+  const project = dependencies.projectCompletionResponseFn ?? projectCompletionResponse;
+
+  const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
 };
-
-const supabase = createClient(
-  Deno.env.get("SUPABASE_URL") || "",
-  Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
-  { auth: { persistSession: false } },
-);
 
 const attempts = new Map<string, { count: number; resetAt: number }>();
 const MAX_LOGIN_ATTEMPTS = 10;
@@ -388,7 +395,7 @@ async function issuePublicAccess(assessmentKey: string) {
   return { token, expires_at: expiresAt, assessment_type_id: family.current_published_version_id };
 }
 
-Deno.serve(async (req) => {
+return async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -701,7 +708,7 @@ Deno.serve(async (req) => {
       }
 
       const safeStoredResult = storedResult?.result
-        ? { userReport: projectCompletionResponse(storedResult.result, await getPreviousAssessmentSessionData(session)).userReport,
+        ? { userReport: project(storedResult.result, await getPreviousAssessmentSessionData(session)).userReport,
             assessment_version: storedResult.assessment_version, interpretation_version: storedResult.interpretation_version,
             scoring_engine_version: storedResult.scoring_engine_version, scoring_contract_version: storedResult.scoring_contract_version,
             assessment_config_digest: storedResult.assessment_config_digest, calculated_at: storedResult.calculated_at,
@@ -818,7 +825,7 @@ Deno.serve(async (req) => {
               kpis,
               evSimulator: null,
               traps: [],
-              ...projectCompletionResponse(structured, previousSessionData),
+              ...project(structured, previousSessionData),
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -906,7 +913,7 @@ Deno.serve(async (req) => {
             ),
             evSimulator: null,
             traps: [],
-            userReport: structured ? projectCompletionResponse(structured, previousSessionData).userReport : null,
+            userReport: structured ? project(structured, previousSessionData).userReport : null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -941,7 +948,7 @@ Deno.serve(async (req) => {
           }
         : undefined;
 
-      const computed = await calculateAssessment(supabase, {
+      const computed = await calculate(supabase, {
         sessionId: session.id,
         economicInput: frozenEconomicInput,
         answerSnapshot,
@@ -985,7 +992,7 @@ Deno.serve(async (req) => {
       return json({
         success: true,
         data: {
-          ...projectCompletionResponse({
+          ...project({
             ...storedStructured,
             provenance: {
               ...(storedStructured.provenance || {}),
@@ -1053,4 +1060,9 @@ Deno.serve(async (req) => {
     const status = Number((error as any)?.status) || 500;
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
-});
+};
+}
+
+if (import.meta.main) {
+  Deno.serve(createAssessmentAccessHandler());
+}
