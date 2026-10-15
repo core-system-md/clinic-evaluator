@@ -835,7 +835,7 @@ export const handler = async (req: Request) => {
               kpis,
               evSimulator: null,
               traps: [],
-              ...projectCompletionResponse(structured, previousSessionData),
+              ...projectCompletionResponseImpl(structured, previousSessionData),
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -940,7 +940,7 @@ export const handler = async (req: Request) => {
             ),
             evSimulator: null,
             traps: [],
-            userReport: structured ? projectCompletionResponse(structured, previousSessionData).userReport : null,
+            userReport: structured ? projectCompletionResponseImpl(structured, previousSessionData).userReport : null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -1027,7 +1027,7 @@ export const handler = async (req: Request) => {
       return json({
         success: true,
         data: {
-          ...projectCompletionResponse({
+          ...projectCompletionResponseImpl({
             ...storedStructured,
             provenance: {
               ...(storedStructured.provenance || {}),
