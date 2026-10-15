@@ -140,7 +140,7 @@ declare
   v_release_id uuid;
   v_existing_state text;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Service-role Edge runtime required to register a configuration release'
       using errcode = '42501';
   end if;
@@ -333,7 +333,7 @@ declare
   v_reason text;
   v_next_state text;
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Service-role Edge runtime required to attest a configuration release'
       using errcode = '42501';
   end if;
@@ -424,7 +424,7 @@ declare
   v_release public.assessment_interpretation_releases%rowtype;
   v_reason text := left(btrim(coalesce(p_reason, 'Runtime attestation failed')), 1000);
 begin
-  if coalesce(auth.role(), '') <> 'service_role' then
+  if coalesce(current_setting('request.jwt.claim.role', true), '') <> 'service_role' then
     raise exception 'Service-role Edge runtime required to mark a configuration release degraded'
       using errcode = '42501';
   end if;
