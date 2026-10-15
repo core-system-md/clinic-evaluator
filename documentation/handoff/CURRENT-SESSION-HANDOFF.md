@@ -345,3 +345,16 @@ Exact next steps:
 6. Update this handoff with the actual deployed migration/version/release IDs and E2E evidence before marking C-03 closed.
 
 No production operation is authorized by the current branch/CI results alone.
+
+
+## C-03 continuation checkpoint — 2026-10-15 09:41 UTC
+
+- Integrated implementation PR: [#109](https://github.com/core-system-md/clinic-evaluator/pull/109), branch `work/c03-integrated-close-20261015`, current verified head `41b9b7a2a41765ae457f791c25cbe2b34bab76f8`.
+- Latest-head CI associated with this commit completed successfully:
+  - [C-03 actual Edge handler regression #38712944980](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712944980)
+  - [C-03 protected Edge handler regression #38712944963](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712944963)
+  - [C-03 hybrid config release gate #38712944985](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712944985)
+  - [P3 #38712945109](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712945109), [WP-02 #38712945103](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712945103), [WP-03 #38712944944](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712944944), [WP-04 #38712945113](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712945113), [WP-05 #38712945141](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712945141), [WP-09 #38712944956](https://github.com/core-system-md/clinic-evaluator/actions/runs/38712944956) — all successful.
+- This is the latest code-head CI evidence; earlier run IDs in the preceding section are retained as historical evidence, not represented as the latest head.
+- Production remains unchanged at the previously verified baseline: `main=6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`, `assessment-access` v38, 52 migrations, no C-03 release gate migration or release records. No Production migration, release registration, activation, Edge/Pages deployment, or E2E writes occurred in this checkpoint.
+- **Status remains IMPLEMENTATION CI-GREEN / OPERATIONAL C-03 NOT CLOSED.** Remaining closure gates are the controlled Production release: configure runtime metadata, apply the reviewed migration through the approved release path, register and verify all five active published assessment versions, perform read-only activation preflight, enable only after full coverage is proven, run bounded protected/public E2E with exact-ID cleanup, and record the deployed migration/release/runtime evidence. Do not mark C-03 closed before those gates are verified.
