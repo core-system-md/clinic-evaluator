@@ -13,6 +13,7 @@ import {
 } from "./assessment-calculation-pipeline.mts";
 import { projectScoreRowsFromStructuredResult } from "./result-persistence-projection.mts";
 import { type P3ConsistencyRule } from "./consistency-engine.mts";
+import { digestAssessmentConfig } from "./assessment-config-digest.mjs";
 import registry from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
@@ -64,6 +65,10 @@ type OptionRow = {
   question_id: string;
   option_index: number;
   option_value: number;
+  label: string | null;
+  label_ar: string | null;
+  is_trap: boolean | null;
+  display_order: number;
 };
 
 type Runtime = {
@@ -72,6 +77,7 @@ type Runtime = {
   axes: AxisRow[];
   questions: QuestionRow[];
   options: OptionRow[];
+  traps: Array<Record<string, unknown>>;
 };
 
 type StoredAnswer = {
@@ -92,30 +98,6 @@ export type AssessmentComputation = {
     assessmentConfigDigest: string;
   };
 };
-
-function stable(value: unknown): string {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return "[" + value.map(stable).join(",") + "]";
-  const record = value as Record<string, unknown>;
-  return (
-    "{" +
-    Object.keys(record)
-      .sort()
-      .map((key) => JSON.stringify(key) + ":" + stable(record[key]))
-      .join(",") +
-    "}"
-  );
-}
-
-async function sha256Hex(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest(
-    "SHA-256",
-    new TextEncoder().encode(value),
-  );
-  return Array.from(new Uint8Array(digest))
-    .map((b) => b.toString(16).padStart(2, "0"))
-    .join("");
-}
 
 const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
 const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
@@ -215,33 +197,52 @@ async function loadRuntime(
   client: SupabaseClient,
   assessmentTypeId: string,
 ): Promise<Runtime> {
-  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }] =
-    await Promise.all([
-      client
-        .from("assessment_types")
-        .select(
-          "id, slug, family_id, title_ar, title_en, description, version, config_version, question_count, axis_count, has_traps, has_ev_simulator, axis_roles, kpi_mappings, ev_mappings",
-        )
-        .eq("id", assessmentTypeId)
-        .maybeSingle(),
-      client
-        .from("axes")
-        .select("id, code, title, title_ar, weight, display_order")
-        .eq("assessment_type_id", assessmentTypeId)
-        .order("display_order", { ascending: true }),
-      client
-        .from("questions")
-        .select(
-          "id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer",
-        )
-        .eq("assessment_type_id", assessmentTypeId)
-        .order("display_order", { ascending: true }),
-    ]);
+  const [
+    { data: assessment, error: assessmentError },
+    { data: axes, error: axesError },
+    { data: questions, error: questionsError },
+    { data: traps, error: trapsError },
+  ] = await Promise.all([
+    client
+      .from("assessment_types")
+      .select(
+        "id, slug, family_id, title_ar, title_en, description, version, config_version, question_count, axis_count, has_traps, has_ev_simulator, axis_roles, kpi_mappings, ev_mappings",
+      )
+      .eq("id", assessmentTypeId)
+      .maybeSingle(),
+    client
+      .from("axes")
+      .select("id, code, title, title_ar, weight, display_order")
+      .eq("assessment_type_id", assessmentTypeId)
+      .order("display_order", { ascending: true }),
+    client
+      .from("questions")
+      .select(
+        "id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer",
+      )
+      .eq("assessment_type_id", assessmentTypeId)
+      .order("display_order", { ascending: true }),
+    client
+      .from("traps")
+      .select("name, message, message_ar, question_id, validates, target_axis, penalty_base, penalty_max")
+      .eq("assessment_type_id", assessmentTypeId),
+  ]);
 
-  if (assessmentError || axesError || questionsError) {
-    throw assessmentError || axesError || questionsError;
+  if (assessmentError || axesError || questionsError || trapsError) {
+    throw assessmentError || axesError || questionsError || trapsError;
   }
   if (!assessment) throw new Error("Assessment not found");
+
+  const questionIds = (questions || []).map((question) => question.id);
+  const { data: options, error: optionsError } = questionIds.length
+    ? await client
+        .from("options")
+        .select("id, question_id, option_index, option_value, label, label_ar, is_trap, display_order")
+        .in("question_id", questionIds)
+        .order("display_order", { ascending: true })
+    : { data: [], error: null };
+
+  if (optionsError) throw optionsError;
 
   const { data: family, error: familyError } = await client
     .from("assessment_families")
@@ -251,23 +252,13 @@ async function loadRuntime(
   if (familyError) throw familyError;
   if (!family) throw new Error("Assessment family not found");
 
-  const questionIds = (questions || []).map((question) => question.id);
-  const { data: options, error: optionsError } = questionIds.length
-    ? await client
-        .from("options")
-        .select("id, question_id, option_index, option_value")
-        .in("question_id", questionIds)
-        .order("display_order", { ascending: true })
-    : { data: [], error: null };
-
-  if (optionsError) throw optionsError;
-
   return {
     assessment: assessment as AssessmentRow,
     family,
     axes: (axes || []) as AxisRow[],
     questions: (questions || []) as QuestionRow[],
     options: (options || []) as OptionRow[],
+    traps: (traps || []) as Array<Record<string, unknown>>,
   };
 }
 
@@ -386,12 +377,20 @@ export async function calculateAssessment(
       id: runtime.assessment.id,
       familyId: runtime.family.id,
       slug: runtime.family.slug,
+      titleAr: runtime.assessment.title_ar,
+      titleEn: runtime.assessment.title_en,
+      description: runtime.assessment.description,
       version: assessmentVersion,
       configVersion: runtime.assessment.config_version ?? null,
-      questionCount: runtime.questions.length,
-      axisCount: runtime.axes.length,
+      declaredQuestionCount: runtime.assessment.question_count ?? null,
+      declaredAxisCount: runtime.assessment.axis_count ?? null,
+      actualQuestionCount: runtime.questions.length,
+      actualAxisCount: runtime.axes.length,
+      hasTraps: Boolean(runtime.assessment.has_traps),
+      hasEvSimulator: Boolean(runtime.assessment.has_ev_simulator),
       axisRoles: runtime.assessment.axis_roles ?? {},
       kpiMappings: runtime.assessment.kpi_mappings ?? {},
+      evMappings: runtime.assessment.ev_mappings ?? {},
     },
     axes: runtime.axes
       .map((axis) => ({
@@ -400,29 +399,55 @@ export async function calculateAssessment(
         weight: Number(axis.weight),
         title: axis.title,
         titleAr: axis.title_ar,
+        displayOrder: Number(axis.display_order),
       }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
+      .sort((a, b) => a.code.localeCompare(b.code) || a.id.localeCompare(b.id)),
     questions: runtime.questions
       .map((question) => ({
         id: question.id,
         code: question.code,
         axisId: question.axis_id,
-        layer: question.layer ?? null,
-        impact: question.impact ?? null,
+        text: question.question_text,
+        textAr: question.question_text_ar,
+        type: question.question_type ?? null,
+        displayOrder: Number(question.display_order),
         required: question.is_required !== false,
+        impact: question.impact ?? null,
+        layer: question.layer ?? null,
       }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
+      .sort((a, b) => a.code.localeCompare(b.code) || a.id.localeCompare(b.id)),
     options: runtime.options
       .map((option) => ({
         id: option.id,
         questionId: option.question_id,
         optionIndex: Number(option.option_index),
         optionValue: Number(option.option_value),
+        label: option.label,
+        labelAr: option.label_ar,
+        isTrap: Boolean(option.is_trap),
+        displayOrder: Number(option.display_order),
       }))
       .sort(
         (a, b) =>
           a.questionId.localeCompare(b.questionId) ||
-          a.optionIndex - b.optionIndex,
+          a.optionIndex - b.optionIndex ||
+          a.id.localeCompare(b.id),
+      ),
+    traps: runtime.traps
+      .map((trap) => ({
+        name: trap.name ?? null,
+        message: trap.message ?? null,
+        messageAr: trap.message_ar ?? null,
+        questionId: trap.question_id ?? null,
+        validates: trap.validates ?? null,
+        targetAxis: trap.target_axis ?? null,
+        penaltyBase: trap.penalty_base ?? null,
+        penaltyMax: trap.penalty_max ?? null,
+      }))
+      .sort(
+        (a, b) =>
+          String(a.questionId ?? "").localeCompare(String(b.questionId ?? "")) ||
+          String(a.name ?? "").localeCompare(String(b.name ?? "")),
       ),
     interpretation: {
       schemaVersion: interpretationRegistry.schemaVersion,
@@ -448,16 +473,25 @@ export async function calculateAssessment(
             pair.assessmentSlug === runtime.family.slug &&
             pair.assessmentVersion === String(assessmentVersion),
         )
-        .map((pair) => ({ ...pair })),
+        .map((pair) => ({ ...pair }))
+        .sort(
+          (a, b) =>
+            a.validatorQuestionCode.localeCompare(b.validatorQuestionCode) ||
+            a.targetQuestionCode.localeCompare(b.targetQuestionCode),
+        ),
     },
-  };
+    simulator: {
+      enabled: Boolean(runtime.assessment.has_ev_simulator),
+      deltaCMax: 0.35,
+    },
+  };;
 
   const consistencyConfiguration = scopedConsistencyConfiguration(
     runtime.family.slug,
     assessmentVersion,
   );
 
-  const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
+  const assessmentConfigDigest = await digestAssessmentConfig(versionedConfig);
   const resultId = crypto.randomUUID();
   const calculatedAt = new Date().toISOString();
 
