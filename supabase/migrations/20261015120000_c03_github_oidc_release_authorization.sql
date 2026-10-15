@@ -15,6 +15,41 @@ alter table public.assessment_config_releases
   add constraint assessment_config_releases_ci_actor_object_check
   check (jsonb_typeof(release_actor) = 'object' and jsonb_typeof(activation_actor) = 'object');
 
+create or replace function public.c03_release_immutable_guard()
+returns trigger
+language plpgsql
+set search_path to ''
+as $function$
+begin
+  if tg_op = 'DELETE' then
+    if old.state in ('VERIFIED','PUBLISHED','DEGRADED') then
+      raise exception 'Verified or published release evidence is immutable' using errcode = '55000';
+    end if;
+    return old;
+  end if;
+  if old.state in ('VERIFIED','PUBLISHED','DEGRADED') and (
+    new.family_id is distinct from old.family_id or
+    new.assessment_type_id is distinct from old.assessment_type_id or
+    new.assessment_version is distinct from old.assessment_version or
+    new.git_commit_sha is distinct from old.git_commit_sha or
+    new.config_digest is distinct from old.config_digest or
+    new.canonicalizer_version is distinct from old.canonicalizer_version or
+    new.interpretation_version is distinct from old.interpretation_version or
+    new.interpretation_registry_digest is distinct from old.interpretation_registry_digest or
+    new.scoring_engine_version is distinct from old.scoring_engine_version or
+    new.scoring_contract_version is distinct from old.scoring_contract_version or
+    new.report_model_version is distinct from old.report_model_version or
+    new.fixture_set_version is distinct from old.fixture_set_version or
+    new.migration_contract_version is distinct from old.migration_contract_version or
+    new.edge_release_ref is distinct from old.edge_release_ref or
+    new.release_actor is distinct from old.release_actor
+  ) then
+    raise exception 'Verified or published release identity and actor evidence are immutable' using errcode = '55000';
+  end if;
+  return new;
+end;
+$function$;
+
 create or replace function public.c03_require_ci_release_context(
   p_workflow_run_id text,
   p_workflow_run_attempt text,
