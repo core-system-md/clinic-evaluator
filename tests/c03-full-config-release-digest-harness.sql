@@ -240,6 +240,9 @@ declare
   v_source_commit_sha text := repeat('b',40);
   v_edge_release_ref text := 'assessment-access-c03-registry-attestation-v1';
   v_option_manifest jsonb;
+  v_first_release_id uuid;
+  v_second_release_id uuid;
+  v_release_count integer;
 begin
   v_config_digest := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   v_config_digest_after := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
@@ -271,6 +274,10 @@ begin
   );
   if coalesce((v_result->>'success')::boolean,false) is not true then
     raise exception 'Full configuration release registration failed: %',v_result;
+  end if;
+  v_first_release_id := (v_result->>'release_id')::uuid;
+  if (select state from public.assessment_interpretation_releases where id=v_first_release_id) <> 'PREPARED' then
+    raise exception 'New release did not enter PREPARED state';
   end if;
 
   v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
@@ -311,6 +318,52 @@ begin
   v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   if coalesce((v_result->>'valid')::boolean,false) is not true then
     raise exception 'Validator rejected fully attested release: %',v_result;
+  end if;
+  if (select state from public.assessment_interpretation_releases where id=v_first_release_id) <> 'VERIFIED' then
+    raise exception 'Successful runtime attestation did not transition release to VERIFIED';
+  end if;
+
+  v_result := public.register_assessment_interpretation_release_secure(
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc',1,v_registry_digest,v_config_digest,
+    'c03-assessment-config-canonicalizer-v1',v_source_commit_sha,v_edge_release_ref,v_option_manifest
+  );
+  v_second_release_id := (v_result->>'release_id')::uuid;
+  select count(*) into v_release_count from public.assessment_interpretation_releases
+   where assessment_type_id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  if v_release_count <> 2 or (select is_current from public.assessment_interpretation_releases where id=v_first_release_id) then
+    raise exception 'Re-registration did not preserve history and switch the current release';
+  end if;
+  v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if coalesce((v_result->>'valid')::boolean,true) is not false then
+    raise exception 'New PREPARED release bypassed the runtime verification gate';
+  end if;
+
+  v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc',v_registry_digest,v_config_digest,
+    v_edge_release_ref,v_source_commit_sha
+  );
+  if coalesce((v_result->>'success')::boolean,false) is not true then
+    raise exception 'Runtime attestation of second release failed: %',v_result;
+  end if;
+
+  v_result := public.restore_assessment_interpretation_release_secure(v_first_release_id);
+  if coalesce((v_result->>'success')::boolean,false) is not true then
+    raise exception 'Historical release rollback selection failed: %',v_result;
+  end if;
+  v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if coalesce((v_result->>'valid')::boolean,true) is not false then
+    raise exception 'Rollback retained stale runtime attestation';
+  end if;
+  v_result := public.mark_assessment_interpretation_release_runtime_verified_secure(
+    'cccccccc-cccc-4ccc-8ccc-cccccccccccc',v_registry_digest,v_config_digest,
+    v_edge_release_ref,v_source_commit_sha
+  );
+  if coalesce((v_result->>'success')::boolean,false) is not true then
+    raise exception 'Runtime re-attestation after rollback failed: %',v_result;
+  end if;
+  v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if coalesce((v_result->>'valid')::boolean,false) is not true then
+    raise exception 'Validator rejected rolled-back and re-attested release: %',v_result;
   end if;
 
   update public.questions set question_text='changed after release'
