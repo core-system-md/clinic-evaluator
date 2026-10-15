@@ -544,21 +544,23 @@ export async function attestInterpretationRelease(
   }
   if (!release) throw new Error("Configuration release must be registered before runtime attestation");
 
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const binding = resolveInterpretationBinding(
+    runtime.family.slug,
+    attestation.assessmentVersion,
+  );
+  const registryEntries = selectInterpretationEntries(
+    binding.registry,
+    runtime.family.slug,
+    binding.interpretationVersion,
+  );
   const verified = await assertInterpretationReleaseMatches({
     release,
     assessmentTypeId: attestation.assessmentTypeId,
     familyId: attestation.familyId,
     assessmentVersion: attestation.assessmentVersion,
     interpretationVersion: attestation.interpretationVersion,
-    registryEntries: selectInterpretationEntries(
-      // Resolve the same family/version registry the scoring runtime actually selects.
-      (await loadRuntime(client, assessmentTypeId), resolveInterpretationBinding(
-        attestation.assessmentSlug,
-        attestation.assessmentVersion,
-      )).registry,
-      attestation.assessmentSlug,
-      attestation.interpretationVersion,
-    ),
+    registryEntries,
     runtimeOptionManifest: attestation.optionManifest,
     runtimeSourceCommitSha: attestation.sourceCommitSha,
     runtimeConfigDigest: attestation.configDigest,
