@@ -79,6 +79,7 @@ returns jsonb language sql as $c03$ select jsonb_build_object('valid', true) $c0
 -- Load the real publication/restoration function bodies used by the repository.
 \i supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql
 \i supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql
+\i supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql
 
 insert into auth.users(id) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
 insert into public.admin_users(user_id,role,active)
@@ -166,6 +167,46 @@ select public.activate_existing_assessment_release_secure(
   '22222222-2222-4222-8222-222222222222'
 );
 select public.enable_assessment_config_release_gate_secure();
+
+-- CI-specific release RPCs must reject ordinary authenticated users.
+do $assert_ci_rpc_role$
+begin
+  perform set_config('request.jwt.claim.role','authenticated',true);
+  begin
+    perform public.enable_assessment_config_release_gate_ci_secure(
+      '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
+    );
+    raise exception 'authenticated role unexpectedly invoked the CI gate RPC';
+  exception when sqlstate '42501' then null;
+  end;
+end
+$assert_ci_rpc_role$;
+
+-- The verified current release can be idempotently reconciled by the guarded CI identity.
+select set_config('request.jwt.claim.role','service_role',false);
+select public.register_assessment_config_release_ci_secure(
+  '22222222-2222-4222-8222-222222222222',
+  repeat('a',40), repeat('b',64), 'C03_CANONICAL_V1', 1, repeat('c',64),
+  'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','edge-v1',
+  '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
+) as ci_release1 \gset
+select 1 / (((:'ci_release1'::jsonb->>'release_id') = (:'release1'::jsonb->>'release_id'))::int) as ci_registration_idempotent;
+
+select public.activate_existing_assessment_release_ci_secure(
+  (:'release1'::jsonb->>'release_id')::uuid,
+  '22222222-2222-4222-8222-222222222222',
+  '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
+) as ci_activation;
+select public.enable_assessment_config_release_gate_ci_secure(
+  '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
+) as ci_gate_enabled;
+select 1 / ((
+  select enabled and enabled_by_workflow_run_id='12345'
+    and enabled_by_workflow_sha=repeat('a',40)
+  from public.assessment_config_release_settings where singleton
+)::int) as ci_gate_audit_persisted;
+select set_config('request.jwt.claim.role','authenticated',false);
 insert into public.sessions(id,assessment_type_id)
 values ('55555555-5555-4555-8555-555555555555','22222222-2222-4222-8222-222222222222');
 select 1 / ((
