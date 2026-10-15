@@ -34,7 +34,7 @@ test('C-03 release verifier binds immutable build-time attestation and fails clo
     'supabase/functions/_shared/c03-runtime-attestation.ts',
     'utf8',
   );
-  assert.match(verifier, /import \{ C03_RUNTIME_ATTESTATION \} from "\.\/runtime-attestation\.ts"/);
+  assert.match(verifier, /import \\{ C03_RUNTIME_ATTESTATION \\} from "\.\.\\/_shared\\/c03-runtime-attestation\\.ts"/);
   assert.match(verifier, /schemaVersion: C03_RUNTIME_ATTESTATION\.schemaVersion/);
   assert.match(verifier, /gitCommitSha: C03_RUNTIME_ATTESTATION\.gitCommitSha/);
   assert.match(verifier, /edgeReleaseRef: C03_RUNTIME_ATTESTATION\.edgeReleaseRef/);
