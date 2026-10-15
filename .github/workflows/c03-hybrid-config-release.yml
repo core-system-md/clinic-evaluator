@@ -78,4 +78,5 @@ jobs:
       - uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      - run: deno check .github/scripts/c03-oidc-preflight.ts
       - run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-github-oidc-claims.test.ts
