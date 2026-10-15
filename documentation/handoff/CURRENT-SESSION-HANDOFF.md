@@ -1,3 +1,25 @@
+# OWNER-DIRECTED C-03 CONTRACT RECONCILIATION — 2026-10-15
+
+**This section supersedes the earlier “rollout deferred” disposition because the owner has now explicitly directed Production completion. It does not claim the release has succeeded.**
+
+## Contract finding
+- The literal environment-variable name `C03_OWNER_JWT` is an implementation detail, not a separately named product requirement in the engineering operating contract.
+- The underlying owner-authentication boundary is required by the merged C-03 implementation and the existing authorization model: `assessment-config-release` calls `auth.getUser(token)`, checks `is_owner()`, and routes registration/activation/gate enablement through authenticated-user RPCs. The live Production definitions of `register_assessment_config_release_secure`, `activate_existing_assessment_release_secure`, and `enable_assessment_config_release_gate_secure` each enforce `require_admin_capability(...)`; registration and gate enablement record `auth.uid()`.
+- Therefore, deleting the JWT requirement without replacing it with an approved, equivalently constrained identity mechanism would bypass or break the authorization/audit contract. Do not replace it with a service-role bearer token, direct privileged SQL writes, a fabricated identity, or weakened Edge authorization.
+- No code/workflow change removing this boundary is justified by the reviewed evidence. No source or Production change was made in this contract review.
+
+## Current Production evidence (read-only, 2026-10-15)
+- Supabase project `oaqpzaarppccbnepffxx` is active; C-03 migration `20261015100000_c03_hybrid_config_release_gate` is applied.
+- Gate remains `enabled=false`; release rows = 0; active release pointers = 0; current published families = 5.
+- `assessment-access` is ACTIVE v38 with SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; `assessment-config-release` is not deployed.
+- The latest credential preflight proved `C03_OWNER_JWT` is empty in the protected `production-e2e` job. It did not prove that the variable name itself is a product contract requirement; the source and live authorization checks above establish why a real owner identity is required by the current execution path.
+- No release records were registered, no gate activation occurred, and no live E2E/cleanup was performed in this review.
+
+## Exact stop boundary
+Production completion is **AUTHORIZED BY OWNER BUT BLOCKED AT THE EXISTING OWNER-AUTHENTICATION BOUNDARY**. The guarded path cannot safely continue until a real owner-authenticated token is available to the protected runner, or the owner separately approves a designed and reviewed alternative authentication architecture. Do not ask for the token value in chat. Do not call C-03 Production-closed until exact-source Edge attestation, five release registrations/verifications/activations, gate read-back, live E2E, and run-scoped cleanup are all evidenced.
+
+---
+
 # AUTHORITATIVE C-03 OWNER-DIRECTED CLOSEOUT — 2026-10-15
 
 **Decision:** C-03 engineering phase is **CLOSED WITH PRODUCTION ROLLOUT EXPLICITLY DEFERRED**. This section supersedes every older statement below that says the next action is to obtain `C03_OWNER_JWT` in order to continue C-03.
