@@ -11,6 +11,7 @@ const evidence = {
   scoringEngineVersion: "MD_CODE_ASSESSMENT_ENGINE",
   scoringContractVersion: "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07",
   reportModelVersion: "REPORT_MODEL_V1",
+  canonicalizerVersion: "C03_CANONICAL_V1",
   canonicalConfig: { assessment: { id: "type-1" }, questions: [] },
 };
 
