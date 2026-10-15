@@ -4,8 +4,8 @@
 
 - PR #113 and PR #114 are merged.
 - The new migration `20261015120000_c03_github_oidc_release_authorization` is recorded as applied in Production; the helper, register, activate, and gate CI RPCs exist.
-- `assessment-access` is ACTIVE v39 with `verify_jwt=false`; `assessment-config-release` is ACTIVE v1 with `verify_jwt=true`.
-- Both Edge functions embed the same source attestation: commit `4eef11cae8c83201e7d89c21d27f99750d8f7d3d`, digest `sha256:0257e577e67f157aabc8b512dc76a6b252229263597156ceef4853b2e496763f`.
+- `assessment-access` is ACTIVE v40 with `verify_jwt=false`; `assessment-config-release` is ACTIVE v2 with `verify_jwt=true`.
+- Both Edge functions embed the same source digest `sha256:0257e577e67f157aabc8b512dc76a6b252229263597156ceef4853b2e496763f`. Read the attested Git SHA from both deployed files after the latest main commit; documentation-only commits require refreshing the attested SHA before release.
 - Live read-only state: gate disabled; release rows 0; active release pointers 0; five published families; all five currently lack a release record.
 - No release writes, gate activation, live E2E, or cleanup have occurred. **Production closure is still pending.**
 
