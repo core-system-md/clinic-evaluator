@@ -219,8 +219,8 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - **SCOPE RECONCILIATION:** the explicit owner-directed C-03 scope is Git↔DB synchronization plus safe completion of a published admin assessment. Older handoff index and PR #96 describe a different interpretation-release scope. D11 was previously misreferenced; the Git/Supabase source-of-truth decision is D17. The next step is read-only investigation under the owner-directed scope, not a new owner decision to restate that scope.
 - **NOT PERFORMED:** no production writes, migrations, deployment, live E2E, PR merge, or application-code change.
 
-### Resume gate
-**Startup reconciliation is complete. Implementation has not started.** The owner-directed scope is identified; D11 was corrected to D17 for the Git/Supabase source-of-truth question. Resume after owner confirmation, starting with read-only C-03 investigation. Preserve all historical sections below for auditability.
+### Resume gate — historical snapshot
+This paragraph records the state at the end of initial read-only reconciliation only. It is superseded by the later C-03 progress sections below; owner-directed scope is already confirmed and implementation has started. Preserve this historical snapshot for auditability.
 
 
 ## C-03 progress update — 2026-10-15
@@ -240,11 +240,9 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - PR #96 remains unsuitable for direct merge: it diverges from current `main` and covers an interpretation-release gate rather than complete configuration synchronization.
 - No Production writes, migration, Edge deployment, production-writing E2E, or merge was performed in this continuation.
 
-### Exact next step
+### Exact next step — superseded by latest implementation update below
 
-1. Obtain a reproducible isolated Edge completion test or the specific stack/error trace for the reported admin/protected crash. Exercise the actual protected `complete` handler, not just source-text contracts or the lower-level SQL RPC. The regression must fail before the fix and pass after it.
-2. Implement the full configuration digest/release state machine from PR #103's contract on a fresh branch based on current `main`, including drift, compare-and-swap publication, pinned-session behavior, and rollback tests.
-3. Only after both tracks pass, evaluate deployment gates separately. C-03 remains **IN PROGRESS / NOT CLOSED**.
+The initial investigation identified two concrete follow-ups: an actual isolated protected Edge-handler test, and implementation of the full hybrid configuration release gate. Both have progressed in PRs #105 and #106 as recorded in the later section below. Do not treat this historical next-step list as current.
 
 
 ### CI follow-up — 2026-10-15
@@ -253,3 +251,37 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 - Dedicated C-03 workflow [#38660821837](https://github.com/core-system-md/clinic-evaluator/actions/runs/38660821837): both jobs succeeded — route/report projection tests and protected Structured Result RPC on disposable PostgreSQL.
 - Full P3 workflow [#38660821668](https://github.com/core-system-md/clinic-evaluator/actions/runs/38660821668): all four jobs succeeded.
 - Latest PR #102 head is `b13b459c846a6a8d693ee2c0127f0738e0243c8c`. These results validate the current tests and SQL persistence harness, but do not reproduce the reported Edge-handler crash.
+
+
+## C-03 implementation update — 2026-10-15 08:15 UTC
+
+### PR #106 — persisted completion/report context
+- PR: https://github.com/core-system-md/clinic-evaluator/pull/106
+- Branch: `fix/c03-persisted-result-report-projection-20261015`
+- Head: `abc93027f1bd5430cfe757cc3a4fa849c2a4490a`
+- Adds `ensureAssessmentSlug` and resolves the family slug for persisted Structured Result projection in duplicate completion, already-prepared completion, and `get_session` report-read paths.
+- Adds a regression test that demonstrates projection failure when the stored result lacks `assessmentSlug`, then proves family-context recovery without mutating the stored payload.
+- Latest CI passed all six workflows: P3 #38702982872, WP-02 #38702982910, WP-03 #38702982843, WP-04 #38702982869, WP-05 #38702982866, WP-09 #38702982908.
+- **Evidence limit:** this fixes a proven missing-family-context failure path, consistent with the previously documented Production HTTP 500 class. It still does not execute the actual protected Edge `complete` handler end-to-end and therefore does not prove this is the exact cause of the separately reported admin/protected crash.
+
+### PR #105 — hybrid config digest and release gate
+- PR: https://github.com/core-system-md/clinic-evaluator/pull/105
+- Branch: `feat/c03-full-config-release-gate-20261015`
+- Head: `31f9be9cca20d1d525386f06c8b32670448a9b0c`
+- Adds `assessment-config-digest.mjs`, a canonical full-runtime projection covering assessment metadata/policies, axes, questions, options, traps, mappings, interpretation entries, and consistency registries.
+- Digest tests cover deterministic ordering, representative field sensitivity, audit-timestamp exclusion, and pinned-release mismatch rejection.
+- Adds migration `20261015100000_c03_hybrid_config_release_gate.sql`: immutable release records, PREPARED/VERIFIED/PUBLISHED/REJECTED/DEGRADED states, runtime attestation RPC, expected-pointer compare-and-swap, verified rollback, release-ID pinning for new sessions, and a disabled-by-default activation gate.
+- Runtime calculation validates the session-pinned release digest and release metadata when the gate is enabled.
+- Dedicated C-03 workflow #38704282085 passed (disposable PostgreSQL state-machine harness + digest tests). P3 #38704282108, WP-02 #38704282214, WP-04 #38704282367, and WP-09 #38704282320 passed.
+- **Production boundary:** the migration is not applied; no release was registered/verified/activated; the gate remains absent from Production; no Edge deployment or Production writes were performed. The gate requires runtime metadata environment variables: `C03_GIT_COMMIT_SHA`, `C03_EDGE_RELEASE_REF`, `C03_FIXTURE_SET_VERSION`, `C03_MIGRATION_CONTRACT_VERSION`.
+
+### Current evidence and remaining closure gates
+- Production main remains `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`; `assessment-access` remains v38, SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; 52 migrations remain applied. No C-03 migration or Edge release has been applied.
+- A read-only log query covering 2026-10-14 08:30 UTC through 2026-10-15 08:30 UTC found no HTTP 500 / exception records in the sampled Edge log sources. This is not evidence that the reported crash cannot occur.
+- PR #96 remains open/Draft/diverged and must not be merged directly.
+- **C-03 status: IN PROGRESS / NOT CLOSED.** Remaining required work:
+  1. Add an isolated test that invokes the actual protected Edge `complete` handler and proves the reported failure path before/after the correction; current PR #102/106 tests are not that test.
+  2. Complete the secure release verification/manifest operational path and test runtime drift/pinned-session behavior against the real Edge handler, not only the SQL RPC and source contracts.
+  3. Prepare a controlled rollout that registers and verifies all five currently published versions, activates each release ID, configures the four runtime metadata values, then enables the gate only after a read-only preflight proves complete coverage.
+  4. Independently authorize and execute the Production migration, Edge deployment, and bounded protected/public E2E with exact-ID cleanup. None of these actions has occurred.
+  5. Update this handoff again after the next evidence-bearing implementation step; do not mark C-03 closed until all gates above pass.
