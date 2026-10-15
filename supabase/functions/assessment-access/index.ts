@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment as defaultCalculateAssessment } from "./engine.ts";
+import { attestInterpretationRelease, calculateAssessment as defaultCalculateAssessment, registerInterpretationRelease } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 import { projectCompletionResponse as defaultProjectCompletionResponse } from "./report-interpretation.mjs";
 
@@ -30,6 +30,30 @@ const WINDOW_MS = 60_000;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
+}
+
+async function getOwnerUserId(req: Request): Promise<string | null> {
+  const authorization = req.headers.get("authorization") || "";
+  if (!authorization.startsWith("Bearer ")) return null;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Owner verification configuration is unavailable");
+  }
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: userData, error: userError } = await userClient.auth.getUser(
+    authorization.slice("Bearer ".length),
+  );
+  if (userError || !userData.user) return null;
+
+  const { data: owner, error: ownerError } = await userClient.rpc("is_owner");
+  if (ownerError) throw ownerError;
+  return owner === true ? userData.user.id : null;
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -404,6 +428,28 @@ return async (req: Request) => {
     const action = body?.action;
     const data = body?.data || {};
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
+
+    if (action === "register_interpretation_release") {
+      const ownerId = await getOwnerUserId(req);
+      if (!ownerId) return json({ error: "Owner authorization required" }, 403);
+      const assessmentTypeId = String(data.assessment_type_id || "").trim();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(assessmentTypeId)) {
+        return json({ error: "A valid assessment_type_id is required" }, 400);
+      }
+      const registration = await registerInterpretationRelease(supabase, assessmentTypeId, ownerId);
+      return json({ success: true, data: registration });
+    }
+
+    if (action === "verify_interpretation_release") {
+      const ownerId = await getOwnerUserId(req);
+      if (!ownerId) return json({ error: "Owner authorization required" }, 403);
+      const assessmentTypeId = String(data.assessment_type_id || "").trim();
+      if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(assessmentTypeId)) {
+        return json({ error: "A valid assessment_type_id is required" }, 400);
+      }
+      const verification = await attestInterpretationRelease(supabase, assessmentTypeId);
+      return json({ success: true, data: verification });
+    }
 
     if (action === "get_content") {
       const assessmentKey = String(data.assessment_key || "").trim();
