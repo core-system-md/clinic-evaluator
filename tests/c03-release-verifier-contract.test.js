@@ -29,11 +29,20 @@ test('C-03 release verifier exports canonical config and attests live runtime ev
   assert.match(verifier, /p_actual_assessment_type_id: evidence\.assessmentTypeId/);
 });
 
-test('C-03 release verifier fails closed when runtime release metadata is absent', () => {
-  assert.match(verifier, /C03_GIT_COMMIT_SHA/);
-  assert.match(verifier, /C03_EDGE_RELEASE_REF/);
-  assert.match(verifier, /C03_FIXTURE_SET_VERSION/);
-  assert.match(verifier, /C03_MIGRATION_CONTRACT_VERSION/);
+test('C-03 release verifier binds immutable build-time attestation and fails closed on blank metadata', () => {
+  const attestation = fs.readFileSync(
+    'supabase/functions/assessment-config-release/runtime-attestation.ts',
+    'utf8',
+  );
+  assert.match(verifier, /import \{ C03_RUNTIME_ATTESTATION \} from "\.\/runtime-attestation\.ts"/);
+  assert.match(verifier, /schemaVersion: C03_RUNTIME_ATTESTATION\.schemaVersion/);
+  assert.match(verifier, /gitCommitSha: C03_RUNTIME_ATTESTATION\.gitCommitSha/);
+  assert.match(verifier, /edgeReleaseRef: C03_RUNTIME_ATTESTATION\.edgeReleaseRef/);
+  assert.match(verifier, /fixtureSetVersion: C03_RUNTIME_ATTESTATION\.fixtureSetVersion/);
+  assert.match(verifier, /migrationContractVersion: C03_RUNTIME_ATTESTATION\.migrationContractVersion/);
+  assert.match(verifier, /Object\.values\(runtimeMetadata\)\.some\(\(value\) => !value\.trim\(\)\)/);
   assert.match(verifier, /C-03 runtime release metadata is not configured/);
-  assert.match(verifier, /return json\(\{ error: "C-03 runtime release metadata is not configured" \}, 503\)/);
+  assert.doesNotMatch(verifier, /Deno\.env\.get\("C03_(?:GIT_COMMIT_SHA|EDGE_RELEASE_REF|FIXTURE_SET_VERSION|MIGRATION_CONTRACT_VERSION)"\)/);
+  assert.match(attestation, /gitCommitSha: ""/);
+  assert.match(attestation, /edgeReleaseRef: ""/);
 });
