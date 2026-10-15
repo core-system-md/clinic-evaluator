@@ -135,6 +135,7 @@ declare
   v_bad_count integer;
   v_distinct_count integer;
   v_release_id uuid;
+  v_existing_state text;
 begin
   if coalesce(auth.role(), '') <> 'service_role' then
     raise exception 'Service-role Edge runtime required to register a configuration release'
@@ -160,10 +161,11 @@ begin
     raise exception 'Configuration release can only be registered for a draft or archived version'
       using errcode = '55000';
   end if;
-  if exists (
-    select 1 from public.assessment_interpretation_releases
-    where assessment_type_id = v_assessment.id and release_state = 'PUBLISHED'
-  ) then
+  select release_state into v_existing_state
+    from public.assessment_interpretation_releases
+   where assessment_type_id = v_assessment.id
+   for update;
+  if found and v_existing_state = 'PUBLISHED' then
     raise exception 'Published releases are immutable; create a new assessment version'
       using errcode = '55000';
   end if;
