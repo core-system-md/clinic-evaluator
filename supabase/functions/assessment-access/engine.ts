@@ -31,9 +31,6 @@ type AssessmentRow = {
   config_version: number | null;
   question_count: number;
   axis_count: number;
-  title_ar: string;
-  title_en: string | null;
-  description: string | null;
   has_traps: boolean | null;
   has_ev_simulator: boolean | null;
   axis_roles: Record<string, string> | null;
