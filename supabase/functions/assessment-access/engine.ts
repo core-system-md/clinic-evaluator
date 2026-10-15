@@ -350,7 +350,7 @@ export async function calculateAssessment(
   const { data: session, error: sessionError } = await client
     .from("sessions")
     .select(
-      "id, lead_id, assessment_type_id, assessment_user_id, assessment_version, status",
+      "id, lead_id, assessment_type_id, assessment_user_id, assessment_version, assessment_release_id, status",
     )
     .eq("id", input.sessionId)
     .maybeSingle();
@@ -507,6 +507,63 @@ export async function calculateAssessment(
   );
 
   const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
+
+  const { data: releaseSettings, error: releaseSettingsError } = await client
+    .from("assessment_config_release_settings")
+    .select("enabled")
+    .eq("singleton", true)
+    .maybeSingle();
+  if (releaseSettingsError) throw releaseSettingsError;
+
+  if (releaseSettings?.enabled === true) {
+    if (!session.assessment_release_id) {
+      throw Object.assign(
+        new Error("Assessment release identity is missing from this session."),
+        { status: 409 },
+      );
+    }
+
+    const { data: release, error: releaseError } = await client
+      .from("assessment_config_releases")
+      .select("id, family_id, assessment_type_id, assessment_version, git_commit_sha, config_digest, interpretation_version, interpretation_registry_digest, scoring_engine_version, scoring_contract_version, report_model_version, fixture_set_version, migration_contract_version, edge_release_ref, state, verified_config_digest, verified_registry_digest")
+      .eq("id", session.assessment_release_id)
+      .maybeSingle();
+    if (releaseError) throw releaseError;
+    if (!release) {
+      throw Object.assign(new Error("Pinned assessment release is unavailable."), { status: 409 });
+    }
+
+    const runtimeRegistryDigest = await sha256Hex(stable(versionedConfig.interpretation));
+    const runtimeGitCommitSha = Deno.env.get("C03_GIT_COMMIT_SHA") || "";
+    const runtimeEdgeReleaseRef = Deno.env.get("C03_EDGE_RELEASE_REF") || "";
+    const runtimeFixtureSetVersion = Deno.env.get("C03_FIXTURE_SET_VERSION") || "";
+    const runtimeMigrationContractVersion = Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "";
+    const releaseMismatch =
+      !["PUBLISHED", "VERIFIED"].includes(String(release.state)) ||
+      release.family_id !== runtime.family.id ||
+      release.assessment_type_id !== runtime.assessment.id ||
+      Number(release.assessment_version) !== assessmentVersion ||
+      release.config_digest !== assessmentConfigDigest ||
+      release.verified_config_digest !== assessmentConfigDigest ||
+      release.interpretation_version !== interpretationBinding.interpretationVersion ||
+      release.interpretation_registry_digest !== runtimeRegistryDigest ||
+      release.verified_registry_digest !== runtimeRegistryDigest ||
+      release.git_commit_sha !== runtimeGitCommitSha ||
+      release.edge_release_ref !== runtimeEdgeReleaseRef ||
+      release.fixture_set_version !== runtimeFixtureSetVersion ||
+      release.migration_contract_version !== runtimeMigrationContractVersion ||
+      release.scoring_engine_version !== ENGINE_IDENTITY ||
+      release.scoring_contract_version !== SCORING_CONTRACT_ID ||
+      release.report_model_version !== "REPORT_MODEL_V1";
+
+    if (releaseMismatch) {
+      throw Object.assign(
+        new Error("Pinned assessment release does not match the verified runtime configuration."),
+        { status: 409 },
+      );
+    }
+  }
+
   const resultId = crypto.randomUUID();
   const calculatedAt = new Date().toISOString();
 
