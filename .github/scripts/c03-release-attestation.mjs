@@ -129,10 +129,30 @@ export async function verifyDeployedAttestation({ root = REPO_ROOT, commitSha } 
   const actual = payload?.data?.runtimeMetadata;
   for (const key of ["schemaVersion", "gitCommitSha", "edgeReleaseRef", "fixtureSetVersion", "migrationContractVersion"]) {
     if (actual?.[key] !== expected[key]) {
-      throw new Error("Deployed C-03 attestation mismatch for " + key + ": expected " + expected[key] + ", got " + String(actual?.[key]));
+      throw new Error("Deployed verifier attestation mismatch for " + key + ": expected " + expected[key] + ", got " + String(actual?.[key]));
     }
   }
-  return { expected, actual, assessmentTypeId };
+
+  const scorerResponse = await fetch(baseUrl + "/functions/v1/assessment-access", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": anonKey,
+      "Authorization": "Bearer " + anonKey,
+    },
+    body: JSON.stringify({ action: "c03_runtime_attestation" }),
+  });
+  const scorerPayload = await scorerResponse.json().catch(() => ({}));
+  if (!scorerResponse.ok || scorerPayload?.success !== true) {
+    throw new Error("Deployed scorer attestation endpoint rejected the read-only check: HTTP " + scorerResponse.status + " " + JSON.stringify(scorerPayload));
+  }
+  const scorerActual = scorerPayload?.data?.runtimeMetadata;
+  for (const key of ["schemaVersion", "gitCommitSha", "edgeReleaseRef", "fixtureSetVersion", "migrationContractVersion"]) {
+    if (scorerActual?.[key] !== expected[key]) {
+      throw new Error("Deployed scorer attestation mismatch for " + key + ": expected " + expected[key] + ", got " + String(scorerActual?.[key]));
+    }
+  }
+  return { expected, verifier: actual, scorer: scorerActual, assessmentTypeId };
 }
 
 async function main() {
