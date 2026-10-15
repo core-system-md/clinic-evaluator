@@ -1,0 +1,5 @@
+{
+  "schemaVersion": "C03_RUNTIME_ATTESTATION_V1",
+  "fixtureSetVersion": "P3_FIXTURE_SET_V1",
+  "migrationContractVersion": "C03_RELEASE_CONTRACT_V1"
+}
