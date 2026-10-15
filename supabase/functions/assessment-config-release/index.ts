@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { computeAssessmentConfigReleaseEvidence } from "../assessment-access/engine.ts";
+import { C03_RUNTIME_ATTESTATION } from "./runtime-attestation.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -59,10 +60,11 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
   }));
   const computeEvidenceFn = dependencies.computeEvidenceFn || computeAssessmentConfigReleaseEvidence;
   const getRuntimeMetadata = dependencies.getRuntimeMetadata || (() => ({
-    gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
-    edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
-    fixtureSetVersion: Deno.env.get("C03_FIXTURE_SET_VERSION") || "",
-    migrationContractVersion: Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "",
+    schemaVersion: C03_RUNTIME_ATTESTATION.schemaVersion,
+    gitCommitSha: C03_RUNTIME_ATTESTATION.gitCommitSha,
+    edgeReleaseRef: C03_RUNTIME_ATTESTATION.edgeReleaseRef,
+    fixtureSetVersion: C03_RUNTIME_ATTESTATION.fixtureSetVersion,
+    migrationContractVersion: C03_RUNTIME_ATTESTATION.migrationContractVersion,
   }));
 
   return async (req: Request) => {
