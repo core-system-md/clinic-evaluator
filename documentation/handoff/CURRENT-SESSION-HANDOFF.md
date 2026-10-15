@@ -1,3 +1,43 @@
+# LATEST AUTHORITATIVE RECONCILIATION — 2026-10-15  (supersedes older status text below)
+
+**Repository:** `core-system-md/clinic-evaluator`  
+**Current main SHA at this checkpoint:** `877c85e82a83d8073bb6c1aef5631928d463416f`  
+**C-03:** `IMPLEMENTED / ISOLATED CI PASS / PRODUCTION RELEASE BLOCKED / NOT CLOSED`
+
+## Verified current reality
+
+- Canonical C-03 implementation PR #109 is merged. No open PRs were present at the last repository inventory.
+- Read-only live Supabase check confirms migration `20261015100000_c03_hybrid_config_release_gate` is applied; release settings table exists and `enabled=false`; release rows = 0; active release pointers = 0; current published families = 5.
+- Live Edge inventory: `assessment-access` ACTIVE v38, bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; `assessment-config-release` is **not deployed**.
+- Guarded release runs #38736488525 and #38746879746 failed before attestation, deployment, release registration/activation, gate changes, or live E2E. The later manual runs #38753349634 and #38753844500 were **skipped**, not successful executions.
+- After the owner added `SUPABASE_SERVICE_ROLE_KEY`, read-only diagnostic run [#38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434) established:
+  - `SUPABASE_ANON_KEY`: injected in both repository and `production-e2e` environment jobs.
+  - `SUPABASE_SERVICE_ROLE_KEY`: injected in both jobs. The previous empty service-role runtime value is no longer reproduced in this diagnostic.
+  - `C03_OWNER_JWT`: **empty in both repository and `production-e2e` scopes**. Both diagnostic jobs stopped before any Supabase request. This is now the directly observed credential blocker. Do not infer that an owner JWT is absent from all GitHub settings; only its runtime injection in these two scopes is proven empty.
+- The read-only diagnostic workflow is [.github/workflows/c03-credential-preflight.yml](https://github.com/core-system-md/clinic-evaluator/blob/main/.github/workflows/c03-credential-preflight.yml). The production workflow's actual display name is **C-03 guarded Production release and bounded E2E**, path [.github/workflows/c03-production-release.yml](https://github.com/core-system-md/clinic-evaluator/blob/main/.github/workflows/c03-production-release.yml). Do not refer to it by an invented UI name.
+
+## Engineering-contract reconciliation and deviations
+
+The governing `documentation/governance/AI-ENGINEERING-OPERATING-CONTRACT.md` requires truth-first reconciliation, canonical-owner reuse before creating workflows, bounded work packages, root-cause analysis after repeated failure, evidence-matched status, and no false closure. This session deviated from that contract by repeatedly changing the release workflow's environment without proving the root cause, sending the owner to a mismatched display name, and adding a diagnostic workflow before reconciling all credential requirements. Those were engineering-process errors; do not shift their cost to the owner.
+
+The current diagnostic gives a concrete cause for the next stop: the release orchestrator requires a real `C03_OWNER_JWT` because the verifier and release actions are owner-authenticated. A service-role key is not an acceptable substitute and must not be used to bypass that authorization boundary. Do not manufacture or impersonate an owner JWT, weaken authorization, or perform privileged SQL in place of the owner-authenticated Edge API.
+
+## Exact next action / stop boundary
+
+1. Keep Production release blocked; do not deploy Edge functions, register/activate releases, enable the gate, or run live E2E.
+2. The required credential must be made available as a protected GitHub Actions secret to the `production-e2e` job. Never paste it into chat or logs.
+3. After secure injection is configured, run the read-only credential preflight and inspect its logs. Only when all three required credentials are injected may the guarded release workflow be considered for a separately authorized run.
+4. The release path must still attest both deployed Edge bundles against the exact current `main` SHA before any release writes. Current live state does not satisfy that gate because `assessment-config-release` is not deployed.
+5. Update this handoff and the C-03 preflight document with the new run evidence before changing status. C-03 is not closed until the five releases are verified/activated, the gate read-back succeeds, live E2E passes, and exact-ID cleanup is verified.
+
+## Work method for the continuation
+
+Do not restart C-03, revisit merged PRs without new evidence, or create another workflow. Follow the binding sequence:
+`TRUTH → RECONCILIATION → ROOT CAUSE → MINIMAL FIX → EXACT-HEAD VERIFY → RUNTIME VERIFY → DOCUMENT → CLOSE`.
+One bounded work package at a time; stop at the credential boundary instead of looping on speculative patches.
+
+---
+
 # C-03 FINAL CONSOLIDATION CHECKPOINT — 2026-10-15
 
 **Canonical implementation:** PR [#109](https://github.com/core-system-md/clinic-evaluator/pull/109), merged as `0e03b8311ebf8a48cde96d2450b01a2d7b19fca2`.  
