@@ -107,12 +107,15 @@ as $$
   where v.id = p_version_id
 $$;
 
+revoke all on function public.assessment_config_manifest_secure(uuid) from public, anon, authenticated;
+grant execute on function public.assessment_config_manifest_secure(uuid) to service_role;
+
 alter table public.assessment_interpretation_releases enable row level security;
 revoke all on public.assessment_interpretation_releases from public, anon, authenticated;
 
 drop function if exists public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, jsonb);
 
-create function public.register_assessment_interpretation_release_secure(
+create or replace function public.register_assessment_interpretation_release_secure(
   p_assessment_type_id uuid,
   p_interpretation_version integer,
   p_registry_digest text,
@@ -270,7 +273,11 @@ begin
         runtime_verified_source_commit_sha = null
   returning id into v_release_id;
 
-  perform public.write_admin_audit(
+  insert into public.admin_audit_log(
+    actor_user_id, action, entity_type, entity_id, family_id,
+    before_data, after_data, success, failure_reason
+  ) values (
+    p_registered_by,
     'assessment.configuration_release.register',
     'assessment_interpretation_releases',
     v_release_id,
@@ -309,7 +316,7 @@ grant execute on function public.register_assessment_interpretation_release_secu
 -- Only the Edge runtime service-role client may record a successful full-config attestation.
 drop function if exists public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text);
 
-create function public.mark_assessment_interpretation_release_runtime_verified_secure(
+create or replace function public.mark_assessment_interpretation_release_runtime_verified_secure(
   p_assessment_type_id uuid,
   p_runtime_digest text,
   p_runtime_config_digest text,
