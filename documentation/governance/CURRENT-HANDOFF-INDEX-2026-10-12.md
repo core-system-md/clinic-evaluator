@@ -1,3 +1,18 @@
+# LATEST AUTHORITATIVE C-03 RECONCILIATION — 2026-10-15
+
+This section supersedes older C-03 queue/status text elsewhere in this historical index. The canonical active handoff is `documentation/handoff/CURRENT-SESSION-HANDOFF.md`.
+
+- Current `main` SHA before this index update: `ab20753d7a1286695f5cc36549f1586bfb05134a`.
+- C-03 scope has since been implemented and integrated through canonical PR #109; do not use this index's 2026-10-14 "do not start C-03" note as the current queue. Do not reopen the old scope decision absent new owner direction or contradictory evidence.
+- Live Supabase: C-03 migration `20261015100000_c03_hybrid_config_release_gate` is applied; release settings exist; gate disabled; release rows = 0; active release pointers = 0; five current published families.
+- Live Edge: `assessment-access` ACTIVE v38; `assessment-config-release` not deployed.
+- Latest read-only credential diagnosis [run #38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434): anon and service-role keys injected in both tested scopes; `C03_OWNER_JWT` empty in both repository and `production-e2e` jobs. No API request or Production mutation occurred in that run.
+- Current status: **C-03 IMPLEMENTED / ISOLATED CI PASS / PRODUCTION RELEASE BLOCKED BY OWNER-JWT INJECTION / NOT CLOSED**.
+- Contract deviation acknowledged: repeated environment-name patches preceded root-cause proof; the UI workflow name was stated incorrectly; a diagnostic workflow was added before reconciling all credentials. The operating contract requires evidence-first reconciliation and bounded work. Do not repeat this pattern.
+- Next canonical action: ensure a valid owner-authenticated JWT is injected as a protected secret into the release environment, then rerun the read-only preflight. Never paste it into chat, manufacture/impersonate it, substitute the service-role key, or bypass owner-authenticated Edge actions with privileged SQL. No deployment/release writes/live E2E until that prerequisite and the exact-SHA dual-Edge attestation gate pass.
+
+---
+
 # Current Handoff Index — 2026-10-12
 
 > **Latest reconciliation: 2026-10-14.** The canonical session handoff is `documentation/handoff/CURRENT-SESSION-HANDOFF.md`; latest C-02 run #38469121966 passed scoring but its cleanup is pending, as documented at the end of this index. This file name is retained as the canonical existing handoff index; the latest state is recorded in the C-02 section below and supersedes older contradictory C-02 status text.
