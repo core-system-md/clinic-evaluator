@@ -19,7 +19,7 @@ import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
 import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, CONFIG_CANONICALIZER_VERSION, sha256Hex } from "./assessment-config-digest.mjs";
-import { C03_RUNTIME_ATTESTATION } from "../assessment-config-release/runtime-attestation.ts";
+import { C03_RUNTIME_ATTESTATION } from "../_shared/c03-runtime-attestation.ts";
 
 type AssessmentRow = {
   id: string;
