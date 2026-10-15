@@ -7,6 +7,7 @@ const path = require("node:path");
 const DEFAULT_EDGE_RELEASE_REF = "assessment-access-c03-registry-attestation-v1";
 const SHA_RE = /^[0-9a-f]{40}([0-9a-f]{24})?$/;
 const DIGEST_RE = /^[0-9a-f]{64}$/;
+const CONFIG_CANONICALIZER_VERSION = "c03-assessment-config-canonicalizer-v1";
 
 function stableSerialize(value) {
   if (value === null || typeof value !== "object") return JSON.stringify(value);
@@ -94,6 +95,8 @@ async function generateReleasePayload({
     throw new Error("Snapshot assessmentVersion must be a positive integer");
   }
   if (typeof snapshot.slug !== "string" || !snapshot.slug.trim()) throw new Error("Snapshot slug is required");
+  // configDigest must come from assessment_configuration_digest() for this exact exported version.
+  if (!DIGEST_RE.test(snapshot.configDigest || "")) throw new Error("Snapshot configDigest must be a lowercase SHA-256 digest from the persisted configuration export");
   if (!SHA_RE.test(sourceCommitSha || "")) throw new Error("sourceCommitSha must be a lowercase Git commit SHA");
   if (edgeReleaseRef !== DEFAULT_EDGE_RELEASE_REF) {
     throw new Error("edgeReleaseRef must match the Edge runtime constant: " + DEFAULT_EDGE_RELEASE_REF);
@@ -145,6 +148,8 @@ async function generateReleasePayload({
     },
     provenance: {
       registry_digest: registryDigest,
+      config_digest: snapshot.configDigest,
+      config_canonicalizer_version: CONFIG_CANONICALIZER_VERSION,
       source_commit_sha: sourceCommitSha,
       edge_release_ref: edgeReleaseRef,
     },
@@ -154,6 +159,8 @@ async function generateReleasePayload({
         p_assessment_type_id: snapshot.assessmentTypeId,
         p_interpretation_version: interpretationVersion,
         p_registry_digest: registryDigest,
+        p_config_digest: snapshot.configDigest,
+        p_config_canonicalizer_version: CONFIG_CANONICALIZER_VERSION,
         p_source_commit_sha: sourceCommitSha,
         p_edge_release_ref: edgeReleaseRef,
         p_option_manifest: optionManifest,
@@ -197,4 +204,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { DEFAULT_EDGE_RELEASE_REF, stableSerialize, buildOptionManifest, generateReleasePayload };
+module.exports = { DEFAULT_EDGE_RELEASE_REF, CONFIG_CANONICALIZER_VERSION, stableSerialize, buildOptionManifest, generateReleasePayload };
