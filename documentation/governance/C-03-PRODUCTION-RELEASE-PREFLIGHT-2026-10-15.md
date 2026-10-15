@@ -87,12 +87,12 @@ This script does **not** apply the migration or deploy functions. Those remain e
 **Status at this checkpoint: SCHEMA APPLIED / EDGE DEPLOYMENT AND RELEASE ACTIVATION NOT YET VERIFIED.**
 
 
-## Latest guarded release attempt — preflight blocked (2026-10-15)
+## Latest guarded release attempts — credential injection unresolved (2026-10-15)
 
-- Workflow [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) passed all code and disposable database tests, then stopped before deployment because repository Actions secret `SUPABASE_SERVICE_ROLE_KEY` is missing.
-- No runtime attestation was prepared and no Edge deployment, release registration, activation, or gate write occurred in this attempt.
-- Live read still shows the C-03 migration applied, gate disabled, zero release rows, zero active pointers, `assessment-access` v38, and `assessment-config-release` undeployed.
-- Required owner action: add `SUPABASE_SERVICE_ROLE_KEY` in repository Settings → Secrets and variables → Actions; verify a current `C03_OWNER_JWT` is also present. Do not send either credential through chat. Then run the guarded workflow manually with `ENABLE-C03-PRODUCTION`.
-- No PRs remain open. The next run must use the exact current `main` SHA and wait for matching attestations from both deployed functions before any release writes.
+- Run [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) passed code and disposable database tests, then failed preflight because `SUPABASE_SERVICE_ROLE_KEY` expanded to an empty value. This is evidence of an empty runtime value, not proof that the key is absent from GitHub settings.
+- Corrective commit `50b2e9c9b766c3103074f1d58e558294fab01943` changed both C-03 jobs to the documented `production-e2e` environment and triggered [run #38746879746](https://github.com/core-system-md/clinic-evaluator/actions/runs/38746879746). It failed at the same preflight check, so environment selection alone did not fix injection.
+- Neither run prepared runtime attestation, deployed an Edge function, registered/activated releases, enabled the gate, or ran live E2E.
+- GitHub connector access available to this session cannot inspect secret configuration or enumerate secret names. Next step is to inspect the exact secret name and scope in GitHub Actions settings (repository vs `production-e2e` environment), including any same-name environment entry that may shadow another value. Do not recreate credentials blindly, paste them into chat, use plain Actions variables for privileged keys, or weaken fail-closed checks.
+- Live state remains: migration applied; gate disabled; zero release rows; zero active pointers; `assessment-access` v38; `assessment-config-release` undeployed. No PRs remain open.
 
-**Status: RELEASE PREFLIGHT BLOCKED / C-03 NOT CLOSED.**
+**Status: RELEASE PREFLIGHT BLOCKED BY EMPTY RUNNER CREDENTIAL / ROOT CAUSE NOT YET VERIFIED / C-03 NOT CLOSED.**
