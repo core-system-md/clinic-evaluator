@@ -12,7 +12,7 @@ const SOURCE_ROOTS = [
   "supabase/functions/assessment-access",
   "supabase/functions/assessment-config-release",
 ];
-const SOURCE_EXTENSIONS = new Set([".ts", ".js", ".mjs", ".json", ".jsonc"]);
+const SOURCE_EXTENSIONS = new Set([".ts", ".mts", ".tsx", ".js", ".mjs", ".jsx", ".json", ".jsonc", ".toml", ".wasm"]);
 
 async function collectSourceFiles(root, relativeDirectory) {
   const absoluteDirectory = path.join(root, relativeDirectory);
