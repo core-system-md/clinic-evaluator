@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { computeAssessmentConfigReleaseEvidence } from "../assessment-access/engine.ts";
+import { C03_RUNTIME_ATTESTATION } from "./runtime-attestation.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -58,11 +59,14 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
     global: { headers: { Authorization: "Bearer " + token } },
   }));
   const computeEvidenceFn = dependencies.computeEvidenceFn || computeAssessmentConfigReleaseEvidence;
+  // Release identity is baked into the deployed bundle at build time.
+  // Environment overrides are deliberately not accepted: stale or hand-edited
+  // deployment variables must not be able to impersonate a different bundle.
   const getRuntimeMetadata = dependencies.getRuntimeMetadata || (() => ({
-    gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
-    edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
-    fixtureSetVersion: Deno.env.get("C03_FIXTURE_SET_VERSION") || "",
-    migrationContractVersion: Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "",
+    gitCommitSha: C03_RUNTIME_ATTESTATION.gitCommitSha,
+    edgeReleaseRef: C03_RUNTIME_ATTESTATION.edgeReleaseRef,
+    fixtureSetVersion: C03_RUNTIME_ATTESTATION.fixtureSetVersion,
+    migrationContractVersion: C03_RUNTIME_ATTESTATION.migrationContractVersion,
   }));
 
   return async (req: Request) => {
