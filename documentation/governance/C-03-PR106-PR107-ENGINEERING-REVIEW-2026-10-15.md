@@ -63,3 +63,10 @@ The historical Production HTTP 500 has not been replayed against a Production se
 - PR #106 review comment [5532077039](https://github.com/core-system-md/clinic-evaluator/pull/106#pullrequestreview-5532077039): requests fallback-family identity and fail-closed regression tests. No Production replay was requested or performed.
 - PR #107 review comment [5532077420](https://github.com/core-system-md/clinic-evaluator/pull/107#pullrequestreview-5532077420): requests real-routine integration coverage and auditable deployment metadata binding. The gate must remain disabled until its release requirements are met.
 - Both are COMMENT reviews, not approvals; neither implementation PR was merged.
+
+
+## 7. Follow-up test package (2026-10-15)
+
+- PR #106 adds tests for recovery via `assessment_types.family_id` when both persisted slug and family ID are missing, and a fail-closed 409 when the family cannot be resolved. The first test revision failed because it incorrectly expected the report projection to invent the missing persisted family ID; that assertion was corrected to verify approved model selection and preserved null identity. Protected handler run [#38730312717](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730312717) and related WP/P3 runs passed for head `48194a7611b6040271ad874b7ff08aa565d2106b`.
+- PR #107 now loads the real repository lifecycle publication/restoration SQL definitions in the disposable PostgreSQL harness rather than replacing those two target routines with stubs. Exact-head release-gate run [#38730407260](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730407260) was still running when this report update was made; its outcome must be checked before claiming success.
+- This improves integration evidence but does not constitute a Production release or prove that deployment environment metadata is bound to the running Edge bundle. C-03 remains open.
