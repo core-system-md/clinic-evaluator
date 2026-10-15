@@ -204,6 +204,19 @@ begin
   if v_release.state = 'REJECTED' then
     raise exception 'This exact release identity was rejected; correct the manifest and register a new identity' using errcode = '55000';
   end if;
+  if v_release.family_id is distinct from v_assessment.family_id
+     or v_release.assessment_version is distinct from v_assessment.version
+     or v_release.canonicalizer_version is distinct from p_canonicalizer_version
+     or v_release.interpretation_version is distinct from p_interpretation_version
+     or v_release.interpretation_registry_digest is distinct from p_interpretation_registry_digest
+     or v_release.scoring_engine_version is distinct from p_scoring_engine_version
+     or v_release.scoring_contract_version is distinct from p_scoring_contract_version
+     or v_release.report_model_version is distinct from p_report_model_version
+     or v_release.fixture_set_version is distinct from p_fixture_set_version
+     or v_release.migration_contract_version is distinct from p_migration_contract_version
+     or v_release.edge_release_ref is distinct from trim(p_edge_release_ref) then
+    raise exception 'This release identity already exists with different manifest metadata' using errcode = '55000';
+  end if;
 
   return jsonb_build_object(
     'success', true,
@@ -274,12 +287,19 @@ begin
   if p_actual_migration_contract_version is distinct from v_release.migration_contract_version then v_mismatches := v_mismatches || jsonb_build_array('migration_contract_version'); end if;
 
   if jsonb_array_length(v_mismatches) > 0 then
+    if v_release.state = 'VERIFIED' then
+      return jsonb_build_object('success', false, 'state', 'VERIFIED', 'mismatches', v_mismatches);
+    end if;
     update public.assessment_config_releases
     set state = 'REJECTED',
         failure_reason = 'Runtime verification mismatch: ' || array_to_string(array(select jsonb_array_elements_text(v_mismatches)), ', '),
         validation_report = coalesce(p_validation_report, '{}'::jsonb) || jsonb_build_object('mismatches', v_mismatches)
     where id = p_release_id;
     return jsonb_build_object('success', false, 'state', 'REJECTED', 'mismatches', v_mismatches);
+  end if;
+
+  if v_release.state = 'VERIFIED' then
+    return jsonb_build_object('success', true, 'state', 'VERIFIED', 'release_id', p_release_id, 'idempotent', true);
   end if;
 
   update public.assessment_config_releases
