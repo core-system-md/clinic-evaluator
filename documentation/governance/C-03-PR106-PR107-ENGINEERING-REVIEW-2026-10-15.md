@@ -114,3 +114,15 @@ The historical Production HTTP 500 has not been replayed against a Production se
 - Expanded source manifest inputs to include `.mts`, `.mjs`, `.ts`, JSON registries, and other supported function-source inputs. `edgeReleaseRef` is explicitly a SHA-256 source-manifest digest, not a claim about Supabase's internal compiled-byte hash.
 - Production state is unchanged. The migration remains unapplied, `assessment-access` remains v38, and `assessment-config-release` remains undeployed. PR #107 is still Draft/unmerged. The session's Supabase connector cannot invoke live Edge HTTP endpoints with the owner JWT; therefore the protected orchestrator was tested with mocks but not executed against Production. C-03 remains OPEN.
 
+
+
+## Post-schema / pre-Edge release checkpoint — 2026-10-15
+
+- Live migration ledger includes `20261015100000_c03_hybrid_config_release_gate`. Read-only checks confirmed both release tables exist, gate is disabled, release rows are zero, current release pointers are null, and all five current published version pointers remain unchanged.
+- The C-03 migration is applied; this is not release closure. `assessment-access` remains ACTIVE v38 and `assessment-config-release` is not yet deployed.
+- PR #109 is merged; all superseded C-03 PRs (#96, #101–#104, #106–#108, #110–#112) are closed without merge; #105 was already closed. No repository PRs remain open.
+- A guarded GitHub Actions workflow now runs the isolated test suites and actual authorization harness before any deployment, prepares attestation on the exact trigger SHA, deploys both Edge functions, verifies identities, registers/verifies/activates all five versions, enables/read-backs the gate, and runs bounded public E2E with exact-ID cleanup. It requires `SUPABASE_ACCESS_TOKEN`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and a current `C03_OWNER_JWT` secret. Missing credentials fail preflight before deployment.
+- The workflow's successful release artifact is the source of truth for exact deployed versions, attestation, five release IDs, gate readback, and cleanup. Do not change `main` after successful deployment because the attestation binds the exact commit SHA.
+
+**Status at this checkpoint: SCHEMA APPLIED / EDGE DEPLOYMENT AND RELEASE ACTIVATION NOT YET VERIFIED.**
+
