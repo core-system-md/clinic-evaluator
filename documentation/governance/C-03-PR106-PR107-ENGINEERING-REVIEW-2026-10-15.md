@@ -57,3 +57,9 @@ The historical Production HTTP 500 has not been replayed against a Production se
 4. Re-run exact-head CI after any changes.
 5. Update this report and `documentation/handoff/CURRENT-SESSION-HANDOFF.md` after each work package.
 6. Keep all Production-targeted actions blocked until the owner explicitly authorizes a release.
+
+
+## 6. Review comments recorded on the implementation PRs
+- PR #106 review comment [5532077039](https://github.com/core-system-md/clinic-evaluator/pull/106#pullrequestreview-5532077039): requests fallback-family identity and fail-closed regression tests. No Production replay was requested or performed.
+- PR #107 review comment [5532077420](https://github.com/core-system-md/clinic-evaluator/pull/107#pullrequestreview-5532077420): requests real-routine integration coverage and auditable deployment metadata binding. The gate must remain disabled until its release requirements are met.
+- Both are COMMENT reviews, not approvals; neither implementation PR was merged.
