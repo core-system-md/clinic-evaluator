@@ -49,6 +49,12 @@ begin
     'canonicalizerVersion', 'c03-assessment-config-canonicalizer-v1',
     'assessment', to_jsonb(v_assessment) - array['status','is_active','created_at','updated_at','published_at','archived_at','created_by'],
     'family', (select jsonb_build_object('id',f.id,'slug',f.slug) from public.assessment_families f where f.id=v_assessment.family_id),
+    'securitySettings', (
+      select to_jsonb(s) - array['created_at','updated_at','created_by']
+        from public.assessment_settings s
+        join public.assessment_families f on f.slug = s.assessment_key
+       where f.id = v_assessment.family_id
+    ),
     'axes', coalesce((select jsonb_agg(to_jsonb(a)-array['created_at','updated_at','created_by'] order by a.display_order,a.id)
       from public.axes a where a.assessment_type_id=v_assessment.id),'[]'::jsonb),
     'questions', coalesce((select jsonb_agg(to_jsonb(q)-array['created_at','updated_at','created_by'] order by q.display_order,q.id)
