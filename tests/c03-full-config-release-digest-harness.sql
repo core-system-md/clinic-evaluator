@@ -1,6 +1,9 @@
 -- Disposable PostgreSQL harness for the C-03 migration.
 -- Only minimal schema/API stubs are created; never run against a production database.
 \set ON_ERROR_STOP on
+
+create schema if not exists extensions;
+create extension if not exists pgcrypto with schema extensions;
 do $roles$
 begin
   if not exists (select 1 from pg_roles where rolname = 'anon') then create role anon nologin; end if;
