@@ -1,0 +1,23 @@
+name: C-03 isolated protected Edge handler regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/c03-edge-handler-isolated.yml"
+      - "tests/c03-protected-edge-handler.integration.test.ts"
+      - "supabase/functions/assessment-access/**"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  protected-edge-handler:
+    name: Actual protected Edge handler with mocked Supabase
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+      - run: deno test --allow-net --allow-env --allow-read tests/c03-protected-edge-handler.integration.test.ts
