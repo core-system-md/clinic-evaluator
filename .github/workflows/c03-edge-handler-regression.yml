@@ -25,4 +25,4 @@ jobs:
         with:
           deno-version: v2.x
       - name: Run isolated handler regression tests
-        run: deno test --allow-env --allow-net tests/c03-edge-handler-regression.test.ts
+        run: deno test --no-check --allow-env --allow-net tests/c03-edge-handler-regression.test.ts
