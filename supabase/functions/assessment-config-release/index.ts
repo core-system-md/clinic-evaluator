@@ -194,6 +194,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
           p_actual_assessment_type_id: evidence.assessmentTypeId,
           p_actual_assessment_version: evidence.assessmentVersion,
           p_actual_config_digest: evidence.configDigest,
+          p_actual_canonicalizer_version: evidence.canonicalizerVersion,
           p_actual_registry_digest: evidence.interpretationRegistryDigest,
           p_actual_git_commit_sha: runtimeMetadata.gitCommitSha,
           p_actual_edge_release_ref: runtimeMetadata.edgeReleaseRef,
