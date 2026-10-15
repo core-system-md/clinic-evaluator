@@ -29,43 +29,71 @@ create table public.assessment_types(
   family_id uuid not null references public.assessment_families(id),
   version integer not null,
   status text not null,
-  is_active boolean not null default false
+  is_active boolean not null default false,
+  published_at timestamptz,
+  archived_at timestamptz,
+  updated_at timestamptz not null default now()
 );
 create table public.sessions(
   id uuid primary key,
   assessment_type_id uuid not null references public.assessment_types(id),
   assessment_release_id uuid
 );
-create or replace function public.require_admin_capability(text)
-returns void language plpgsql as $$ begin return; end $$;
-create or replace function public.publish_assessment_version_secure(p_version_id uuid)
-returns jsonb language plpgsql as $$
-declare v public.assessment_types%rowtype;
+create table public.admin_users(
+  user_id uuid primary key references auth.users(id),
+  role text not null,
+  active boolean not null default true
+);
+create table public.admin_capabilities(
+  user_id uuid not null references public.admin_users(user_id),
+  capability text not null,
+  primary key(user_id, capability)
+);
+create table public.admin_audit_log(
+  id bigserial primary key,
+  actor_user_id uuid,
+  action text not null,
+  entity_type text not null,
+  entity_id uuid,
+  family_id uuid,
+  before_data jsonb,
+  after_data jsonb
+);
+create or replace function public.require_admin_capability(p_capability text)
+returns void language plpgsql security definer set search_path=public,pg_temp as $
 begin
-  select * into v from public.assessment_types where id=p_version_id for update;
-  update public.assessment_types set status='archived',is_active=false
-    where family_id=v.family_id and id <> p_version_id and status='published';
-  update public.assessment_types set status='published',is_active=true where id=p_version_id;
-  update public.assessment_families set current_published_version_id=p_version_id,updated_at=now()
-    where id=v.family_id;
-  return jsonb_build_object('success',true,'version_id',p_version_id);
-end $$;
-create or replace function public.restore_public_assessment_secure(p_version_id uuid)
-returns jsonb language plpgsql as $$
-declare v public.assessment_types%rowtype;
+  if not exists (
+    select 1 from public.admin_users a
+    where a.user_id=auth.uid() and a.active=true
+      and (a.role='owner' or (a.role='admin' and exists (
+        select 1 from public.admin_capabilities c
+        where c.user_id=a.user_id and c.capability=p_capability
+      )))
+  ) then
+    raise exception 'admin capability required: %', p_capability using errcode='42501';
+  end if;
+end $;
+create or replace function public.write_admin_audit(
+  p_action text, p_entity_type text, p_entity_id uuid, p_family_id uuid,
+  p_before jsonb default null, p_after jsonb default null
+) returns bigint language plpgsql as $
+declare v_id bigint;
 begin
-  select * into v from public.assessment_types where id=p_version_id for update;
-  update public.assessment_types set status='archived',is_active=false
-    where family_id=v.family_id and id <> p_version_id and status='published';
-  update public.assessment_types set status='published',is_active=true where id=p_version_id;
-  update public.assessment_families set current_published_version_id=p_version_id,updated_at=now()
-    where id=v.family_id;
-  return jsonb_build_object('success',true,'version_id',p_version_id);
-end $$;
+  insert into public.admin_audit_log(actor_user_id,action,entity_type,entity_id,family_id,before_data,after_data)
+  values(auth.uid(),p_action,p_entity_type,p_entity_id,p_family_id,p_before,p_after)
+  returning id into v_id;
+  return v_id;
+end $;
+create or replace function public.validate_assessment_version_secure(p_version_id uuid)
+returns jsonb language sql as $ select jsonb_build_object('valid', true) $;
 
+-- Load the real publication/restoration function bodies used by the repository.
+\i supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql
 \i supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql
 
 insert into auth.users(id) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+insert into public.admin_users(user_id,role,active)
+values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','owner',true);
 insert into public.assessment_families(id,slug,current_published_version_id)
 values ('11111111-1111-4111-8111-111111111111','clinic-performance','22222222-2222-4222-8222-222222222222');
 insert into public.assessment_types(id,family_id,version,status,is_active)
