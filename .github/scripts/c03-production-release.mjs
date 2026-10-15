@@ -1,5 +1,6 @@
 import { pathToFileURL } from "node:url";
 import { verifyDeployedAttestation } from "./c03-release-attestation.mjs";
+import { getC03GithubOidcToken } from "./c03-github-oidc-token.mjs";
 
 export const REQUIRED_FAMILY_SLUGS = Object.freeze([
   "admin-reception-assessment",
@@ -30,7 +31,7 @@ export async function executeC03ProductionRelease({
   baseUrl,
   anonKey,
   serviceRoleKey,
-  ownerJwt,
+  getOidcToken = getC03GithubOidcToken,
   confirmation,
   fetchImpl = fetch,
   verifyAttestation = verifyDeployedAttestation,
@@ -41,7 +42,6 @@ export async function executeC03ProductionRelease({
   const url = requireValue(baseUrl, "SUPABASE_URL").replace(/\/$/, "");
   const anon = requireValue(anonKey, "SUPABASE_ANON_KEY");
   const service = requireValue(serviceRoleKey, "SUPABASE_SERVICE_ROLE_KEY");
-  const owner = requireValue(ownerJwt, "C03_OWNER_JWT");
   const headers = {
     "apikey": service,
     "Authorization": "Bearer " + service,
@@ -80,11 +80,10 @@ export async function executeC03ProductionRelease({
     assessmentTypeId: families[0].current_published_version_id,
     baseUrl: url,
     anonKey: anon,
-    ownerJwt: owner,
     fetchImpl,
   });
 
-  const invokeOwner = async (body) => requestJson(
+  const invokeCi = async (body) => requestJson(
     fetchImpl,
     url + "/functions/v1/assessment-config-release",
     {
@@ -92,16 +91,16 @@ export async function executeC03ProductionRelease({
       headers: {
         "Content-Type": "application/json",
         "apikey": anon,
-        "Authorization": "Bearer " + owner,
+        "Authorization": "Bearer " + await getOidcToken(),
       },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ ...body, ...(body.action === "ci_export" ? {} : { confirmation: CONFIRMATION }) }),
     },
   );
 
   const registered = [];
   for (const family of families) {
-    const result = await invokeOwner({
-      action: "register",
+    const result = await invokeCi({
+      action: "ci_register",
       assessment_type_id: family.current_published_version_id,
     });
     const releaseId = String(result?.data?.release_id || "").trim();
@@ -119,7 +118,7 @@ export async function executeC03ProductionRelease({
   // Verify all five first. Do not activate any family if any attestation is rejected.
   const verified = [];
   for (const family of registered) {
-    const result = await invokeOwner({ action: "verify", release_id: family.releaseId });
+    const result = await invokeCi({ action: "ci_verify", release_id: family.releaseId });
     if (result?.success !== true || result?.data?.state !== "VERIFIED") {
       throw new Error("Release verification failed for " + family.slug + ": " + JSON.stringify(result));
     }
@@ -128,8 +127,8 @@ export async function executeC03ProductionRelease({
 
   const activated = [];
   for (const family of verified) {
-    const result = await invokeOwner({
-      action: "activate_existing",
+    const result = await invokeCi({
+      action: "ci_activate_existing",
       release_id: family.releaseId,
       expected_published_version_id: family.current_published_version_id,
     });
@@ -139,7 +138,7 @@ export async function executeC03ProductionRelease({
     activated.push({ slug: family.slug, versionId: family.current_published_version_id, releaseId: family.releaseId });
   }
 
-  const enabled = await invokeOwner({ action: "enable_gate" });
+  const enabled = await invokeCi({ action: "ci_enable_gate" });
   if (enabled?.success !== true) {
     throw new Error("C-03 gate activation was rejected: " + JSON.stringify(enabled));
   }
@@ -166,7 +165,7 @@ async function main() {
     baseUrl: process.env.SUPABASE_URL,
     anonKey: process.env.SUPABASE_ANON_KEY,
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
-    ownerJwt: process.env.C03_OWNER_JWT,
+
     confirmation: process.env.C03_PRODUCTION_RELEASE_CONFIRMATION,
   });
   console.log(JSON.stringify(result, null, 2));
