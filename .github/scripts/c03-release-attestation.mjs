@@ -127,7 +127,8 @@ export async function verifyDeployedAttestation({
     headers: {
       "Content-Type": "application/json",
       "apikey": anonKey,
-      "Authorization": "Bearer " + oidcToken,
+      "Authorization": "Bearer " + anonKey,
+      "x-c03-github-oidc": oidcToken,
     },
     body: JSON.stringify({ action: "ci_export", assessment_type_id: selectedAssessmentTypeId }),
   });
