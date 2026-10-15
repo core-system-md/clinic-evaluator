@@ -18,6 +18,9 @@ jobs:
   actual-edge-handler:
     name: Actual Edge handler protected/public completion routing
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: "https://example.supabase.co"
+      SUPABASE_SERVICE_ROLE_KEY: "test-only-service-role-key"
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
