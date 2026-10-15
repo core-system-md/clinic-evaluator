@@ -33,7 +33,12 @@ test('C-03 release verifier uses immutable build-attested metadata and fails clo
   assert.match(verifier, /import \{ C03_RUNTIME_ATTESTATION \} from "\.\/runtime-attestation\.ts"/);
   assert.match(verifier, /gitCommitSha: C03_RUNTIME_ATTESTATION\.gitCommitSha/);
   assert.match(verifier, /edgeReleaseRef: C03_RUNTIME_ATTESTATION\.edgeReleaseRef/);
-  assert.doesNotMatch(verifier, /Deno\.env\.get\("C03_(GIT_COMMIT_SHA|EDGE_RELEASE_REF|FIXTURE_SET_VERSION|MIGRATION_CONTRACT_VERSION)"\)/);
+  assert.match(engine, /import \{ C03_RUNTIME_ATTESTATION \} from "\.\.\/assessment-config-release\/runtime-attestation\.ts"/);
+  assert.match(engine, /edgeReleaseRef: C03_RUNTIME_ATTESTATION\.edgeReleaseRef/);
+  assert.doesNotMatch(verifier + engine, /Deno\.env\.get\("C03_(GIT_COMMIT_SHA|EDGE_RELEASE_REF|FIXTURE_SET_VERSION|MIGRATION_CONTRACT_VERSION)"\)/);
+  const scorer = fs.readFileSync('supabase/functions/assessment-access/index.ts', 'utf8');
+  assert.match(scorer, /action === "c03_runtime_attestation"/);
+  assert.match(scorer, /runtimeMetadata: C03_RUNTIME_ATTESTATION/);
   assert.match(verifier, /C-03 runtime release metadata is not configured/);
   assert.match(verifier, /return json\(\{ error: "C-03 runtime release metadata is not configured" \}, 503\)/);
   const attestation = fs.readFileSync('supabase/functions/assessment-config-release/runtime-attestation.ts', 'utf8');
