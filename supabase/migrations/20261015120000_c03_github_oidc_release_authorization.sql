@@ -84,8 +84,8 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
      or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
      or p_workflow_sha is distinct from p_git_commit_sha then
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
@@ -198,9 +198,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^\d+$'
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -263,9 +263,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^\d+$'
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -309,7 +309,7 @@ grant execute on function public.enable_assessment_config_release_gate_ci_secure
 
 commit;
 
-     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
      or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
      or p_workflow_sha is distinct from p_git_commit_sha then
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
@@ -422,9 +422,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^\d+$'
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -487,9 +487,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^\d+$'
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -645,9 +645,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -710,9 +710,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^\d+$'
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -756,8 +756,8 @@ grant execute on function public.enable_assessment_config_release_gate_ci_secure
 
 commit;
 
-     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -820,9 +820,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^\d+$'
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -866,7 +866,7 @@ grant execute on function public.enable_assessment_config_release_gate_ci_secure
 
 commit;
 
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -929,9 +929,9 @@ begin
     raise exception 'GitHub OIDC release service role required' using errcode = '42501';
   end if;
   if p_confirmation is distinct from 'ENABLE-C03-PRODUCTION'
-     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+
-     or coalesce(p_workflow_run_attempt, '') !~ '^\d+$'
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_id, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -975,8 +975,8 @@ grant execute on function public.enable_assessment_config_release_gate_ci_secure
 
 commit;
 
-     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_run_attempt, '') !~ '^[0-9]+$'
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
@@ -1020,7 +1020,7 @@ grant execute on function public.enable_assessment_config_release_gate_ci_secure
 
 commit;
 
-     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$' then
+     or coalesce(p_workflow_sha, '') !~ '^[0-9a-f]{40}$'
     raise exception 'Invalid guarded GitHub release identity or confirmation' using errcode = '42501';
   end if;
   v_actor := jsonb_build_object('provider','github-actions-oidc','repository','core-system-md/clinic-evaluator','workflow','.github/workflows/c03-production-release.yml','environment','production-e2e','run_id',p_workflow_run_id,'run_attempt',p_workflow_run_attempt,'sha',p_workflow_sha);
