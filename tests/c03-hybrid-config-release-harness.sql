@@ -60,7 +60,7 @@ create table public.admin_audit_log(
   after_data jsonb
 );
 create or replace function public.require_admin_capability(p_capability text)
-returns void language plpgsql security definer set search_path=public,pg_temp as $
+returns void language plpgsql security definer set search_path=public,pg_temp as $c03$
 begin
   if not exists (
     select 1 from public.admin_users a
@@ -72,20 +72,20 @@ begin
   ) then
     raise exception 'admin capability required: %', p_capability using errcode='42501';
   end if;
-end $;
+end $c03$;
 create or replace function public.write_admin_audit(
   p_action text, p_entity_type text, p_entity_id uuid, p_family_id uuid,
   p_before jsonb default null, p_after jsonb default null
-) returns bigint language plpgsql as $
+) returns bigint language plpgsql as $c03$
 declare v_id bigint;
 begin
   insert into public.admin_audit_log(actor_user_id,action,entity_type,entity_id,family_id,before_data,after_data)
   values(auth.uid(),p_action,p_entity_type,p_entity_id,p_family_id,p_before,p_after)
   returning id into v_id;
   return v_id;
-end $;
+end $c03$;
 create or replace function public.validate_assessment_version_secure(p_version_id uuid)
-returns jsonb language sql as $ select jsonb_build_object('valid', true) $;
+returns jsonb language sql as $c03$ select jsonb_build_object('valid', true) $c03$;
 
 -- Load the real publication/restoration function bodies used by the repository.
 \i supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql
