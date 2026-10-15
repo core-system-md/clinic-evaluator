@@ -1,6 +1,7 @@
 import { validateC03GithubReleaseClaims } from "../supabase/functions/_shared/c03-github-oidc.ts";
 
 const valid = {
+  sub: "repo:core-system-md/clinic-evaluator:environment:production-e2e",
   repository: "core-system-md/clinic-evaluator",
   repository_owner: "core-system-md",
   ref: "refs/heads/main",
@@ -20,6 +21,7 @@ Deno.test("C-03 OIDC claim validation accepts only the designated repository wor
   if (identity.sha !== valid.sha || identity.runId !== "12345") throw new Error("Valid workflow identity was not retained.");
 });
 for (const [claim, value] of [
+  ["sub", "repo:core-system-md/clinic-evaluator:ref:refs/heads/main"],
   ["repository", "someone/else"],
   ["repository_owner", "someone"],
   ["ref", "refs/heads/feature"],
