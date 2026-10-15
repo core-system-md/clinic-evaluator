@@ -303,3 +303,16 @@ Continue review of PR #106 and PR #107 against the live repository contract, clo
 - PR #107 exact head `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`: C-03 hybrid release-gate jobs (PostgreSQL state machine, digest contract, verifier handler), WP-02, WP-04, WP-09 and P3 kernel all SUCCESS. Release-gate run: [#38730540804](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730540804).
 - The publication/restoration stub gap is now closed in the disposable harness by loading the actual repository lifecycle SQL definitions. The harness still uses a test implementation of `require_admin_capability` and fixture implementations for validation/audit; exact integration with the production authorization routine remains open.
 - Runtime metadata is still supplied through environment variables and is not independently bound to the deployed Edge bundle by an auditable deploy process. This remains a release-blocking gap. C-03 is NOT CLOSED.
+
+
+## Latest guarded release attempt — blocked before Production deployment (2026-10-15)
+
+- Workflow: [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525).
+- Exact-SHA checks passed: Node digest/attestation/release sequencing tests, Deno protected/public handler tests, actual admin authorization extraction, and the disposable PostgreSQL release harness.
+- The workflow stopped at credential preflight because GitHub Actions secret `SUPABASE_SERVICE_ROLE_KEY` is missing. It did not prepare a runtime attestation, deploy either Edge function, register or activate releases, or enable the gate.
+- Last live read: migration `20261015100000_c03_hybrid_config_release_gate` is applied; gate remains disabled; release rows=0; active release pointers=0; `assessment-access` remains ACTIVE v38; `assessment-config-release` remains undeployed.
+- Next action: add the legacy service-role JWT as repository Actions secret `SUPABASE_SERVICE_ROLE_KEY` through GitHub Settings (never paste it into chat), ensure `C03_OWNER_JWT` is also configured and current, then dispatch the guarded workflow with input `ENABLE-C03-PRODUCTION`. It will prepare an attestation for the exact current `main` SHA and wait for both functions to be deployed from the staged source bundle before making release writes.
+- No PRs remain open. Do not change `main` after the next successful deployment; the runtime identity binds the exact SHA.
+
+**Status: CODE MERGED / MIGRATION APPLIED / CI PASS / RELEASE BLOCKED BY MISSING SECRET / C-03 NOT CLOSED.**
+
