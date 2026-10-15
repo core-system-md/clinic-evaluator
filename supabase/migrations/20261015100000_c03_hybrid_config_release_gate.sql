@@ -312,10 +312,13 @@ set search_path to ''
 as $function$
 declare
   v_release public.assessment_config_releases%rowtype;
+  v_requested_release_id uuid;
 begin
   if not public.c03_assessment_release_gate_enabled() then
     return new;
   end if;
+
+  v_requested_release_id := nullif(current_setting('app.c03_release_id', true), '')::uuid;
 
   if new.current_published_version_id is distinct from old.current_published_version_id then
     if new.current_published_version_id is null then
@@ -331,6 +334,7 @@ begin
     from public.assessment_config_releases
     where family_id = new.id
       and assessment_type_id = new.current_published_version_id
+      and (v_requested_release_id is null or id = v_requested_release_id)
       and state = 'VERIFIED'
       and verified_config_digest = config_digest
       and verified_registry_digest = interpretation_registry_digest
@@ -502,9 +506,13 @@ begin
   end if;
 
   if v_version.status = 'draft' then
+    perform set_config('app.c03_release_id', v_release.id::text, true);
     v_result := public.publish_assessment_version_secure(v_version.id);
+    perform set_config('app.c03_release_id', '', true);
   elsif v_version.status = 'archived' then
+    perform set_config('app.c03_release_id', v_release.id::text, true);
     v_result := public.restore_public_assessment_secure(v_version.id);
+    perform set_config('app.c03_release_id', '', true);
   elsif v_version.status = 'published' and v_family.current_published_version_id = v_version.id then
     update public.assessment_families set current_release_id = v_release.id, updated_at = now()
     where id = v_family.id;
