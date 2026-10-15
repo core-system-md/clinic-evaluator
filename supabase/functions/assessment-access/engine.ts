@@ -19,6 +19,7 @@ import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
 import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, CONFIG_CANONICALIZER_VERSION, sha256Hex } from "./assessment-config-digest.mjs";
+import { C03_RUNTIME_ATTESTATION } from "../assessment-config-release/runtime-attestation.ts";
 
 type AssessmentRow = {
   id: string;
@@ -478,10 +479,10 @@ export async function calculateAssessment(
       scoringContractVersion: SCORING_CONTRACT_ID,
         canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
       runtimeMetadata: {
-        gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
-        edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
-        fixtureSetVersion: Deno.env.get("C03_FIXTURE_SET_VERSION") || "",
-        migrationContractVersion: Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "",
+        gitCommitSha: C03_RUNTIME_ATTESTATION.gitCommitSha,
+        edgeReleaseRef: C03_RUNTIME_ATTESTATION.edgeReleaseRef,
+        fixtureSetVersion: C03_RUNTIME_ATTESTATION.fixtureSetVersion,
+        migrationContractVersion: C03_RUNTIME_ATTESTATION.migrationContractVersion,
       },
     });
   }
