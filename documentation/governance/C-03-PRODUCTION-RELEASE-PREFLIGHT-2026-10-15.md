@@ -47,3 +47,18 @@ The existing authorization routines are present in Production: `require_admin_ca
 The available Supabase connector does not expose an authenticated HTTP invocation tool for the live Edge endpoints. The repository script is prepared for execution in a protected release runner, but its owner JWT must remain a secret and must not be pasted into chat or replaced by privileged SQL that bypasses the owner-authenticated API path.
 
 **C-03 status: ENGINEERING CI PASS / PRODUCTION RELEASE GATES NOT EXECUTED / NOT CLOSED.**
+
+## Added protected release orchestrator (latest PR #107 head `56e9ad20748dde428af970be6009e1198e36a03e`)
+
+After the C-03 migration is applied and both functions are deployed from the exact prepared commit, use the repository script in an authorized secure shell. Do not paste credentials into chat or commit them:
+
+```bash
+node .github/scripts/c03-release-attestation.mjs prepare
+node .github/scripts/c03-release-attestation.mjs verify
+C03_PRODUCTION_RELEASE_CONFIRMATION=ENABLE-C03-PRODUCTION node .github/scripts/c03-production-release.mjs
+```
+
+Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `C03_OWNER_JWT` in the secure environment; for the standalone `verify` command, also set `C03_ASSESSMENT_TYPE_ID` to one current published version ID. The production orchestrator repeats the read-only dual-bundle attestation check internally before writing. It fails closed if the release settings table/singleton is absent, the gate is already enabled, the five-family inventory drifts, either deployed bundle's identity mismatches, or any version fails verification. It verifies all five versions before activating any of them.
+
+This script does **not** apply the migration or deploy functions. Those remain explicit preceding release steps and must use the exact same prepared `main` SHA. No Production operation was run from this session because the available connector cannot invoke the authenticated live Edge HTTP endpoints required by the script.
+
