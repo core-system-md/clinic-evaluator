@@ -190,6 +190,7 @@ test('C-03 pinned release guard accepts exact verified identity and rejects drif
     assessment_type_id: input.runtime.assessment.id,
     assessment_version: input.assessmentVersion,
     git_commit_sha: runtimeMetadata.gitCommitSha,
+    canonicalizer_version: 'C03_CANONICAL_V1',
     config_digest: configDigest,
     verified_config_digest: configDigest,
     interpretation_version: input.interpretationVersion,
@@ -213,6 +214,7 @@ test('C-03 pinned release guard accepts exact verified identity and rejects drif
     interpretationVersion: input.interpretationVersion,
     engineIdentity: 'MD_CODE_ASSESSMENT_ENGINE',
     scoringContractVersion: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+    canonicalizerVersion: 'C03_CANONICAL_V1',
     runtimeMetadata,
   };
 
