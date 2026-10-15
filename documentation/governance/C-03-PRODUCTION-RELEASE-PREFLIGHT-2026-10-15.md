@@ -1,3 +1,15 @@
+# C-03 AUTHORIZATION REQUIREMENT CORRECTION — OWNER DIRECTIVE — 2026-10-15
+
+**Authoritative correction:** `C03_OWNER_JWT` is not required by the current GitHub Actions OIDC CI release path. In `supabase/functions/assessment-config-release/index.ts`, `ci_*` actions validate the signed GitHub OIDC workload token and bind it to the deployed runtime SHA; `requireOwner` applies only to non-CI human/admin actions. Previous statements below that the OIDC production release is blocked by an empty owner JWT are superseded and must not trigger JWT setup requests or credential-preflight loops.
+
+- The OIDC migration/RPC work replaces owner-JWT authentication in CI; it was not added to force the owner to provide a JWT.
+- Existing owner/admin authorization remains on human-facing API actions; do not weaken those unrelated product authorization checks.
+- The guarded release still enforces the allowlisted GitHub workload identity, exact repository/ref/workflow/environment/event/SHA/run identity, exact current-main commit, release-state preconditions, automated tests, and post-release read-back/E2E/cleanup evidence. No owner JWT or owner-authentication conversation is required for the CI path.
+- Live state remains gate `enabled=false`, zero release rows, zero active release pointers, and five current published families. This correction does not claim release activation or live E2E has completed.
+- The available GitHub connector has no workflow-dispatch action. No release workflow was dispatched by this documentation update. Production completion must be claimed only after a real run supplies successful evidence.
+
+---
+
 # C-03 OIDC PRODUCTION RELEASE PREFLIGHT — LIVE STATUS — 2026-10-15
 
 **This section supersedes earlier deferred-rollout statements below.** The owner authorized the OIDC replacement and Production completion.
