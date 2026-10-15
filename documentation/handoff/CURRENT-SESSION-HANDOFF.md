@@ -1,7 +1,8 @@
 # LATEST AUTHORITATIVE RECONCILIATION — 2026-10-15  (supersedes older status text below)
 
 **Repository:** `core-system-md/clinic-evaluator`  
-**Current main SHA at this checkpoint:** `877c85e82a83d8073bb6c1aef5631928d463416f`  
+**Main SHA at initial reconciliation checkpoint:** `877c85e82a83d8073bb6c1aef5631928d463416f`  
+**Latest diagnostic workflow SHA:** `17a5105aaf5d5a8e69864fb44958f8961560d1fe`  
 **C-03:** `IMPLEMENTED / ISOLATED CI PASS / PRODUCTION RELEASE BLOCKED / NOT CLOSED`
 
 ## Verified current reality
@@ -10,10 +11,11 @@
 - Read-only live Supabase check confirms migration `20261015100000_c03_hybrid_config_release_gate` is applied; release settings table exists and `enabled=false`; release rows = 0; active release pointers = 0; current published families = 5.
 - Live Edge inventory: `assessment-access` ACTIVE v38, bundle SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; `assessment-config-release` is **not deployed**.
 - Guarded release runs #38736488525 and #38746879746 failed before attestation, deployment, release registration/activation, gate changes, or live E2E. The later manual runs #38753349634 and #38753844500 were **skipped**, not successful executions.
-- After the owner added `SUPABASE_SERVICE_ROLE_KEY`, read-only diagnostic run [#38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434) established:
-  - `SUPABASE_ANON_KEY`: injected in both repository and `production-e2e` environment jobs.
-  - `SUPABASE_SERVICE_ROLE_KEY`: injected in both jobs. The previous empty service-role runtime value is no longer reproduced in this diagnostic.
-  - `C03_OWNER_JWT`: **empty in both repository and `production-e2e` scopes**. Both diagnostic jobs stopped before any Supabase request. This is now the directly observed credential blocker. Do not infer that an owner JWT is absent from all GitHub settings; only its runtime injection in these two scopes is proven empty.
+- After the owner added `SUPABASE_SERVICE_ROLE_KEY`, diagnostic run [#38756301379](https://github.com/core-system-md/clinic-evaluator/actions/runs/38756301379) established:
+  - Repository-scope job: **SUCCESS**. Both `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` were injected, the read-only Supabase API request authenticated, the release settings singleton was read as `enabled=false`, and the exact five-family inventory matched.
+  - Protected `production-e2e` job: **FAILURE only at `C03_OWNER_JWT` injection**. `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` were injected; `C03_OWNER_JWT` was empty. The job stopped before any API request.
+  - Earlier diagnostic [#38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434) also observed `C03_OWNER_JWT` empty in both scopes. The latest test now checks this credential only in the protected environment, as intended.
+  - The previously observed empty service-role runtime value is no longer reproduced. The directly observed remaining blocker is owner-JWT injection into `production-e2e`; this does not prove the secret is absent from all GitHub settings.
 - The read-only diagnostic workflow is [.github/workflows/c03-credential-preflight.yml](https://github.com/core-system-md/clinic-evaluator/blob/main/.github/workflows/c03-credential-preflight.yml). The production workflow's actual display name is **C-03 guarded Production release and bounded E2E**, path [.github/workflows/c03-production-release.yml](https://github.com/core-system-md/clinic-evaluator/blob/main/.github/workflows/c03-production-release.yml). Do not refer to it by an invented UI name.
 
 ## Engineering-contract reconciliation and deviations
@@ -25,8 +27,8 @@ The current diagnostic gives a concrete cause for the next stop: the release orc
 ## Exact next action / stop boundary
 
 1. Keep Production release blocked; do not deploy Edge functions, register/activate releases, enable the gate, or run live E2E.
-2. The required credential must be made available as a protected GitHub Actions secret to the `production-e2e` job. Never paste it into chat or logs.
-3. After secure injection is configured, run the read-only credential preflight and inspect its logs. Only when all three required credentials are injected may the guarded release workflow be considered for a separately authorized run.
+2. The only credential failure proven by the latest run is `C03_OWNER_JWT` empty in the `production-e2e` environment job. The setting/scope causing this is not visible through the available connector. The real owner-authenticated JWT must be made available as a protected secret in that environment; never paste it into chat or logs.
+3. After secure injection is configured, run the read-only credential preflight and inspect its logs. The repository-scope job already passes; the protected environment job must pass all three checks and its read-only state query before the guarded release workflow is considered for a separately authorized run.
 4. The release path must still attest both deployed Edge bundles against the exact current `main` SHA before any release writes. Current live state does not satisfy that gate because `assessment-config-release` is not deployed.
 5. Update this handoff and the C-03 preflight document with the new run evidence before changing status. C-03 is not closed until the five releases are verified/activated, the gate read-back succeeds, live E2E passes, and exact-ID cleanup is verified.
 
