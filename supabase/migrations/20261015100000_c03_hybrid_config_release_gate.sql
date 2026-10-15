@@ -452,8 +452,12 @@ begin
      where r.assessment_type_id = v.id
        and r.family_id = v.family_id
        and r.assessment_version = v.version
+       and r.release_state in ('VERIFIED', 'PUBLISHED')
+       and r.assessment_config_digest ~ '^[0-9a-f]{64}$'
+       and r.config_manifest = public.assessment_config_manifest_secure(v.id)
        and r.runtime_verified_at is not null
        and r.runtime_verified_digest = r.registry_digest
+       and r.runtime_verified_config_digest = r.assessment_config_digest
        and r.runtime_verified_edge_release_ref = r.edge_release_ref
        and r.runtime_verified_source_commit_sha = r.source_commit_sha
        and jsonb_array_length(r.option_manifest) = (
@@ -480,10 +484,14 @@ begin
 
   select exists (select 1 from public.assessment_interpretation_releases r
     where r.assessment_type_id = v.id and r.family_id = v.family_id
-      and r.assessment_version = v.version and r.runtime_verified_at is not null
+      and r.assessment_version = v.version
+      and r.release_state in ('VERIFIED', 'PUBLISHED')
+      and r.config_manifest = public.assessment_config_manifest_secure(v.id)
+      and r.runtime_verified_at is not null
       and r.runtime_verified_digest = r.registry_digest
+      and r.runtime_verified_config_digest = r.assessment_config_digest
       and r.runtime_verified_edge_release_ref = r.edge_release_ref
-       and r.runtime_verified_source_commit_sha = r.source_commit_sha
+      and r.runtime_verified_source_commit_sha = r.source_commit_sha
   ) into v_release_runtime_verified;
 
   v_checks := jsonb_build_object(
@@ -496,7 +504,16 @@ begin
     'weights_total', v_weight,
     'has_axes', v_a > 0,
     'interpretation_release_registered', v_release_valid,
-    'interpretation_runtime_attested', v_release_runtime_verified
+    'interpretation_runtime_attested', v_release_runtime_verified,
+    'configuration_manifest_matches', exists (
+      select 1 from public.assessment_interpretation_releases r
+      where r.assessment_type_id = v.id
+        and r.config_manifest = public.assessment_config_manifest_secure(v.id)
+    ),
+    'configuration_release_state', (
+      select r.release_state from public.assessment_interpretation_releases r
+      where r.assessment_type_id = v.id
+    )
   );
 
   return jsonb_build_object(
@@ -508,6 +525,96 @@ begin
   );
 end;
 $$;
+
+-- Keep release lifecycle state in lockstep with the authoritative publication transition.
+create or replace function public.mark_assessment_configuration_release_published()
+returns trigger
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+begin
+  if new.status = 'published' and old.status is distinct from 'published' then
+    update public.assessment_interpretation_releases
+       set release_state = 'PUBLISHED',
+           published_at = coalesce(published_at, now()),
+           degraded_reason = null
+     where assessment_type_id = new.id
+       and release_state = 'VERIFIED'
+       and runtime_verified_config_digest = assessment_config_digest
+       and config_manifest = public.assessment_config_manifest_secure(new.id);
+    if not found then
+      raise exception 'Publication requires a verified, drift-free C-03 configuration release'
+        using errcode = '55000';
+    end if;
+  end if;
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_mark_assessment_configuration_release_published on public.assessment_types;
+create trigger trg_mark_assessment_configuration_release_published
+after update of status on public.assessment_types
+for each row execute function public.mark_assessment_configuration_release_published();
+
+create or replace function public.reject_assessment_interpretation_release_secure(
+  p_assessment_type_id uuid,
+  p_reason text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $$
+declare
+  v_release public.assessment_interpretation_releases%rowtype;
+begin
+  if not public.is_owner() then
+    raise exception 'Owner authorization required to reject a configuration release'
+      using errcode = '42501';
+  end if;
+  select * into v_release
+    from public.assessment_interpretation_releases
+   where assessment_type_id = p_assessment_type_id
+   for update;
+  if not found then
+    raise exception 'Configuration release not found' using errcode = 'P0002';
+  end if;
+  if v_release.release_state = 'PUBLISHED' then
+    raise exception 'Published releases are immutable; create a new assessment version'
+      using errcode = '55000';
+  end if;
+  if nullif(btrim(coalesce(p_reason, '')), '') is null then
+    raise exception 'A rejection reason is required' using errcode = '22023';
+  end if;
+
+  update public.assessment_interpretation_releases
+     set release_state = 'REJECTED',
+         degraded_reason = left(btrim(p_reason), 1000),
+         runtime_verified_at = null,
+         runtime_verified_digest = null,
+         runtime_verified_config_digest = null,
+         runtime_verified_edge_release_ref = null,
+         runtime_verified_source_commit_sha = null
+   where assessment_type_id = p_assessment_type_id;
+
+  perform public.write_admin_audit(
+    'assessment.configuration_release.reject',
+    'assessment_interpretation_releases',
+    v_release.id,
+    v_release.family_id,
+    null,
+    jsonb_build_object('assessment_type_id', p_assessment_type_id, 'reason', left(btrim(p_reason), 1000)),
+    true,
+    null
+  );
+
+  return jsonb_build_object('success', true, 'release_state', 'REJECTED', 'assessment_type_id', p_assessment_type_id);
+end;
+$$;
+
+revoke all on function public.reject_assessment_interpretation_release_secure(uuid, text) from public, anon;
+grant execute on function public.reject_assessment_interpretation_release_secure(uuid, text) to authenticated;
 
 -- publish_assessment_version_secure and restore_public_assessment_secure already
 -- call validate_assessment_version_secure; this makes the release gate apply to
