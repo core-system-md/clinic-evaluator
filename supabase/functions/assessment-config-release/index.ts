@@ -14,7 +14,7 @@ const serviceClient = createClient(supabaseUrl, serviceRoleKey, {
 const RELEASE_CONFIRMATION = "ENABLE-C03-PRODUCTION";
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-c03-github-oidc",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
   "Content-Type": "application/json",
 };
