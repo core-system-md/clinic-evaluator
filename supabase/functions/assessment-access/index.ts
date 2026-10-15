@@ -2,6 +2,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 import { ensureAssessmentSlug, projectCompletionResponse } from "./report-interpretation.mjs";
+import { C03_RUNTIME_ATTESTATION } from "../assessment-config-release/runtime-attestation.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -447,6 +448,11 @@ export function createAssessmentAccessHandler(
     const body = await req.json();
     const action = body?.action;
     const data = body?.data || {};
+
+    // Public, read-only identity of this deployed Edge bundle; contains no secrets.
+    if (action === "c03_runtime_attestation") {
+      return json({ success: true, data: { runtimeMetadata: C03_RUNTIME_ATTESTATION } });
+    }
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
 
     if (action === "get_content") {
