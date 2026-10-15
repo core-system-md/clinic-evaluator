@@ -8,6 +8,8 @@ on:
       - "supabase/migrations/20261015130000_c03_full_configuration_release_digest.sql"
       - "tests/c03-full-config-release-digest-harness.sql"
       - ".github/scripts/c03-generate-release-payload.cjs"
+      - ".github/scripts/c03-export-assessment-release-snapshot.sql"
+      - "documentation/architecture/C-03-RELEASE-OPERATIONS-RUNBOOK-2026-10-15.md"
       - "tests/c03-release-payload-generator.test.js"
       - "tests/fixtures/c03-release-*.json"
       - "supabase/functions/assessment-access/interpretation-release-provenance.mjs"
