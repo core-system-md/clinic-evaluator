@@ -1,3 +1,38 @@
+# CURRENT C-03 RELEASE HANDOFF — 2026-10-15 (latest checkpoint)
+
+**Repository:** `core-system-md/clinic-evaluator`  
+**Production Supabase project:** `oaqpzaarppccbnepffxx`  
+**Implementation PR:** [#107](https://github.com/core-system-md/clinic-evaluator/pull/107)  
+**Protected handler PR:** [#106](https://github.com/core-system-md/clinic-evaluator/pull/106)  
+**Documentation checkpoint PR:** [#112](https://github.com/core-system-md/clinic-evaluator/pull/112)
+
+## Exact engineering state
+
+- PR #107 head: `d42be73122fde63dd3b97854f0769d79bc1a1e20`, open/Draft/not merged.
+- PR #106 head: `48194a7611b6040271ad874b7ff08aa565d2106b`, open/Draft/not merged.
+- PR #112 is documentation-only and remains open/Draft.
+- PR #96 remains open/unmerged; PR #105 remains closed/unmerged. Do not merge either.
+- PR #107 CI run [#38731852239](https://github.com/core-system-md/clinic-evaluator/actions/runs/38731852239) passed the isolated PostgreSQL release state machine, digest/attestation tests, and owner-authenticated verifier handler. P3 kernel and WP-02/WP-03/WP-04/WP-05/WP-09 passed for the same head.
+- The PostgreSQL harness now extracts `is_owner`, `has_admin_capability`, and `require_admin_capability` directly from `supabase/migrations/20261003170912_p5_admin_architecture.sql`; source SHA-256 observed in CI: `000bab15cbc643483166fff0e400ad76ae70531feeebfda526560478e811366f`. It uses the real lifecycle publish/restore/stop SQL routines, while validation/audit support functions remain explicit isolated-test fixtures.
+- Runtime identity is now build-attested, not environment-overridden. `.github/scripts/c03-release-attestation.mjs prepare` requires the checked-out full commit SHA, pins fixture/migration contract versions from `release-contract.json`, and computes `edgeReleaseRef=sha256:<source-manifest-digest>` over the sorted Edge source tree. Both `assessment-access` and `assessment-config-release` import the same generated module. The script's read-only `verify` mode checks both deployed runtime endpoints against the expected attestation.
+- The checked-in attestation module is deliberately blank/fail-closed. Do not deploy it without running the prepare step against the exact intended commit.
+
+## Production read-only preflight (2026-10-15)
+
+- Project status: `ACTIVE_HEALTHY`.
+- Latest applied migration: `20261013110000` (`c02_allow_answer_value_70`); C-03 migration `20261015100000` is not applied.
+- `assessment_config_releases` and `assessment_config_release_settings` do not exist yet.
+- `assessment-access` is ACTIVE v38, deployed hash `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`.
+- `assessment-config-release` is not deployed.
+- Five current published versions were found; IDs are recorded in `documentation/governance/C-03-PRODUCTION-RELEASE-PREFLIGHT-2026-10-15.md`.
+- No Production migration, database write, Edge deployment, release registration/activation, or live E2E was performed in this work package.
+
+## Next exact gate
+
+Do not enable C-03 yet. First integrate the reviewed implementation on `main`, apply only the reviewed C-03 migration, prepare and deploy both Edge functions from the exact same main commit, and run the read-only deployed-attestation verifier. Then register, verify, and activate each of the five current published version IDs; enable the gate only if all five attestations match and the migration/Edge/runtime preflights pass. The current tool connection does not expose a way to invoke the live Edge HTTP endpoints with an authenticated owner JWT, so the owner-authenticated registration/verification sequence must run through the checked-in verification script in an authorized release runner. Do not bypass it with privileged SQL or mark C-03 closed without its evidence.
+
+---
+
 # نقطة الاستئناف الحالية (آخر تحديث: 2026-10-14، المحادثة الحالية)
 
 ## 1. الموضع
