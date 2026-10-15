@@ -27,6 +27,7 @@ function requiredClaim(payload: JWTPayload, key: string): string {
 
 /** Validate the signed GitHub workload token and bind it to the one guarded C-03 release workflow. */
 export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubReleaseIdentity {
+  const subject = requiredClaim(payload, "sub");
   const repository = requiredClaim(payload, "repository");
   const repositoryOwner = requiredClaim(payload, "repository_owner");
   const ref = requiredClaim(payload, "ref");
@@ -37,6 +38,9 @@ export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubRe
   const runId = requiredClaim(payload, "run_id");
   const runAttempt = requiredClaim(payload, "run_attempt");
 
+  if (subject !== "repo:core-system-md/clinic-evaluator:environment:production-e2e") {
+    throw new Error("GitHub OIDC subject is not bound to the protected C-03 environment.");
+  }
   if (repository !== EXPECTED_REPOSITORY || repositoryOwner !== "core-system-md") {
     throw new Error("GitHub OIDC repository identity is not authorized for C-03 release.");
   }
