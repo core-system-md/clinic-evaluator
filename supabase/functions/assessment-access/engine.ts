@@ -18,7 +18,7 @@ import registryV2 from "./response-interpretation-registry-v2.json" with { type:
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
-import { buildAssessmentConfigProjection, canonicalizeAssessmentConfig, sha256Hex } from "./assessment-config-digest.mjs";
+import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, sha256Hex } from "./assessment-config-digest.mjs";
 
 type AssessmentRow = {
   id: string;
@@ -413,10 +413,18 @@ export async function calculateAssessment(
 
   if (releaseSettings?.enabled === true) {
     if (!session.assessment_release_id) {
-      throw Object.assign(
-        new Error("Assessment release identity is missing from this session."),
-        { status: 409 },
-      );
+      assertPinnedAssessmentRelease({
+        session,
+        release: null,
+        runtime,
+        assessmentVersion,
+        assessmentConfigDigest,
+        runtimeRegistryDigest: "",
+        interpretationVersion: interpretationBinding.interpretationVersion,
+        engineIdentity: ENGINE_IDENTITY,
+        scoringContractVersion: SCORING_CONTRACT_ID,
+        runtimeMetadata: { gitCommitSha: "", edgeReleaseRef: "", fixtureSetVersion: "", migrationContractVersion: "" },
+      });
     }
 
     const { data: release, error: releaseError } = await client
@@ -425,39 +433,25 @@ export async function calculateAssessment(
       .eq("id", session.assessment_release_id)
       .maybeSingle();
     if (releaseError) throw releaseError;
-    if (!release) {
-      throw Object.assign(new Error("Pinned assessment release is unavailable."), { status: 409 });
-    }
 
     const runtimeRegistryDigest = await sha256Hex(canonicalizeAssessmentConfig(versionedConfig.interpretation));
-    const runtimeGitCommitSha = Deno.env.get("C03_GIT_COMMIT_SHA") || "";
-    const runtimeEdgeReleaseRef = Deno.env.get("C03_EDGE_RELEASE_REF") || "";
-    const runtimeFixtureSetVersion = Deno.env.get("C03_FIXTURE_SET_VERSION") || "";
-    const runtimeMigrationContractVersion = Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "";
-    const releaseMismatch =
-      !["PUBLISHED", "VERIFIED"].includes(String(release.state)) ||
-      release.family_id !== runtime.family.id ||
-      release.assessment_type_id !== runtime.assessment.id ||
-      Number(release.assessment_version) !== assessmentVersion ||
-      release.config_digest !== assessmentConfigDigest ||
-      release.verified_config_digest !== assessmentConfigDigest ||
-      release.interpretation_version !== interpretationBinding.interpretationVersion ||
-      release.interpretation_registry_digest !== runtimeRegistryDigest ||
-      release.verified_registry_digest !== runtimeRegistryDigest ||
-      release.git_commit_sha !== runtimeGitCommitSha ||
-      release.edge_release_ref !== runtimeEdgeReleaseRef ||
-      release.fixture_set_version !== runtimeFixtureSetVersion ||
-      release.migration_contract_version !== runtimeMigrationContractVersion ||
-      release.scoring_engine_version !== ENGINE_IDENTITY ||
-      release.scoring_contract_version !== SCORING_CONTRACT_ID ||
-      release.report_model_version !== "REPORT_MODEL_V1";
-
-    if (releaseMismatch) {
-      throw Object.assign(
-        new Error("Pinned assessment release does not match the verified runtime configuration."),
-        { status: 409 },
-      );
-    }
+    assertPinnedAssessmentRelease({
+      session,
+      release,
+      runtime,
+      assessmentVersion,
+      assessmentConfigDigest,
+      runtimeRegistryDigest,
+      interpretationVersion: interpretationBinding.interpretationVersion,
+      engineIdentity: ENGINE_IDENTITY,
+      scoringContractVersion: SCORING_CONTRACT_ID,
+      runtimeMetadata: {
+        gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
+        edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
+        fixtureSetVersion: Deno.env.get("C03_FIXTURE_SET_VERSION") || "",
+        migrationContractVersion: Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "",
+      },
+    });
   }
 
   const resultId = crypto.randomUUID();
