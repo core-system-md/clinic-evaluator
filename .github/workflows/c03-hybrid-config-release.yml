@@ -7,6 +7,7 @@ on:
       - ".github/workflows/c03-hybrid-config-release.yml"
       - "supabase/migrations/20261015110000_c03_hybrid_configuration_release_gate.sql"
       - "tests/c03-hybrid-config-release-harness.sql"
+      - "tests/c03-protected-completion-edge.test.ts"
       - "supabase/functions/assessment-access/index.ts"
   workflow_dispatch:
 
@@ -34,6 +35,17 @@ jobs:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
+
+  protected-edge-handler:
+    name: Protected completion Edge handler integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno test --allow-env --allow-net tests/c03-protected-completion-edge.test.ts
 
   node-regression:
     name: C-03 and existing Node regression suites
