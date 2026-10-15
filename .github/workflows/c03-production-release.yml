@@ -72,7 +72,7 @@ jobs:
           SUPABASE_URL: https://example.supabase.co
           SUPABASE_ANON_KEY: test-only-anon-key
           SUPABASE_SERVICE_ROLE_KEY: test-only-service-role-key
-        run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
+        run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-github-oidc-claims.test.ts tests/c03-protected-edge-completion.test.ts tests/c03-edge-handler-regression.test.ts
       - name: Install PostgreSQL client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
       - name: Load canonical admin authorization functions
