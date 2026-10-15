@@ -14,6 +14,7 @@ on:
       - "supabase/functions/assessment-access/**"
       - "supabase/functions/assessment-config-release/**"
       - ".github/scripts/c03-*.mjs"
+      - ".github/scripts/c03-*.ts"
       - "tests/c03-config-digest-coverage.test.js"
       - "tests/c03-release-verifier-contract.test.js"
       - "tests/c03-release-verifier-handler.test.ts"
