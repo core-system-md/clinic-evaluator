@@ -342,7 +342,7 @@ begin
       failure_code = 'CONFIG_DRIFT_BEFORE_PUBLISH',
       failure_detail = 'Configuration changed after verification'
     where id = v_release.id;
-    raise exception using errcode = '40906', message = 'Assessment configuration drift detected before publication';
+    return jsonb_build_object('release_id', v_release.id, 'state', 'REJECTED', 'failure_code', 'CONFIG_DRIFT_BEFORE_PUBLISH');
   end if;
 
   if v_assessment.status <> 'published' then
@@ -449,7 +449,7 @@ begin
       degraded_at = now(), failure_code = 'POST_PUBLISH_CONFIG_DRIFT',
       failure_detail = 'Live assessment configuration differs from the verified release'
     where id = v_release.id;
-    raise exception using errcode = '40906', message = 'Published assessment configuration drift detected';
+    return jsonb_build_object('release_id', v_release.id, 'state', 'DEGRADED', 'failure_code', 'POST_PUBLISH_CONFIG_DRIFT', 'expected_digest', v_release.config_digest, 'actual_digest', v_digest);
   end if;
 
   return jsonb_build_object(
@@ -496,7 +496,7 @@ begin
       degraded_at = now(), failure_code = 'PINNED_CONFIG_DRIFT',
       failure_detail = 'Pinned assessment configuration differs from the verified release'
     where id = v_release.id;
-    raise exception using errcode = '40906', message = 'Pinned assessment configuration drift detected';
+    return jsonb_build_object('release_id', v_release.id, 'state', 'DEGRADED', 'failure_code', 'PINNED_CONFIG_DRIFT', 'expected_digest', v_release.config_digest, 'actual_digest', v_digest);
   end if;
   return jsonb_build_object('release_id', v_release.id, 'config_digest', v_digest, 'state', v_release.state);
 end;
@@ -764,3 +764,83 @@ revoke all on function public.c03_validate_result_release_pin() from public, ano
 grant execute on function public.start_assessment_session(text,uuid,uuid,uuid) to service_role;
 grant execute on function public.start_public_assessment_session(text,uuid,uuid,text) to service_role;
 grant execute on function public.start_public_assessment_session(text,uuid,uuid) to service_role;
+
+
+-- Persist the degraded state in the same transaction as any configuration mutation.
+create or replace function public.c03_mark_published_release_degraded()
+returns trigger
+language plpgsql
+security definer
+set search_path to ''
+as $function$
+declare
+  v_assessment_type_id uuid;
+  v_old_projection jsonb;
+  v_new_projection jsonb;
+begin
+  if tg_table_name = 'assessment_types' then
+    v_assessment_type_id := coalesce(new.id, old.id);
+    if tg_op = 'UPDATE' then
+      v_old_projection := to_jsonb(old) - array['status','is_active','published_at','archived_at','created_at','updated_at'];
+      v_new_projection := to_jsonb(new) - array['status','is_active','published_at','archived_at','created_at','updated_at'];
+      if v_old_projection is not distinct from v_new_projection then return new; end if;
+    end if;
+  elsif tg_table_name in ('axes','questions','traps') then
+    v_assessment_type_id := case when tg_op = 'DELETE' then old.assessment_type_id else new.assessment_type_id end;
+    if tg_op = 'UPDATE' then
+      v_old_projection := to_jsonb(old) - array['created_at','updated_at'];
+      v_new_projection := to_jsonb(new) - array['created_at','updated_at'];
+      if v_old_projection is not distinct from v_new_projection then return new; end if;
+    end if;
+  elsif tg_table_name = 'options' then
+    select q.assessment_type_id into v_assessment_type_id
+    from public.questions q
+    where q.id = case when tg_op = 'DELETE' then old.question_id else new.question_id end;
+    if tg_op = 'UPDATE' then
+      v_old_projection := to_jsonb(old) - array['created_at'];
+      v_new_projection := to_jsonb(new) - array['created_at'];
+      if v_old_projection is not distinct from v_new_projection then return new; end if;
+    end if;
+  end if;
+
+  if v_assessment_type_id is not null then
+    update public.assessment_configuration_releases
+      set state = 'DEGRADED',
+          degraded_at = coalesce(degraded_at, now()),
+          failure_code = 'POST_PUBLISH_CONFIG_MUTATION',
+          failure_detail = 'A configuration row covered by the release digest was inserted, updated, or deleted'
+    where assessment_type_id = v_assessment_type_id
+      and state = 'PUBLISHED';
+  end if;
+  return case when tg_op = 'DELETE' then old else new end;
+end;
+$function$;
+
+drop trigger if exists c03_degrade_release_assessment_types on public.assessment_types;
+create trigger c03_degrade_release_assessment_types
+after update of slug, title_ar, title_en, description, question_count, axis_count, has_traps,
+  has_ev_simulator, config_version, version, parent_id, axis_roles, kpi_mappings, ev_mappings
+on public.assessment_types
+for each row execute function public.c03_mark_published_release_degraded();
+
+drop trigger if exists c03_degrade_release_axes on public.axes;
+create trigger c03_degrade_release_axes
+after insert or update or delete on public.axes
+for each row execute function public.c03_mark_published_release_degraded();
+
+drop trigger if exists c03_degrade_release_questions on public.questions;
+create trigger c03_degrade_release_questions
+after insert or update or delete on public.questions
+for each row execute function public.c03_mark_published_release_degraded();
+
+drop trigger if exists c03_degrade_release_options on public.options;
+create trigger c03_degrade_release_options
+after insert or update or delete on public.options
+for each row execute function public.c03_mark_published_release_degraded();
+
+drop trigger if exists c03_degrade_release_traps on public.traps;
+create trigger c03_degrade_release_traps
+after insert or update or delete on public.traps
+for each row execute function public.c03_mark_published_release_degraded();
+
+revoke all on function public.c03_mark_published_release_degraded() from public, anon, authenticated;
