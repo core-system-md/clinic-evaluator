@@ -453,6 +453,7 @@ begin
   end if;
 
   return jsonb_build_object(
+    'state', v_release.state,
     'release_id', v_release.id, 'assessment_family_id', v_release.assessment_family_id,
     'assessment_type_id', v_release.assessment_type_id, 'git_commit_sha', v_release.git_commit_sha,
     'config_digest', v_release.config_digest, 'interpretation_version', v_release.interpretation_version,
