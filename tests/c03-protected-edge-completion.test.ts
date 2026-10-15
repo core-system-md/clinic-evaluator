@@ -226,8 +226,11 @@ Deno.test("persisted result resolves missing family identity through assessment_
   if (response.status !== 200) {
     throw new Error("Expected 200 after resolving assessment type family; got " + response.status + ": " + JSON.stringify(body));
   }
-  if (body?.data?.userReport?.assessment?.familyId !== familyId) {
-    throw new Error("Resolved assessment type family identity was not projected into the report.");
+  if (body?.data?.userReport?.assessment?.purpose !== "أداء العيادة في التحويل والتواصل والاستبقاء") {
+    throw new Error("Resolved assessment type family slug did not select the approved report model.");
+  }
+  if (body?.data?.userReport?.assessment?.familyId !== null) {
+    throw new Error("Missing persisted family identity should remain explicitly null in the report; resolution supplies the report model, not invented stored identity.");
   }
   if (persistedResult.identity.assessmentFamilyId !== familyId) {
     throw new Error("Persisted fixture was mutated during family identity recovery.");
