@@ -105,8 +105,13 @@ export async function executeC03ProductionRelease({
       assessment_type_id: family.current_published_version_id,
     });
     const releaseId = String(result?.data?.release_id || "").trim();
-    if (result?.success !== true || !releaseId) {
-      throw new Error("Release registration did not return a release ID for " + family.slug + ": " + JSON.stringify(result));
+    if (
+      result?.success !== true ||
+      !releaseId ||
+      result?.data?.assessment_type_id !== family.current_published_version_id ||
+      !["PREPARED", "VERIFIED"].includes(String(result?.data?.state || ""))
+    ) {
+      throw new Error("Release registration returned an unexpected identity/state for " + family.slug + ": " + JSON.stringify(result));
     }
     registered.push({ ...family, releaseId });
   }
