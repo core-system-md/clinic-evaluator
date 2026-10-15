@@ -63,6 +63,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs tests/c03-github-oidc-token.test.mjs
+      - name: Generate exact Edge source manifest attestation (read-only CI evidence)
+        run: node .github/scripts/c03-release-attestation.mjs prepare --output "$RUNNER_TEMP/c03-runtime-attestation.ts"
 
 
   release-verifier-handler:
