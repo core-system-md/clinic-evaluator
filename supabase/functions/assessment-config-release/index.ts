@@ -100,6 +100,9 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
       if (Object.values(runtimeMetadata).some((value) => typeof value !== "string" || !value.trim())) {
         return json({ error: "C-03 runtime release metadata is not configured" }, 503);
       }
+      if (ciIdentity && ciIdentity.sha !== runtimeMetadata.gitCommitSha) {
+        return json({ error: "GitHub OIDC commit SHA does not match this deployed C-03 Edge bundle" }, 409);
+      }
 
       if (action === "export" || action === "ci_export") {
         if (!assessmentTypeId) return json({ error: "assessment_type_id is required" }, 400);
