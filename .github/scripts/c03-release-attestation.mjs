@@ -6,7 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const REPO_ROOT = path.resolve(path.dirname(SCRIPT_PATH), "../..");
-const ATTESTATION_RELATIVE_PATH = "supabase/functions/assessment-config-release/runtime-attestation.ts";
+const ATTESTATION_RELATIVE_PATH = "supabase/functions/_shared/c03-runtime-attestation.ts";
 const CONTRACT_RELATIVE_PATH = "supabase/functions/assessment-config-release/release-contract.json";
 const SOURCE_ROOTS = [
   "supabase/functions/assessment-access",
