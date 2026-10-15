@@ -140,7 +140,7 @@ function runtimeFixture(assessmentTypeId: string, slug: string) {
   };
 }
 
-function setup(assessmentUserId: string | null) {
+function setup(assessmentUserId: string | null, slug = "patient-journey") {
   const token = "c03-isolated-test-token";
   const session = {
     id: "session-1111",
@@ -150,7 +150,7 @@ function setup(assessmentUserId: string | null) {
     assessment_version: 1,
     status: "in_progress",
   };
-  const runtime = runtimeFixture(session.assessment_type_id);
+  const runtime = runtimeFixture(session.assessment_type_id, slug);
   const calls: Array<{ name: string; payload: Record<string, unknown> }> = [];
   const tables: Record<string, Row[]> = {
     assessment_session_access: [{
@@ -209,8 +209,8 @@ function setup(assessmentUserId: string | null) {
   };
 }
 
-async function runComplete(assessmentUserId: string | null) {
-  const fixture = setup(assessmentUserId);
+async function runComplete(assessmentUserId: string | null, slug = "patient-journey") {
+  const fixture = setup(assessmentUserId, slug);
   await fixture.ready();
   const handler = createAssessmentAccessHandler({ supabaseClient: fixture.client });
   const response = await handler(new Request("https://local.test/functions/v1/assessment-access", {
@@ -221,29 +221,33 @@ async function runComplete(assessmentUserId: string | null) {
   return { ...fixture, response, body: await response.json() };
 }
 
-Deno.test("C-03 actual Edge handler routes protected completion through protected RPC", async () => {
-  const userId = "22222222-2222-4222-8222-222222222222";
-  const { response, body, calls, session } = await runComplete(userId);
-  assertEqual(response.status, 200);
-  assertEqual(body.success, true);
-  assertEqual(calls[0].name, "prepare_assessment_submission");
-  const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
-  assertOk(completion);
-  assertEqual(completion.name, "complete_p4_assessment_from_result");
-  assertEqual(completion.payload.p_assessment_user_id, userId);
-  assertEqual(completion.payload.p_session_id, session.id);
-  assertEqual(completion.payload.p_submission_fingerprint, "b".repeat(64));
-  assertEqual("resolvedSelections" in (completion.payload.p_result as Row), false);
-  assertEqual("axisPersistenceRows" in (completion.payload.p_result as Row), false);
-  assertEqual(body.data.session_id, session.id);
-});
+for (const slug of Object.keys(FAMILY_AXES)) {
+  Deno.test(`C-03 real engine + protected completion route: ${slug}`, async () => {
+    const userId = "22222222-2222-4222-8222-222222222222";
+    const { response, body, calls, session } = await runComplete(userId, slug);
+    assertEqual(response.status, 200, slug);
+    assertEqual(body.success, true, slug);
+    assertEqual(calls[0].name, "prepare_assessment_submission");
+    const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
+    assertOk(completion);
+    assertEqual(completion.name, "complete_p4_assessment_from_result");
+    assertEqual(completion.payload.p_assessment_user_id, userId);
+    assertEqual(completion.payload.p_session_id, session.id);
+    assertEqual(completion.payload.p_submission_fingerprint, "b".repeat(64));
+    assertEqual("resolvedSelections" in (completion.payload.p_result as Row), false);
+    assertEqual("axisPersistenceRows" in (completion.payload.p_result as Row), false);
+    assertEqual(body.data.session_id, session.id);
+    assertEqual(body.data.provenance.assessmentSlug, slug);
+    assertOk(/^[0-9a-f]{64}$/.test((completion.payload.p_result as Row).provenance.assessmentConfigDigest as string));
+  });
 
-Deno.test("C-03 actual Edge handler routes public completion only through public RPC", async () => {
-  const { response, body, calls } = await runComplete(null);
-  assertEqual(response.status, 200);
-  assertEqual(body.success, true);
-  const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
-  assertOk(completion);
-  assertEqual(completion.name, "complete_p4_public_assessment_from_result");
-  assertEqual("p_assessment_user_id" in completion.payload, false);
-});
+  Deno.test(`C-03 real engine + public completion route: ${slug}`, async () => {
+    const { response, body, calls } = await runComplete(null, slug);
+    assertEqual(response.status, 200, slug);
+    assertEqual(body.success, true, slug);
+    const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
+    assertOk(completion);
+    assertEqual(completion.name, "complete_p4_public_assessment_from_result");
+    assertEqual("p_assessment_user_id" in completion.payload, false);
+  });
+}
