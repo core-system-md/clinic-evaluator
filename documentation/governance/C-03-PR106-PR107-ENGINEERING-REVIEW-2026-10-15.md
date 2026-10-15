@@ -136,3 +136,18 @@ The historical Production HTTP 500 has not been replayed against a Production se
 - No PRs remain open. Continue by verifying the actual secret name/scope and restoring non-empty injection; keep preflight fail-closed and do not expose credentials in chat.
 
 **Status: ISOLATED TEST GATES PASS / RUNNER SECRET VALUE EMPTY / ROOT CAUSE UNVERIFIED / C-03 NOT CLOSED.**
+
+
+## Post-merge and release-credential reconciliation — 2026-10-15
+
+**This addendum supersedes the PR-state and pre-migration Production snapshots earlier in this historical review.** It does not erase those historical observations.
+
+- Canonical implementation PR #109 is merged. PRs #96, #101–#104, #106–#108, #110–#112 are closed without merge; #105 was already closed. No open PRs remained in the latest inventory.
+- Live Supabase read-only verification confirms migration `20261015100000_c03_hybrid_config_release_gate` is applied; release settings singleton exists and is disabled; release rows = 0; active release pointers = 0; five current published families remain.
+- Live Edge inventory: `assessment-access` ACTIVE v38, SHA-256 `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`; `assessment-config-release` is not deployed.
+- Production release attempts [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) and [#38746879746](https://github.com/core-system-md/clinic-evaluator/actions/runs/38746879746) stopped at credential preflight. The latter was not a successful release. Manual dispatches [#38753349634](https://github.com/core-system-md/clinic-evaluator/actions/runs/38753349634) and [#38753844500](https://github.com/core-system-md/clinic-evaluator/actions/runs/38753844500) were skipped because the guarded job condition did not match; they provide no release evidence.
+- Corrected read-only diagnostic [#38756301379](https://github.com/core-system-md/clinic-evaluator/actions/runs/38756301379): repository-scope credential/API/state check passed. The protected `production-e2e` job stopped because `C03_OWNER_JWT` was empty. `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` were injected; no Production mutation occurred.
+- The required JWT is used for owner-authenticated Edge attestation and release actions. Do not substitute service-role authorization, impersonate the owner, or bypass the Edge API with privileged SQL. The precise GitHub setting responsible for the empty environment value is not visible through the available connector.
+- The earlier workflow-name mismatch and repeated environment-only patches violated the truth-first / root-cause / no-guess / anti-spiral rules in `AI-ENGINEERING-OPERATING-CONTRACT.md`. The corrected evidence and process deviation are recorded in the canonical session handoff and C-03 preflight.
+
+**Current status: CODE MERGED / ISOLATED CI PASS / MIGRATION APPLIED / REPOSITORY READ-ONLY PREFLIGHT PASS / PROTECTED OWNER-JWT INJECTION BLOCKED / EDGE RELEASE NOT DEPLOYED / GATE DISABLED / C-03 NOT CLOSED.**
