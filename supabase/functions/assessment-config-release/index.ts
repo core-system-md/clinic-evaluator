@@ -20,15 +20,15 @@ function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
 }
 
-async function requireOwner(req: Request) {
+async function requireOwner(
+  req: Request,
+  createUserClient: (token: string) => any,
+) {
   const authorization = req.headers.get("authorization") || "";
   const match = authorization.match(/^Bearer\s+(.+)$/i);
-  if (!match || !anonKey) return { error: "Owner authentication required", status: 401 as const };
+  if (!match) return { error: "Owner authentication required", status: 401 as const };
 
-  const userClient = createClient(supabaseUrl, anonKey, {
-    auth: { persistSession: false },
-    global: { headers: { Authorization: "Bearer " + match[1] } },
-  });
+  const userClient = createUserClient(match[1]);
   const { data: userData, error: userError } = await userClient.auth.getUser(match[1]);
   if (userError || !userData?.user) {
     return { error: "Invalid authentication token", status: 401 as const };
@@ -41,12 +41,36 @@ async function requireOwner(req: Request) {
   return { user: userData.user };
 }
 
-Deno.serve(async (req) => {
+export function createAssessmentConfigReleaseHandler(dependencies: {
+  serviceClient?: any;
+  createUserClient?: (token: string) => any;
+  computeEvidenceFn?: typeof computeAssessmentConfigReleaseEvidence;
+  getRuntimeMetadata?: () => {
+    gitCommitSha: string;
+    edgeReleaseRef: string;
+    fixtureSetVersion: string;
+    migrationContractVersion: string;
+  };
+} = {}) {
+  const dbClient = dependencies.serviceClient || serviceClient;
+  const createUserClient = dependencies.createUserClient || ((token: string) => createClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false },
+    global: { headers: { Authorization: "Bearer " + token } },
+  }));
+  const computeEvidenceFn = dependencies.computeEvidenceFn || computeAssessmentConfigReleaseEvidence;
+  const getRuntimeMetadata = dependencies.getRuntimeMetadata || (() => ({
+    gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
+    edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
+    fixtureSetVersion: Deno.env.get("C03_FIXTURE_SET_VERSION") || "",
+    migrationContractVersion: Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "",
+  }));
+
+  return async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
   try {
-    const authorization = await requireOwner(req);
+    const authorization = await requireOwner(req, createUserClient);
     if ("error" in authorization) return json({ error: authorization.error }, authorization.status);
 
     const body = await req.json();
@@ -55,7 +79,7 @@ Deno.serve(async (req) => {
 
     if (action === "export") {
       if (!assessmentTypeId) return json({ error: "assessment_type_id is required" }, 400);
-      const evidence = await computeAssessmentConfigReleaseEvidence(serviceClient, assessmentTypeId);
+      const evidence = await computeEvidenceFn(dbClient, assessmentTypeId);
       return json({
         success: true,
         data: {
@@ -78,17 +102,12 @@ Deno.serve(async (req) => {
       const releaseId = String(body?.release_id || "").trim();
       if (!releaseId) return json({ error: "release_id is required" }, 400);
 
-      const runtimeMetadata = {
-        gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
-        edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
-        fixtureSetVersion: Deno.env.get("C03_FIXTURE_SET_VERSION") || "",
-        migrationContractVersion: Deno.env.get("C03_MIGRATION_CONTRACT_VERSION") || "",
-      };
+      const runtimeMetadata = getRuntimeMetadata();
       if (Object.values(runtimeMetadata).some((value) => !value.trim())) {
         return json({ error: "C-03 runtime release metadata is not configured" }, 503);
       }
 
-      const { data: release, error: releaseError } = await serviceClient
+      const { data: release, error: releaseError } = await dbClient
         .from("assessment_config_releases")
         .select("id, family_id, assessment_type_id, assessment_version, state")
         .eq("id", releaseId)
@@ -99,11 +118,11 @@ Deno.serve(async (req) => {
         return json({ error: "Only prepared releases can be verified", state: release.state }, 409);
       }
 
-      const evidence = await computeAssessmentConfigReleaseEvidence(
-        serviceClient,
+      const evidence = await computeEvidenceFn(
+        dbClient,
         release.assessment_type_id,
       );
-      const { data: verification, error: verificationError } = await serviceClient.rpc(
+      const { data: verification, error: verificationError } = await dbClient.rpc(
         "verify_assessment_config_release_secure",
         {
           p_release_id: releaseId,
@@ -138,4 +157,9 @@ Deno.serve(async (req) => {
     const status = Number((error as any)?.status) || 500;
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
-});
+  };
+}
+
+if (import.meta.main) {
+  Deno.serve(createAssessmentConfigReleaseHandler());
+}
