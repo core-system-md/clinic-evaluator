@@ -1,5 +1,14 @@
-import { strict as assert } from "node:assert";
 import { createAssessmentAccessHandler } from "../supabase/functions/assessment-access/index.ts";
+
+
+function assertEqual(actual: unknown, expected: unknown, message = "") {
+  if (actual !== expected) {
+    throw new Error(`assertEqual failed: expected ${String(expected)}, received ${String(actual)}${message ? " — " + message : ""}`);
+  }
+}
+function assertOk(value: unknown, message = "") {
+  if (!value) throw new Error(`assertOk failed${message ? ": " + message : ""}`);
+}
 
 type Row = Record<string, unknown>;
 
@@ -165,26 +174,26 @@ async function runComplete(assessmentUserId: string | null) {
 Deno.test("C-03 actual Edge handler routes protected completion through protected RPC", async () => {
   const userId = "22222222-2222-4222-8222-222222222222";
   const { response, body, calls, session } = await runComplete(userId);
-  assert.equal(response.status, 200);
-  assert.equal(body.success, true);
-  assert.equal(calls[0].name, "prepare_assessment_submission");
+  assertEqual(response.status, 200);
+  assertEqual(body.success, true);
+  assertEqual(calls[0].name, "prepare_assessment_submission");
   const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
-  assert.ok(completion);
-  assert.equal(completion.name, "complete_p4_assessment_from_result");
-  assert.equal(completion.payload.p_assessment_user_id, userId);
-  assert.equal(completion.payload.p_session_id, session.id);
-  assert.equal(completion.payload.p_submission_fingerprint, "b".repeat(64));
-  assert.equal("resolvedSelections" in (completion.payload.p_result as Row), false);
-  assert.equal("axisPersistenceRows" in (completion.payload.p_result as Row), false);
-  assert.equal(body.data.session_id, session.id);
+  assertOk(completion);
+  assertEqual(completion.name, "complete_p4_assessment_from_result");
+  assertEqual(completion.payload.p_assessment_user_id, userId);
+  assertEqual(completion.payload.p_session_id, session.id);
+  assertEqual(completion.payload.p_submission_fingerprint, "b".repeat(64));
+  assertEqual("resolvedSelections" in (completion.payload.p_result as Row), false);
+  assertEqual("axisPersistenceRows" in (completion.payload.p_result as Row), false);
+  assertEqual(body.data.session_id, session.id);
 });
 
 Deno.test("C-03 actual Edge handler routes public completion only through public RPC", async () => {
   const { response, body, calls } = await runComplete(null);
-  assert.equal(response.status, 200);
-  assert.equal(body.success, true);
+  assertEqual(response.status, 200);
+  assertEqual(body.success, true);
   const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
-  assert.ok(completion);
-  assert.equal(completion.name, "complete_p4_public_assessment_from_result");
-  assert.equal("p_assessment_user_id" in completion.payload, false);
+  assertOk(completion);
+  assertEqual(completion.name, "complete_p4_public_assessment_from_result");
+  assertEqual("p_assessment_user_id" in completion.payload, false);
 });
