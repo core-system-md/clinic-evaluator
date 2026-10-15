@@ -103,7 +103,7 @@ test("C-03 release verifies all five bundles and versions before enabling the ga
   assert.equal(actions.filter(action => action === "ci_register").length, 5);
   assert.equal(actions.filter(action => action === "ci_verify").length, 5);
   assert.equal(actions.filter(action => action === "ci_activate_existing").length, 5);
-  assert.equal(actions.at(-1), "enable_gate");
+  assert.equal(actions.at(-1), "ci_enable_gate");
 });
 
 test("C-03 release stops before any activation if one published version fails verification", async () => {
@@ -122,7 +122,7 @@ test("C-03 release stops before any activation if one published version fails ve
     /Release verification failed/,
   );
   const actions = calls.filter(call => call.method === "POST").map(call => call.body.action);
-  assert.equal(actions.includes("activate_existing"), false);
-  assert.equal(actions.includes("enable_gate"), false);
+  assert.equal(actions.includes("ci_activate_existing"), false);
+  assert.equal(actions.includes("ci_enable_gate"), false);
   assert.equal(isEnabled(), false);
 });
