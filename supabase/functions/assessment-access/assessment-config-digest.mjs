@@ -141,3 +141,45 @@ export function buildAssessmentConfigProjection({
     },
   };
 }
+
+export function assertPinnedAssessmentRelease({
+  session,
+  release,
+  runtime,
+  assessmentVersion,
+  assessmentConfigDigest,
+  runtimeRegistryDigest,
+  interpretationVersion,
+  engineIdentity,
+  scoringContractVersion,
+  runtimeMetadata,
+}) {
+  const conflict = (message) => Object.assign(new Error(message), { status: 409, code: "C03_RELEASE_MISMATCH" });
+  if (!session?.assessment_release_id) {
+    throw conflict("Assessment release identity is missing from this session.");
+  }
+  if (!release) throw conflict("Pinned assessment release is unavailable.");
+
+  const mismatches = [];
+  if (!["PUBLISHED", "VERIFIED"].includes(String(release.state))) mismatches.push("state");
+  if (release.family_id !== runtime.family.id) mismatches.push("family_id");
+  if (release.assessment_type_id !== runtime.assessment.id) mismatches.push("assessment_type_id");
+  if (Number(release.assessment_version) !== Number(assessmentVersion)) mismatches.push("assessment_version");
+  if (release.config_digest !== assessmentConfigDigest) mismatches.push("config_digest");
+  if (release.verified_config_digest !== assessmentConfigDigest) mismatches.push("verified_config_digest");
+  if (Number(release.interpretation_version) !== Number(interpretationVersion)) mismatches.push("interpretation_version");
+  if (release.interpretation_registry_digest !== runtimeRegistryDigest) mismatches.push("interpretation_registry_digest");
+  if (release.verified_registry_digest !== runtimeRegistryDigest) mismatches.push("verified_registry_digest");
+  if (release.git_commit_sha !== runtimeMetadata.gitCommitSha) mismatches.push("git_commit_sha");
+  if (release.edge_release_ref !== runtimeMetadata.edgeReleaseRef) mismatches.push("edge_release_ref");
+  if (release.fixture_set_version !== runtimeMetadata.fixtureSetVersion) mismatches.push("fixture_set_version");
+  if (release.migration_contract_version !== runtimeMetadata.migrationContractVersion) mismatches.push("migration_contract_version");
+  if (release.scoring_engine_version !== engineIdentity) mismatches.push("scoring_engine_version");
+  if (release.scoring_contract_version !== scoringContractVersion) mismatches.push("scoring_contract_version");
+  if (release.report_model_version !== "REPORT_MODEL_V1") mismatches.push("report_model_version");
+
+  if (mismatches.length) {
+    throw conflict("Pinned assessment release does not match the verified runtime configuration: " + mismatches.join(", "));
+  }
+  return { releaseId: release.id, configDigest: assessmentConfigDigest };
+}
