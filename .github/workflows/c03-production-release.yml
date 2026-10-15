@@ -9,6 +9,11 @@ on:
         required: true
         type: string
         default: ""
+      preflight_only:
+        description: "Validate the live GitHub OIDC identity only; do not perform Production operations"
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -18,7 +23,24 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  oidc-preflight:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' && inputs.preflight_only != true }}
+    runs-on: ubuntu-latest
+    environment: production-e2e
+    permissions:
+      contents: read
+      id-token: write
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Verify signed OIDC token and allowlisted dispatcher claims without logging token
+        run: deno run --allow-env --allow-net .github/scripts/c03-oidc-preflight.ts
+
   release:
+    needs: oidc-preflight
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' }}
     runs-on: ubuntu-latest
     environment: production-e2e
