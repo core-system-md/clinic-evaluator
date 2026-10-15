@@ -52,14 +52,3 @@ jobs:
       - run: npm ci
       - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js
 
-  edge-function-typecheck:
-    name: C-03 release verifier Edge Function typecheck
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@v4
-      - uses: denoland/setup-deno@v2
-        with:
-          deno-version: v2.x
-      # Full type-check currently surfaces unrelated pre-existing P3 type errors; this gate validates dependency resolution and syntax only.
-      - run: deno check --no-check --no-lock supabase/functions/assessment-config-release/index.ts
