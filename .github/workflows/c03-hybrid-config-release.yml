@@ -1,0 +1,49 @@
+name: C-03 hybrid configuration release gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/c03-hybrid-config-release.yml"
+      - "supabase/migrations/20261015110000_c03_hybrid_configuration_release_gate.sql"
+      - "tests/c03-hybrid-config-release-harness.sql"
+      - "supabase/functions/assessment-access/index.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate-postgres:
+    name: C-03 release gate (disposable PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
+
+  node-regression:
+    name: C-03 and existing Node regression suites
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test --if-present
