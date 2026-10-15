@@ -1,4 +1,4 @@
-import { assertEquals, assert, assertStringIncludes } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
 Deno.test("C-03 protected completion invokes the real Edge handler through its protected RPC", async () => {
   const registry = JSON.parse(await Deno.readTextFile(
@@ -195,7 +195,7 @@ Deno.test("C-03 protected completion invokes the real Edge handler through its p
     assertEquals(completionPayload.p_assessment_user_id, protectedUserId);
     assertEquals(completionPayload.p_submission_fingerprint, "c03-isolated-fingerprint");
     assertEquals(completionPayload.p_result.identity.sessionId, sessionId);
-    assertStringIncludes(responseBody.data.userReport ? JSON.stringify(responseBody.data.userReport) : "", "");
+    assert(responseBody.data.userReport && typeof responseBody.data.userReport === "object", "completion must return a projected user report");
   } finally {
     globalThis.fetch = originalFetch;
     if (oldUrl === undefined) Deno.env.delete("SUPABASE_URL"); else Deno.env.set("SUPABASE_URL", oldUrl);
