@@ -581,6 +581,9 @@ begin
       raise exception using errcode = '42501', message = 'Usage limit exceeded';
     end if;
     v_release := public.c03_resolve_active_configuration_release(p_assessment_type_id);
+    if v_release->>'state' is distinct from 'PUBLISHED' then
+      return jsonb_build_object('error', 'Published assessment configuration is degraded', 'code', '40906');
+    end if;
     v_release_id := (v_release->>'release_id')::uuid;
     select at.version into v_assessment_version
     from public.assessment_types at
@@ -677,6 +680,9 @@ begin
   end if;
 
   v_release := public.c03_resolve_active_configuration_release(p_assessment_type_id);
+  if v_release->>'state' is distinct from 'PUBLISHED' then
+    return jsonb_build_object('error', 'Published assessment configuration is degraded', 'code', '40906');
+  end if;
   v_release_id := (v_release->>'release_id')::uuid;
   select at.version into v_assessment_version
   from public.assessment_types at
@@ -812,7 +818,8 @@ begin
     where assessment_type_id = v_assessment_type_id
       and state = 'PUBLISHED';
   end if;
-  return case when tg_op = 'DELETE' then old else new end;
+  if tg_op = 'DELETE' then return old; end if;
+  return new;
 end;
 $function$;
 
