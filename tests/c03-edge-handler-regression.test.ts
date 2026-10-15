@@ -1,4 +1,5 @@
 import { createAssessmentAccessHandler } from "../supabase/functions/assessment-access/index.ts";
+import patientJourneyRegistry from "../supabase/functions/assessment-access/patient-journey-interpretation-registry-v2.json" with { type: "json" };
 
 
 function assertEqual(actual: unknown, expected: unknown, message = "") {
@@ -15,6 +16,7 @@ type Row = Record<string, unknown>;
 class MockQuery {
   private filters: Array<(row: Row) => boolean> = [];
   private maxRows = Number.POSITIVE_INFINITY;
+  private orders: Array<{ field: string; ascending: boolean }> = [];
 
   constructor(private table: string, private tables: Record<string, Row[]>) {}
 
@@ -35,13 +37,27 @@ class MockQuery {
     this.filters.push((row) => row[field] !== value);
     return this;
   }
-  order(_field: string, _options?: unknown) { return this; }
+  in(field: string, values: unknown[]) {
+    this.filters.push((row) => values.includes(row[field]));
+    return this;
+  }
+  order(field: string, options?: { ascending?: boolean }) {
+    this.orders.push({ field, ascending: options?.ascending !== false });
+    return this;
+  }
   limit(count: number) { this.maxRows = count; return this; }
 
   private rows() {
-    return (this.tables[this.table] || [])
-      .filter((row) => this.filters.every((filter) => filter(row)))
-      .slice(0, this.maxRows);
+    let rows = (this.tables[this.table] || [])
+      .filter((row) => this.filters.every((filter) => filter(row)));
+    for (const order of [...this.orders].reverse()) {
+      rows = rows.slice().sort((a, b) => {
+        const left = String(a[order.field] ?? "");
+        const right = String(b[order.field] ?? "");
+        return (left.localeCompare(right) || 0) * (order.ascending ? 1 : -1);
+      });
+    }
+    return rows.slice(0, this.maxRows);
   }
 
   async maybeSingle() {
@@ -62,32 +78,101 @@ async function sha256Hex(value: string) {
   return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
+function runtimeFixture(assessmentTypeId: string) {
+  const familyId = "33333333-3333-4333-8333-333333333333";
+  const entries = patientJourneyRegistry.entries.filter(
+    (entry) => entry.assessmentSlug === "patient-journey" && Number(entry.interpretationVersion) === 2,
+  );
+  const axisCodes = ["A1", "A2", "A3", "A4", "A5"];
+  const axes = axisCodes.map((code, index) => ({
+    id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+    assessment_type_id: assessmentTypeId,
+    code,
+    title: `Axis ${code}`,
+    title_ar: `محور ${code}`,
+    weight: 20,
+    display_order: index + 1,
+  }));
+  const axisIdByCode = new Map(axes.map((axis) => [axis.code, axis.id]));
+  const questionCodes = [...new Set(entries.map((entry) => entry.questionCode))].sort();
+  const questionIdByCode = new Map(questionCodes.map((code, index) => [
+    code,
+    `q0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+  ]));
+  const questionEntries = new Map<string, typeof entries[number]>();
+  for (const entry of entries) if (!questionEntries.has(entry.questionCode)) questionEntries.set(entry.questionCode, entry);
+  const questions = questionCodes.map((code, index) => {
+    const entry = questionEntries.get(code)!;
+    return {
+      id: questionIdByCode.get(code)!,
+      assessment_type_id: assessmentTypeId,
+      axis_id: axisIdByCode.get(entry.axisCode)!,
+      code,
+      question_text: `Synthetic ${code}`,
+      question_text_ar: `سؤال ${code}`,
+      question_type: "single_choice",
+      display_order: index + 1,
+      is_required: true,
+      impact: "NORMAL",
+      layer: entry.measurementLayer || "P",
+    };
+  });
+  const options = entries.map((entry) => ({
+    id: entry.optionId,
+    question_id: questionIdByCode.get(entry.questionCode)!,
+    option_index: Number(entry.optionIndex),
+    option_value: Number(entry.sourceOptionValue),
+    label: `Option ${entry.optionIndex}`,
+    label_ar: `خيار ${entry.optionIndex}`,
+    is_trap: Boolean(entry.sourceIsTrap),
+    display_order: Number(entry.optionIndex) + 1,
+  }));
+  const assessment = {
+    id: assessmentTypeId,
+    slug: "patient-journey",
+    family_id: familyId,
+    title_ar: "رحلة المريض",
+    title_en: "Patient Journey",
+    description: "Isolated synthetic regression fixture",
+    version: 1,
+    config_version: 1,
+    question_count: questions.length,
+    axis_count: axes.length,
+    has_traps: false,
+    has_ev_simulator: false,
+    axis_roles: {},
+    kpi_mappings: {},
+    ev_mappings: {},
+  };
+  return {
+    assessment,
+    family: { id: familyId, slug: "patient-journey" },
+    axes,
+    questions,
+    options,
+    traps: [],
+    answers: questions.map((question) => {
+      const option = options.find((item) => item.question_id === question.id && item.option_index === 0)!;
+      return {
+        question_id: question.code,
+        option_index: option.option_index,
+        option_value: option.option_value,
+      };
+    }),
+  };
+}
+
 function setup(assessmentUserId: string | null) {
   const token = "c03-isolated-test-token";
   const session = {
     id: "session-1111",
     lead_id: "lead-1111",
-    assessment_type_id: "assessment-1111",
+    assessment_type_id: "44444444-4444-4444-8444-444444444444",
     assessment_user_id: assessmentUserId,
     assessment_version: 1,
     status: "in_progress",
   };
-  const structuredResult = {
-    schemaVersion: "P3_STRUCTURED_RESULT_V1",
-    status: "PRODUCTION",
-    identity: {
-      sessionId: session.id,
-      assessmentTypeId: session.assessment_type_id,
-      assessmentVersion: "1",
-      resultId: "11111111-1111-4111-8111-111111111111",
-    },
-    provenance: { assessmentSlug: "patient-journey", assessmentConfigDigest: "a".repeat(64) },
-    scores: { overallScore: 70, axes: [] },
-    classification: { bandCode: "Q3" },
-    kpis: [],
-    resolvedSelections: [{ private: true }],
-    axisPersistenceRows: [{ private: true }],
-  };
+  const runtime = runtimeFixture(session.assessment_type_id);
   const calls: Array<{ name: string; payload: Record<string, unknown> }> = [];
   const tables: Record<string, Row[]> = {
     assessment_session_access: [{
@@ -108,6 +193,12 @@ function setup(assessmentUserId: string | null) {
       phone: null,
       completed: false,
     }],
+    assessment_types: [runtime.assessment],
+    assessment_families: [runtime.family],
+    axes: runtime.axes,
+    questions: runtime.questions,
+    options: runtime.options,
+    traps: runtime.traps,
   };
   const client = {
     from(table: string) { return new MockQuery(table, tables); },
@@ -116,7 +207,7 @@ function setup(assessmentUserId: string | null) {
       if (name === "prepare_assessment_submission") {
         return {
           data: {
-            submission_snapshot: [{ question_id: "Q1", option_index: 0, option_value: 70 }],
+            submission_snapshot: runtime.answers,
             submission_fingerprint: "b".repeat(64),
             submission_economic_input: {},
           },
@@ -124,7 +215,7 @@ function setup(assessmentUserId: string | null) {
         };
       }
       if (name === "complete_p4_assessment_from_result" || name === "complete_p4_public_assessment_from_result") {
-        return { data: { success: true, already_completed: false, result: structuredResult }, error: null };
+        return { data: { success: true, already_completed: false, result: payload.p_result }, error: null };
       }
       throw new Error("Unexpected RPC: " + name);
     },
@@ -133,7 +224,6 @@ function setup(assessmentUserId: string | null) {
   return {
     token,
     session,
-    structuredResult,
     calls,
     tables,
     client,
@@ -144,25 +234,7 @@ function setup(assessmentUserId: string | null) {
 async function runComplete(assessmentUserId: string | null) {
   const fixture = setup(assessmentUserId);
   await fixture.ready();
-  const handler = createAssessmentAccessHandler({
-    supabaseClient: fixture.client,
-    calculateAssessmentFn: (async () => ({
-      result: fixture.structuredResult,
-      scoreRows: [],
-      provenance: {
-        assessmentSlug: "patient-journey",
-        assessmentVersion: 1,
-        interpretationVersion: 2,
-        scoringEngineVersion: "test-engine",
-        scoringContractVersion: "test-contract",
-        assessmentConfigDigest: "a".repeat(64),
-      },
-    })) as never,
-    projectCompletionResponseFn: (() => ({
-      userReport: { audience: "user", fixture: true },
-      report: { audience: "user" },
-    })) as never,
-  });
+  const handler = createAssessmentAccessHandler({ supabaseClient: fixture.client });
   const response = await handler(new Request("https://local.test/functions/v1/assessment-access", {
     method: "POST",
     headers: { "content-type": "application/json" },
