@@ -1,3 +1,20 @@
+# AUTHORITATIVE C-03 DISPOSITION — 2026-10-15
+
+**Status: C-03 PHASE CLOSED; GUARDED PRODUCTION ROLLOUT DEFERRED BY OWNER DIRECTION.**
+
+This decision supersedes older sections in this document that require `C03_OWNER_JWT` setup as the next action for closing C-03.
+
+- The canonical implementation is merged in PR #109, the C-03 migration is applied, and recorded isolated CI plus the disposable PostgreSQL release harness passed.
+- Last verified Production state: `assessment_config_release_settings.enabled=false`; release records = 0; active release pointers = 0; five current published families; `assessment-access` ACTIVE v38; `assessment-config-release` not deployed.
+- The credential diagnostic proved only that `C03_OWNER_JWT` was empty in the protected job. Its non-empty check does not validate token authenticity, and the diagnostic did not prove that the token is intrinsically necessary to close the merged implementation work.
+- The owner has directed closure rather than further secret configuration. Therefore `C03_OWNER_JWT` is no longer a C-03 phase-closure task. No secret should be requested from the owner or pasted into chat.
+- No Production Edge deployment, release registration/activation, gate enablement, or live E2E is claimed by this document update. The gate remains disabled and the guarded rollout is deferred.
+- If the rollout is explicitly re-scoped later, first reassess the product/API authorization contract and the necessity of owner JWT for the exact operations. Do not assume the prior workflow design is itself a product requirement.
+
+**Final disposition:** `C-03 CLOSED — CODE MERGED / ISOLATED CI PASS / MIGRATION APPLIED / PRODUCTION ROLLOUT DEFERRED / GATE DISABLED`.
+
+---
+
 # C-03 Production Release Preflight — 2026-10-15
 
 **Project:** `oaqpzaarppccbnepffxx`  
