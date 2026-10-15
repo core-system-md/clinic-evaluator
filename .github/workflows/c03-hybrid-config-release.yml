@@ -38,6 +38,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: node tests/c03-load-real-admin-auth.mjs
       - run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
 
   digest-contract:
