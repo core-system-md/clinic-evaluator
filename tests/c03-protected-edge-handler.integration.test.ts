@@ -198,6 +198,16 @@ async function exerciseProtectedCompletion(slug: string, registryFile: string, i
     assertEquals(completionPayload.p_result.identity.sessionId, sessionId);
     assert(responseBody.data.userReport && typeof responseBody.data.userReport === "object", "completion must return a projected user report");
     assertEquals(responseBody.data.userReport.assessment.purpose, expectedPurpose, "handler must project the report model for the selected assessment family");
+
+    const unauthRegisterStart = calls.length;
+    const unauthRegisterResponse = await handler(new Request("http://edge.test", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-forwarded-for": "127.0.0.1" },
+      body: JSON.stringify({ action: "register_interpretation_release", data: { rpc_args: {} } }),
+    }));
+    assertEquals(unauthRegisterResponse.status, 403, "release registration must require an owner JWT");
+    assert(!calls.slice(unauthRegisterStart).some((call) => call.path.endsWith("/rest/v1/rpc/register_assessment_interpretation_release_secure")), "unauthenticated registration must not reach the registration RPC");
+
     // Strict mode must reject an unregistered version before lead/session/RPC writes.
     const oldGate = Deno.env.get("C03_RELEASE_GATE_ENFORCED");
     Deno.env.set("C03_RELEASE_GATE_ENFORCED", "true");
