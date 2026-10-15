@@ -91,21 +91,20 @@ select public.verify_assessment_config_release_secure(
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
 ) as verified1 \gset
-select case when (:'verified1'::jsonb->>'state')='VERIFIED' then true else (select 1/0=1) end;
+select 1 / (((:'verified1'::jsonb->>'state')='VERIFIED')::int) as release_verified;
 
 select set_config('request.jwt.claim.role','authenticated',false);
 select public.activate_existing_assessment_release_secure(
   (:'release1'::jsonb->>'release_id')::uuid,
   '22222222-2222-4222-8222-222222222222'
 );
+select public.enable_assessment_config_release_gate_secure();
 insert into public.sessions(id,assessment_type_id)
 values ('55555555-5555-4555-8555-555555555555','22222222-2222-4222-8222-222222222222');
 select 1 / ((
   select assessment_release_id = (:'release1'::jsonb->>'release_id')::uuid
   from public.sessions where id='55555555-5555-4555-8555-555555555555'
 )::int) as session_release_pinned;
-
-select public.enable_assessment_config_release_gate_secure();
 
 select public.register_assessment_config_release_secure(
   '33333333-3333-4333-8333-333333333333',
