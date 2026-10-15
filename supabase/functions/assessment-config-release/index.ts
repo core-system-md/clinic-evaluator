@@ -149,6 +149,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
               p_workflow_run_id: ciIdentity!.runId,
               p_workflow_run_attempt: ciIdentity!.runAttempt,
               p_workflow_sha: ciIdentity!.sha,
+              p_confirmation: body.confirmation,
             })
           : await owner!.userClient.rpc("register_assessment_config_release_secure", params);
         if (registration.error) throw registration.error;
@@ -167,6 +168,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
               p_workflow_run_id: ciIdentity!.runId,
               p_workflow_run_attempt: ciIdentity!.runAttempt,
               p_workflow_sha: ciIdentity!.sha,
+              p_confirmation: body.confirmation,
             })
           : await owner!.userClient.rpc("activate_existing_assessment_release_secure", {
               p_release_id: releaseId,
