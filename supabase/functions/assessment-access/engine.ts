@@ -385,6 +385,55 @@ export async function attestInterpretationRelease(
   };
 }
 
+export async function assertAssessmentReleaseReady(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const assessmentVersion = Number(runtime.assessment.version ?? runtime.assessment.config_version ?? 1);
+  const binding = resolveInterpretationBinding(runtime.family.slug, assessmentVersion);
+  const registryEntries = selectInterpretationEntries(binding.registry, runtime.family.slug, binding.interpretationVersion);
+
+  const { data: release, error: releaseError } = await client
+    .from("assessment_interpretation_releases")
+    .select("assessment_type_id, family_id, assessment_version, interpretation_version, registry_digest, config_digest, config_canonicalizer_version, source_commit_sha, edge_release_ref, option_manifest, state, runtime_verified_at, runtime_verified_digest, runtime_verified_config_digest, runtime_verified_edge_release_ref, runtime_verified_source_commit_sha")
+    .eq("assessment_type_id", runtime.assessment.id)
+    .eq("is_current", true)
+    .maybeSingle();
+  if (releaseError) throw new Error("Interpretation release lookup failed: " + releaseError.message);
+  if (!release) throw new Error("No current C-03 release is registered for this assessment version");
+  if (release.state !== "PUBLISHED") throw new Error("Assessment release is not in PUBLISHED state");
+  if (!release.runtime_verified_at) throw new Error("Assessment release has no runtime attestation");
+
+  const { data: runtimeConfigDigest, error: configDigestError } = await client.rpc(
+    "assessment_configuration_digest",
+    { p_assessment_type_id: runtime.assessment.id },
+  );
+  if (configDigestError) throw new Error("Full assessment configuration digest lookup failed: " + configDigestError.message);
+
+  const attestation = await assertInterpretationReleaseMatches({
+    release,
+    assessmentTypeId: runtime.assessment.id,
+    familyId: runtime.family.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    registryEntries,
+    runtimeOptionManifest: buildRuntimeOptionManifest(runtime),
+    runtimeConfigDigest: String(runtimeConfigDigest || ""),
+    runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
+  });
+
+  if (
+    release.runtime_verified_digest !== attestation.registryDigest ||
+    release.runtime_verified_config_digest !== attestation.configDigest ||
+    release.runtime_verified_edge_release_ref !== attestation.edgeReleaseRef ||
+    release.runtime_verified_source_commit_sha !== attestation.sourceCommitSha
+  ) {
+    throw new Error("Stored runtime attestation does not match the current Edge runtime and configuration");
+  }
+  return { ready: true, assessmentTypeId: runtime.assessment.id, configDigest: attestation.configDigest };
+}
+
 export async function calculateAssessment(
   client: SupabaseClient,
   input: {
