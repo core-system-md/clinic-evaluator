@@ -206,6 +206,16 @@ create table public.traps (
   updated_at timestamptz default now()
 );
 
+insert into public.traps(
+  id,assessment_type_id,name,message,message_ar,question_id,validates,target_axis,penalty_base,penalty_max
+) values (
+  '22222222-2222-4222-8222-222222222222',
+  'cccccccc-cccc-4ccc-8ccc-cccccccccccc',
+  'fixture-trap','Fixture trap','فخ اختبار',
+  'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee',
+  '{"mode":"fixture"}'::jsonb,'AX1',1,5
+);
+
 \ir ../supabase/migrations/20261015130000_c03_full_configuration_release_digest.sql
 
 
@@ -216,6 +226,7 @@ declare
   v_registry_digest text := repeat('a',64);
   v_config_digest text;
   v_config_digest_after text;
+  v_trap_digest_after text;
   v_source_commit_sha text := repeat('b',40);
   v_edge_release_ref text := 'assessment-access-c03-registry-attestation-v1';
   v_option_manifest jsonb;
@@ -301,6 +312,13 @@ begin
   v_result := public.validate_assessment_version_secure('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
   if coalesce((v_result->>'valid')::boolean,true) is not false then
     raise exception 'Validator accepted post-release configuration drift: %',v_result;
+  end if;
+
+  update public.traps set penalty_max=6
+   where id='22222222-2222-4222-8222-222222222222';
+  v_trap_digest_after := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
+  if v_trap_digest_after = v_config_digest_after then
+    raise exception 'Full configuration digest did not change after trap configuration mutation';
   end if;
 end
 $test$;
