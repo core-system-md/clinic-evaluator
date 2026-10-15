@@ -38,7 +38,7 @@ async function requireOwner(
   if (ownerError || isOwner !== true) {
     return { error: "Owner authorization required", status: 403 as const };
   }
-  return { user: userData.user };
+  return { user: userData.user, userClient };
 }
 
 export function createAssessmentConfigReleaseHandler(dependencies: {
@@ -93,9 +93,73 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
           scoringEngineVersion: evidence.scoringEngineVersion,
           scoringContractVersion: evidence.scoringContractVersion,
           reportModelVersion: evidence.reportModelVersion,
+          canonicalizerVersion: evidence.canonicalizerVersion,
+          runtimeMetadata: getRuntimeMetadata(),
           canonicalConfig: evidence.canonicalConfig,
         },
       });
+    }
+
+    if (action === "register") {
+      if (!assessmentTypeId) return json({ error: "assessment_type_id is required" }, 400);
+      const runtimeMetadata = getRuntimeMetadata();
+      if (Object.values(runtimeMetadata).some((value) => !value.trim())) {
+        return json({ error: "C-03 runtime release metadata is not configured" }, 503);
+      }
+      const evidence = await computeEvidenceFn(dbClient, assessmentTypeId);
+      const { data: registration, error: registrationError } = await authorization.userClient.rpc(
+        "register_assessment_config_release_secure",
+        {
+          p_assessment_type_id: evidence.assessmentTypeId,
+          p_git_commit_sha: runtimeMetadata.gitCommitSha,
+          p_config_digest: evidence.configDigest,
+          p_canonicalizer_version: evidence.canonicalizerVersion,
+          p_interpretation_version: evidence.interpretationVersion,
+          p_interpretation_registry_digest: evidence.interpretationRegistryDigest,
+          p_scoring_engine_version: evidence.scoringEngineVersion,
+          p_scoring_contract_version: evidence.scoringContractVersion,
+          p_report_model_version: evidence.reportModelVersion,
+          p_fixture_set_version: runtimeMetadata.fixtureSetVersion,
+          p_migration_contract_version: runtimeMetadata.migrationContractVersion,
+          p_edge_release_ref: runtimeMetadata.edgeReleaseRef,
+        },
+      );
+      if (registrationError) throw registrationError;
+      return json({ success: true, data: registration });
+    }
+
+    if (action === "activate_existing") {
+      const releaseId = String(body?.release_id || "").trim();
+      const expectedVersionId = String(body?.expected_published_version_id || "").trim();
+      if (!releaseId || !expectedVersionId) {
+        return json({ error: "release_id and expected_published_version_id are required" }, 400);
+      }
+      const { data, error } = await authorization.userClient.rpc(
+        "activate_existing_assessment_release_secure",
+        { p_release_id: releaseId, p_expected_published_version_id: expectedVersionId },
+      );
+      if (error) throw error;
+      return json({ success: true, data });
+    }
+
+    if (action === "publish") {
+      const releaseId = String(body?.release_id || "").trim();
+      const expectedVersionId = String(body?.expected_published_version_id || "").trim();
+      if (!releaseId || !expectedVersionId) {
+        return json({ error: "release_id and expected_published_version_id are required" }, 400);
+      }
+      const { data, error } = await authorization.userClient.rpc(
+        "publish_assessment_config_release_secure",
+        { p_release_id: releaseId, p_expected_published_version_id: expectedVersionId },
+      );
+      if (error) throw error;
+      return json({ success: true, data });
+    }
+
+    if (action === "enable_gate") {
+      const { data, error } = await authorization.userClient.rpc("enable_assessment_config_release_gate_secure");
+      if (error) throw error;
+      return json({ success: true, data });
     }
 
     if (action === "verify") {
