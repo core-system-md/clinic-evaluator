@@ -5,13 +5,13 @@
 ## Current implementation package
 - Draft PR #113: https://github.com/core-system-md/clinic-evaluator/pull/113
 - Branch: `c03/oidc-release-authorization`
-- Head at this handoff update: `e3e89dae494ed35a7b65ad3a104d60282b1a6509` (subsequent branch commits may supersede this SHA; re-read PR head before relying on it).
+- Implementation/test head before this documentation reconciliation: `dfdff3f04c30996f30503a1bbda53519cfef3d0d`.
 - Design: `documentation/governance/C-03-GITHUB-OIDC-RELEASE-AUTHORIZATION-DESIGN-2026-10-15.md`.
-- The design review approves implementation in an isolated branch only. It uses short-lived GitHub Actions OIDC workload identity, strict issuer/audience/repository/ref/workflow/environment/event/subject/owner-actor/SHA/run validation, a dedicated header so Supabase's normal JWT gateway validation remains enabled, separate `ci_*` Edge actions, narrow service-role-only C-03 RPCs, exact release confirmation, and immutable runtime attestation.
+- The design review approves implementation in an isolated branch only. PR #113 is open and ready for review; it has not been merged. It uses short-lived GitHub Actions OIDC workload identity, strict issuer/audience/repository/ref/workflow/environment/event/subject/owner-actor/SHA/run validation, a dedicated header so Supabase's normal JWT gateway validation remains enabled, separate `ci_*` Edge actions, narrow service-role-only C-03 RPCs, exact release confirmation, and immutable runtime attestation.
 - Existing human-owner actions retain `auth.getUser`, `is_owner()`, and current admin capability enforcement. No owner endpoint was weakened.
 - New migration: `20261015120000_c03_github_oidc_release_authorization.sql`; the already-applied migration was not edited. The disposable SQL harness now loads this migration and exercises CI-only registration/activation/gate RPCs and non-service-role rejection.
 - The guarded release workflow now accepts only explicit `workflow_dispatch` with exact `ENABLE-C03-PRODUCTION`; a normal push cannot start a Production release.
-- Added Node/Deno tests for OIDC token acquisition, claim allowlisting, handler authorization separation, and release sequencing. Exact-head CI status has not yet been verified in this handoff.
+- Added Node/Deno tests for OIDC token acquisition, claim allowlisting, handler authorization separation, and release sequencing. Exact-head CI on `dfdff3f04c30996f30503a1bbda53519cfef3d0d` is PASS: C-03 workflow run `38766376032` (digest/contract, handler tests, disposable PostgreSQL migration/RPC harness), P3 kernel run `38766375841`, and WP-09 run `38766376245` all SUCCESS. The handler and SQL jobs passed after fixing the first test failures. The latest documentation-only commits change the Git SHA, so re-check CI and recompute immutable Edge attestation for the final merge SHA.
 
 ## Required review findings before any Production operation
 1. Confirm the PR's full CI suite passes at its exact current head; inspect logs, not just the aggregate state.
