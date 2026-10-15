@@ -42,7 +42,6 @@ jobs:
     env:
       SUPABASE_PROJECT_REF: oaqpzaarppccbnepffxx
       SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
-      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
       C03_OWNER_JWT: ${{ secrets.C03_OWNER_JWT }}
@@ -82,14 +81,11 @@ jobs:
         run: node tests/c03-load-real-admin-auth.mjs
       - name: Run disposable PostgreSQL release and authorization harness
         run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
-      - uses: supabase/setup-cli@v1
-        with:
-          version: latest
       - name: Validate credentials and Production release preconditions before deployment
         shell: bash
         run: |
           set -euo pipefail
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY C03_OWNER_JWT; do
+          for name in SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY C03_OWNER_JWT; do
             if [ -z "${!name:-}" ]; then echo "::error::Required GitHub Actions secret is missing: $name"; exit 1; fi
           done
           if [ "$SUPABASE_PROJECT_REF" != "oaqpzaarppccbnepffxx" ] || [ "$SUPABASE_URL" != "https://oaqpzaarppccbnepffxx.supabase.co" ]; then
@@ -112,10 +108,6 @@ jobs:
           echo "Production preflight passed: migration tables exist, gate is disabled, and the exact five-family inventory is present."
       - name: Prepare immutable runtime attestation for this exact main commit
         run: node .github/scripts/c03-release-attestation.mjs prepare
-      - name: Deploy assessment-access from this attested checkout
-        run: supabase functions deploy assessment-access --project-ref "$SUPABASE_PROJECT_REF" --no-verify-jwt
-      - name: Deploy owner-authenticated assessment-config-release from this attested checkout
-        run: supabase functions deploy assessment-config-release --project-ref "$SUPABASE_PROJECT_REF"
       - name: Select one current published version for read-only attestation
         id: attestation_target
         shell: bash
@@ -128,10 +120,22 @@ jobs:
           id="$(echo "$rows" | jq -r '.[0].current_published_version_id // empty')"
           test -n "$id"
           echo "assessment_type_id=$id" >> "$GITHUB_OUTPUT"
-      - name: Verify both deployed Edge identities before release writes
+      - name: Wait for both Edge bundles deployed from this exact attested checkout
         env:
           C03_ASSESSMENT_TYPE_ID: ${{ steps.attestation_target.outputs.assessment_type_id }}
-        run: node .github/scripts/c03-release-attestation.mjs verify
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in $(seq 1 60); do
+            if node .github/scripts/c03-release-attestation.mjs verify; then
+              echo "Both deployed Edge identities match this exact main commit."
+              exit 0
+            fi
+            echo "Waiting for both Edge functions to be deployed from the prepared checkout (attempt $attempt/60)."
+            sleep 20
+          done
+          echo "::error::Timed out waiting for the exact attested Edge bundles; no release writes were attempted."
+          exit 1
       - name: Register, verify, activate all five current releases, then enable the gate
         id: production_release
         run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
