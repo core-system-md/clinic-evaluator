@@ -453,13 +453,14 @@ export async function calculateAssessment(
         interpretationVersion: interpretationBinding.interpretationVersion,
         engineIdentity: ENGINE_IDENTITY,
         scoringContractVersion: SCORING_CONTRACT_ID,
+        canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
         runtimeMetadata: { gitCommitSha: "", edgeReleaseRef: "", fixtureSetVersion: "", migrationContractVersion: "" },
       });
     }
 
     const { data: release, error: releaseError } = await client
       .from("assessment_config_releases")
-      .select("id, family_id, assessment_type_id, assessment_version, git_commit_sha, config_digest, interpretation_version, interpretation_registry_digest, scoring_engine_version, scoring_contract_version, report_model_version, fixture_set_version, migration_contract_version, edge_release_ref, state, verified_config_digest, verified_registry_digest")
+      .select("id, family_id, assessment_type_id, assessment_version, git_commit_sha, canonicalizer_version, config_digest, interpretation_version, interpretation_registry_digest, scoring_engine_version, scoring_contract_version, report_model_version, fixture_set_version, migration_contract_version, edge_release_ref, state, verified_config_digest, verified_registry_digest")
       .eq("id", session.assessment_release_id)
       .maybeSingle();
     if (releaseError) throw releaseError;
@@ -475,6 +476,7 @@ export async function calculateAssessment(
       interpretationVersion: interpretationBinding.interpretationVersion,
       engineIdentity: ENGINE_IDENTITY,
       scoringContractVersion: SCORING_CONTRACT_ID,
+        canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
       runtimeMetadata: {
         gitCommitSha: Deno.env.get("C03_GIT_COMMIT_SHA") || "",
         edgeReleaseRef: Deno.env.get("C03_EDGE_RELEASE_REF") || "",
