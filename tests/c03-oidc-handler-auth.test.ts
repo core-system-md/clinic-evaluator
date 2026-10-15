@@ -47,7 +47,7 @@ Deno.test("CI registration uses the narrow CI RPC after workload verification", 
   const state = createAssessmentConfigReleaseHandler({
     serviceClient: { async rpc(rpcName: string) { name = rpcName; return { data: { success: true }, error: null }; } },
     computeEvidenceFn: async () => evidence,
-    verifyCiTokenFn: async () => ({ repository: "core-system-md/clinic-evaluator", repositoryOwner: "core-system-md", sha: metadata.gitCommitSha, runId: "123", runAttempt: "1", workflowRef: "expected", environment: "production-e2e" }),
+    verifyCiTokenFn: async () => ({ repository: "core-system-md/clinic-evaluator", repositoryOwner: "core-system-md", actor: "core-system-md", actorId: "290540122", sha: metadata.gitCommitSha, runId: "123", runAttempt: "1", workflowRef: "expected", environment: "production-e2e" }),
     getRuntimeMetadata: () => metadata,
   });
   const response = await state(request({ action: "ci_register", assessment_type_id: "type-1", confirmation: "ENABLE-C03-PRODUCTION" }));
