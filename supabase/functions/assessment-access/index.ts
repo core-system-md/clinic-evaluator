@@ -427,10 +427,18 @@ async function issuePublicAccess(assessmentKey: string) {
   return { token, expires_at: expiresAt, assessment_type_id: family.current_published_version_id };
 }
 
-export function createAssessmentAccessHandler(client = supabase) {
+export function createAssessmentAccessHandler(
+  client = supabase,
+  dependencies: {
+    calculateAssessmentFn?: typeof calculateAssessment;
+    calculateEconomicFn?: typeof calculateP3RecursiveReferralEconomic;
+  } = {},
+) {
   // The production handler binds its service client once; dependency injection permits
   // deterministic tests of the actual request dispatcher without Production writes.
   supabase = client;
+  const calculateAssessmentFn = dependencies.calculateAssessmentFn || calculateAssessment;
+  const calculateEconomicFn = dependencies.calculateEconomicFn || calculateP3RecursiveReferralEconomic;
   return async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
@@ -984,7 +992,7 @@ export function createAssessmentAccessHandler(client = supabase) {
           }
         : undefined;
 
-      const computed = await calculateAssessment(supabase, {
+      const computed = await calculateAssessmentFn(supabase, {
         sessionId: session.id,
         economicInput: frozenEconomicInput,
         answerSnapshot,
@@ -1069,7 +1077,7 @@ export function createAssessmentAccessHandler(client = supabase) {
         return json({ error: "Invalid referral percentage" }, 400);
       }
 
-      const economic = calculateP3RecursiveReferralEconomic({
+      const economic = calculateEconomicFn({
         averageVisitValue: avg,
         relationshipYears: years,
         referralPercentage: referralRaw,
