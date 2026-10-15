@@ -222,6 +222,7 @@ create or replace function public.verify_assessment_config_release_secure(
   p_actual_assessment_type_id uuid,
   p_actual_assessment_version integer,
   p_actual_config_digest text,
+  p_actual_canonicalizer_version text,
   p_actual_registry_digest text,
   p_actual_git_commit_sha text,
   p_actual_edge_release_ref text,
@@ -261,6 +262,7 @@ begin
   if p_actual_assessment_type_id is distinct from v_release.assessment_type_id then v_mismatches := v_mismatches || jsonb_build_array('assessment_type_id'); end if;
   if p_actual_assessment_version is distinct from v_release.assessment_version then v_mismatches := v_mismatches || jsonb_build_array('assessment_version'); end if;
   if p_actual_config_digest is distinct from v_release.config_digest then v_mismatches := v_mismatches || jsonb_build_array('config_digest'); end if;
+  if p_actual_canonicalizer_version is distinct from v_release.canonicalizer_version then v_mismatches := v_mismatches || jsonb_build_array('canonicalizer_version'); end if;
   if p_actual_registry_digest is distinct from v_release.interpretation_registry_digest then v_mismatches := v_mismatches || jsonb_build_array('interpretation_registry_digest'); end if;
   if p_actual_git_commit_sha is distinct from v_release.git_commit_sha then v_mismatches := v_mismatches || jsonb_build_array('git_commit_sha'); end if;
   if p_actual_edge_release_ref is distinct from v_release.edge_release_ref then v_mismatches := v_mismatches || jsonb_build_array('edge_release_ref'); end if;
@@ -582,13 +584,13 @@ revoke all on function public.c03_assessment_release_gate_enabled() from public,
 revoke all on function public.c03_guard_family_release_pointer() from public, anon, authenticated;
 revoke all on function public.c03_pin_session_release() from public, anon, authenticated;
 revoke all on function public.register_assessment_config_release_secure(uuid,text,text,text,integer,text,text,text,text,text,text,text) from public, anon;
-revoke all on function public.verify_assessment_config_release_secure(uuid,uuid,uuid,integer,text,text,text,text,integer,text,text,text,text,text,jsonb) from public, anon, authenticated;
+revoke all on function public.verify_assessment_config_release_secure(uuid,uuid,uuid,integer,text,text,text,text,text,integer,text,text,text,text,text,jsonb) from public, anon, authenticated;
 revoke all on function public.activate_existing_assessment_release_secure(uuid,uuid) from public, anon;
 revoke all on function public.publish_assessment_config_release_secure(uuid,uuid) from public, anon;
 revoke all on function public.enable_assessment_config_release_gate_secure() from public, anon;
 
 grant execute on function public.register_assessment_config_release_secure(uuid,text,text,text,integer,text,text,text,text,text,text,text) to authenticated;
-grant execute on function public.verify_assessment_config_release_secure(uuid,uuid,uuid,integer,text,text,text,text,integer,text,text,text,text,text,jsonb) to service_role;
+grant execute on function public.verify_assessment_config_release_secure(uuid,uuid,uuid,integer,text,text,text,text,text,integer,text,text,text,text,text,jsonb) to service_role;
 grant execute on function public.activate_existing_assessment_release_secure(uuid,uuid) to authenticated;
 grant execute on function public.publish_assessment_config_release_secure(uuid,uuid) to authenticated;
 grant execute on function public.enable_assessment_config_release_gate_secure() to authenticated;
