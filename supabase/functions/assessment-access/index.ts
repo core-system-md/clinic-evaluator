@@ -1,20 +1,20 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment } from "./engine.ts";
+import { calculateAssessment as defaultCalculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
-import { projectCompletionResponse } from "./report-interpretation.mjs";
+import { projectCompletionResponse as defaultProjectCompletionResponse } from "./report-interpretation.mjs";
 
 export function createAssessmentAccessHandler(dependencies: {
   supabaseClient?: any;
-  calculateAssessmentFn?: typeof calculateAssessment;
-  projectCompletionResponseFn?: typeof projectCompletionResponse;
+  calculateAssessmentFn?: typeof defaultCalculateAssessment;
+  projectCompletionResponseFn?: typeof defaultProjectCompletionResponse;
 } = {}) {
   const supabase = dependencies.supabaseClient ?? createClient(
     Deno.env.get("SUPABASE_URL") || "",
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
     { auth: { persistSession: false } },
   );
-  const calculate = dependencies.calculateAssessmentFn ?? calculateAssessment;
-  const project = dependencies.projectCompletionResponseFn ?? projectCompletionResponse;
+  const calculateAssessment = dependencies.calculateAssessmentFn ?? defaultCalculateAssessment;
+  const projectCompletionResponse = dependencies.projectCompletionResponseFn ?? defaultProjectCompletionResponse;
 
   const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -708,7 +708,7 @@ return async (req: Request) => {
       }
 
       const safeStoredResult = storedResult?.result
-        ? { userReport: project(storedResult.result, await getPreviousAssessmentSessionData(session)).userReport,
+        ? { userReport: projectCompletionResponse(storedResult.result, await getPreviousAssessmentSessionData(session)).userReport,
             assessment_version: storedResult.assessment_version, interpretation_version: storedResult.interpretation_version,
             scoring_engine_version: storedResult.scoring_engine_version, scoring_contract_version: storedResult.scoring_contract_version,
             assessment_config_digest: storedResult.assessment_config_digest, calculated_at: storedResult.calculated_at,
@@ -825,7 +825,7 @@ return async (req: Request) => {
               kpis,
               evSimulator: null,
               traps: [],
-              ...project(structured, previousSessionData),
+              ...projectCompletionResponse(structured, previousSessionData),
               provenance: {
                 assessmentVersion: storedResult.assessment_version,
                 interpretationVersion: storedResult.interpretation_version,
@@ -913,7 +913,7 @@ return async (req: Request) => {
             ),
             evSimulator: null,
             traps: [],
-            userReport: structured ? project(structured, previousSessionData).userReport : null,
+            userReport: structured ? projectCompletionResponse(structured, previousSessionData).userReport : null,
             provenance: storedResult
               ? {
                   assessmentVersion: storedResult.assessment_version,
@@ -948,7 +948,7 @@ return async (req: Request) => {
           }
         : undefined;
 
-      const computed = await calculate(supabase, {
+      const computed = await calculateAssessment(supabase, {
         sessionId: session.id,
         economicInput: frozenEconomicInput,
         answerSnapshot,
@@ -992,7 +992,7 @@ return async (req: Request) => {
       return json({
         success: true,
         data: {
-          ...project({
+          ...projectCompletionResponse({
             ...storedStructured,
             provenance: {
               ...(storedStructured.provenance || {}),
