@@ -31,7 +31,7 @@ test('C-03 release verifier exports canonical config and attests live runtime ev
 
 test('C-03 release verifier binds immutable build-time attestation and fails closed on blank metadata', () => {
   const attestation = fs.readFileSync(
-    'supabase/functions/assessment-config-release/runtime-attestation.ts',
+    'supabase/functions/_shared/c03-runtime-attestation.ts',
     'utf8',
   );
   assert.match(verifier, /import \{ C03_RUNTIME_ATTESTATION \} from "\.\/runtime-attestation\.ts"/);
