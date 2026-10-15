@@ -80,86 +80,62 @@ async function sha256Hex(value: string) {
   return Array.from(new Uint8Array(digest)).map((byte) => byte.toString(16).padStart(2, "0")).join("");
 }
 
-function runtimeFixture(assessmentTypeId: string) {
+const FAMILY_AXES: Record<string, string[]> = {
+  "admin-reception-assessment": ["AX85a6e9", "AX765ca8", "AXa23fa3", "AXc39190"],
+  "clinic-performance": ["A1", "A2", "A3"],
+  "comprehensive-clinic-assessment": ["AX6f5aa5", "AX80c09a", "AXaadfb4", "AX2572cc", "AX6a52b4", "AX15afd8"],
+  "medical-team-assessment": ["A1", "A2", "A3", "A4"],
+  "patient-journey": ["A1", "A2", "A3", "A4", "A5"],
+};
+
+function runtimeFixture(assessmentTypeId: string, slug: string) {
   const familyId = "33333333-3333-4333-8333-333333333333";
-  const entries = patientJourneyRegistry.entries.filter(
-    (entry) => entry.assessmentSlug === "patient-journey" && Number(entry.interpretationVersion) === 2,
-  );
-  const axisCodes = ["A1", "A2", "A3", "A4", "A5"];
-  const axes = axisCodes.map((code, index) => ({
-    id: `a0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-    assessment_type_id: assessmentTypeId,
-    code,
-    title: `Axis ${code}`,
-    title_ar: `محور ${code}`,
-    weight: 20,
-    display_order: index + 1,
+  const source = slug === "comprehensive-clinic-assessment" ? registryV2
+    : slug === "patient-journey" ? patientJourneyRegistry : registryV1;
+  const interpretationVersion = slug === "comprehensive-clinic-assessment" || slug === "patient-journey" ? 2 : 1;
+  const entries = source.entries.filter((e) => e.assessmentSlug === slug && Number(e.interpretationVersion) === interpretationVersion);
+  if (!entries.length) throw new Error("No registry fixture for " + slug);
+  const axisCodes = FAMILY_AXES[slug];
+  const axes = axisCodes.map((code, i) => ({
+    id: "a0000000-0000-4000-8000-" + String(i + 1).padStart(12, "0"),
+    assessment_type_id: assessmentTypeId, code, title: "Axis " + code, title_ar: "محور " + code,
+    weight: 100 / axisCodes.length, display_order: i + 1,
   }));
-  const axisIdByCode = new Map(axes.map((axis) => [axis.code, axis.id]));
-  const questionCodes = [...new Set(entries.map((entry) => entry.questionCode))].sort();
-  const questionIdByCode = new Map(questionCodes.map((code, index) => [
-    code,
-    `q0000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
-  ]));
-  const questionEntries = new Map<string, typeof entries[number]>();
-  for (const entry of entries) if (!questionEntries.has(entry.questionCode)) questionEntries.set(entry.questionCode, entry);
-  const questions = questionCodes.map((code, index) => {
-    const entry = questionEntries.get(code)!;
+  const axisIds = new Map(axes.map((a) => [a.code, a.id]));
+  const codes = [...new Set(entries.map((e) => e.questionCode))].sort();
+  const questionIds = new Map(codes.map((code, i) => [code, "q0000000-0000-4000-8000-" + String(i + 1).padStart(12, "0")]));
+  const firstEntry = new Map();
+  for (const e of entries) if (!firstEntry.has(e.questionCode)) firstEntry.set(e.questionCode, e);
+  const questions = codes.map((code, i) => {
+    const e = firstEntry.get(code);
     return {
-      id: questionIdByCode.get(code)!,
-      assessment_type_id: assessmentTypeId,
-      axis_id: axisIdByCode.get(entry.axisCode)!,
-      code,
-      question_text: `Synthetic ${code}`,
-      question_text_ar: `سؤال ${code}`,
-      question_type: "single_choice",
-      display_order: index + 1,
-      is_required: true,
-      impact: "NORMAL",
-      layer: entry.measurementLayer || "P",
+      id: questionIds.get(code), assessment_type_id: assessmentTypeId, axis_id: axisIds.get(e.axisCode), code,
+      question_text: "Synthetic " + code, question_text_ar: "سؤال " + code, question_type: "single_choice",
+      display_order: i + 1, is_required: true, impact: "NORMAL", layer: e.measurementLayer || "P",
     };
   });
-  const options = entries.map((entry) => ({
-    id: entry.optionId,
-    question_id: questionIdByCode.get(entry.questionCode)!,
-    option_index: Number(entry.optionIndex),
-    option_value: Number(entry.sourceOptionValue),
-    label: `Option ${entry.optionIndex}`,
-    label_ar: `خيار ${entry.optionIndex}`,
-    is_trap: Boolean(entry.sourceIsTrap),
-    display_order: Number(entry.optionIndex) + 1,
+  const options = entries.map((e) => ({
+    id: e.optionId, question_id: questionIds.get(e.questionCode), option_index: Number(e.optionIndex),
+    option_value: Number(e.sourceOptionValue), label: "Option " + e.optionIndex, label_ar: "خيار " + e.optionIndex,
+    is_trap: Boolean(e.sourceIsTrap), display_order: Number(e.optionIndex) + 1,
+  }));
+  const traps = [...new Set(entries.filter((e) => e.sourceIsTrap).map((e) => e.questionCode))].map((code) => ({
+    assessment_type_id: assessmentTypeId, name: "SYNTHETIC_" + code, message: "Fixture trap",
+    message_ar: "فخ اختباري", question_id: questionIds.get(code), validates: "synthetic",
+    target_axis: firstEntry.get(code)?.axisCode ?? null, penalty_base: 1, penalty_max: 5,
   }));
   const assessment = {
-    id: assessmentTypeId,
-    slug: "patient-journey",
-    family_id: familyId,
-    title_ar: "رحلة المريض",
-    title_en: "Patient Journey",
-    description: "Isolated synthetic regression fixture",
-    version: 1,
-    config_version: 1,
-    question_count: questions.length,
-    axis_count: axes.length,
-    has_traps: false,
-    has_ev_simulator: false,
-    axis_roles: {},
-    kpi_mappings: {},
-    ev_mappings: {},
+    id: assessmentTypeId, slug, family_id: familyId, title_ar: "تقييم " + slug, title_en: slug,
+    description: "Isolated synthetic regression fixture", version: 1, config_version: 1,
+    question_count: questions.length, axis_count: axes.length, has_traps: traps.length > 0,
+    has_ev_simulator: false, axis_roles: {}, kpi_mappings: {}, ev_mappings: {},
   };
   return {
-    assessment,
-    family: { id: familyId, slug: "patient-journey" },
-    axes,
-    questions,
-    options,
-    traps: [],
-    answers: questions.map((question) => {
-      const option = options.find((item) => item.question_id === question.id && item.option_index === 0)!;
-      return {
-        question_id: question.code,
-        option_index: option.option_index,
-        option_value: option.option_value,
-      };
+    assessment, family: { id: familyId, slug }, axes, questions, options, traps,
+    answers: questions.map((q) => {
+      const o = options.find((item) => item.question_id === q.id && item.option_index === 0);
+      if (!o) throw new Error("Missing option zero for " + q.code);
+      return { question_id: q.code, option_index: o.option_index, option_value: o.option_value };
     }),
   };
 }
