@@ -1,5 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
-import { calculateAssessment } from "./engine.ts";
+import { attestInterpretationRelease, calculateAssessment } from "./engine.ts";
 import { calculateP3RecursiveReferralEconomic } from "./economic-opportunity-model-v1.mts";
 import { projectCompletionResponse } from "./report-interpretation.mjs";
 
@@ -23,6 +23,30 @@ const WINDOW_MS = 60_000;
 
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), { status, headers: corsHeaders });
+}
+
+async function isOwnerRequest(req: Request): Promise<boolean> {
+  const authorization = req.headers.get("authorization") || "";
+  if (!authorization.startsWith("Bearer ")) return false;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
+  if (!supabaseUrl || !anonKey) {
+    throw new Error("Owner verification configuration is unavailable");
+  }
+
+  const userClient = createClient(supabaseUrl, anonKey, {
+    global: { headers: { Authorization: authorization } },
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const { data: userData, error: userError } = await userClient.auth.getUser(
+    authorization.slice("Bearer ".length),
+  );
+  if (userError || !userData.user) return false;
+
+  const { data: owner, error: ownerError } = await userClient.rpc("is_owner");
+  if (ownerError) throw ownerError;
+  return owner === true;
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -397,6 +421,16 @@ Deno.serve(async (req) => {
     const action = body?.action;
     const data = body?.data || {};
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
+
+    if (action === "verify_interpretation_release") {
+      const assessmentTypeId = String(data.assessment_type_id || "").trim();
+      if (!assessmentTypeId) return json({ error: "Missing assessment version ID" }, 400);
+      if (!(await isOwnerRequest(req))) return json({ error: "Owner authorization required" }, 403);
+      return json({
+        success: true,
+        data: await attestInterpretationRelease(supabase, assessmentTypeId),
+      });
+    }
 
     if (action === "get_content") {
       const assessmentKey = String(data.assessment_key || "").trim();
