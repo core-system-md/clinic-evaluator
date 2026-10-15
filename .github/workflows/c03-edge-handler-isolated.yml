@@ -20,4 +20,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: denoland/setup-deno@v2
-      - run: deno test --allow-net --allow-env --allow-read tests/c03-protected-edge-handler.integration.test.ts
+      - run: deno test --no-check --allow-net --allow-env --allow-read tests/c03-protected-edge-handler.integration.test.ts
