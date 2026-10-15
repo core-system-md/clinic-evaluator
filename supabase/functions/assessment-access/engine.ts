@@ -30,6 +30,9 @@ type AssessmentRow = {
   config_version: number | null;
   question_count: number;
   axis_count: number;
+  title_ar: string;
+  title_en: string | null;
+  description: string | null;
   has_traps: boolean | null;
   has_ev_simulator: boolean | null;
   axis_roles: Record<string, string> | null;
@@ -57,6 +60,7 @@ type QuestionRow = {
   is_required: boolean | null;
   impact: string | null;
   layer: string | null;
+  trap_for: string | null;
 };
 
 type OptionRow = {
@@ -64,6 +68,21 @@ type OptionRow = {
   question_id: string;
   option_index: number;
   option_value: number;
+  label: string | null;
+  label_ar: string | null;
+  is_trap: boolean | null;
+  display_order: number;
+};
+
+type TrapRow = {
+  name: string;
+  message: string | null;
+  message_ar: string | null;
+  question_id: string;
+  validates: string | null;
+  target_axis: string | null;
+  penalty_base: number | null;
+  penalty_max: number | null;
 };
 
 type Runtime = {
@@ -72,6 +91,7 @@ type Runtime = {
   axes: AxisRow[];
   questions: QuestionRow[];
   options: OptionRow[];
+  traps: TrapRow[];
 };
 
 type StoredAnswer = {
@@ -215,31 +235,39 @@ async function loadRuntime(
   client: SupabaseClient,
   assessmentTypeId: string,
 ): Promise<Runtime> {
-  const [{ data: assessment, error: assessmentError }, { data: axes, error: axesError }, { data: questions, error: questionsError }] =
-    await Promise.all([
-      client
-        .from("assessment_types")
-        .select(
-          "id, slug, family_id, title_ar, title_en, description, version, config_version, question_count, axis_count, has_traps, has_ev_simulator, axis_roles, kpi_mappings, ev_mappings",
-        )
-        .eq("id", assessmentTypeId)
-        .maybeSingle(),
-      client
-        .from("axes")
-        .select("id, code, title, title_ar, weight, display_order")
-        .eq("assessment_type_id", assessmentTypeId)
-        .order("display_order", { ascending: true }),
-      client
-        .from("questions")
-        .select(
-          "id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer",
-        )
-        .eq("assessment_type_id", assessmentTypeId)
-        .order("display_order", { ascending: true }),
-    ]);
+  const [
+    { data: assessment, error: assessmentError },
+    { data: axes, error: axesError },
+    { data: questions, error: questionsError },
+    { data: traps, error: trapsError },
+  ] = await Promise.all([
+    client
+      .from("assessment_types")
+      .select(
+        "id, slug, family_id, title_ar, title_en, description, version, config_version, question_count, axis_count, has_traps, has_ev_simulator, axis_roles, kpi_mappings, ev_mappings",
+      )
+      .eq("id", assessmentTypeId)
+      .maybeSingle(),
+    client
+      .from("axes")
+      .select("id, code, title, title_ar, weight, display_order")
+      .eq("assessment_type_id", assessmentTypeId)
+      .order("display_order", { ascending: true }),
+    client
+      .from("questions")
+      .select(
+        "id, code, axis_id, question_text, question_text_ar, question_type, display_order, is_required, impact, layer, trap_for",
+      )
+      .eq("assessment_type_id", assessmentTypeId)
+      .order("display_order", { ascending: true }),
+    client
+      .from("traps")
+      .select("name, message, message_ar, question_id, validates, target_axis, penalty_base, penalty_max")
+      .eq("assessment_type_id", assessmentTypeId),
+  ]);
 
-  if (assessmentError || axesError || questionsError) {
-    throw assessmentError || axesError || questionsError;
+  if (assessmentError || axesError || questionsError || trapsError) {
+    throw assessmentError || axesError || questionsError || trapsError;
   }
   if (!assessment) throw new Error("Assessment not found");
 
@@ -255,7 +283,7 @@ async function loadRuntime(
   const { data: options, error: optionsError } = questionIds.length
     ? await client
         .from("options")
-        .select("id, question_id, option_index, option_value")
+        .select("id, question_id, option_index, option_value, label, label_ar, is_trap, display_order")
         .in("question_id", questionIds)
         .order("display_order", { ascending: true })
     : { data: [], error: null };
@@ -268,6 +296,7 @@ async function loadRuntime(
     axes: (axes || []) as AxisRow[],
     questions: (questions || []) as QuestionRow[],
     options: (options || []) as OptionRow[],
+    traps: (traps || []) as TrapRow[],
   };
 }
 
@@ -388,10 +417,18 @@ export async function calculateAssessment(
       slug: runtime.family.slug,
       version: assessmentVersion,
       configVersion: runtime.assessment.config_version ?? null,
+      titleAr: runtime.assessment.title_ar,
+      titleEn: runtime.assessment.title_en,
+      description: runtime.assessment.description,
+      declaredQuestionCount: runtime.assessment.question_count,
+      declaredAxisCount: runtime.assessment.axis_count,
       questionCount: runtime.questions.length,
       axisCount: runtime.axes.length,
+      hasTraps: runtime.assessment.has_traps ?? false,
+      hasEvSimulator: runtime.assessment.has_ev_simulator ?? false,
       axisRoles: runtime.assessment.axis_roles ?? {},
       kpiMappings: runtime.assessment.kpi_mappings ?? {},
+      evMappings: runtime.assessment.ev_mappings ?? {},
     },
     axes: runtime.axes
       .map((axis) => ({
@@ -400,29 +437,38 @@ export async function calculateAssessment(
         weight: Number(axis.weight),
         title: axis.title,
         titleAr: axis.title_ar,
+        displayOrder: Number(axis.display_order),
       }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
+      .sort((a, b) => a.id.localeCompare(b.id)),
     questions: runtime.questions
       .map((question) => ({
         id: question.id,
         code: question.code,
         axisId: question.axis_id,
+        text: question.question_text,
+        textAr: question.question_text_ar,
+        type: question.question_type,
+        displayOrder: Number(question.display_order),
         layer: question.layer ?? null,
         impact: question.impact ?? null,
+        trapFor: question.trap_for ?? null,
         required: question.is_required !== false,
       }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
+      .sort((a, b) => a.id.localeCompare(b.id)),
     options: runtime.options
       .map((option) => ({
         id: option.id,
         questionId: option.question_id,
         optionIndex: Number(option.option_index),
         optionValue: Number(option.option_value),
+        label: option.label,
+        labelAr: option.label_ar,
+        isTrap: option.is_trap ?? false,
+        displayOrder: Number(option.display_order),
       }))
       .sort(
         (a, b) =>
-          a.questionId.localeCompare(b.questionId) ||
-          a.optionIndex - b.optionIndex,
+          a.id.localeCompare(b.id),
       ),
     interpretation: {
       schemaVersion: interpretationRegistry.schemaVersion,
@@ -437,6 +483,9 @@ export async function calculateAssessment(
         )
         .map((entry) => ({ ...entry })),
     },
+    traps: runtime.traps
+      .map((trap) => ({ ...trap }))
+      .sort((a, b) => String(a.question_id).localeCompare(String(b.question_id)) || String(a.name).localeCompare(String(b.name))),
     consistency: {
       schemaVersion: consistencyRuleRegistry.schemaVersion,
       ruleRegistryVersion: consistencyRuleRegistry.schemaVersion,
