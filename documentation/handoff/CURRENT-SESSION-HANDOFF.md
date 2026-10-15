@@ -221,3 +221,27 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 
 ### Resume gate
 **Startup reconciliation is complete. Implementation has not started.** The owner-directed scope is identified; D11 was corrected to D17 for the Git/Supabase source-of-truth question. Resume after owner confirmation, starting with read-only C-03 investigation. Preserve all historical sections below for auditability.
+
+
+## C-03 progress update — 2026-10-15
+
+### Completed during this continuation
+
+- Created [PR #102](https://github.com/core-system-md/clinic-evaluator/pull/102), branch `test/c03-protected-completion-regression-20261015`, current test head `b8f759078567b6d1b67376afa1ceadfe5e61b5cb`.
+- Added `tests/c03-protected-completion-regression.test.js`: checks preparation → frozen snapshot → calculation → protected/public RPC ordering; checks protected identity/token/result payload; checks answer-option integrity guards; and exercises report projection for all five published family axis contracts.
+- Exact-head CI run [#38660568340](https://github.com/core-system-md/clinic-evaluator/actions/runs/38660568340) succeeded in all four jobs: Full Node suite (38 tests, 38 passed), P3 isolated kernel, C-02 disposable PostgreSQL, and P4 protected completion disposable PostgreSQL.
+- Created [PR #103](https://github.com/core-system-md/clinic-evaluator/pull/103), design-only, with the hybrid Git/Supabase configuration synchronization and release contract at `documentation/architecture/C-03-HYBRID-CONFIG-SYNC-RELEASE-CONTRACT-2026-10-15.md`. It defines digest scope, release states, synchronization/publish sequence, drift detection, pinned sessions, rollback, and closure gates. It does not implement/deploy the gate.
+- Read-only Production axis audit confirms all five current published families' axis codes align with the five current report-model definitions. This rules out that specific mismatch for the current five versions, but does not reproduce or disprove the reported crash for all protected/admin conditions.
+
+### Evidence boundary / unresolved gates
+
+- The protected SQL completion harness passes, and the new route-contract/projection tests pass. These are not an end-to-end execution of the Edge Function's protected `complete` action.
+- No 500/4xx in the sampled recent Edge logs is not proof that the reported failure is absent. Root cause remains **UNPROVEN**; no application fix should be guessed.
+- PR #96 remains unsuitable for direct merge: it diverges from current `main` and covers an interpretation-release gate rather than complete configuration synchronization.
+- No Production writes, migration, Edge deployment, production-writing E2E, or merge was performed in this continuation.
+
+### Exact next step
+
+1. Obtain a reproducible isolated Edge completion test or the specific stack/error trace for the reported admin/protected crash. Exercise the actual protected `complete` handler, not just source-text contracts or the lower-level SQL RPC. The regression must fail before the fix and pass after it.
+2. Implement the full configuration digest/release state machine from PR #103's contract on a fresh branch based on current `main`, including drift, compare-and-swap publication, pinned-session behavior, and rollback tests.
+3. Only after both tracks pass, evaluate deployment gates separately. C-03 remains **IN PROGRESS / NOT CLOSED**.
