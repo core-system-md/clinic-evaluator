@@ -10,6 +10,8 @@ const jwks = createRemoteJWKSet(new URL("https://token.actions.githubusercontent
 export type C03GithubReleaseIdentity = {
   repository: string;
   repositoryOwner: string;
+  actor: string;
+  actorId: string;
   sha: string;
   runId: string;
   runAttempt: string;
@@ -28,6 +30,8 @@ function requiredClaim(payload: JWTPayload, key: string): string {
 /** Validate the signed GitHub workload token and bind it to the one guarded C-03 release workflow. */
 export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubReleaseIdentity {
   const subject = requiredClaim(payload, "sub");
+  const actor = requiredClaim(payload, "actor");
+  const actorId = requiredClaim(payload, "actor_id");
   const repository = requiredClaim(payload, "repository");
   const repositoryOwner = requiredClaim(payload, "repository_owner");
   const ref = requiredClaim(payload, "ref");
@@ -41,6 +45,9 @@ export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubRe
   if (subject !== "repo:core-system-md/clinic-evaluator:environment:production-e2e") {
     throw new Error("GitHub OIDC subject is not bound to the protected C-03 environment.");
   }
+  if (actor !== "core-system-md" || actorId !== "290540122") {
+    throw new Error("GitHub OIDC dispatcher is not the authorized repository-owner account.");
+  }
   if (repository !== EXPECTED_REPOSITORY || repositoryOwner !== "core-system-md") {
     throw new Error("GitHub OIDC repository identity is not authorized for C-03 release.");
   }
@@ -53,7 +60,7 @@ export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubRe
   if (!/^[0-9a-f]{40}$/.test(sha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt) || Number(runId) < 1 || Number(runAttempt) < 1) {
     throw new Error("GitHub OIDC commit or run identity is malformed.");
   }
-  return { repository, repositoryOwner, sha, runId, runAttempt, workflowRef, environment };
+  return { repository, repositoryOwner, actor, actorId, sha, runId, runAttempt, workflowRef, environment };
 }
 
 /** Validate the signed GitHub workload token and bind it to the one guarded C-03 release workflow. */
