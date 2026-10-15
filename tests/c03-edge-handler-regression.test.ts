@@ -225,7 +225,7 @@ for (const slug of Object.keys(FAMILY_AXES)) {
   Deno.test(`C-03 real engine + protected completion route: ${slug}`, async () => {
     const userId = "22222222-2222-4222-8222-222222222222";
     const { response, body, calls, session } = await runComplete(userId, slug);
-    assertEqual(response.status, 200, slug);
+    assertEqual(response.status, 200, slug + ": " + JSON.stringify(body));
     assertEqual(body.success, true, slug);
     assertEqual(calls[0].name, "prepare_assessment_submission");
     const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
@@ -243,7 +243,7 @@ for (const slug of Object.keys(FAMILY_AXES)) {
 
   Deno.test(`C-03 real engine + public completion route: ${slug}`, async () => {
     const { response, body, calls } = await runComplete(null, slug);
-    assertEqual(response.status, 200, slug);
+    assertEqual(response.status, 200, slug + ": " + JSON.stringify(body));
     assertEqual(body.success, true, slug);
     const completion = calls.find((call) => call.name.startsWith("complete_p4_"));
     assertOk(completion);
