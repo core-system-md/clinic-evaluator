@@ -60,7 +60,7 @@ function pgErrorStatus(error: any) {
   const code = String(error?.code || "");
   if (code === "28000") return 401;
   if (code === "42501") return 403;
-  if (code === "40901" || code === "40902" || code === "40903" || code === "40904") return 409;
+  if (code.startsWith("409")) return 409;
   if (code.startsWith("22")) return 400;
   return 500;
 }
@@ -866,6 +866,19 @@ Deno.serve(async (req) => {
           }
         : {};
 
+      const releaseCheck = await supabase.rpc("c03_assert_session_configuration_release", {
+        p_session_id: session.id,
+      });
+      if (releaseCheck.error) {
+        throw Object.assign(
+          new Error(releaseCheck.error.message || "Pinned configuration release is unavailable"),
+          { status: pgErrorStatus(releaseCheck.error) },
+        );
+      }
+      if (!releaseCheck.data?.release_id || !releaseCheck.data?.config_digest) {
+        return json({ error: "Pinned configuration release is unavailable" }, 409);
+      }
+
       const preparation = await supabase.rpc("prepare_assessment_submission", {
         p_session_id: session.id,
         p_access_token_hash: access.tokenHash,
@@ -950,8 +963,16 @@ Deno.serve(async (req) => {
       const {
         resolvedSelections: _resolvedSelections,
         axisPersistenceRows: _axisPersistenceRows,
-        ...structuredResult
+        ...computedStructuredResult
       } = computed.result;
+      const structuredResult = {
+        ...computedStructuredResult,
+        provenance: {
+          ...(computedStructuredResult.provenance || {}),
+          configurationReleaseId: releaseCheck.data.release_id,
+          configurationReleaseDigest: releaseCheck.data.config_digest,
+        },
+      };
 
       const rpcName = access.assessment_user_id
         ? "complete_p4_assessment_from_result"
