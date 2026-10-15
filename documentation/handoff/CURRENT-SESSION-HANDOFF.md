@@ -285,3 +285,56 @@ The initial investigation identified two concrete follow-ups: an actual isolated
   3. Prepare a controlled rollout that registers and verifies all five currently published versions, activates each release ID, configures the four runtime metadata values, then enables the gate only after a read-only preflight proves complete coverage.
   4. Independently authorize and execute the Production migration, Edge deployment, and bounded protected/public E2E with exact-ID cleanup. None of these actions has occurred.
   5. Update this handoff again after the next evidence-bearing implementation step; do not mark C-03 closed until all gates above pass.
+
+
+---
+
+## SESSION CLOSEOUT / NEXT-CONVERSATION HANDOFF — 2026-10-15 13:56 Asia/Amman
+
+This section is the authoritative handoff for the next conversation. Older "next step" statements above are historical snapshots unless explicitly marked current below.
+
+### Current repository and PR state (rechecked at closeout)
+
+- `main` remains at `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`; no C-03 PR has been merged into main.
+- PR #101 (this documentation reconciliation) is open/Draft on `docs/reconcile-current-handoff-live-state-20261015`; its documentation is being updated for this handoff. It has not been merged.
+- PR #102 remains open/Draft, head `b13b459c846a6a8d693ee2c0127f0738e0243c8c`; its tests are useful route/report/SQL guards, but are not the primary proof of protected handler behavior.
+- PR #103 remains open/Draft and is design documentation only.
+- PR #105 is closed, unmerged, and explicitly superseded by PR #107. Do not resume #105.
+- PR #106 remains open/Draft, latest checked head `bf57c44a97a90ec389f61e5366434ac5c831a517`. It adds persisted-result family identity recovery and exports an injectable handler factory for actual Deno handler tests.
+- PR #107 is the current hybrid release-gate implementation, open/Draft, based on current main SHA `6477ff7a6bd44f7722f1a8ac29dc4cc8148b751d`, latest checked head `abec5e31268bd9d1c6339e95d4a6bd1d5a3d68e9`. It supersedes #105; #96 has not been merged or cherry-picked.
+- PR #96 remains open/Draft/diverged; do not merge it directly.
+
+### New evidence since the previous handoff entry
+
+**Protected Edge handler — PR #106**
+- Exact-head run [#38705496464](https://github.com/core-system-md/clinic-evaluator/actions/runs/38705496464) succeeded (2/2 Deno tests) against the actual request handler with injected/fake backend.
+- The tests cover (a) protected completed-retry/report projection when the stored result lacks `assessmentSlug`, and (b) first-time protected completion routing, protected user identity, frozen fingerprint, and payload filtering.
+- The missing-family-context projection failure class is reproduced by the test and recovery passes. This is evidence for a real failure mode and a code-path fix; it does **not** prove that this was the exact historical reported Production crash. The first-time route test stubs scoring and uses a fake backend. The actual protected RPC is separately covered by disposable PostgreSQL harness.
+- Other exact-head successful runs: P3 #38705496576, WP-02 #38705496591, WP-03 #38705496471, WP-04 #38705496598, WP-05 #38705496556, WP-09 #38705496592.
+
+**Hybrid config release gate — PR #107**
+- Exact-head runs checked for `abec5e31268bd9d1c6339e95d4a6bd1d5a3d68e9` all succeeded: C-03 release gate #38706962125, P3 #38706962161, WP-02 #38706962076, WP-04 #38706962043, WP-09 #38706962161. (The connector listed WP-09 as run #38706962161; retain the run link and verify workflow identity if needed.)
+- PR #107 adds a canonical full-runtime configuration projection/digest, a release manifest/state machine, owner-authenticated `assessment-config-release` verifier, service-role runtime attestation, compare-and-swap publication, rollback, release-ID pinning, drift rejection, and a disabled-by-default gate. CI exercises disposable PostgreSQL and isolated verifier tests.
+- These are branch/CI results only. No C-03 migration was applied to Production, no release was registered/verified/activated there, no runtime metadata was configured in Production, no Edge Function was deployed, and the gate remains absent from Production.
+
+### Exact status at closeout
+
+| Track | Status | What is proven | What remains |
+|---|---|---|---|
+| Protected/admin completion | PARTIAL IMPLEMENTATION + ISOLATED TESTS PASS | Handler-level Deno regression coverage passes; persisted missing-family-context failure class is covered; protected SQL RPC harness passes separately | Review/merge the fix after full diff review; verify the exact historical crash cause where possible; ensure public and protected completion regressions are covered; no Production runtime validation |
+| Git/Supabase sync/release | IMPLEMENTED ON PR #107; ISOLATED CI PASS | Digest, verifier, release state-machine/CAS/rollback/pinning/drift tests pass on disposable test infrastructure | Full code/schema review; target-schema compatibility proof; safe rollout plan for all five published versions; explicit authorization for Production migration/deployment/E2E |
+| Production rollout | NOT STARTED | Current known Production snapshot remains main SHA above, Edge `assessment-access` v38/hash `fca794e29fd4193348fcada6de9cb2e2165536accef056ca808faa9f5bce1c8b`, 52 migrations through `20261013110000 / c02_allow_answer_value_70` | Do not apply migration, write data, deploy Edge, or run Production E2E without the applicable explicit release authorization and exact-ID cleanup plan |
+| C-03 overall | **IN PROGRESS / NOT CLOSED** | Both tracks now have substantive implementation candidates and isolated CI evidence | Complete reviews, address findings, establish target-environment compatibility, then carry out authorized rollout gates and verify runtime behavior |
+
+### Next conversation — start here, not from the beginning
+
+1. Read this closeout section and inspect the **current** heads/diffs for PR #106 and PR #107; do not repeat the already-passing test setup without a reason.
+2. Review PR #106's handler factory and Deno tests against the complete `assessment-access/index.ts` request lifecycle, verify the persisted identity resolution against schema/function contracts, and inspect all public/protected completion paths. Keep the claim bounded: a failure class is reproduced, but the exact historical Production incident is not conclusively identified.
+3. Review PR #107's complete digest field coverage against every field consumed by runtime/scoring/reporting, and verify the migration against the actual current schema plus all five live published assessment versions. Check release registration/verification/activation semantics, transaction boundaries, security-definer grants, RLS, and migration compatibility in disposable PostgreSQL.
+4. Check the latest exact-head CI status and any PR review findings. Do not merge PR #96 or superseded PR #105. Integrate only after review and checks pass.
+5. Before any Production action, prepare an explicit staged release plan: migration compatibility/preflight; export and digest all five current published versions; register and verify releases; configure `C03_GIT_COMMIT_SHA`, `C03_EDGE_RELEASE_REF`, `C03_FIXTURE_SET_VERSION`, `C03_MIGRATION_CONTRACT_VERSION`; verify release IDs/pointers; deploy the exact Edge bundle; activate/enable the gate only after a read-only coverage check; bounded protected/public E2E; exact-ID cleanup and zero-residue verification. Production actions remain gated by explicit authorization.
+6. After each bounded work package, update this handoff and stop. Do not call C-03 closed until the implementation is merged, the release gate is safely active, protected/public runtime checks pass, and cleanup/verification evidence is recorded.
+
+### Safe resume instruction
+
+> Continue C-03 from the session closeout in `documentation/handoff/CURRENT-SESSION-HANDOFF.md`. First review PR #106 (protected handler fix/tests) and PR #107 (full hybrid release gate) at their current heads and verify their CI/review state. Do not redo completed investigations, do not merge PR #96 or #105, and do not touch Production. Finish bounded code/schema review and isolated tests, update the handoff with evidence, and request/require explicit authorization before Production migration, Edge deployment, or Production-writing E2E. C-03 remains IN PROGRESS / NOT CLOSED.
