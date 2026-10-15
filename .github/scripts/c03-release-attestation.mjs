@@ -12,6 +12,7 @@ const CONTRACT_RELATIVE_PATH = "supabase/functions/assessment-config-release/rel
 const SOURCE_ROOTS = [
   "supabase/functions/assessment-access",
   "supabase/functions/assessment-config-release",
+  "supabase/functions/_shared",
 ];
 const SOURCE_EXTENSIONS = new Set([".ts", ".mts", ".tsx", ".js", ".mjs", ".jsx", ".json", ".jsonc", ".toml", ".wasm"]);
 
