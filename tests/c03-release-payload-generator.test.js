@@ -117,6 +117,20 @@ test("C-03 generator refuses published versions before creating a registration p
   );
 });
 
+test("C-03 generator permits only an explicitly declared zero-history published bootstrap", async () => {
+  const bootstrap = { ...snapshot, status: "published", bootstrapPublished: true, releaseHistoryCount: 0 };
+  const payload = await generateReleasePayload({ snapshot: bootstrap, registry, sourceCommitSha });
+  assert.equal(payload.rpc.args.p_config_digest, snapshot.configDigest);
+  await assert.rejects(
+    generateReleasePayload({ snapshot: { ...bootstrap, releaseHistoryCount: 1 }, registry, sourceCommitSha }),
+    /only supports draft or archived/,
+  );
+  await assert.rejects(
+    generateReleasePayload({ snapshot: { ...bootstrap, bootstrapPublished: false }, registry, sourceCommitSha }),
+    /only supports draft or archived/,
+  );
+});
+
 test("C-03 generator refuses invalid provenance instead of inventing it", async () => {
   await assert.rejects(
     generateReleasePayload({ snapshot, registry, sourceCommitSha: "not-a-commit" }),
