@@ -1,6 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.0";
 import { computeAssessmentConfigReleaseEvidence } from "../assessment-access/engine.ts";
-import { C03_RUNTIME_ATTESTATION } from "./runtime-attestation.ts";
+import { C03_RUNTIME_ATTESTATION } from "../_shared/c03-runtime-attestation.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
 const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
