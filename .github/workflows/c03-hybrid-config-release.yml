@@ -12,6 +12,7 @@ on:
       - "supabase/functions/assessment-config-release/**"
       - "tests/c03-config-digest-coverage.test.js"
       - "tests/c03-release-verifier-contract.test.js"
+      - "tests/c03-release-verifier-handler.test.ts"
   workflow_dispatch:
 
 permissions:
@@ -52,3 +53,18 @@ jobs:
       - run: npm ci
       - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js
 
+
+  release-verifier-handler:
+    name: C-03 owner-authenticated verifier handler (isolated fake backend)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SUPABASE_URL: "https://example.supabase.co"
+      SUPABASE_ANON_KEY: "test-only-anon-key"
+      SUPABASE_SERVICE_ROLE_KEY: "test-only-service-role-key"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts
