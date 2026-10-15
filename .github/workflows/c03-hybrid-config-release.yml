@@ -8,7 +8,10 @@ on:
       - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
       - "tests/c03-hybrid-config-release-harness.sql"
       - "supabase/functions/assessment-access/engine.ts"
+      - "supabase/functions/assessment-access/assessment-config-digest.mjs"
+      - "supabase/functions/assessment-config-release/**"
       - "tests/c03-config-digest-coverage.test.js"
+      - "tests/c03-release-verifier-contract.test.js"
   workflow_dispatch:
 
 permissions:
@@ -47,4 +50,15 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/c03-config-digest-coverage.test.js
+      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js
+
+  edge-function-typecheck:
+    name: C-03 release verifier Edge Function typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - run: deno check --no-lock supabase/functions/assessment-config-release/index.ts
