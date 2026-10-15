@@ -305,14 +305,14 @@ Continue review of PR #106 and PR #107 against the live repository contract, clo
 - Runtime metadata is still supplied through environment variables and is not independently bound to the deployed Edge bundle by an auditable deploy process. This remains a release-blocking gap. C-03 is NOT CLOSED.
 
 
-## Latest guarded release attempt — blocked before Production deployment (2026-10-15)
+## Latest guarded release attempts and credential-scope correction — 2026-10-15
 
-- Workflow: [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525).
-- Exact-SHA checks passed: Node digest/attestation/release sequencing tests, Deno protected/public handler tests, actual admin authorization extraction, and the disposable PostgreSQL release harness.
-- The workflow stopped at credential preflight because GitHub Actions secret `SUPABASE_SERVICE_ROLE_KEY` is missing. It did not prepare a runtime attestation, deploy either Edge function, register or activate releases, or enable the gate.
-- Last live read: migration `20261015100000_c03_hybrid_config_release_gate` is applied; gate remains disabled; release rows=0; active release pointers=0; `assessment-access` remains ACTIVE v38; `assessment-config-release` remains undeployed.
-- Next action: add the legacy service-role JWT as repository Actions secret `SUPABASE_SERVICE_ROLE_KEY` through GitHub Settings (never paste it into chat), ensure `C03_OWNER_JWT` is also configured and current, then dispatch the guarded workflow with input `ENABLE-C03-PRODUCTION`. It will prepare an attestation for the exact current `main` SHA and wait for both functions to be deployed from the staged source bundle before making release writes.
-- No PRs remain open. Do not change `main` after the next successful deployment; the runtime identity binds the exact SHA.
+- Initial run [#38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525), exact SHA `3672dd7626b8662c7d71bb81847cffaf41976951`: Node, Deno, protected/public Edge handler, admin authorization extraction, and disposable PostgreSQL release tests passed; credential preflight stopped before attestation or Production writes.
+- The log proves `SUPABASE_SERVICE_ROLE_KEY` expanded to an empty value inside the job. It does **not** prove that the key is absent from GitHub settings. Earlier handoff wording claiming the key was absent from the repository was too strong and is corrected here.
+- Compared the workflow environment with the documented existing credential scope. Updated both C-03 jobs from `environment: production` to `environment: production-e2e` in commit `50b2e9c9b766c3103074f1d58e558294fab01943` and triggered [run #38746879746](https://github.com/core-system-md/clinic-evaluator/actions/runs/38746879746). This run again passed the isolated tests but credential preflight still reported `SUPABASE_SERVICE_ROLE_KEY` empty. Therefore changing the environment name alone did not resolve secret injection; root cause is still unverified and the workflow stopped before `prepare`, Edge deployment, release registration/activation, or gate writes.
+- The available GitHub connector cannot inspect secret names/values or environment secret settings. Do not ask the owner to recreate the key and do not expose credentials in chat. Next diagnostic must inspect GitHub Actions configuration for the exact repository/environment secret name and scope, and check whether an environment-level empty/overriding entry or a differently named secret is involved. Do not weaken fail-closed preflight or move a service-role key into a plain variable.
+- Live Production state last verified: migration `20261015100000_c03_hybrid_config_release_gate` is applied; gate disabled; release rows=0; active release pointers=0; `assessment-access` ACTIVE v38; `assessment-config-release` undeployed.
+- No PRs remain open. C-03 remains OPEN until credential injection is verified, both Edge bundles match an attestation for the exact current `main` SHA, all five releases are activated, the gate readback succeeds, and bounded E2E plus exact-ID cleanup succeeds.
 
-**Status: CODE MERGED / MIGRATION APPLIED / CI PASS / RELEASE BLOCKED BY MISSING SECRET / C-03 NOT CLOSED.**
+**Status: CODE MERGED / MIGRATION APPLIED / ISOLATED CI PASS / SECRET INJECTION STILL EMPTY AFTER ENVIRONMENT CORRECTION / C-03 NOT CLOSED.**
 
