@@ -163,38 +163,6 @@ async function main() {
     serviceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
     ownerJwt: process.env.C03_OWNER_JWT,
     confirmation: process.env.C03_PRODUCTION_RELEASE_CONFIRMATION,
-    verifyAttestation: async ({ assessmentTypeId, baseUrl, anonKey, ownerJwt, fetchImpl }) => {
-      process.env.SUPABASE_URL = baseUrl;
-      process.env.SUPABASE_ANON_KEY = anonKey;
-      process.env.C03_OWNER_JWT = ownerJwt;
-      process.env.C03_ASSESSMENT_TYPE_ID = assessmentTypeId;
-      // Reuse the same injected fetch implementation for deterministic testing.
-      const expectedVerifier = await import("./c03-release-attestation.mjs");
-      if (fetchImpl !== fetch) {
-        const expected = await expectedVerifier.buildRuntimeAttestation({
-          commitSha: process.env.GITHUB_SHA || process.env.C03_GIT_COMMIT_SHA || undefined,
-        });
-        const compare = async (endpoint, body, token) => {
-          const response = await fetchImpl(baseUrl + "/functions/v1/" + endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json", apikey: anonKey, Authorization: "Bearer " + token },
-            body: JSON.stringify(body),
-          });
-          const payload = await response.json().catch(() => ({}));
-          if (!response.ok || payload?.success !== true) throw new Error("Read-only attestation failed for " + endpoint);
-          const actual = endpoint === "assessment-config-release"
-            ? payload?.data?.runtimeMetadata
-            : payload?.data?.runtimeMetadata;
-          for (const key of ["schemaVersion", "gitCommitSha", "edgeReleaseRef", "fixtureSetVersion", "migrationContractVersion"]) {
-            if (actual?.[key] !== expected[key]) throw new Error("Attestation mismatch for " + endpoint + "." + key);
-          }
-        };
-        await compare("assessment-config-release", { action: "export", assessment_type_id: assessmentTypeId }, ownerJwt);
-        await compare("assessment-access", { action: "c03_runtime_attestation" }, anonKey);
-      } else {
-        await verifyDeployedAttestation();
-      }
-    },
   });
   console.log(JSON.stringify(result, null, 2));
 }
