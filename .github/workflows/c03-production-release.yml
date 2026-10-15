@@ -2,10 +2,6 @@ name: C-03 guarded Production release and bounded E2E
 # Owner-authorized one-time release trigger [release-c03]; waits for the connected Supabase deployment to attest this exact commit.
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - ".github/workflows/c03-production-release.yml"
   workflow_dispatch:
     inputs:
       confirm_production_release:
@@ -23,9 +19,12 @@ concurrency:
 
 jobs:
   release:
-    if: ${{ (github.event_name == 'push' && contains(github.event.head_commit.message, '[release-c03]')) || (github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION') }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' }}
     runs-on: ubuntu-latest
     environment: production-e2e
+    permissions:
+      contents: read
+      id-token: write
     timeout-minutes: 35
     services:
       postgres:
@@ -44,8 +43,7 @@ jobs:
       SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
       SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
       SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      C03_OWNER_JWT: ${{ secrets.C03_OWNER_JWT }}
-      C03_PRODUCTION_RELEASE_CONFIRMATION: ${{ github.event_name == 'push' && contains(github.event.head_commit.message, '[release-c03]') && 'ENABLE-C03-PRODUCTION' || inputs.confirm_production_release }}
+      C03_PRODUCTION_RELEASE_CONFIRMATION: ${{ inputs.confirm_production_release }}
     steps:
       - uses: actions/checkout@v4
       - name: Refuse stale release commit before any Production operation
@@ -85,7 +83,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY C03_OWNER_JWT; do
+          for name in SUPABASE_ANON_KEY SUPABASE_SERVICE_ROLE_KEY; do
             if [ -z "${!name:-}" ]; then echo "::error::Required GitHub Actions secret is missing: $name"; exit 1; fi
           done
           if [ "$SUPABASE_PROJECT_REF" != "oaqpzaarppccbnepffxx" ] || [ "$SUPABASE_URL" != "https://oaqpzaarppccbnepffxx.supabase.co" ]; then
