@@ -1,5 +1,7 @@
 import { createAssessmentAccessHandler } from "../supabase/functions/assessment-access/index.ts";
 import patientJourneyRegistry from "../supabase/functions/assessment-access/patient-journey-interpretation-registry-v2.json" with { type: "json" };
+import registryV1 from "../supabase/functions/assessment-access/response-interpretation-registry-v1.json" with { type: "json" };
+import registryV2 from "../supabase/functions/assessment-access/response-interpretation-registry-v2.json" with { type: "json" };
 
 
 function assertEqual(actual: unknown, expected: unknown, message = "") {
