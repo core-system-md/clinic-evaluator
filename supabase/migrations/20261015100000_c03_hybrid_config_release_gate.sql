@@ -110,13 +110,18 @@ $$;
 alter table public.assessment_interpretation_releases enable row level security;
 revoke all on public.assessment_interpretation_releases from public, anon, authenticated;
 
-create or replace function public.register_assessment_interpretation_release_secure(
+drop function if exists public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, jsonb);
+
+create function public.register_assessment_interpretation_release_secure(
   p_assessment_type_id uuid,
   p_interpretation_version integer,
   p_registry_digest text,
+  p_assessment_config_digest text,
   p_source_commit_sha text,
   p_edge_release_ref text,
-  p_option_manifest jsonb
+  p_option_manifest jsonb,
+  p_config_manifest jsonb,
+  p_registered_by uuid
 )
 returns jsonb
 language plpgsql
@@ -131,8 +136,15 @@ declare
   v_distinct_count integer;
   v_release_id uuid;
 begin
-  if not public.is_owner() then
-    raise exception 'Owner authorization required to register an interpretation release'
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'Service-role Edge runtime required to register a configuration release'
+      using errcode = '42501';
+  end if;
+  if not exists (
+    select 1 from public.admin_users
+    where user_id = p_registered_by and active = true and role = 'owner'
+  ) then
+    raise exception 'An active owner identity is required to register a configuration release'
       using errcode = '42501';
   end if;
 
@@ -145,7 +157,14 @@ begin
     raise exception 'Assessment version not found' using errcode = 'P0002';
   end if;
   if v_assessment.status not in ('draft', 'archived') then
-    raise exception 'Interpretation release can only be registered for a draft or archived version'
+    raise exception 'Configuration release can only be registered for a draft or archived version'
+      using errcode = '55000';
+  end if;
+  if exists (
+    select 1 from public.assessment_interpretation_releases
+    where assessment_type_id = v_assessment.id and release_state = 'PUBLISHED'
+  ) then
+    raise exception 'Published releases are immutable; create a new assessment version'
       using errcode = '55000';
   end if;
   if p_interpretation_version is null or p_interpretation_version < 1 then
@@ -153,6 +172,9 @@ begin
   end if;
   if coalesce(p_registry_digest, '') !~ '^[0-9a-f]{64}$' then
     raise exception 'registry_digest must be a lowercase SHA-256 digest' using errcode = '22023';
+  end if;
+  if coalesce(p_assessment_config_digest, '') !~ '^[0-9a-f]{64}$' then
+    raise exception 'assessment_config_digest must be a lowercase SHA-256 digest' using errcode = '22023';
   end if;
   if coalesce(p_source_commit_sha, '') !~ '^[0-9a-f]{40}([0-9a-f]{24})?$' then
     raise exception 'source_commit_sha must be a Git commit SHA' using errcode = '22023';
@@ -162,6 +184,13 @@ begin
   end if;
   if jsonb_typeof(p_option_manifest) <> 'array' then
     raise exception 'option_manifest must be a JSON array' using errcode = '22023';
+  end if;
+  if jsonb_typeof(p_config_manifest) <> 'object' then
+    raise exception 'config_manifest must be a JSON object' using errcode = '22023';
+  end if;
+  if p_config_manifest is distinct from public.assessment_config_manifest_secure(v_assessment.id) then
+    raise exception 'Configuration manifest does not match the current persisted assessment configuration'
+      using errcode = '22023';
   end if;
 
   select count(*) into v_option_count
@@ -206,32 +235,41 @@ begin
 
   insert into public.assessment_interpretation_releases(
     assessment_type_id, family_id, assessment_version, interpretation_version,
-    registry_digest, source_commit_sha, edge_release_ref, option_manifest,
-    registered_by, registered_at
+    registry_digest, assessment_config_digest, config_manifest,
+    source_commit_sha, edge_release_ref, option_manifest, release_state,
+    registered_by, registered_at, degraded_reason,
+    runtime_verified_at, runtime_verified_digest, runtime_verified_config_digest,
+    runtime_verified_edge_release_ref, runtime_verified_source_commit_sha
   )
   values (
     v_assessment.id, v_assessment.family_id, v_assessment.version, p_interpretation_version,
-    p_registry_digest, p_source_commit_sha, trim(p_edge_release_ref), p_option_manifest,
-    auth.uid(), now()
+    p_registry_digest, p_assessment_config_digest, p_config_manifest,
+    p_source_commit_sha, trim(p_edge_release_ref), p_option_manifest, 'PREPARED',
+    p_registered_by, now(), null, null, null, null, null, null
   )
   on conflict (assessment_type_id) do update
     set family_id = excluded.family_id,
         assessment_version = excluded.assessment_version,
         interpretation_version = excluded.interpretation_version,
         registry_digest = excluded.registry_digest,
+        assessment_config_digest = excluded.assessment_config_digest,
+        config_manifest = excluded.config_manifest,
         source_commit_sha = excluded.source_commit_sha,
         edge_release_ref = excluded.edge_release_ref,
         option_manifest = excluded.option_manifest,
+        release_state = 'PREPARED',
+        degraded_reason = null,
         registered_by = excluded.registered_by,
         registered_at = excluded.registered_at,
         runtime_verified_at = null,
         runtime_verified_digest = null,
+        runtime_verified_config_digest = null,
         runtime_verified_edge_release_ref = null,
         runtime_verified_source_commit_sha = null
   returning id into v_release_id;
 
   perform public.write_admin_audit(
-    'assessment.interpretation_release.register',
+    'assessment.configuration_release.register',
     'assessment_interpretation_releases',
     v_release_id,
     v_assessment.family_id,
@@ -241,9 +279,12 @@ begin
       'assessment_version', v_assessment.version,
       'interpretation_version', p_interpretation_version,
       'registry_digest', p_registry_digest,
+      'assessment_config_digest', p_assessment_config_digest,
       'source_commit_sha', p_source_commit_sha,
       'edge_release_ref', trim(p_edge_release_ref),
-      'option_count', v_manifest_count
+      'option_count', v_manifest_count,
+      'release_state', 'PREPARED',
+      'registered_by', p_registered_by
     ),
     true,
     null
@@ -253,13 +294,15 @@ begin
     'success', true,
     'release_id', v_release_id,
     'assessment_type_id', v_assessment.id,
-    'option_count', v_manifest_count
+    'option_count', v_manifest_count,
+    'assessment_config_digest', p_assessment_config_digest,
+    'release_state', 'PREPARED'
   );
 end;
 $$;
 
-revoke all on function public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, jsonb) from public, anon;
-grant execute on function public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, jsonb) to authenticated;
+revoke all on function public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, text, jsonb, jsonb, uuid) from public, anon, authenticated;
+grant execute on function public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, text, jsonb, jsonb, uuid) to service_role;
 
 -- Only the Edge runtime service-role client may record a successful runtime attestation.
 create or replace function public.mark_assessment_interpretation_release_runtime_verified_secure(
