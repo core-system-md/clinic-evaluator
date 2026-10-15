@@ -7,12 +7,14 @@ on:
       - ".github/workflows/c03-hybrid-config-release.yml"
       - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
       - "tests/c03-hybrid-config-release-harness.sql"
-      - "supabase/functions/assessment-access/engine.ts"
-      - "supabase/functions/assessment-access/assessment-config-digest.mjs"
+      - "supabase/functions/assessment-access/**"
       - "supabase/functions/assessment-config-release/**"
+      - ".github/scripts/c03-*.mjs"
       - "tests/c03-config-digest-coverage.test.js"
       - "tests/c03-release-verifier-contract.test.js"
       - "tests/c03-release-verifier-handler.test.ts"
+      - "tests/c03-runtime-attestation.test.mjs"
+      - "tests/c03-production-release.test.mjs"
   workflow_dispatch:
 
 permissions:
@@ -38,6 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - run: node tests/c03-load-real-admin-auth.mjs
       - run: psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql
 
   digest-contract:
@@ -51,7 +54,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js
+      - run: node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs
 
 
   release-verifier-handler:
