@@ -222,3 +222,9 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 ### Next exact action
 
 Continue review of PR #106 and PR #107 against the live repository contract, close or document each actionable finding, add regression coverage where required, and update this handoff after each review/fix package. Keep all Production-targeted actions blocked pending explicit release authorization.
+
+
+### PR review comments posted — 2026-10-15
+- PR #106 review comment `5532077039`: requests regression coverage for family-identity fallback and fail-closed unresolved-family behavior; records that Production crash replay remains unauthorized/unperformed.
+- PR #107 review comment `5532077420`: requests isolated integration coverage using real authorization/publication routines and an auditable binding between runtime metadata and deployed Edge bundle; gate remains disabled and Production changes unauthorized.
+- These are review comments, not approvals. C-03 remains open.
