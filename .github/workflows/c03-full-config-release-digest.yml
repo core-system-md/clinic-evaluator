@@ -11,6 +11,9 @@ on:
       - "tests/c03-release-payload-generator.test.js"
       - "tests/fixtures/c03-release-*.json"
       - "supabase/functions/assessment-access/interpretation-release-provenance.mjs"
+      - "supabase/functions/assessment-access/index.ts"
+      - "supabase/functions/assessment-access/engine.ts"
+      - "tests/c03-protected-edge-handler.integration.test.ts"
   workflow_dispatch:
 
 permissions:
@@ -41,6 +44,9 @@ jobs:
           node --experimental-strip-types --check supabase/functions/assessment-access/engine.ts
           node --check supabase/functions/assessment-access/interpretation-release-provenance.mjs
           node --check .github/scripts/c03-generate-release-payload.cjs
+      - uses: denoland/setup-deno@v2
+      - name: Test protected Edge handler and strict pre-session release gate
+        run: deno test --no-check --allow-net --allow-env --allow-read tests/c03-protected-edge-handler.integration.test.ts
       - name: Test deterministic release payload generator
         run: node --test tests/c03-release-payload-generator.test.js
       - name: Install PostgreSQL client
