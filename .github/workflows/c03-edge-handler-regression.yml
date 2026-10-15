@@ -1,0 +1,28 @@
+name: C-03 actual Edge handler regression
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/c03-edge-handler-regression.yml"
+      - "supabase/functions/assessment-access/index.ts"
+      - "supabase/functions/assessment-access/engine.ts"
+      - "supabase/functions/assessment-access/report-interpretation.mjs"
+      - "tests/c03-edge-handler-regression.test.ts"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  actual-edge-handler:
+    name: Actual Edge handler protected/public completion routing
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Run isolated handler regression tests
+        run: deno test --no-check --allow-env --allow-net tests/c03-edge-handler-regression.test.ts
