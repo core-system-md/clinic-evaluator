@@ -46,6 +46,7 @@ function fixture() {
         optionIndex: 0, semanticStateKey: 'direct_anchor', semanticState: 'measured',
       }],
     },
+    assessmentVersion: 1,
     interpretationVersion: 2,
     consistencyRuleRegistry: {
       schemaVersion: 'CONSISTENCY_RULES_V1',
