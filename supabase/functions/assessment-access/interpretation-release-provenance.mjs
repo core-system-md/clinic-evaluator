@@ -105,6 +105,8 @@ export async function assertInterpretationReleaseMatches({
   registryEntries,
   runtimeOptionManifest,
   runtimeSourceCommitSha,
+  runtimeConfigDigest,
+  runtimeConfigManifest,
 }) {
   if (!release) throw new Error("Registered interpretation release is missing");
   if (release.assessment_type_id !== assessmentTypeId) {
@@ -118,6 +120,22 @@ export async function assertInterpretationReleaseMatches({
   }
   if (Number(release.interpretation_version) !== Number(interpretationVersion)) {
     throw new Error("Interpretation release version mismatch");
+  }
+  if (!["PREPARED", "VERIFIED", "PUBLISHED", "DEGRADED"].includes(release.release_state)) {
+    throw new Error("Configuration release is not in an attestable state");
+  }
+  if (
+    typeof runtimeConfigDigest !== "string" ||
+    !/^[0-9a-f]{64}$/.test(runtimeConfigDigest) ||
+    release.assessment_config_digest !== runtimeConfigDigest
+  ) {
+    throw new Error("Full assessment configuration digest does not match the registered release");
+  }
+  if (
+    !runtimeConfigManifest || typeof runtimeConfigManifest !== "object" ||
+    stableSerialize(release.config_manifest) !== stableSerialize(runtimeConfigManifest)
+  ) {
+    throw new Error("Registered configuration manifest does not match the live database configuration");
   }
   if (typeof release.source_commit_sha !== "string" || !/^[0-9a-f]{40}([0-9a-f]{24})?$/.test(release.source_commit_sha)) {
     throw new Error("Interpretation release source commit metadata is invalid");
@@ -180,6 +198,7 @@ export async function assertInterpretationReleaseMatches({
 
   return {
     registryDigest: runtimeDigest,
+    assessmentConfigDigest: runtimeConfigDigest,
     sourceCommitSha: release.source_commit_sha,
     edgeReleaseRef: release.edge_release_ref,
   };
