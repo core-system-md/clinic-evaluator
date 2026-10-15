@@ -24,7 +24,7 @@ const output = [
   `-- source_sha256: ${sourceSha256}`,
   ...definitions,
   "",
-].join("\\n");
+].join(String.fromCharCode(10));
 
 await writeFile(outputPath, output, "utf8");
 console.log(`Loaded ${names.join(", ")} from ${sourcePath} (sha256 ${sourceSha256})`);
