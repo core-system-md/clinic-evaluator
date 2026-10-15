@@ -6,6 +6,10 @@ const source = fs.readFileSync(
   'supabase/functions/assessment-access/engine.ts',
   'utf8',
 );
+const digestSource = fs.readFileSync(
+  'supabase/functions/assessment-access/assessment-config-digest.mjs',
+  'utf8',
+);
 
 function fixture() {
   return {
@@ -90,7 +94,7 @@ test('C-03 digest includes presentation, scoring, option, trap, and runtime poli
   ];
 
   for (const field of requiredFields) {
-    assert.ok(source.includes(field), `configuration digest projection is missing: ${field}`);
+    assert.ok(digestSource.includes(field), `configuration digest projection is missing: ${field}`);
   }
 });
 
