@@ -91,7 +91,8 @@ export async function executeC03ProductionRelease({
       headers: {
         "Content-Type": "application/json",
         "apikey": anon,
-        "Authorization": "Bearer " + await getOidcToken(),
+        "Authorization": "Bearer " + anon,
+        "x-c03-github-oidc": await getOidcToken(),
       },
       body: JSON.stringify({ ...body, ...(body.action === "ci_export" ? {} : { confirmation: CONFIRMATION }) }),
     },
