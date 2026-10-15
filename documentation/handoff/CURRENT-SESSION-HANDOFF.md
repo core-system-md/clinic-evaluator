@@ -228,3 +228,10 @@ Continue review of PR #106 and PR #107 against the live repository contract, clo
 - PR #106 review comment `5532077039`: requests regression coverage for family-identity fallback and fail-closed unresolved-family behavior; records that Production crash replay remains unauthorized/unperformed.
 - PR #107 review comment `5532077420`: requests isolated integration coverage using real authorization/publication routines and an auditable binding between runtime metadata and deployed Edge bundle; gate remains disabled and Production changes unauthorized.
 - These are review comments, not approvals. C-03 remains open.
+
+
+### Follow-up implementation package — 2026-10-15
+
+- PR #106: added two deterministic protected-handler regressions: fallback from missing persisted family ID to `assessment_types.family_id`, and fail-closed HTTP 409 when neither family ID nor family slug can be resolved. The first new assertion initially failed because the report correctly does not fabricate a missing persisted family ID; the assertion was corrected to verify that the resolved slug selects the approved `clinic-performance` report model while identity remains explicitly null. Latest protected-handler run #38730312717 passed, and the related WP-02/WP-03/WP-04/WP-05/WP-09/P3 runs for head `48194a7611b6040271ad874b7ff08aa565d2106b` passed.
+- PR #107: changed the disposable PostgreSQL harness to load the repository's actual `20261003175645_p5_p2_immutability_lifecycle_compat.sql` publication/restoration routines instead of stubbing those two functions. The harness now uses a capability-checking test implementation and validation/audit fixtures. Exact-head workflow run #38730407260 is still in progress at the time of this update; do not count this package as passing until all jobs finish successfully.
+- These are test-only/CI changes. No Production migration, write, Edge deployment, or live E2E was performed. C-03 remains open; the deployment metadata-to-Edge-bundle binding and authorized target-environment release gates remain unresolved.
