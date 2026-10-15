@@ -109,15 +109,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          reply="$(curl --silent --show-error --write-out $'\\n%{http_code}' \
+          response="$(curl --silent --show-error \
             -X POST \
             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Content-Type: application/json" \
             -d "{\\"p_workflow_run_id\\":\\"1\\",\\"p_workflow_run_attempt\\":\\"1\\",\\"p_workflow_sha\\":\\"$GITHUB_SHA\\",\\"p_confirmation\\":\\"INVALID-PREFLIGHT-ONLY\\"}" \
             "$SUPABASE_URL/rest/v1/rpc/c03_require_ci_release_context")"
-          body="${reply%$'\\n'*}"
-          echo "$body" | jq -e '.code == "42501"' >/dev/null || {
+          echo "$response" | jq -e '.code == "42501"' >/dev/null || {
             echo "::error::The new C-03 OIDC authorization migration/RPC is missing or did not fail closed as expected."
             exit 1
           }
