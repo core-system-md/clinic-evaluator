@@ -197,6 +197,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
               p_workflow_run_id: ciIdentity!.runId,
               p_workflow_run_attempt: ciIdentity!.runAttempt,
               p_workflow_sha: ciIdentity!.sha,
+              p_confirmation: body.confirmation,
             })
           : await owner!.userClient.rpc("enable_assessment_config_release_gate_secure");
         if (result.error) throw result.error;
