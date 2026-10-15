@@ -62,3 +62,15 @@ Set `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, and `C03_O
 
 This script does **not** apply the migration or deploy functions. Those remain explicit preceding release steps and must use the exact same prepared `main` SHA. No Production operation was run from this session because the available connector cannot invoke the authenticated live Edge HTTP endpoints required by the script.
 
+
+
+## Canonical integration checkpoint (2026-10-15)
+
+- PR #109 merged to `main` as `0e03b8311ebf8a48cde96d2450b01a2d7b19fca2`; exact-head CI for its final candidate passed the C-03 PostgreSQL release-state-machine harness, source-derived authorization checks, runtime digest/attestation and release orchestration tests, protected handler tests, actual Edge handler regression, P3 kernel and WP-02/WP-03/WP-04/WP-05/WP-09.
+- Superseded C-03 PRs #96, #101, #102, #103, #104, #106, #107, #108, #110, #111 and #112 are closed without merge. PR #105 was already closed without merge. The alternative #96/#111 migration paths must not be applied.
+- This is not Production closure. The latest live inventory remains at migration `20261013110000`, `assessment-access` v38, and no C-03 release table or `assessment-config-release` deployment.
+- Production rollout remains pending: apply only the reviewed `20261015100000_c03_hybrid_config_release_gate` migration, prepare attestation on the exact final `main` SHA, deploy both functions from that checkout, verify both deployed identities read-only, register/verify/activate the five current versions, enable/read back the gate, and run bounded live E2E with exact-ID cleanup.
+- The available Supabase connector cannot invoke the required owner-authenticated Edge HTTP endpoints. Do not bypass the API path with privileged SQL. The owner JWT and service-role key must remain in a secure release runner.
+
+**Status: CODE MERGED / CI PASS / PRODUCTION GATES OPEN / C-03 NOT CLOSED.**
+
