@@ -10,6 +10,7 @@ const source = fs.readFileSync(
 test('C-03 digest includes presentation, scoring, option, trap, and runtime policy fields', () => {
   const requiredFields = [
     'titleAr: runtime.assessment.title_ar',
+    'versionSlug: runtime.assessment.slug',
     'titleEn: runtime.assessment.title_en',
     'description: runtime.assessment.description',
     'declaredQuestionCount: runtime.assessment.question_count',
@@ -20,6 +21,7 @@ test('C-03 digest includes presentation, scoring, option, trap, and runtime poli
     'kpiMappings: runtime.assessment.kpi_mappings',
     'evMappings: runtime.assessment.ev_mappings',
     'displayOrder: Number(axis.display_order)',
+    'description: axis.description',
     'text: question.question_text',
     'textAr: question.question_text_ar',
     'type: question.question_type',
