@@ -126,3 +126,13 @@ The historical Production HTTP 500 has not been replayed against a Production se
 
 **Status at this checkpoint: SCHEMA APPLIED / EDGE DEPLOYMENT AND RELEASE ACTIVATION NOT YET VERIFIED.**
 
+
+## Latest Production runner result — blocked before any deployment (2026-10-15)
+
+- [Workflow #38736488525](https://github.com/core-system-md/clinic-evaluator/actions/runs/38736488525) passed Node, Deno, protected/public Edge handler and real authorization SQL tests.
+- Credential preflight failed because the repository Actions secret `SUPABASE_SERVICE_ROLE_KEY` is absent. No attestation preparation, Edge deployment, release registration, activation, or gate write occurred.
+- The live C-03 migration remains applied with the gate disabled, no release rows, no active release pointers, and only the existing `assessment-access` v38 deployed.
+- The required secret must be added in GitHub repository Actions settings; the owner JWT must also be present and current. Do not place either value in chat.
+- No PRs remain open. The guarded workflow's manual input is `ENABLE-C03-PRODUCTION`; it waits for both Edge bundles to match the exact current `main` SHA before proceeding.
+
+**Status: CODE AND TEST GATES PASS / PRODUCTION RELEASE BLOCKED BY SECRET CONFIGURATION.**
