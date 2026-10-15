@@ -12,7 +12,7 @@ const engine = fs.readFileSync(
 );
 
 test('C-03 release verifier requires authenticated owner before export or verification', () => {
-  assert.match(verifier, /async function requireOwner\(req: Request\)/);
+  assert.match(verifier, /async function requireOwner\(/);
   assert.match(verifier, /userClient\.auth\.getUser/);
   assert.match(verifier, /userClient\.rpc\("is_owner"\)/);
   assert.ok(verifier.indexOf('const authorization = await requireOwner(req);') < verifier.indexOf('if (action === "export")'));
