@@ -38,7 +38,7 @@ test("C-03 deployed verification compares both scorer and verifier attestation e
   assert.match(verifier, /action: "c03_runtime_attestation"/);
   assert.match(verifier, /Deployed verifier attestation mismatch/);
   assert.match(verifier, /getC03GithubOidcToken/);
-  assert.match(verifier, /supabase\\/functions\\/_shared/);
+  assert.match(verifier, /supabase\/functions\/_shared/);
   assert.doesNotMatch(verifier, /C03_OWNER_JWT|ownerJwt/);
   assert.match(verifier, /Deployed scorer attestation mismatch/);
   assert.doesNotMatch(verifier, /action: "register"|action: "publish"|action: "enable_gate"/);
