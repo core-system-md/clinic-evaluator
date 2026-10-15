@@ -237,3 +237,11 @@ Continue review of PR #106 and PR #107 against the live repository contract, clo
 - These are test-only/CI changes. No Production migration, write, Edge deployment, or live E2E was performed. C-03 remains open; the deployment metadata-to-Edge-bundle binding and authorized target-environment release gates remain unresolved.
 
 - Follow-up detail: the first PR #107 PostgreSQL harness attempt failed immediately on malformed dollar-quote delimiters in the new test helper functions (not in the production migration). The delimiters were corrected to named `$c03$` blocks in commit `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`. The rerun for that exact head is pending verification; do not claim the release-state-machine job passes until observed.
+
+
+### CI result confirmation — 2026-10-15
+
+- PR #106 exact head `48194a7611b6040271ad874b7ff08aa565d2106b`: protected Edge handler regression, WP-02, WP-03, WP-04, WP-05, WP-09 and P3 kernel all SUCCESS. Protected handler run: [#38730312717](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730312717).
+- PR #107 exact head `b21b5fb8f393bdf57d75048bb64c7de1b1c426c9`: C-03 hybrid release-gate jobs (PostgreSQL state machine, digest contract, verifier handler), WP-02, WP-04, WP-09 and P3 kernel all SUCCESS. Release-gate run: [#38730540804](https://github.com/core-system-md/clinic-evaluator/actions/runs/38730540804).
+- The publication/restoration stub gap is now closed in the disposable harness by loading the actual repository lifecycle SQL definitions. The harness still uses a test implementation of `require_admin_capability` and fixture implementations for validation/audit; exact integration with the production authorization routine remains open.
+- Runtime metadata is still supplied through environment variables and is not independently bound to the deployed Edge bundle by an auditable deploy process. This remains a release-blocking gap. C-03 is NOT CLOSED.
