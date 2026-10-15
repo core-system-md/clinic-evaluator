@@ -588,7 +588,7 @@ begin
            published_at = coalesce(published_at, now()),
            degraded_reason = null
      where assessment_type_id = new.id
-       and release_state = 'VERIFIED'
+       and release_state in ('VERIFIED', 'PUBLISHED')
        and runtime_verified_config_digest = assessment_config_digest
        and config_manifest = public.assessment_config_manifest_secure(new.id);
     if not found then
