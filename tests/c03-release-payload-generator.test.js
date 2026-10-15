@@ -60,6 +60,8 @@ test("runtime attestation separates portable registry identity from exact live d
     assessment_version: snapshot.assessmentVersion,
     interpretation_version: snapshot.interpretationVersion,
     registry_digest: payload.rpc.args.p_registry_digest,
+    config_digest: payload.rpc.args.p_config_digest,
+    config_canonicalizer_version: payload.rpc.args.p_config_canonicalizer_version,
     source_commit_sha: sourceCommitSha,
     edge_release_ref: DEFAULT_EDGE_RELEASE_REF,
     option_manifest: payload.rpc.args.p_option_manifest,
@@ -76,6 +78,7 @@ test("runtime attestation separates portable registry identity from exact live d
     interpretationVersion: snapshot.interpretationVersion,
     registryEntries: selectedEntries,
     runtimeOptionManifest,
+    runtimeConfigDigest: snapshot.configDigest,
     runtimeSourceCommitSha: sourceCommitSha,
   });
 
@@ -90,6 +93,7 @@ test("runtime attestation separates portable registry identity from exact live d
       interpretationVersion: snapshot.interpretationVersion,
       registryEntries: selectedEntries,
       runtimeOptionManifest: wrongLiveIds,
+      runtimeConfigDigest: snapshot.configDigest,
       runtimeSourceCommitSha: sourceCommitSha,
     }),
     /does not exactly match live database option identities/,
@@ -128,5 +132,38 @@ test("C-03 generator refuses a missing or malformed full configuration digest", 
   await assert.rejects(
     generateReleasePayload({ snapshot: { ...snapshot, configDigest: "" }, registry, sourceCommitSha }),
     /configDigest must be a lowercase SHA-256 digest/,
+  );
+});
+
+test("runtime attestation rejects a full configuration digest mismatch", async () => {
+  const payload = await generateReleasePayload({ snapshot, registry, sourceCommitSha });
+  const { assertInterpretationReleaseMatches } = await runtimeProvenance;
+  const release = {
+    assessment_type_id: snapshot.assessmentTypeId,
+    family_id: snapshot.familyId,
+    assessment_version: snapshot.assessmentVersion,
+    interpretation_version: snapshot.interpretationVersion,
+    registry_digest: payload.rpc.args.p_registry_digest,
+    config_digest: payload.rpc.args.p_config_digest,
+    config_canonicalizer_version: payload.rpc.args.p_config_canonicalizer_version,
+    source_commit_sha: sourceCommitSha,
+    edge_release_ref: DEFAULT_EDGE_RELEASE_REF,
+    option_manifest: payload.rpc.args.p_option_manifest,
+  };
+  await assert.rejects(
+    assertInterpretationReleaseMatches({
+      release,
+      assessmentTypeId: snapshot.assessmentTypeId,
+      familyId: snapshot.familyId,
+      assessmentVersion: snapshot.assessmentVersion,
+      interpretationVersion: snapshot.interpretationVersion,
+      registryEntries: registry.entries.filter((entry) => entry.assessmentSlug === snapshot.slug),
+      runtimeOptionManifest: snapshot.questions.flatMap((question) => question.options.map((option) => ({
+        question_code: question.code, option_id: option.id, option_index: option.optionIndex, source_option_value: option.optionValue,
+      }))),
+      runtimeConfigDigest: "d".repeat(64),
+      runtimeSourceCommitSha: sourceCommitSha,
+    }),
+    /does not match the registered release/,
   );
 });
