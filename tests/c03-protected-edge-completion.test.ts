@@ -73,11 +73,11 @@ const resultRow = {
   result_status: "PRODUCTION",
 };
 
-function rowFor(table: string, filters: Array<[string, unknown]>) {
+function rowFor(table: string, filters: Array<[string, unknown]>, mode = "completed") {
   if (table === "assessment_session_access") return accessRow;
   if (table === "sessions") {
     if (filters.some(([key, value]) => key === "lead_id" && value === leadRow.id)) return null;
-    return sessionRow;
+    return { ...sessionRow, status: mode === "first-completion" ? "in_progress" : "completed" };
   }
   if (table === "leads") {
     if (filters.some(([key, value]) => key === "completed" && value === true)) return [];
@@ -88,7 +88,7 @@ function rowFor(table: string, filters: Array<[string, unknown]>) {
   return [];
 }
 
-function fakeClient() {
+function fakeClient(mode = "completed", rpcCalls: Array<{ name: string; payload: any }> = []) {
   return {
     from(table: string) {
       const filters: Array<[string, unknown]> = [];
@@ -100,16 +100,35 @@ function fakeClient() {
         gt(key: string, value: unknown) { filters.push(["gt:" + key, value]); return query; },
         order() { return query; },
         limit() { return query; },
-        maybeSingle() { return Promise.resolve({ data: rowFor(table, filters), error: null }); },
-        single() { return Promise.resolve({ data: rowFor(table, filters), error: null }); },
+        maybeSingle() { return Promise.resolve({ data: rowFor(table, filters, mode), error: null }); },
+        single() { return Promise.resolve({ data: rowFor(table, filters, mode), error: null }); },
         then(resolve: (value: unknown) => unknown, reject: (reason: unknown) => unknown) {
-          return Promise.resolve({ data: rowFor(table, filters), error: null }).then(resolve, reject);
+          return Promise.resolve({ data: rowFor(table, filters, mode), error: null }).then(resolve, reject);
         },
       };
       return query;
     },
-    async rpc() {
-      throw new Error("A completed protected retry must not recalculate or call a completion RPC.");
+    async rpc(name: string, payload: any) {
+      rpcCalls.push({ name, payload });
+      if (mode === "completed") {
+        throw new Error("A completed protected retry must not recalculate or call a completion RPC.");
+      }
+      if (name === "prepare_assessment_submission") {
+        return {
+          data: {
+            success: true,
+            already_completed: false,
+            submission_snapshot: [],
+            submission_fingerprint: "fixture-submission-fingerprint",
+            submission_economic_input: {},
+          },
+          error: null,
+        };
+      }
+      if (name === "complete_p4_assessment_from_result") {
+        return { data: { success: true, already_completed: false, result: payload.p_result }, error: null };
+      }
+      throw new Error("Unexpected RPC in protected completion test: " + name);
     },
   };
 }
@@ -131,5 +150,52 @@ Deno.test("actual protected complete handler recovers family slug for a persiste
   if (body?.data?.userReport?.assessment?.familyId !== familyId) throw new Error("Persisted report lost the assessment-family identity.");
   if (persistedResult.provenance.assessmentSlug !== undefined) {
     throw new Error("The fixture must remain an unmodified persisted payload without assessmentSlug.");
+  }
+});
+
+
+Deno.test("actual protected complete handler uses protected RPC and identity on first completion", async () => {
+  const rpcCalls: Array<{ name: string; payload: any }> = [];
+  const handler = createAssessmentAccessHandler(fakeClient("first-completion", rpcCalls), {
+    calculateAssessmentFn: async () => ({
+      result: {
+        ...structuredClone(persistedResult),
+        resolvedSelections: [{ questionCode: "Q1" }],
+        axisPersistenceRows: [{ axisCode: "A1" }],
+      },
+      provenance: {
+        assessmentSlug: "clinic-performance",
+        assessmentVersion: 1,
+        interpretationVersion: 1,
+        scoringEngineVersion: "MD_CODE_ASSESSMENT_ENGINE",
+        scoringContractVersion: "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07",
+        assessmentConfigDigest: "c03-test-digest",
+      },
+    }),
+  });
+
+  const response = await handler(new Request("https://local.test/assessment-access", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-forwarded-for": "127.0.0.2" },
+    body: JSON.stringify({ action: "complete", data: { token: "protected-token-first-completion" } }),
+  }));
+  const body = await response.json();
+  if (response.status !== 200) {
+    throw new Error("Expected 200 from protected completion; got " + response.status + ": " + JSON.stringify(body));
+  }
+  if (rpcCalls.map(call => call.name).join(",") !== "prepare_assessment_submission,complete_p4_assessment_from_result") {
+    throw new Error("Protected completion RPC order was incorrect: " + rpcCalls.map(call => call.name).join(","));
+  }
+  const completionPayload = rpcCalls[1].payload;
+  if (completionPayload.p_assessment_user_id !== userId) throw new Error("Protected assessment user identity was not forwarded.");
+  if (completionPayload.p_access_token_hash == null) throw new Error("Protected access-token hash was not forwarded.");
+  if (completionPayload.p_submission_fingerprint !== "fixture-submission-fingerprint") {
+    throw new Error("Frozen submission fingerprint was not forwarded.");
+  }
+  if (completionPayload.p_result.resolvedSelections !== undefined || completionPayload.p_result.axisPersistenceRows !== undefined) {
+    throw new Error("Non-persistent calculation internals leaked into the completion RPC payload.");
+  }
+  if (body?.data?.already_completed !== false || body?.data?.userReport?.audience !== "user") {
+    throw new Error("Protected completion response did not project the user report.");
   }
 });
