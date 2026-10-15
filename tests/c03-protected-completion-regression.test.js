@@ -74,3 +74,58 @@ test('C-03 isolated PostgreSQL harness exercises the actual protected completion
   assert.match(persistenceHarness, /if v_results <> 1 then raise exception/);
   assert.match(persistenceHarness, /if v_state <> 'completed' then raise exception/);
 });
+
+test('C-03 completion projection succeeds for every published family axis contract', async () => {
+  const { REPORT_MODELS, projectCompletionResponse } = await import(
+    '../supabase/functions/assessment-access/report-interpretation.mjs'
+  );
+
+  const axisCodes = {
+    'admin-reception-assessment': ['AX85a6e9', 'AX765ca8', 'AXa23fa3', 'AXc39190'],
+    'clinic-performance': ['A1', 'A2', 'A3'],
+    'comprehensive-clinic-assessment': ['AX6f5aa5', 'AX80c09a', 'AXaadfb4', 'AX2572cc', 'AX6a52b4', 'AX15afd8'],
+    'medical-team-assessment': ['A1', 'A2', 'A3', 'A4'],
+    'patient-journey': ['A1', 'A2', 'A3', 'A4', 'A5'],
+  };
+
+  assert.deepEqual(Object.keys(REPORT_MODELS).sort(), Object.keys(axisCodes).sort());
+
+  for (const [slug, codes] of Object.entries(axisCodes)) {
+    const structured = {
+      schemaVersion: 'P3_STRUCTURED_RESULT_V1',
+      status: 'PRODUCTION',
+      identity: {
+        sessionId: 'fixture-session',
+        assessmentFamilyId: 'fixture-family-' + slug,
+        assessmentVersion: '1',
+        resultId: '00000000-0000-4000-8000-000000000001',
+      },
+      provenance: {
+        assessmentSlug: slug,
+        scoringEngineVersion: 'fixture-engine',
+        scoringContractVersion: 'fixture-contract',
+        assessmentConfigDigest: 'fixture-digest',
+      },
+      scores: {
+        overallScore: 70,
+        axes: codes.map((axisCode, index) => ({
+          axisCode,
+          axisNameAr: 'محور ' + (index + 1),
+          axisNameEn: 'Axis ' + (index + 1),
+          score: 70,
+          percentage: 70,
+          status: 'measured',
+        })),
+      },
+      classification: { bandCode: 'Q3' },
+      coverage: { coverageStatus: 'FULL', coverageRatio: 1 },
+      kpis: [],
+      economics: { status: 'NOT_COMPUTED', output: null },
+    };
+
+    const projection = projectCompletionResponse(structured);
+    assert.equal(projection.userReport.audience, 'user', slug);
+    assert.equal(projection.userReport.assessment.familyId, structured.identity.assessmentFamilyId, slug);
+    assert.equal(projection.userReport.axes.length, codes.length, slug);
+  }
+});
