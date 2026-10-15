@@ -419,7 +419,7 @@ returns jsonb
 language plpgsql
 security definer
 set search_path = public, pg_temp
-as $
+as $$
 declare
   v_release public.assessment_interpretation_releases%rowtype;
   v_reason text := left(btrim(coalesce(p_reason, 'Runtime attestation failed')), 1000);
@@ -454,7 +454,7 @@ begin
     'assessment_type_id', p_assessment_type_id, 'reason', v_reason
   );
 end;
-$;
+$$;
 
 revoke all on function public.mark_assessment_interpretation_release_degraded_secure(uuid, text) from public, anon, authenticated;
 grant execute on function public.mark_assessment_interpretation_release_degraded_secure(uuid, text) to service_role;
