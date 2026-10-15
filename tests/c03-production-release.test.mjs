@@ -61,6 +61,27 @@ test("C-03 production release requires the explicit confirmation before network 
   assert.equal(calls.length, 0);
 });
 
+
+test("C-03 production release performs no writes when deployed bundle attestation fails", async () => {
+  const { fetchImpl, calls, isEnabled } = fakeFetch();
+  await assert.rejects(
+    executeC03ProductionRelease({
+      baseUrl: "https://example.supabase.co",
+      anonKey: "anon",
+      serviceRoleKey: "service",
+      ownerJwt: "owner",
+      confirmation: "ENABLE-C03-PRODUCTION",
+      fetchImpl,
+      verifyAttestation: async () => {
+        throw new Error("deployed bundle mismatch");
+      },
+    }),
+    /deployed bundle mismatch/,
+  );
+  assert.equal(calls.filter(call => call.method === "POST").length, 0);
+  assert.equal(isEnabled(), false);
+});
+
 test("C-03 release verifies all five bundles and versions before enabling the gate", async () => {
   const { fetchImpl, calls, isEnabled } = fakeFetch();
   const result = await executeC03ProductionRelease({
