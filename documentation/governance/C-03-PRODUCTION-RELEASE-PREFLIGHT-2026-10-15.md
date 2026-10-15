@@ -2,7 +2,7 @@
 
 **Project:** `oaqpzaarppccbnepffxx`  
 **Access:** Read-only Supabase connector checks.  
-**Outcome:** Preflight inventory captured; no migration, write, deployment, release activation, or live E2E performed.
+**Outcome:** The migration is applied; this session performed read-only state checks only and did not deploy Edge functions, write release records, activate the gate, or run live E2E.
 
 ## Current Production state
 
@@ -10,9 +10,9 @@
 |---|---|
 | Project health | `ACTIVE_HEALTHY` |
 | Latest applied migration | `20261013110000` — `c02_allow_answer_value_70` |
-| C-03 migration | `20261015100000_c03_hybrid_config_release_gate` — not applied |
-| `assessment_config_releases` | absent |
-| `assessment_config_release_settings` | absent |
+| C-03 migration | `20261015100000_c03_hybrid_config_release_gate` — applied (live migration ledger verified 2026-10-15) |
+| `assessment_config_releases` | present; 0 release rows |
+| `assessment_config_release_settings` | present; singleton gate `enabled=false` |
 | Current published families | 5 |
 | Active published versions | 5 |
 | `assessment-access` | ACTIVE, version 38 |
@@ -44,7 +44,7 @@ The existing authorization routines are present in Production: `require_admin_ca
 
 ## Current blocker
 
-The available Supabase connector does not expose an authenticated HTTP invocation tool for the live Edge endpoints. The repository script is prepared for execution in a protected release runner, but its owner JWT must remain a secret and must not be pasted into chat or replaced by privileged SQL that bypasses the owner-authenticated API path.
+The available Supabase connector does not expose an authenticated HTTP invocation tool for the live Edge endpoints. The repository script is prepared for execution in a protected release runner. The owner JWT must remain a secret and must not be pasted into chat or replaced by privileged SQL that bypasses the owner-authenticated API path.
 
 **C-03 status: ENGINEERING CI PASS / PRODUCTION RELEASE GATES NOT EXECUTED / NOT CLOSED.**
 
@@ -96,3 +96,17 @@ This script does **not** apply the migration or deploy functions. Those remain e
 - Live state remains: migration applied; gate disabled; zero release rows; zero active pointers; `assessment-access` v38; `assessment-config-release` undeployed. No PRs remain open.
 
 **Status: RELEASE PREFLIGHT BLOCKED BY EMPTY RUNNER CREDENTIAL / ROOT CAUSE NOT YET VERIFIED / C-03 NOT CLOSED.**
+
+
+## Latest credential diagnosis — 2026-10-15 (supersedes earlier unresolved-root-cause wording)
+
+Read-only live checks reconfirmed migration `20261015100000_c03_hybrid_config_release_gate` applied, gate disabled, release rows 0, active release pointers 0, five current published families, `assessment-access` ACTIVE v38, and `assessment-config-release` not deployed.
+
+Diagnostic workflow run [#38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434) ran both credential scopes on commit `877c85e82a83d8073bb6c1aef5631928d463416f`:
+- `SUPABASE_ANON_KEY`: injected in both scopes.
+- `SUPABASE_SERVICE_ROLE_KEY`: injected in both scopes; the previously observed empty service-role runtime value was not reproduced after the owner added the repository secret.
+- `C03_OWNER_JWT`: empty in both repository and `production-e2e` job environments. Both jobs stopped before any API request, so no Production state was changed.
+
+**Current directly observed blocker:** runtime injection of `C03_OWNER_JWT` is empty in both tested scopes. This credential is required for owner-authenticated read-only attestation and release actions. Do not substitute the service-role key, impersonate an owner, bypass the Edge API with privileged SQL, or expose the JWT. The precise GitHub setting responsible for the empty runtime value remains unverified.
+
+**Current status:** MIGRATION APPLIED / ISOLATED CI PASS / SERVICE-ROLE KEY INJECTED / OWNER JWT INJECTION BLOCKED / EDGE RELEASE NOT DEPLOYED / GATE DISABLED / C-03 NOT CLOSED.
