@@ -459,6 +459,10 @@ begin
      or v_version.version is distinct from v_release.assessment_version then
     raise exception 'Release does not match the current published version' using errcode = '55000';
   end if;
+  if not public.c03_assessment_release_gate_enabled() then
+    update public.assessment_config_releases set state = 'PUBLISHED', published_at = coalesce(published_at, now())
+    where id = p_release_id;
+  end if;
   update public.assessment_families set current_release_id = p_release_id, updated_at = now()
   where id = v_family.id;
   return jsonb_build_object('success', true, 'release_id', p_release_id, 'state', 'PUBLISHED');
@@ -506,6 +510,13 @@ begin
     where id = v_family.id;
   else
     raise exception 'Release target is not a publishable working or current published version' using errcode = '55000';
+  end if;
+
+  if not public.c03_assessment_release_gate_enabled() then
+    update public.assessment_config_releases set state = 'PUBLISHED', published_at = coalesce(published_at, now())
+    where id = v_release.id;
+    update public.assessment_families set current_release_id = v_release.id, updated_at = now()
+    where id = v_release.family_id and current_published_version_id = v_release.assessment_type_id;
   end if;
 
   select * into v_family from public.assessment_families where id = v_release.family_id;
