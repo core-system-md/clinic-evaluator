@@ -1,6 +1,6 @@
 import { assertEquals, assert } from "https://deno.land/std@0.224.0/assert/mod.ts";
 
-async function exerciseProtectedCompletion(slug: string, registryFile: string, interpretationVersion: number, importSuffix: string) {
+async function exerciseProtectedCompletion(slug: string, registryFile: string, interpretationVersion: number, expectedPurpose: string, importSuffix: string) {
   const registry = JSON.parse(await Deno.readTextFile(
     new URL("../supabase/functions/assessment-access/" + registryFile, import.meta.url),
   ));
@@ -196,6 +196,7 @@ async function exerciseProtectedCompletion(slug: string, registryFile: string, i
     assertEquals(completionPayload.p_submission_fingerprint, "c03-isolated-fingerprint");
     assertEquals(completionPayload.p_result.identity.sessionId, sessionId);
     assert(responseBody.data.userReport && typeof responseBody.data.userReport === "object", "completion must return a projected user report");
+    assertEquals(responseBody.data.userReport.assessment.purpose, expectedPurpose, "handler must project the report model for the selected assessment family");
   } finally {
     globalThis.fetch = originalFetch;
     if (oldUrl === undefined) Deno.env.delete("SUPABASE_URL"); else Deno.env.set("SUPABASE_URL", oldUrl);
@@ -205,14 +206,14 @@ async function exerciseProtectedCompletion(slug: string, registryFile: string, i
 
 Deno.test("C-03 protected completion runs through the real Edge handler for all five family contracts", async () => {
   const fixtures = [
-    ["admin-reception-assessment", "response-interpretation-registry-v1.json", 1],
-    ["clinic-performance", "response-interpretation-registry-v1.json", 1],
-    ["comprehensive-clinic-assessment", "response-interpretation-registry-v2.json", 2],
-    ["medical-team-assessment", "response-interpretation-registry-v1.json", 1],
-    ["patient-journey", "patient-journey-interpretation-registry-v2.json", 2],
+    ["admin-reception-assessment", "response-interpretation-registry-v1.json", 1, "جاهزية الإدارة والاستقبال وتنسيق التشغيل"],
+    ["clinic-performance", "response-interpretation-registry-v1.json", 1, "أداء العيادة في التحويل والتواصل والاستبقاء"],
+    ["comprehensive-clinic-assessment", "response-interpretation-registry-v2.json", 2, "الصورة التشغيلية الشاملة للعيادة"],
+    ["medical-team-assessment", "response-interpretation-registry-v1.json", 1, "أداء الفريق الطبي في الثقة والتواصل والتحويل والعمل الجماعي"],
+    ["patient-journey", "patient-journey-interpretation-registry-v2.json", 2, "جودة رحلة المريض من الثقة إلى الولاء"],
   ] as const;
-  for (const [slug, registryFile, interpretationVersion] of fixtures) {
-    await exerciseProtectedCompletion(slug, registryFile, interpretationVersion, "c03-" + slug);
+  for (const [slug, registryFile, interpretationVersion, expectedPurpose] of fixtures) {
+    await exerciseProtectedCompletion(slug, registryFile, interpretationVersion, expectedPurpose, "c03-" + slug);
   }
 });
 
