@@ -1,0 +1,234 @@
+const test = require('node:test');
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+
+const source = fs.readFileSync(
+  'supabase/functions/assessment-access/engine.ts',
+  'utf8',
+);
+const digestSource = fs.readFileSync(
+  'supabase/functions/assessment-access/assessment-config-digest.mjs',
+  'utf8',
+);
+
+function fixture() {
+  return {
+    runtime: {
+      family: { id: 'family-1', slug: 'clinic-performance' },
+      assessment: {
+        id: 'type-1', slug: 'clinic-performance--v1', config_version: 1,
+        title_ar: 'أداء العيادة', title_en: 'Clinic performance', description: 'fixture',
+        question_count: 1, axis_count: 1, has_traps: true, has_ev_simulator: false,
+        axis_roles: { A1: 'TRUST' }, kpi_mappings: { TFI: { A1: 1 } }, ev_mappings: { x: 1 },
+      },
+      axes: [{
+        id: 'axis-1', code: 'A1', weight: 100, title: 'Trust', title_ar: 'الثقة',
+        description: 'axis description', display_order: 1,
+      }],
+      questions: [{
+        id: 'question-1', code: 'Q1', axis_id: 'axis-1', question_text: 'Question',
+        question_text_ar: 'السؤال', question_type: 'select', display_order: 1,
+        is_required: true, impact: 'medium', layer: 'A', trap_for: null,
+      }],
+      options: [{
+        id: 'option-1', question_id: 'question-1', option_index: 0, option_value: 70,
+        label: 'Yes', label_ar: 'نعم', is_trap: false, display_order: 1,
+      }],
+      traps: [{
+        name: 'trap-1', message: 'message', message_ar: 'رسالة', question_id: 'question-1',
+        validates: 'Q1', target_axis: 'A1', penalty_base: 1, penalty_max: 2,
+      }],
+    },
+    interpretationRegistry: {
+      schemaVersion: 'REGISTRY_V2',
+      entries: [{
+        assessmentSlug: 'clinic-performance', interpretationVersion: 2, questionCode: 'Q1',
+        optionIndex: 0, semanticStateKey: 'direct_anchor', semanticState: 'measured',
+      }],
+    },
+    assessmentVersion: 1,
+    interpretationVersion: 2,
+    consistencyRuleRegistry: {
+      schemaVersion: 'CONSISTENCY_RULES_V1',
+      rules: [{ ruleCode: 'R1', threshold: 1 }],
+    },
+    consistencyPairRegistry: {
+      schemaVersion: 'CONSISTENCY_PAIRS_V1',
+      pairs: [{
+        assessmentSlug: 'clinic-performance', assessmentVersion: '1',
+        relationshipType: 'validation', validatorQuestionCode: 'Q1', targetQuestionCode: 'Q2',
+      }],
+    },
+  };
+}
+
+async function digest(input) {
+  const { buildAssessmentConfigProjection, canonicalizeAssessmentConfig, sha256Hex } =
+    await import('../supabase/functions/assessment-access/assessment-config-digest.mjs');
+  return sha256Hex(canonicalizeAssessmentConfig(buildAssessmentConfigProjection(input)));
+}
+
+test('C-03 digest includes presentation, scoring, option, trap, and runtime policy fields', () => {
+  const requiredFields = [
+    'titleAr: runtime.assessment.title_ar',
+    'versionSlug: runtime.assessment.slug',
+    'titleEn: runtime.assessment.title_en',
+    'description: runtime.assessment.description',
+    'declaredQuestionCount: runtime.assessment.question_count',
+    'declaredAxisCount: runtime.assessment.axis_count',
+    'hasTraps: runtime.assessment.has_traps',
+    'hasEvSimulator: runtime.assessment.has_ev_simulator',
+    'axisRoles: runtime.assessment.axis_roles',
+    'kpiMappings: runtime.assessment.kpi_mappings',
+    'evMappings: runtime.assessment.ev_mappings',
+    'displayOrder: Number(axis.display_order)',
+    'description: axis.description',
+    'text: question.question_text',
+    'textAr: question.question_text_ar',
+    'type: question.question_type',
+    'trapFor: question.trap_for',
+    'label: option.label',
+    'labelAr: option.label_ar',
+    'isTrap: option.is_trap',
+    'displayOrder: Number(option.display_order)',
+    'traps: [...(runtime.traps || [])]',
+  ];
+
+  for (const field of requiredFields) {
+    assert.ok(digestSource.includes(field), `configuration digest projection is missing: ${field}`);
+  }
+});
+
+test('C-03 digest loads trap and option configuration from the pinned assessment', () => {
+  assert.match(
+    source,
+    /from\("traps"\)[\s\S]*?\.eq\("assessment_type_id", assessmentTypeId\)/,
+  );
+  assert.match(
+    source,
+    /from\("options"\)[\s\S]*?\.in\("question_id", questionIds\)/,
+  );
+  assert.match(
+    source,
+    /const assessmentConfigDigest = await sha256Hex\(canonicalizeAssessmentConfig\(versionedConfig\)\)/,
+  );
+});
+
+test('C-03 canonical digest is stable across source row ordering and object key ordering', async () => {
+  const a = fixture();
+  const b = fixture();
+  b.runtime.axes.reverse();
+  b.runtime.questions.reverse();
+  b.runtime.options.reverse();
+  b.runtime.traps.reverse();
+  b.interpretationRegistry.entries.reverse();
+  b.consistencyRuleRegistry.rules.reverse();
+  b.consistencyPairRegistry.pairs.reverse();
+  b.runtime.assessment = Object.fromEntries(Object.entries(b.runtime.assessment).reverse());
+  assert.equal(await digest(a), await digest(b));
+});
+
+test('C-03 every representative runtime and code-owned field mutation changes the digest', async () => {
+  const mutations = [
+    x => { x.runtime.assessment.title_ar += ' changed'; },
+    x => { x.runtime.assessment.description += ' changed'; },
+    x => { x.runtime.assessment.has_traps = false; },
+    x => { x.runtime.assessment.has_ev_simulator = true; },
+    x => { x.runtime.assessment.ev_mappings.x = 2; },
+    x => { x.runtime.axes[0].weight = 99; },
+    x => { x.runtime.axes[0].description += ' changed'; },
+    x => { x.runtime.axes[0].display_order = 2; },
+    x => { x.runtime.questions[0].question_text_ar += ' changed'; },
+    x => { x.runtime.questions[0].question_type = 'text'; },
+    x => { x.runtime.questions[0].is_required = false; },
+    x => { x.runtime.options[0].option_value = 40; },
+    x => { x.runtime.options[0].label_ar += ' changed'; },
+    x => { x.runtime.options[0].is_trap = true; },
+    x => { x.runtime.traps[0].penalty_max = 3; },
+    x => { x.interpretationRegistry.entries[0].semanticStateKey = 'changed'; },
+    x => { x.consistencyRuleRegistry.rules[0].threshold = 2; },
+    x => { x.consistencyPairRegistry.pairs[0].relationshipType = 'different'; },
+  ];
+
+  const baseline = await digest(fixture());
+  for (const mutate of mutations) {
+    const changed = fixture();
+    mutate(changed);
+    assert.notEqual(await digest(changed), baseline, 'a runtime-relevant field mutation must change the digest');
+  }
+});
+
+test('C-03 volatile audit timestamps are excluded from the canonical projection', async () => {
+  const a = fixture();
+  const b = fixture();
+  b.runtime.assessment.created_at = '2026-10-15T00:00:00Z';
+  b.runtime.axes[0].updated_at = '2026-10-15T00:00:00Z';
+  b.runtime.questions[0].created_at = '2026-10-15T00:00:00Z';
+  assert.equal(await digest(a), await digest(b));
+});
+
+test('C-03 pinned release guard accepts exact verified identity and rejects drift or missing pins', async () => {
+  const {
+    assertPinnedAssessmentRelease,
+    buildAssessmentConfigProjection,
+    canonicalizeAssessmentConfig,
+    sha256Hex,
+  } = await import('../supabase/functions/assessment-access/assessment-config-digest.mjs');
+  const input = fixture();
+  const projection = buildAssessmentConfigProjection(input);
+  const configDigest = await sha256Hex(canonicalizeAssessmentConfig(projection));
+  const registryDigest = await sha256Hex(canonicalizeAssessmentConfig(projection.interpretation));
+  const runtimeMetadata = {
+    gitCommitSha: 'a'.repeat(40),
+    edgeReleaseRef: 'edge-v1',
+    fixtureSetVersion: 'P3_FIXTURE_SET_V1',
+    migrationContractVersion: 'C03_RELEASE_CONTRACT_V1',
+  };
+  const release = {
+    id: 'release-1',
+    family_id: input.runtime.family.id,
+    assessment_type_id: input.runtime.assessment.id,
+    assessment_version: input.assessmentVersion,
+    git_commit_sha: runtimeMetadata.gitCommitSha,
+    canonicalizer_version: 'C03_CANONICAL_V1',
+    config_digest: configDigest,
+    verified_config_digest: configDigest,
+    interpretation_version: input.interpretationVersion,
+    interpretation_registry_digest: registryDigest,
+    verified_registry_digest: registryDigest,
+    scoring_engine_version: 'MD_CODE_ASSESSMENT_ENGINE',
+    scoring_contract_version: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+    report_model_version: 'REPORT_MODEL_V1',
+    fixture_set_version: runtimeMetadata.fixtureSetVersion,
+    migration_contract_version: runtimeMetadata.migrationContractVersion,
+    edge_release_ref: runtimeMetadata.edgeReleaseRef,
+    state: 'PUBLISHED',
+  };
+  const args = {
+    session: { assessment_release_id: 'release-1' },
+    release,
+    runtime: input.runtime,
+    assessmentVersion: input.assessmentVersion,
+    assessmentConfigDigest: configDigest,
+    runtimeRegistryDigest: registryDigest,
+    interpretationVersion: input.interpretationVersion,
+    engineIdentity: 'MD_CODE_ASSESSMENT_ENGINE',
+    scoringContractVersion: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+    canonicalizerVersion: 'C03_CANONICAL_V1',
+    runtimeMetadata,
+  };
+
+  assert.doesNotThrow(() => assertPinnedAssessmentRelease(args));
+  assert.throws(
+    () => assertPinnedAssessmentRelease({ ...args, release: { ...release, config_digest: '0'.repeat(64) } }),
+    error => error.code === 'C03_RELEASE_MISMATCH' && error.status === 409,
+  );
+  assert.throws(
+    () => assertPinnedAssessmentRelease({ ...args, session: { assessment_release_id: null } }),
+    error => error.code === 'C03_RELEASE_MISMATCH' && error.status === 409,
+  );
+  assert.throws(
+    () => assertPinnedAssessmentRelease({ ...args, release: { ...release, state: 'DEGRADED' } }),
+    error => error.code === 'C03_RELEASE_MISMATCH' && error.status === 409,
+  );
+});
