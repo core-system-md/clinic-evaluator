@@ -109,7 +109,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          reply="$(curl --silent --show-error --write-out         run: node .github/scripts/c03-release-attestation.mjs prepare
+          reply="$(curl --silent --show-error --write-out $'\\n%{http_code}' \
+            -X POST \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{\\"p_workflow_run_id\\":\\"1\\",\\"p_workflow_run_attempt\\":\\"1\\",\\"p_workflow_sha\\":\\"$GITHUB_SHA\\",\\"p_confirmation\\":\\"INVALID-PREFLIGHT-ONLY\\"}" \
+            "$SUPABASE_URL/rest/v1/rpc/c03_require_ci_release_context")"
+          body="${reply%$'\\n'*}"
+          echo "$body" | jq -e '.code == "42501"' >/dev/null || {
+            echo "::error::The new C-03 OIDC authorization migration/RPC is missing or did not fail closed as expected."
+            exit 1
+          }
+          echo "C-03 OIDC release RPC exists and rejected an intentionally invalid confirmation without writing data."
+
+      - name: Prepare immutable runtime attestation for this exact main commit
+        run: node .github/scripts/c03-release-attestation.mjs prepare
       - name: Select one current published version for read-only attestation
         id: attestation_target
         shell: bash
@@ -150,205 +165,6 @@ jobs:
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
             "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled,enabled_by_workflow_run_id,enabled_by_workflow_sha&singleton=eq.true")"
           echo "$settings" | jq -e --arg run "$GITHUB_RUN_ID" --arg sha "$GITHUB_SHA" 'length == 1 and .[0].enabled == true and .[0].enabled_by_workflow_run_id == $run and .[0].enabled_by_workflow_sha == $sha' >/dev/null
-          families="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_families?select=slug,current_published_version_id,current_release_id&current_published_version_id=not.is.null&order=slug.asc")"
-          echo "$families" | jq -e 'length == 5 and all(.[]; .current_release_id != null)' >/dev/null
-          echo "C-03 gate is enabled and all five current published families have active release IDs."
-      - name: Upload Production release evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: c03-production-release-evidence
-          path: c03-production-release-result.json
-          if-no-files-found: warn
-
-  bounded-e2e:
-    needs: release
-    if: ${{ needs.release.result == 'success' }}
-    runs-on: ubuntu-latest
-    environment: production-e2e
-    timeout-minutes: 30
-    env:
-      SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
-      ALLOW_LIVE_E2E: "true"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run bounded live completion E2E for both established public V1 families
-        id: live_e2e
-        run: node .github/scripts/c02-value70-live-e2e.mjs
-      - name: Clean up only this run's exact synthetic IDs and verify zero residue
-        id: cleanup
-        if: ${{ always() && steps.live_e2e.outcome != 'skipped' }}
-        run: node .github/scripts/c03-production-e2e-cleanup.mjs
-      - name: Verify C-03 gate remains enabled after E2E cleanup
-        if: ${{ always() && steps.cleanup.outcome == 'success' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          settings="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled&singleton=eq.true")"
-          echo "$settings" | jq -e 'length == 1 and .[0].enabled == true' >/dev/null
-      - name: Upload bounded E2E and cleanup evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: c03-bounded-e2e-cleanup-evidence
-          path: c02-value70-live-e2e-result.json
-          if-no-files-found: warn
-\\n%{http_code}' \
-            -X POST \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Content-Type: application/json" \
-            -d "{\\"p_workflow_run_id\\":\\"1\\",\\"p_workflow_run_attempt\\":\\"1\\",\\"p_workflow_sha\\":\\"$GITHUB_SHA\\",\\"p_confirmation\\":\\"INVALID-PREFLIGHT-ONLY\\"}" \
-            "$SUPABASE_URL/rest/v1/rpc/c03_require_ci_release_context")"
-          body="${reply%        run: node .github/scripts/c03-release-attestation.mjs prepare
-      - name: Select one current published version for read-only attestation
-        id: attestation_target
-        shell: bash
-        run: |
-          set -euo pipefail
-          rows="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_families?select=current_published_version_id&current_published_version_id=not.is.null&order=slug.asc&limit=1")"
-          id="$(echo "$rows" | jq -r '.[0].current_published_version_id // empty')"
-          test -n "$id"
-          echo "assessment_type_id=$id" >> "$GITHUB_OUTPUT"
-      - name: Wait for both Edge bundles deployed from this exact attested checkout
-        env:
-          C03_ASSESSMENT_TYPE_ID: ${{ steps.attestation_target.outputs.assessment_type_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 60); do
-            if node .github/scripts/c03-release-attestation.mjs verify; then
-              echo "Both deployed Edge identities match this exact main commit."
-              exit 0
-            fi
-            echo "Waiting for both Edge functions to be deployed from the prepared checkout (attempt $attempt/60)."
-            sleep 20
-          done
-          echo "::error::Timed out waiting for the exact attested Edge bundles; no release writes were attempted."
-          exit 1
-      - name: Register, verify, activate all five current releases, then enable the gate
-        id: production_release
-        run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
-      - name: Verify persisted gate and five active release pointers
-        shell: bash
-        run: |
-          set -euo pipefail
-          settings="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled&singleton=eq.true")"
-          echo "$settings" | jq -e 'length == 1 and .[0].enabled == true' >/dev/null
-          families="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_families?select=slug,current_published_version_id,current_release_id&current_published_version_id=not.is.null&order=slug.asc")"
-          echo "$families" | jq -e 'length == 5 and all(.[]; .current_release_id != null)' >/dev/null
-          echo "C-03 gate is enabled and all five current published families have active release IDs."
-      - name: Upload Production release evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: c03-production-release-evidence
-          path: c03-production-release-result.json
-          if-no-files-found: warn
-
-  bounded-e2e:
-    needs: release
-    if: ${{ needs.release.result == 'success' }}
-    runs-on: ubuntu-latest
-    environment: production-e2e
-    timeout-minutes: 30
-    env:
-      SUPABASE_URL: https://oaqpzaarppccbnepffxx.supabase.co
-      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-      EDGE_URL: https://oaqpzaarppccbnepffxx.supabase.co/functions/v1/assessment-access
-      ALLOW_LIVE_E2E: "true"
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run bounded live completion E2E for both established public V1 families
-        id: live_e2e
-        run: node .github/scripts/c02-value70-live-e2e.mjs
-      - name: Clean up only this run's exact synthetic IDs and verify zero residue
-        id: cleanup
-        if: ${{ always() && steps.live_e2e.outcome != 'skipped' }}
-        run: node .github/scripts/c03-production-e2e-cleanup.mjs
-      - name: Verify C-03 gate remains enabled after E2E cleanup
-        if: ${{ always() && steps.cleanup.outcome == 'success' }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          settings="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled&singleton=eq.true")"
-          echo "$settings" | jq -e 'length == 1 and .[0].enabled == true' >/dev/null
-      - name: Upload bounded E2E and cleanup evidence
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: c03-bounded-e2e-cleanup-evidence
-          path: c02-value70-live-e2e-result.json
-          if-no-files-found: warn
-\\n'*}"
-          echo "$body" | jq -e '.code == "42501"' >/dev/null || {
-            echo "::error::The new C-03 OIDC authorization migration/RPC is missing or did not fail closed as expected."
-            exit 1
-          }
-          echo "C-03 OIDC release RPC exists and rejected an intentionally invalid confirmation without writing data."
-
-      - name: Prepare immutable runtime attestation for this exact main commit
-        run: node .github/scripts/c03-release-attestation.mjs prepare
-      - name: Select one current published version for read-only attestation
-        id: attestation_target
-        shell: bash
-        run: |
-          set -euo pipefail
-          rows="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_families?select=current_published_version_id&current_published_version_id=not.is.null&order=slug.asc&limit=1")"
-          id="$(echo "$rows" | jq -r '.[0].current_published_version_id // empty')"
-          test -n "$id"
-          echo "assessment_type_id=$id" >> "$GITHUB_OUTPUT"
-      - name: Wait for both Edge bundles deployed from this exact attested checkout
-        env:
-          C03_ASSESSMENT_TYPE_ID: ${{ steps.attestation_target.outputs.assessment_type_id }}
-        shell: bash
-        run: |
-          set -euo pipefail
-          for attempt in $(seq 1 60); do
-            if node .github/scripts/c03-release-attestation.mjs verify; then
-              echo "Both deployed Edge identities match this exact main commit."
-              exit 0
-            fi
-            echo "Waiting for both Edge functions to be deployed from the prepared checkout (attempt $attempt/60)."
-            sleep 20
-          done
-          echo "::error::Timed out waiting for the exact attested Edge bundles; no release writes were attempted."
-          exit 1
-      - name: Register, verify, activate all five current releases, then enable the gate
-        id: production_release
-        run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
-      - name: Verify persisted gate and five active release pointers
-        shell: bash
-        run: |
-          set -euo pipefail
-          settings="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled&singleton=eq.true")"
-          echo "$settings" | jq -e 'length == 1 and .[0].enabled == true' >/dev/null
           families="$(curl --fail --silent --show-error \
             -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
             -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
