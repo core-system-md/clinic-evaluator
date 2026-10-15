@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   oidc-preflight:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' && inputs.preflight_only != true }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' }}
     runs-on: ubuntu-latest
     environment: production-e2e
     permissions:
@@ -41,7 +41,7 @@ jobs:
 
   release:
     needs: oidc-preflight
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.confirm_production_release == 'ENABLE-C03-PRODUCTION' && inputs.preflight_only != true }}
     runs-on: ubuntu-latest
     environment: production-e2e
     permissions:
