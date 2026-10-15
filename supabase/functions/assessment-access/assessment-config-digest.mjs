@@ -1,3 +1,5 @@
+export const CONFIG_CANONICALIZER_VERSION = "C03_CANONICAL_V1";
+
 function normalizeJsonValue(value) {
   if (value === null || typeof value === "boolean") return value;
   if (typeof value === "string") return value.normalize("NFC");
