@@ -60,6 +60,16 @@ alter table public.assessment_families
   add constraint assessment_families_current_published_version_fkey
   foreign key (current_published_version_id) references public.assessment_types(id);
 
+create table public.assessment_settings (
+  assessment_key text primary key,
+  auth_enabled boolean not null default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+insert into public.assessment_settings(assessment_key,auth_enabled)
+values ('c03-fixture-family',true);
+
 create table public.axes (
   id uuid primary key,
   assessment_type_id uuid not null references public.assessment_types(id),
