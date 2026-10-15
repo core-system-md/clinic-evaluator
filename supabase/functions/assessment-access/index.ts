@@ -34,9 +34,9 @@ async function assertReleaseGateIfEnforced(assessmentTypeId: string) {
   }
 }
 
-async function isOwnerRequest(req: Request): Promise<boolean> {
+async function ownerClientForRequest(req: Request): Promise<any | null> {
   const authorization = req.headers.get("authorization") || "";
-  if (!authorization.startsWith("Bearer ")) return false;
+  if (!authorization.startsWith("Bearer ")) return null;
 
   const supabaseUrl = Deno.env.get("SUPABASE_URL") || "";
   const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || "";
@@ -51,11 +51,11 @@ async function isOwnerRequest(req: Request): Promise<boolean> {
   const { data: userData, error: userError } = await userClient.auth.getUser(
     authorization.slice("Bearer ".length),
   );
-  if (userError || !userData.user) return false;
+  if (userError || !userData.user) return null;
 
   const { data: owner, error: ownerError } = await userClient.rpc("is_owner");
   if (ownerError) throw ownerError;
-  return owner === true;
+  return owner === true ? userClient : null;
 }
 
 function allowRate(ip: string, keyPart: string, maxAttempts: number) {
@@ -433,10 +433,32 @@ export const handler = async (req: Request): Promise<Response> => {
     const data = body?.data || {};
     const ip = (req.headers.get("x-forwarded-for") || "unknown").split(",")[0].trim();
 
+    if (action === "register_interpretation_release") {
+      const ownerClient = await ownerClientForRequest(req);
+      if (!ownerClient) return json({ error: "Owner authorization required" }, 403);
+      const args = data.rpc_args || data;
+      const { data: registration, error: registrationError } = await ownerClient.rpc(
+        "register_assessment_interpretation_release_secure",
+        {
+          p_assessment_type_id: args.p_assessment_type_id,
+          p_interpretation_version: args.p_interpretation_version,
+          p_registry_digest: args.p_registry_digest,
+          p_config_digest: args.p_config_digest,
+          p_config_canonicalizer_version: args.p_config_canonicalizer_version,
+          p_source_commit_sha: args.p_source_commit_sha,
+          p_edge_release_ref: args.p_edge_release_ref,
+          p_option_manifest: args.p_option_manifest,
+        },
+      );
+      if (registrationError) throw registrationError;
+      return json({ success: true, data: registration });
+    }
+
     if (action === "verify_interpretation_release") {
       const assessmentTypeId = String(data.assessment_type_id || "").trim();
       if (!assessmentTypeId) return json({ error: "Missing assessment version ID" }, 400);
-      if (!(await isOwnerRequest(req))) return json({ error: "Owner authorization required" }, 403);
+      const ownerClient = await ownerClientForRequest(req);
+      if (!ownerClient) return json({ error: "Owner authorization required" }, 403);
       return json({
         success: true,
         data: await attestInterpretationRelease(supabase, assessmentTypeId),
