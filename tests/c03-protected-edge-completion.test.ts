@@ -83,8 +83,22 @@ function rowFor(table: string, filters: Array<[string, unknown]>, mode = "comple
     if (filters.some(([key, value]) => key === "completed" && value === true)) return [];
     return leadRow;
   }
-  if (table === "assessment_results") return resultRow;
-  if (table === "assessment_families") return { id: familyId, slug: "clinic-performance" };
+  if (table === "assessment_results") {
+    if (mode === "fallback-family" || mode === "missing-family") {
+      const result = structuredClone(resultRow);
+      delete result.result.provenance.assessmentSlug;
+      delete result.result.identity.assessmentFamilyId;
+      return result;
+    }
+    return resultRow;
+  }
+  if (table === "assessment_types") {
+    return { id: typeId, family_id: mode === "missing-family" ? null : familyId };
+  }
+  if (table === "assessment_families") {
+    if (mode === "missing-family") return null;
+    return { id: familyId, slug: "clinic-performance" };
+  }
   return [];
 }
 
@@ -197,5 +211,41 @@ Deno.test("actual protected complete handler uses protected RPC and identity on 
   }
   if (body?.data?.already_completed !== false || body?.data?.userReport?.audience !== "user") {
     throw new Error("Protected completion response did not project the user report.");
+  }
+});
+
+
+Deno.test("persisted result resolves missing family identity through assessment_types.family_id", async () => {
+  const handler = createAssessmentAccessHandler(fakeClient("fallback-family"));
+  const response = await handler(new Request("https://local.test/assessment-access", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-forwarded-for": "127.0.0.3" },
+    body: JSON.stringify({ action: "complete", data: { token: "protected-token-fallback-family" } }),
+  }));
+  const body = await response.json();
+  if (response.status !== 200) {
+    throw new Error("Expected 200 after resolving assessment type family; got " + response.status + ": " + JSON.stringify(body));
+  }
+  if (body?.data?.userReport?.assessment?.familyId !== familyId) {
+    throw new Error("Resolved assessment type family identity was not projected into the report.");
+  }
+  if (persistedResult.identity.assessmentFamilyId !== familyId) {
+    throw new Error("Persisted fixture was mutated during family identity recovery.");
+  }
+});
+
+Deno.test("persisted result fails closed with 409 when family identity and family slug cannot be resolved", async () => {
+  const handler = createAssessmentAccessHandler(fakeClient("missing-family"));
+  const response = await handler(new Request("https://local.test/assessment-access", {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-forwarded-for": "127.0.0.4" },
+    body: JSON.stringify({ action: "complete", data: { token: "protected-token-missing-family" } }),
+  }));
+  const body = await response.json();
+  if (response.status !== 409) {
+    throw new Error("Expected fail-closed 409 when family identity is unresolved; got " + response.status + ": " + JSON.stringify(body));
+  }
+  if (!String(body?.error || "").includes("family identity")) {
+    throw new Error("Expected a typed family-identity error for unresolved persisted result.");
   }
 });
