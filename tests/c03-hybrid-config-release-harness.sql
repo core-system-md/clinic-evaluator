@@ -47,6 +47,7 @@ create table public.admin_users(
 create table public.admin_capabilities(
   user_id uuid not null references public.admin_users(user_id),
   capability text not null,
+  granted_by uuid references auth.users(id),
   primary key(user_id, capability)
 );
 create table public.admin_audit_log(
@@ -59,20 +60,8 @@ create table public.admin_audit_log(
   before_data jsonb,
   after_data jsonb
 );
-create or replace function public.require_admin_capability(p_capability text)
-returns void language plpgsql security definer set search_path=public,pg_temp as $c03$
-begin
-  if not exists (
-    select 1 from public.admin_users a
-    where a.user_id=auth.uid() and a.active=true
-      and (a.role='owner' or (a.role='admin' and exists (
-        select 1 from public.admin_capabilities c
-        where c.user_id=a.user_id and c.capability=p_capability
-      )))
-  ) then
-    raise exception 'admin capability required: %', p_capability using errcode='42501';
-  end if;
-end $c03$;
+-- Import exact authorization functions extracted from the canonical repository migration.
+\i tests/.generated-c03-admin-auth.sql
 create or replace function public.write_admin_audit(
   p_action text, p_entity_type text, p_entity_id uuid, p_family_id uuid,
   p_before jsonb default null, p_after jsonb default null
@@ -96,6 +85,53 @@ insert into public.admin_users(user_id,role,active)
 values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa','owner',true);
 insert into public.assessment_families(id,slug,current_published_version_id)
 values ('11111111-1111-4111-8111-111111111111','clinic-performance','22222222-2222-4222-8222-222222222222');
+
+-- Exercise the actual repository authorization function through the actual lifecycle publisher.
+insert into auth.users(id) values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb');
+insert into public.admin_users(user_id,role,active)
+values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','admin',true);
+insert into public.assessment_families(id,slug,current_published_version_id)
+values ('66666666-6666-4666-8666-666666666666','authorization-smoke','77777777-7777-4777-8777-777777777777');
+insert into public.assessment_types(id,family_id,version,status,is_active)
+values
+ ('77777777-7777-4777-8777-777777777777','66666666-6666-4666-8666-666666666666',1,'published',true),
+ ('88888888-8888-4888-8888-888888888888','66666666-6666-4666-8666-666666666666',2,'draft',true);
+
+select set_config('test.uid','bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb',false);
+do $assert_admin_denied$
+begin
+  begin
+    perform public.publish_assessment_version_secure('88888888-8888-4888-8888-888888888888');
+    raise exception 'admin without public.publish unexpectedly passed authorization';
+  exception when sqlstate '42501' then null;
+  end;
+  if (select status from public.assessment_types where id='88888888-8888-4888-8888-888888888888') <> 'draft' then
+    raise exception 'denied publish mutated the draft';
+  end if;
+  if (select current_published_version_id from public.assessment_families where id='66666666-6666-4666-8666-666666666666')
+       <> '77777777-7777-4777-8777-777777777777'::uuid then
+    raise exception 'denied publish mutated the current published pointer';
+  end if;
+end
+$assert_admin_denied$;
+
+insert into public.admin_capabilities(user_id,capability,granted_by)
+values ('bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb','public.publish','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
+select public.publish_assessment_version_secure('88888888-8888-4888-8888-888888888888');
+select 1 / ((
+  select status='published' from public.assessment_types where id='88888888-8888-4888-8888-888888888888'
+)::int) as actual_authorized_publish_succeeded;
+select 1 / ((
+  select current_published_version_id='88888888-8888-4888-8888-888888888888'::uuid
+  from public.assessment_families where id='66666666-6666-4666-8666-666666666666'
+)::int) as actual_authorized_pointer_updated;
+select 1 / ((
+  select count(*) > 0 from public.admin_audit_log
+  where action='assessment.publish'
+    and entity_id='88888888-8888-4888-8888-888888888888'
+)::int) as actual_authorized_publish_audited;
+
+select set_config('test.uid','aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',false);
 insert into public.assessment_types(id,family_id,version,status,is_active)
 values
  ('22222222-2222-4222-8222-222222222222','11111111-1111-4111-8111-111111111111',1,'published',true),
