@@ -102,11 +102,12 @@ This script does **not** apply the migration or deploy functions. Those remain e
 
 Read-only live checks reconfirmed migration `20261015100000_c03_hybrid_config_release_gate` applied, gate disabled, release rows 0, active release pointers 0, five current published families, `assessment-access` ACTIVE v38, and `assessment-config-release` not deployed.
 
-Diagnostic workflow run [#38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434) ran both credential scopes on commit `877c85e82a83d8073bb6c1aef5631928d463416f`:
-- `SUPABASE_ANON_KEY`: injected in both scopes.
-- `SUPABASE_SERVICE_ROLE_KEY`: injected in both scopes; the previously observed empty service-role runtime value was not reproduced after the owner added the repository secret.
-- `C03_OWNER_JWT`: empty in both repository and `production-e2e` job environments. Both jobs stopped before any API request, so no Production state was changed.
+Corrected diagnostic workflow run [#38756301379](https://github.com/core-system-md/clinic-evaluator/actions/runs/38756301379) on commit `17a5105aaf5d5a8e69864fb44958f8961560d1fe`:
+- Repository-scope job **SUCCESS**: `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` were injected; the service-role authenticated read-only API calls succeeded; the singleton gate was read as disabled and the exact five-family inventory matched.
+- Protected `production-e2e` job **FAILURE**: `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY` were injected, but `C03_OWNER_JWT` was empty; the job stopped before API requests.
+- Earlier diagnostic [#38754907434](https://github.com/core-system-md/clinic-evaluator/actions/runs/38754907434) had checked `C03_OWNER_JWT` in both scopes and found it empty in both. The diagnostic was corrected so the repository scope checks only the two repository-level credentials and the owner JWT is checked only in the protected environment job.
+- No Production state was changed by either diagnostic run.
 
-**Current directly observed blocker:** runtime injection of `C03_OWNER_JWT` is empty in both tested scopes. This credential is required for owner-authenticated read-only attestation and release actions. Do not substitute the service-role key, impersonate an owner, bypass the Edge API with privileged SQL, or expose the JWT. The precise GitHub setting responsible for the empty runtime value remains unverified.
+**Current directly observed blocker:** runtime injection of `C03_OWNER_JWT` is empty in the protected `production-e2e` job. This credential is required for owner-authenticated read-only attestation and release actions. The repository-scope read-only credential and state checks now pass. Do not substitute the service-role key, impersonate an owner, bypass the Edge API with privileged SQL, or expose the JWT. The precise GitHub setting responsible for the empty environment value remains unverified.
 
-**Current status:** MIGRATION APPLIED / ISOLATED CI PASS / SERVICE-ROLE KEY INJECTED / OWNER JWT INJECTION BLOCKED / EDGE RELEASE NOT DEPLOYED / GATE DISABLED / C-03 NOT CLOSED.
+**Current status:** MIGRATION APPLIED / ISOLATED CI PASS / REPOSITORY READ-ONLY PREFLIGHT PASS / PROTECTED ENVIRONMENT OWNER-JWT INJECTION BLOCKED / EDGE RELEASE NOT DEPLOYED / GATE DISABLED / C-03 NOT CLOSED.
