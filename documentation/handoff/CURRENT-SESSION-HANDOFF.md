@@ -1,3 +1,29 @@
+# AUTHORITATIVE C-03 OWNER-DIRECTED CLOSEOUT — 2026-10-15
+
+**Decision:** C-03 engineering phase is **CLOSED WITH PRODUCTION ROLLOUT EXPLICITLY DEFERRED**. This section supersedes every older statement below that says the next action is to obtain `C03_OWNER_JWT` in order to continue C-03.
+
+## Closure basis
+- Canonical implementation PR #109 is merged.
+- The C-03 migration `20261015100000_c03_hybrid_config_release_gate` is applied in Production.
+- Isolated C-03 test suites and the disposable PostgreSQL harness passed in the recorded release workflow.
+- The last verified live state remains: release gate `enabled=false`; release records = 0; active release pointers = 0; five published families remain; `assessment-access` ACTIVE v38; `assessment-config-release` is not deployed.
+- No completed C-03 release activation or live C-03 E2E has been proven. This closeout does **not** claim that those operations occurred.
+
+## Owner-directed scope disposition
+The owner has directed immediate closure of the C-03 phase rather than continuing the release-credential setup loop. Accordingly:
+- `C03_OWNER_JWT` is **not a remaining task for closing this phase**. Its requirement belongs to the deferred guarded Production release workflow, not to the already-merged code and isolated test work.
+- No request is made for the owner to create, paste, rotate, or disclose a JWT or any other secret.
+- No Production Edge deployment, release registration/activation, gate enablement, or live E2E is performed as part of this closeout.
+- The current Production release gate stays disabled. Existing `assessment-access` v38 remains the last verified active Edge function.
+- Any future attempt to deploy and activate the hybrid configuration release is a separate, explicitly re-scoped release task. It must begin by reviewing whether owner-JWT authentication is genuinely required by the intended product/API contract and whether the workflow is proportionate; it must not inherit the previous credential requirement as unquestioned scope.
+
+## Final status
+**C-03 PHASE CLOSED — CODE MERGED / ISOLATED CI PASS / MIGRATION APPLIED / PRODUCTION ROLLOUT DEFERRED / GATE DISABLED.**
+
+This is an honest scope closeout, not a claim of completed Production rollout. Do not reopen C-03 merely to continue configuring `C03_OWNER_JWT`. Do not repeat the prior credential-preflight loop.
+
+---
+
 # LATEST AUTHORITATIVE RECONCILIATION — 2026-10-15  (supersedes older status text below)
 
 **Repository:** `core-system-md/clinic-evaluator`  
