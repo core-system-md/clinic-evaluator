@@ -1,0 +1,78 @@
+name: C-03 hybrid configuration release gate
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - ".github/workflows/c03-hybrid-config-release.yml"
+      - ".github/scripts/c03-generate-release-payload.cjs"
+      - "supabase/functions/assessment-access/**"
+      - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
+      - "tests/c03-hybrid-config-release.test.js"
+      - "tests/c03-hybrid-config-release-harness.sql"
+      - "tests/c03-release-payload-generator.test.js"
+      - "tests/c03-full-config-digest.test.js"
+      - "tests/fixtures/c03-release-*.json"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  contract-tests:
+    name: C-03 release contract and deterministic digest
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/c03-hybrid-config-release.test.js tests/c03-full-config-digest.test.js tests/c03-release-payload-generator.test.js
+      - name: Generate deterministic release payload
+        run: |
+          node .github/scripts/c03-generate-release-payload.cjs \
+            --snapshot tests/fixtures/c03-release-snapshot.json \
+            --registry tests/fixtures/c03-release-registry.json \
+            --source-commit-sha bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
+            > /tmp/c03-release-payload.json
+          node -e "const p=require('/tmp/c03-release-payload.json'); if (!Array.isArray(p.p_option_manifest) || p.p_option_manifest.length !== 2) process.exit(1); console.log('Generated deterministic option manifest with', p.p_option_manifest.length, 'entries')"
+
+  postgres-release-state-machine:
+    name: C-03 release lifecycle, drift, and publication gate (disposable PostgreSQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+        ports:
+          - 5432:5432
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Generate test payload
+        run: |
+          node .github/scripts/c03-generate-release-payload.cjs \
+            --snapshot tests/fixtures/c03-release-snapshot.json \
+            --registry tests/fixtures/c03-release-registry.json \
+            --source-commit-sha bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb \
+            > /tmp/c03-release-payload.json
+      - name: Install PostgreSQL client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+      - name: Apply migration and exercise full-config release state machine
+        run: |
+          psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" \
+            -v ON_ERROR_STOP=1 \
+            -v release_payload="$(cat /tmp/c03-release-payload.json)" \
+            -f tests/c03-hybrid-config-release-harness.sql
