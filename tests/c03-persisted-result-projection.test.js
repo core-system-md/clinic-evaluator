@@ -51,7 +51,10 @@ test('persisted result projection preserves an existing family slug', () => {
 test('every stored-result projection path supplies resolved assessment family context', () => {
   assert.match(edge, /async function resolvePersistedAssessmentSlug\(/);
   assert.match(edge, /ensureAssessmentSlug\(/);
-  assert.match(edge, /projectCompletionResponse\(await resolvePersistedAssessmentSlug\(storedResult\.result, session\.assessment_type_id\)/);
-  assert.match(edge, /projectCompletionResponse\(await resolvePersistedAssessmentSlug\(storedResult\.result, session\.assessment_type_id\), previousSessionData\)/);
-  assert.match(edge, /projectCompletionResponse\(await resolvePersistedAssessmentSlug\(structured, session\.assessment_type_id\), previousSessionData\)/);
+  assert.match(edge, /projectCompletionResponse\(await resolvePersistedAssessmentSlug\(storedResult\.result, session\.assessment_type_id\), await getPreviousAssessmentSessionData\(session\)\)/);
+  assert.equal(
+    [...edge.matchAll(/projectCompletionResponse\(await resolvePersistedAssessmentSlug\(structured, session\.assessment_type_id\), previousSessionData\)/g)].length,
+    2,
+    'both completed and already-prepared completion branches must recover family context',
+  );
 });
