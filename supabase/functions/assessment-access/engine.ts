@@ -18,7 +18,7 @@ import registryV2 from "./response-interpretation-registry-v2.json" with { type:
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
-import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, sha256Hex } from "./assessment-config-digest.mjs";
+import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, CONFIG_CANONICALIZER_VERSION, sha256Hex } from "./assessment-config-digest.mjs";
 
 type AssessmentRow = {
   id: string;
@@ -303,6 +303,7 @@ export async function computeAssessmentConfigReleaseEvidence(
     scoringEngineVersion: ENGINE_IDENTITY,
     scoringContractVersion: SCORING_CONTRACT_ID,
     reportModelVersion: "REPORT_MODEL_V1",
+    canonicalizerVersion: CONFIG_CANONICALIZER_VERSION,
     canonicalConfig: projection,
   };
 }
