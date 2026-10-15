@@ -88,8 +88,10 @@ async function generateReleasePayload({
     throw new Error("Snapshot assessmentTypeId is required");
   }
   if (typeof snapshot.familyId !== "string" || !snapshot.familyId.trim()) throw new Error("Snapshot familyId is required");
-  if (!["draft", "archived"].includes(snapshot.status)) {
-    throw new Error("Release registration only supports draft or archived assessment versions");
+  const isOneTimePublishedBootstrap = snapshot.status === "published" &&
+    snapshot.bootstrapPublished === true && Number(snapshot.releaseHistoryCount) === 0;
+  if (!["draft", "archived"].includes(snapshot.status) && !isOneTimePublishedBootstrap) {
+    throw new Error("Release registration only supports draft or archived versions, except an explicit one-time published bootstrap with zero release history");
   }
   if (!Number.isInteger(Number(snapshot.assessmentVersion)) || Number(snapshot.assessmentVersion) < 1) {
     throw new Error("Snapshot assessmentVersion must be a positive integer");
