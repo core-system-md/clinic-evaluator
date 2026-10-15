@@ -366,6 +366,12 @@ begin
     raise exception 'Validator rejected rolled-back and re-attested release: %',v_result;
   end if;
 
+  update public.assessment_types set status='published'
+   where id='cccccccc-cccc-4ccc-8ccc-cccccccccccc';
+  if (select state from public.assessment_interpretation_releases where id=v_first_release_id) <> 'PUBLISHED' then
+    raise exception 'Publication transition did not advance the release state to PUBLISHED';
+  end if;
+
   update public.questions set question_text='changed after release'
    where id='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
   v_config_digest_after := public.assessment_configuration_digest('cccccccc-cccc-4ccc-8ccc-cccccccccccc');
