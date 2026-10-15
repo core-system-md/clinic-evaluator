@@ -166,3 +166,67 @@ test('C-03 volatile audit timestamps are excluded from the canonical projection'
   b.runtime.questions[0].created_at = '2026-10-15T00:00:00Z';
   assert.equal(await digest(a), await digest(b));
 });
+
+test('C-03 pinned release guard accepts exact verified identity and rejects drift or missing pins', async () => {
+  const {
+    assertPinnedAssessmentRelease,
+    buildAssessmentConfigProjection,
+    canonicalizeAssessmentConfig,
+    sha256Hex,
+  } = await import('../supabase/functions/assessment-access/assessment-config-digest.mjs');
+  const input = fixture();
+  const projection = buildAssessmentConfigProjection(input);
+  const configDigest = await sha256Hex(canonicalizeAssessmentConfig(projection));
+  const registryDigest = await sha256Hex(canonicalizeAssessmentConfig(projection.interpretation));
+  const runtimeMetadata = {
+    gitCommitSha: 'a'.repeat(40),
+    edgeReleaseRef: 'edge-v1',
+    fixtureSetVersion: 'P3_FIXTURE_SET_V1',
+    migrationContractVersion: 'C03_RELEASE_CONTRACT_V1',
+  };
+  const release = {
+    id: 'release-1',
+    family_id: input.runtime.family.id,
+    assessment_type_id: input.runtime.assessment.id,
+    assessment_version: input.assessmentVersion,
+    git_commit_sha: runtimeMetadata.gitCommitSha,
+    config_digest: configDigest,
+    verified_config_digest: configDigest,
+    interpretation_version: input.interpretationVersion,
+    interpretation_registry_digest: registryDigest,
+    verified_registry_digest: registryDigest,
+    scoring_engine_version: 'MD_CODE_ASSESSMENT_ENGINE',
+    scoring_contract_version: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+    report_model_version: 'REPORT_MODEL_V1',
+    fixture_set_version: runtimeMetadata.fixtureSetVersion,
+    migration_contract_version: runtimeMetadata.migrationContractVersion,
+    edge_release_ref: runtimeMetadata.edgeReleaseRef,
+    state: 'PUBLISHED',
+  };
+  const args = {
+    session: { assessment_release_id: 'release-1' },
+    release,
+    runtime: input.runtime,
+    assessmentVersion: input.assessmentVersion,
+    assessmentConfigDigest: configDigest,
+    runtimeRegistryDigest: registryDigest,
+    interpretationVersion: input.interpretationVersion,
+    engineIdentity: 'MD_CODE_ASSESSMENT_ENGINE',
+    scoringContractVersion: 'FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+    runtimeMetadata,
+  };
+
+  assert.doesNotThrow(() => assertPinnedAssessmentRelease(args));
+  assert.throws(
+    () => assertPinnedAssessmentRelease({ ...args, release: { ...release, config_digest: '0'.repeat(64) } }),
+    error => error.code === 'C03_RELEASE_MISMATCH' && error.status === 409,
+  );
+  assert.throws(
+    () => assertPinnedAssessmentRelease({ ...args, session: { assessment_release_id: null } }),
+    error => error.code === 'C03_RELEASE_MISMATCH' && error.status === 409,
+  );
+  assert.throws(
+    () => assertPinnedAssessmentRelease({ ...args, release: { ...release, state: 'DEGRADED' } }),
+    error => error.code === 'C03_RELEASE_MISMATCH' && error.status === 409,
+  );
+});
