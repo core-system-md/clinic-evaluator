@@ -46,6 +46,20 @@ alter table public.assessment_interpretation_releases
   add column if not exists runtime_verified_edge_release_ref text,
   add column if not exists runtime_verified_source_commit_sha text;
 
+do $state_constraint$
+begin
+  if not exists (
+    select 1 from pg_constraint
+     where conrelid = 'public.assessment_interpretation_releases'::regclass
+       and conname = 'assessment_interpretation_releases_state_check'
+  ) then
+    alter table public.assessment_interpretation_releases
+      add constraint assessment_interpretation_releases_state_check
+      check (state in ('PREPARED','VERIFIED','PUBLISHED','DEGRADED','REJECTED'));
+  end if;
+end
+$state_constraint$;
+
 
 -- Full configuration projection. Lifecycle state and audit timestamps are excluded;
 -- all other persisted fields are included so newly added runtime fields fail closed
@@ -362,6 +376,9 @@ begin
    where id = p_release_id
    for update;
   if not found then raise exception 'Interpretation release not found' using errcode = 'P0002'; end if;
+  if v_release.runtime_verified_at is null or v_release.state not in ('VERIFIED','PUBLISHED','DEGRADED') then
+    raise exception 'Only a previously runtime-verified release can be restored' using errcode = '55000';
+  end if;
 
   v_live_digest := public.assessment_configuration_digest(v_release.assessment_type_id);
   if v_live_digest is distinct from v_release.config_digest then
@@ -384,6 +401,18 @@ begin
          runtime_verified_source_commit_sha = null,
          failure_reason = null
    where id = v_release.id;
+
+  perform public.write_admin_audit(
+    'assessment.interpretation_release.restore',
+    'assessment_interpretation_releases',
+    v_release.id,
+    v_release.family_id,
+    null,
+    jsonb_build_object('assessment_type_id',v_release.assessment_type_id,'release_id',v_release.id,
+      'state','PREPARED','requires_runtime_reattestation',true),
+    true,
+    null
+  );
 
   return jsonb_build_object('success',true,'release_id',v_release.id,
     'assessment_type_id',v_release.assessment_type_id,'state','PREPARED',
