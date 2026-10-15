@@ -18,6 +18,7 @@ import registryV2 from "./response-interpretation-registry-v2.json" with { type:
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
+import { assertInterpretationReleaseMatches, RUNTIME_EDGE_RELEASE_REF, selectInterpretationEntries } from "./interpretation-release-provenance.mjs";
 
 type AssessmentRow = {
   id: string;
@@ -80,6 +81,21 @@ type StoredAnswer = {
   option_value: number | null;
 };
 
+function buildRuntimeOptionManifest(runtime: Runtime) {
+  const questionCodeById = new Map(runtime.questions.map((question) => [question.id, question.code]));
+  return runtime.options.map((option) => {
+    const questionCode = questionCodeById.get(option.question_id);
+    if (!questionCode) throw new Error("Runtime option references an unknown question");
+    return {
+      question_code: questionCode,
+      option_id: option.id,
+      option_index: Number(option.option_index),
+      source_option_value: Number(option.option_value),
+    };
+  });
+}
+
+
 export type AssessmentComputation = {
   result: P3IntegratedResult;
   scoreRows: Array<Record<string, unknown>>;
@@ -90,6 +106,9 @@ export type AssessmentComputation = {
     scoringEngineVersion: string;
     scoringContractVersion: string;
     assessmentConfigDigest: string;
+    interpretationRegistryDigest: string | null;
+    interpretationSourceCommitSha: string | null;
+    interpretationReleaseRef: string | null;
   };
 };
 
@@ -310,6 +329,62 @@ function buildSelections(
   return selections;
 }
 
+export async function attestInterpretationRelease(
+  client: SupabaseClient,
+  assessmentTypeId: string,
+) {
+  const runtime = await loadRuntime(client, assessmentTypeId);
+  const assessmentVersion = Number(runtime.assessment.version ?? runtime.assessment.config_version ?? 1);
+  const binding = resolveInterpretationBinding(runtime.family.slug, assessmentVersion);
+  const registryEntries = selectInterpretationEntries(binding.registry, runtime.family.slug, binding.interpretationVersion);
+
+  const { data: release, error: releaseError } = await client
+    .from("assessment_interpretation_releases")
+    .select("assessment_type_id, family_id, assessment_version, interpretation_version, registry_digest, config_digest, config_canonicalizer_version, source_commit_sha, edge_release_ref, option_manifest")
+    .eq("assessment_type_id", runtime.assessment.id)
+    .maybeSingle();
+  if (releaseError) throw new Error("Interpretation release lookup failed: " + releaseError.message);
+  if (!release) throw new Error("Interpretation release must be registered before runtime attestation");
+
+  const { data: runtimeConfigDigest, error: configDigestError } = await client.rpc(
+    "assessment_configuration_digest",
+    { p_assessment_type_id: runtime.assessment.id },
+  );
+  if (configDigestError) throw new Error("Full assessment configuration digest lookup failed: " + configDigestError.message);
+
+  const attestation = await assertInterpretationReleaseMatches({
+    release,
+    assessmentTypeId: runtime.assessment.id,
+    familyId: runtime.family.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    registryEntries,
+    runtimeOptionManifest: buildRuntimeOptionManifest(runtime),
+    runtimeConfigDigest: String(runtimeConfigDigest || ""),
+    runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
+  });
+
+  const { data: verification, error: verificationError } = await client.rpc(
+    "mark_assessment_interpretation_release_runtime_verified_secure",
+    {
+      p_assessment_type_id: runtime.assessment.id,
+      p_runtime_digest: attestation.registryDigest,
+      p_runtime_config_digest: attestation.configDigest,
+      p_runtime_edge_release_ref: RUNTIME_EDGE_RELEASE_REF,
+      p_runtime_source_commit_sha: attestation.sourceCommitSha,
+    },
+  );
+  if (verificationError) throw new Error("Runtime attestation could not be recorded: " + verificationError.message);
+
+  return {
+    assessmentTypeId: runtime.assessment.id,
+    assessmentVersion,
+    interpretationVersion: binding.interpretationVersion,
+    ...attestation,
+    verification,
+  };
+}
+
 export async function calculateAssessment(
   client: SupabaseClient,
   input: {
@@ -380,6 +455,52 @@ export async function calculateAssessment(
     assessmentVersion,
   );
   const interpretationRegistry = interpretationBinding.registry;
+
+  const interpretationEntries = selectInterpretationEntries(
+    interpretationRegistry,
+    runtime.family.slug,
+    interpretationBinding.interpretationVersion,
+  );
+  const { data: interpretationRelease, error: interpretationReleaseError } = await client
+    .from("assessment_interpretation_releases")
+    .select("assessment_type_id, family_id, assessment_version, interpretation_version, registry_digest, config_digest, config_canonicalizer_version, source_commit_sha, edge_release_ref, option_manifest")
+    .eq("assessment_type_id", runtime.assessment.id)
+    .maybeSingle();
+  if (interpretationReleaseError) {
+    throw new Error("Interpretation release lookup failed: " + interpretationReleaseError.message);
+  }
+
+  let releaseProvenance: {
+    registryDigest: string | null;
+    configDigest: string | null;
+    sourceCommitSha: string | null;
+    edgeReleaseRef: string | null;
+  } = {
+    registryDigest: null,
+    configDigest: null,
+    sourceCommitSha: null,
+    edgeReleaseRef: null,
+  };
+  if (interpretationRelease) {
+    const { data: runtimeConfigDigest, error: configDigestError } = await client.rpc(
+      "assessment_configuration_digest",
+      { p_assessment_type_id: runtime.assessment.id },
+    );
+    if (configDigestError) {
+      throw new Error("Full assessment configuration digest lookup failed: " + configDigestError.message);
+    }
+    releaseProvenance = await assertInterpretationReleaseMatches({
+      release: interpretationRelease,
+      assessmentTypeId: runtime.assessment.id,
+      familyId: runtime.family.id,
+      assessmentVersion,
+      interpretationVersion: interpretationBinding.interpretationVersion,
+      registryEntries: interpretationEntries,
+      runtimeOptionManifest: buildRuntimeOptionManifest(runtime),
+      runtimeConfigDigest: String(runtimeConfigDigest || ""),
+      runtimeSourceCommitSha: Deno.env.get("C03_SOURCE_COMMIT_SHA") || null,
+    });
+  }
 
   const versionedConfig = {
     assessment: {
@@ -457,7 +578,7 @@ export async function calculateAssessment(
     assessmentVersion,
   );
 
-  const assessmentConfigDigest = await sha256Hex(stable(versionedConfig));
+  const assessmentConfigDigest = releaseProvenance.configDigest || await sha256Hex(stable(versionedConfig));
   const resultId = crypto.randomUUID();
   const calculatedAt = new Date().toISOString();
 
@@ -506,6 +627,9 @@ export async function calculateAssessment(
       scoringEngineVersion: ENGINE_IDENTITY,
       scoringContractVersion: SCORING_CONTRACT_ID,
       assessmentConfigDigest,
+      interpretationRegistryDigest: releaseProvenance.registryDigest,
+      interpretationSourceCommitSha: releaseProvenance.sourceCommitSha,
+      interpretationReleaseRef: releaseProvenance.edgeReleaseRef,
     },
   };
 }
