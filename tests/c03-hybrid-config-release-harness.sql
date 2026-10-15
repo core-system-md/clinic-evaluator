@@ -88,7 +88,7 @@ select set_config('request.jwt.claim.role','service_role',false);
 select public.verify_assessment_config_release_secure(
   (:'release1'::jsonb->>'release_id')::uuid,
   '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 1,
-  repeat('b',64), repeat('c',64), repeat('a',40), 'edge-v1', 1,
+  repeat('b',64), 'C03_CANONICAL_V1', repeat('c',64), repeat('a',40), 'edge-v1', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
 ) as verified1 \gset
@@ -117,7 +117,7 @@ select set_config('request.jwt.claim.role','service_role',false);
 select public.verify_assessment_config_release_secure(
   (:'release2'::jsonb->>'release_id')::uuid,
   '11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333', 2,
-  repeat('e',64), repeat('f',64), repeat('d',40), 'edge-v2', 1,
+  repeat('e',64), 'C03_CANONICAL_V1', repeat('f',64), repeat('d',40), 'edge-v2', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
 ) as verified2 \gset
@@ -169,7 +169,7 @@ select set_config('request.jwt.claim.role','service_role',false);
 select public.verify_assessment_config_release_secure(
   (:'release_bad'::jsonb->>'release_id')::uuid,
   '11111111-1111-4111-8111-111111111111', '44444444-4444-4444-8444-444444444444', 3,
-  repeat('9',64), repeat('3',64), repeat('1',40), 'edge-bad', 1,
+  repeat('9',64), 'C03_CANONICAL_V1', repeat('3',64), repeat('1',40), 'edge-bad', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"intentional mismatch"}'::jsonb
 ) as rejected_bad \gset
