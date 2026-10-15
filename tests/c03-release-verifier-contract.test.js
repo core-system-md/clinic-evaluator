@@ -16,7 +16,7 @@ test('C-03 owner actions require a real owner; CI actions use a separate OIDC ve
   assert.match(verifier, /userClient\.auth\.getUser/);
   assert.match(verifier, /userClient\.rpc\("is_owner"\)/);
   assert.match(verifier, /const isCiAction = action\.startsWith\("ci_"\)/);
-  assert.match(verifier, /verifyCiTokenFn\(match\[1\]\)/);
+  assert.match(verifier, /verifyCiTokenFn\(oidcToken\)/);
   assert.match(verifier, /if \(action === "export" \|\| action === "ci_export"\)/);
   assert.match(verifier, /if \(action === "register" \|\| action === "ci_register"\)/);
   assert.match(verifier, /owner!\.userClient\.rpc\("register_assessment_config_release_secure"/);
