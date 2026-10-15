@@ -494,20 +494,29 @@ Deno.serve(async (req) => {
 
       if (versionError) throw versionError;
       const byId = new Map((versions || []).map((v) => [v.id, v]));
+      const catalogItems = await Promise.all((families || []).map(async (f) => {
+        const v = byId.get(f.current_published_version_id);
+        if (!v) return null;
+        if (Deno.env.get("C03_RELEASE_GATE_ENFORCED") === "true") {
+          try {
+            await assertAssessmentReleaseReady(supabase, f.current_published_version_id);
+          } catch (_error) {
+            return null;
+          }
+        }
+        return {
+          id: v.id,
+          slug: f.slug,
+          title_ar: v.title_ar || null,
+          description: v.description || null,
+          question_count: v.question_count || 0,
+          axis_count: v.axis_count || 0
+        };
+      }));
 
       return json({
         success: true,
-        data: (families || []).map((f) => {
-          const v = byId.get(f.current_published_version_id);
-          return {
-            id: v?.id || f.current_published_version_id,
-            slug: f.slug,
-            title_ar: v?.title_ar || null,
-            description: v?.description || null,
-            question_count: v?.question_count || 0,
-            axis_count: v?.axis_count || 0
-          };
-        })
+        data: catalogItems.filter((item) => item !== null)
       });
     }
 
