@@ -402,6 +402,54 @@ $$;
 revoke all on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text, text) from public, anon, authenticated;
 grant execute on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text, text) to service_role;
 
+create or replace function public.mark_assessment_interpretation_release_degraded_secure(
+  p_assessment_type_id uuid,
+  p_reason text
+)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, pg_temp
+as $
+declare
+  v_release public.assessment_interpretation_releases%rowtype;
+  v_reason text := left(btrim(coalesce(p_reason, 'Runtime attestation failed')), 1000);
+begin
+  if coalesce(auth.role(), '') <> 'service_role' then
+    raise exception 'Service-role Edge runtime required to mark a configuration release degraded'
+      using errcode = '42501';
+  end if;
+  select * into v_release
+    from public.assessment_interpretation_releases
+   where assessment_type_id = p_assessment_type_id
+   for update;
+  if not found then
+    raise exception 'Configuration release not found' using errcode = 'P0002';
+  end if;
+  if v_release.release_state = 'REJECTED' then
+    return jsonb_build_object('success', false, 'release_state', 'REJECTED', 'assessment_type_id', p_assessment_type_id);
+  end if;
+
+  update public.assessment_interpretation_releases
+     set release_state = 'DEGRADED',
+         degraded_reason = v_reason,
+         runtime_verified_at = null,
+         runtime_verified_digest = null,
+         runtime_verified_config_digest = null,
+         runtime_verified_edge_release_ref = null,
+         runtime_verified_source_commit_sha = null
+   where assessment_type_id = p_assessment_type_id;
+
+  return jsonb_build_object(
+    'success', true, 'release_state', 'DEGRADED',
+    'assessment_type_id', p_assessment_type_id, 'reason', v_reason
+  );
+end;
+$;
+
+revoke all on function public.mark_assessment_interpretation_release_degraded_secure(uuid, text) from public, anon, authenticated;
+grant execute on function public.mark_assessment_interpretation_release_degraded_secure(uuid, text) to service_role;
+
 create or replace function public.validate_assessment_version_secure(p_version_id uuid)
 returns jsonb
 language plpgsql
