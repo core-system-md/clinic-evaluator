@@ -35,6 +35,12 @@ jobs:
           - 5432:5432
     steps:
       - uses: actions/checkout@v4
+      - name: Check changed Edge and release generator syntax
+        run: |
+          node --experimental-strip-types --check supabase/functions/assessment-access/index.ts
+          node --experimental-strip-types --check supabase/functions/assessment-access/engine.ts
+          node --check supabase/functions/assessment-access/interpretation-release-provenance.mjs
+          node --check .github/scripts/c03-generate-release-payload.cjs
       - name: Test deterministic release payload generator
         run: node --test tests/c03-release-payload-generator.test.js
       - name: Install PostgreSQL client
