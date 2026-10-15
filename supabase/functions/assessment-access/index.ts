@@ -10,7 +10,7 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
-const supabase = createClient(
+let supabase = createClient(
   Deno.env.get("SUPABASE_URL") || "",
   Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "",
   { auth: { persistSession: false } },
@@ -427,7 +427,11 @@ async function issuePublicAccess(assessmentKey: string) {
   return { token, expires_at: expiresAt, assessment_type_id: family.current_published_version_id };
 }
 
-Deno.serve(async (req) => {
+export function createAssessmentAccessHandler(client = supabase) {
+  // The production handler binds its service client once; dependency injection permits
+  // deterministic tests of the actual request dispatcher without Production writes.
+  supabase = client;
+  return async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
   if (req.method !== "POST") return json({ error: "Method not allowed" }, 405);
 
@@ -1092,4 +1096,9 @@ Deno.serve(async (req) => {
     const status = Number((error as any)?.status) || 500;
     return json({ error: error instanceof Error ? error.message : "Internal error" }, status);
   }
-});
+  };
+}
+
+if (import.meta.main) {
+  Deno.serve(createAssessmentAccessHandler());
+}
