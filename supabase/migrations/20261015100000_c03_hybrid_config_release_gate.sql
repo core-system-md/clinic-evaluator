@@ -304,10 +304,13 @@ $$;
 revoke all on function public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, text, jsonb, jsonb, uuid) from public, anon, authenticated;
 grant execute on function public.register_assessment_interpretation_release_secure(uuid, integer, text, text, text, text, jsonb, jsonb, uuid) to service_role;
 
--- Only the Edge runtime service-role client may record a successful runtime attestation.
-create or replace function public.mark_assessment_interpretation_release_runtime_verified_secure(
+-- Only the Edge runtime service-role client may record a successful full-config attestation.
+drop function if exists public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text);
+
+create function public.mark_assessment_interpretation_release_runtime_verified_secure(
   p_assessment_type_id uuid,
   p_runtime_digest text,
+  p_runtime_config_digest text,
   p_runtime_edge_release_ref text,
   p_runtime_source_commit_sha text
 )
@@ -318,41 +321,86 @@ set search_path = public, pg_temp
 as $$
 declare
   v_release public.assessment_interpretation_releases%rowtype;
+  v_reason text;
+  v_next_state text;
 begin
   if coalesce(auth.role(), '') <> 'service_role' then
-    raise exception 'Service-role Edge runtime required to attest an interpretation release'
+    raise exception 'Service-role Edge runtime required to attest a configuration release'
       using errcode = '42501';
   end if;
 
-  select * into v_release from public.assessment_interpretation_releases
-   where assessment_type_id = p_assessment_type_id for update;
+  select * into v_release
+    from public.assessment_interpretation_releases
+   where assessment_type_id = p_assessment_type_id
+   for update;
 
-  if not found then raise exception 'Interpretation release not found' using errcode = 'P0002'; end if;
-  if coalesce(p_runtime_digest, '') !~ '^[0-9a-f]{64}$' or p_runtime_digest <> v_release.registry_digest then
-    raise exception 'Runtime registry digest does not match the registered release' using errcode = '22023';
+  if not found then
+    raise exception 'Configuration release not found' using errcode = 'P0002';
   end if;
-  if nullif(trim(p_runtime_edge_release_ref), '') is null or p_runtime_edge_release_ref <> v_release.edge_release_ref then
-    raise exception 'Runtime Edge release reference does not match the registered release' using errcode = '22023';
-  end if;
-  if p_runtime_source_commit_sha is null or p_runtime_source_commit_sha <> v_release.source_commit_sha then
-    raise exception 'Runtime source commit does not match the registered release' using errcode = '22023';
+  if v_release.release_state = 'REJECTED' then
+    raise exception 'Rejected releases cannot be attested' using errcode = '55000';
   end if;
 
+  if coalesce(p_runtime_digest, '') !~ '^[0-9a-f]{64}$'
+     or p_runtime_digest is distinct from v_release.registry_digest then
+    v_reason := 'Runtime interpretation registry digest mismatch';
+  elsif coalesce(p_runtime_config_digest, '') !~ '^[0-9a-f]{64}$'
+     or p_runtime_config_digest is distinct from v_release.assessment_config_digest then
+    v_reason := 'Runtime full assessment config digest mismatch';
+  elsif nullif(trim(p_runtime_edge_release_ref), '') is null
+     or p_runtime_edge_release_ref is distinct from v_release.edge_release_ref then
+    v_reason := 'Runtime Edge release reference mismatch';
+  elsif p_runtime_source_commit_sha is null
+     or p_runtime_source_commit_sha is distinct from v_release.source_commit_sha then
+    v_reason := 'Runtime source commit mismatch';
+  elsif v_release.config_manifest is distinct from public.assessment_config_manifest_secure(p_assessment_type_id) then
+    v_reason := 'Persisted assessment configuration drift detected';
+  end if;
+
+  if v_reason is not null then
+    update public.assessment_interpretation_releases
+       set release_state = 'DEGRADED',
+           degraded_reason = v_reason,
+           runtime_verified_at = null,
+           runtime_verified_digest = null,
+           runtime_verified_config_digest = null,
+           runtime_verified_edge_release_ref = null,
+           runtime_verified_source_commit_sha = null
+     where assessment_type_id = p_assessment_type_id;
+    return jsonb_build_object(
+      'success', false,
+      'assessment_type_id', p_assessment_type_id,
+      'release_state', 'DEGRADED',
+      'reason', v_reason
+    );
+  end if;
+
+  v_next_state := case when v_release.release_state = 'PUBLISHED' then 'PUBLISHED' else 'VERIFIED' end;
   update public.assessment_interpretation_releases
-     set runtime_verified_at = now(), runtime_verified_digest = p_runtime_digest,
+     set release_state = v_next_state,
+         degraded_reason = null,
+         runtime_verified_at = now(),
+         runtime_verified_digest = p_runtime_digest,
+         runtime_verified_config_digest = p_runtime_config_digest,
          runtime_verified_edge_release_ref = p_runtime_edge_release_ref,
          runtime_verified_source_commit_sha = p_runtime_source_commit_sha
    where assessment_type_id = p_assessment_type_id;
 
-  return jsonb_build_object('success', true, 'assessment_type_id', p_assessment_type_id,
-    'runtime_verified_at', now(), 'runtime_verified_digest', p_runtime_digest,
+  return jsonb_build_object(
+    'success', true,
+    'assessment_type_id', p_assessment_type_id,
+    'release_state', v_next_state,
+    'runtime_verified_at', now(),
+    'runtime_verified_digest', p_runtime_digest,
+    'runtime_verified_config_digest', p_runtime_config_digest,
     'runtime_verified_edge_release_ref', p_runtime_edge_release_ref,
-    'runtime_verified_source_commit_sha', p_runtime_source_commit_sha);
+    'runtime_verified_source_commit_sha', p_runtime_source_commit_sha
+  );
 end;
 $$;
 
-revoke all on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text) from public, anon, authenticated;
-grant execute on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text) to service_role;
+revoke all on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text, text) from public, anon, authenticated;
+grant execute on function public.mark_assessment_interpretation_release_runtime_verified_secure(uuid, text, text, text, text) to service_role;
 
 create or replace function public.validate_assessment_version_secure(p_version_id uuid)
 returns jsonb
