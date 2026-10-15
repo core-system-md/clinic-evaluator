@@ -245,3 +245,11 @@ Existing open PRs left untouched: #85, #84, #82, #79, #56.
 1. Obtain a reproducible isolated Edge completion test or the specific stack/error trace for the reported admin/protected crash. Exercise the actual protected `complete` handler, not just source-text contracts or the lower-level SQL RPC. The regression must fail before the fix and pass after it.
 2. Implement the full configuration digest/release state machine from PR #103's contract on a fresh branch based on current `main`, including drift, compare-and-swap publication, pinned-session behavior, and rollback tests.
 3. Only after both tracks pass, evaluate deployment gates separately. C-03 remains **IN PROGRESS / NOT CLOSED**.
+
+
+### CI follow-up — 2026-10-15
+
+- Added `.github/workflows/c03-protected-completion.yml` on the PR #102 branch so the dedicated regression test and the actual WP-04 protected Structured Result PostgreSQL harness are run in isolated CI, rather than merely checking that the harness file contains assertions.
+- Dedicated C-03 workflow [#38660821837](https://github.com/core-system-md/clinic-evaluator/actions/runs/38660821837): both jobs succeeded — route/report projection tests and protected Structured Result RPC on disposable PostgreSQL.
+- Full P3 workflow [#38660821668](https://github.com/core-system-md/clinic-evaluator/actions/runs/38660821668): all four jobs succeeded.
+- Latest PR #102 head is `b13b459c846a6a8d693ee2c0127f0738e0243c8c`. These results validate the current tests and SQL persistence harness, but do not reproduce the reported Edge-handler crash.
