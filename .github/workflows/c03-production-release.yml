@@ -1,4 +1,5 @@
 name: C-03 guarded Production release and bounded E2E
+# Owner-authorized one-time release trigger; exact commit identity is enforced before deployment.
 
 on:
   push:
