@@ -70,7 +70,7 @@ test("WP-10 D-17 preserves fractional raw/max in Structured Result and applies i
   const migration = fs.readFileSync("supabase/migrations/20261009164951_structured_result_authority.sql", "utf8");
   assert.ok(migration.includes('round(s."rawScore")::integer'));
   assert.ok(migration.includes('round(s."maxPossible")::integer'));
-  assert.match(migration, /result, result_status, calculated_at/);
+  assert.ok(migration.includes("v_completed_at, 'PRODUCTION', p_result"));
 });
 
 test("WP-04 persistence projector cannot observe answer/internal engine state", () => {

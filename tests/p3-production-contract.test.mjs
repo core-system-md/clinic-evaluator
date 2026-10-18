@@ -181,7 +181,7 @@ test("scorer-side axis rows retain numeric precision before canonical persistenc
 
 test("WP-10 D-12 admin report prefers official Structured Result and does not read answer-level trap fields", () => {
   const admin = fs.readFileSync("admin/assessment-manager.js", "utf8");
-  assert.ok(admin.includes("rpc('get_admin_assessment_result_secure'"));
+  assert.ok(admin.includes("request('rpc/get_admin_assessment_result_secure'"));
   assert.ok(admin.includes("officialResult?.scores?.axes"));
   assert.ok(admin.includes("officialResult?.kpis"));
   assert.ok(admin.includes("status: 'historical'"));
