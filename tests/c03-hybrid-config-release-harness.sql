@@ -168,22 +168,23 @@ select public.activate_existing_assessment_release_secure(
 );
 select public.enable_assessment_config_release_gate_secure();
 
--- CI-specific release RPCs must reject ordinary authenticated users.
-do $assert_ci_rpc_role$
-begin
-  perform set_config('request.jwt.claim.role','authenticated',true);
-  begin
-    perform public.enable_assessment_config_release_gate_ci_secure(
-      '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
-    );
-    raise exception 'authenticated role unexpectedly invoked the CI gate RPC';
-  exception when sqlstate '42501' then null;
-  end;
-end
-$assert_ci_rpc_role$;
+-- CI entry points remain executable only by service_role; the handler validates OIDC.
+select 1 / ((
+  has_function_privilege('service_role','public.c03_require_ci_release_context(text,text,text,text)','EXECUTE')
+  and has_function_privilege('service_role','public.register_assessment_config_release_ci_secure(uuid,text,text,text,integer,text,text,text,text,text,text,text,text,text,text,text)','EXECUTE')
+  and has_function_privilege('service_role','public.activate_existing_assessment_release_ci_secure(uuid,uuid,text,text,text,text)','EXECUTE')
+  and has_function_privilege('service_role','public.enable_assessment_config_release_gate_ci_secure(text,text,text,text)','EXECUTE')
+  and not has_function_privilege('anon','public.c03_require_ci_release_context(text,text,text,text)','EXECUTE')
+  and not has_function_privilege('authenticated','public.c03_require_ci_release_context(text,text,text,text)','EXECUTE')
+  and not has_function_privilege('anon','public.register_assessment_config_release_ci_secure(uuid,text,text,text,integer,text,text,text,text,text,text,text,text,text,text,text)','EXECUTE')
+  and not has_function_privilege('authenticated','public.register_assessment_config_release_ci_secure(uuid,text,text,text,integer,text,text,text,text,text,text,text,text,text,text,text)','EXECUTE')
+)::int) as ci_rpc_grants_restricted;
+
+-- Model the server-side sb_secret key: service_role has EXECUTE, but no legacy JWT role claim.
+select set_config('request.jwt.claim.role','',false);
+set role service_role;
 
 -- The verified current release can be idempotently reconciled by the guarded CI identity.
-select set_config('request.jwt.claim.role','service_role',false);
 select public.register_assessment_config_release_ci_secure(
   '22222222-2222-4222-8222-222222222222',
   repeat('a',40), repeat('b',64), 'C03_CANONICAL_V1', 1, repeat('c',64),
@@ -201,6 +202,7 @@ select public.activate_existing_assessment_release_ci_secure(
 select public.enable_assessment_config_release_gate_ci_secure(
   '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
 ) as ci_gate_enabled;
+reset role;
 select 1 / ((
   select enabled and enabled_by_workflow_run_id='12345'
     and enabled_by_workflow_sha=repeat('a',40)
