@@ -22,6 +22,12 @@ Deno.test("C-03 OIDC claim validation accepts only the designated repository wor
   const identity = validateC03GithubReleaseClaims(valid);
   if (identity.sha !== valid.sha || identity.runId !== "12345") throw new Error("Valid workflow identity was not retained.");
 });
+Deno.test("C-03 accepts the explicit owner-controlled issue-comment trigger with the same strict claims", () => {
+  const identity = validateC03GithubReleaseClaims({ ...valid, event_name: "issue_comment" });
+  if (identity.actorId !== "290540122" || identity.eventName !== "issue_comment") {
+    throw new Error("The owner-controlled release trigger identity was not retained.");
+  }
+});
 for (const [claim, value] of [
   ["actor", "untrusted-dispatcher"],
   ["actor_id", "123"],

@@ -119,18 +119,34 @@ export async function verifyDeployedAttestation({
   const baseUrl = String(suppliedBaseUrl || process.env.SUPABASE_URL || "").replace(/\/$/, "");
   const anonKey = String(suppliedAnonKey || process.env.SUPABASE_ANON_KEY || "");
   const oidcToken = String(suppliedOidcToken || await getC03GithubOidcToken());
-  const selectedAssessmentTypeId = String(assessmentTypeId || process.env.C03_ASSESSMENT_TYPE_ID || "").trim();
-  if (!baseUrl || !anonKey || !oidcToken || !selectedAssessmentTypeId) {
-    throw new Error("Read-only deployed attestation verification requires SUPABASE_URL, SUPABASE_ANON_KEY, GitHub Actions OIDC, and C03_ASSESSMENT_TYPE_ID.");
+  let selectedAssessmentTypeId = String(assessmentTypeId || process.env.C03_ASSESSMENT_TYPE_ID || "").trim();
+  if (!baseUrl || !anonKey || !oidcToken) {
+    throw new Error("Read-only deployed attestation verification requires SUPABASE_URL, SUPABASE_ANON_KEY, and GitHub Actions OIDC.");
+  }
+  const requestHeaders = {
+    "Content-Type": "application/json",
+    "apikey": anonKey,
+    "Authorization": "Bearer " + anonKey,
+    "x-c03-github-oidc": oidcToken,
+  };
+  if (!selectedAssessmentTypeId) {
+    const inventoryResponse = await fetchImpl(baseUrl + "/functions/v1/assessment-config-release", {
+      method: "POST",
+      headers: requestHeaders,
+      body: JSON.stringify({ action: "ci_inventory" }),
+    });
+    const inventoryPayload = await inventoryResponse.json().catch(() => ({}));
+    if (!inventoryResponse.ok || inventoryPayload?.success !== true || !Array.isArray(inventoryPayload?.data?.families)) {
+      throw new Error("Read-only OIDC inventory failed while selecting a current assessment version: HTTP " + inventoryResponse.status);
+    }
+    selectedAssessmentTypeId = String(inventoryPayload.data.families[0]?.current_published_version_id || "").trim();
+  }
+  if (!selectedAssessmentTypeId) {
+    throw new Error("No current published assessment version is available for read-only Edge attestation.");
   }
   const response = await fetchImpl(baseUrl + "/functions/v1/assessment-config-release", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "apikey": anonKey,
-      "Authorization": "Bearer " + anonKey,
-      "x-c03-github-oidc": oidcToken,
-    },
+    headers: requestHeaders,
     body: JSON.stringify({ action: "ci_export", assessment_type_id: selectedAssessmentTypeId }),
   });
   const payload = await response.json().catch(() => ({}));
