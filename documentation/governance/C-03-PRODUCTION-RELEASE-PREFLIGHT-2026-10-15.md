@@ -1,21 +1,19 @@
-# C-03 FINAL PRODUCTION RELEASE RESULT — 2026-10-18
+# C-03 PRODUCTION RELEASE RESULT AND REMAINING LIVE E2E CLOSEOUT — 2026-10-18
 
-**Final status: CLOSED — guarded Production release succeeded.**
+**Production release: SUCCESS. Full requested C-03 closeout: pending live E2E and exact-run cleanup evidence.**
 
 - Successful guarded workflow: https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790
-- Release code SHA at execution: `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`
+- Release code SHA: `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`
 - Runtime source digest: `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`
-- Edge deployments: `assessment-access` ACTIVE v48 (`verify_jwt=false`); `assessment-config-release` ACTIVE v10 (`verify_jwt=true`). Both deployed attestations matched the release SHA and source digest.
-- Production release gate: `enabled=true`; enabled at `2026-10-18 08:00:11 UTC`, with audit metadata `workflow_run_id=39109714790` and `workflow_sha=4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`.
-- Final read-only reconciliation: all 5 published assessment families have active `PUBLISHED` release rows. For every active row, configuration digest, interpretation-registry digest, Git SHA, and Edge source reference match. Five release rows for the release SHA are verified; zero PREPARED rows remain for that SHA.
-- All 10 stale PREPARED records from failed guarded-release attempts at SHAs `f64cdd0767f443bdc1390f44825ddb559e4b6723` and `0c3f65fd801600fcc9d4e2614d89902f40f37165` were transitioned to REJECTED with supersession reasons after the successful release. No active pointer referenced those rows; records were retained for audit.
-- Two compatibility migrations were added and applied after production logs exposed the modern Supabase `sb_secret` API-key behavior: CI release routines and the runtime verifier no longer require a legacy JWT role claim when the caller has passed the service-role-only EXECUTE boundary. Grants for `anon` and `authenticated` remain revoked. The C-03 disposable PostgreSQL harness passed with the claim absent.
-- Validation on reviewed PR heads passed: C-03 release-state-machine harness, C-03 runtime digest/handler tests, full Node suite, P3 kernel, P4 disposable PostgreSQL, and C-02 answer-save RPC on disposable PostgreSQL.
+- Production gate: `enabled=true`, audit identity `workflow_run_id=39109714790`, `workflow_sha=4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`.
+- Live database read-back: five current family pointers, each resolving to a `PUBLISHED` release row bound to the exact release SHA; no failure reason on those rows.
+- Deployed Edge versions at release: `assessment-access` v48 (`verify_jwt=false`), `assessment-config-release` v10 (`verify_jwt=true`).
+- Release evidence artifact: `c03-production-release-evidence` (ID `12129813276`).
 
-## Owner-directed boundary
-Live E2E is a **separate post-closure task**, not a prerequisite for C-03 closure. No live E2E result is claimed by this release workflow. C-01 remains closed.
+## Explicit E2E boundary
+Live E2E and synthetic-data cleanup were **not** executed by workflow #39109714790. The current `.github/scripts/c03-production-e2e-cleanup.mjs` is not safe for C-03 use without correction: it expects `c02-value70-live-e2e-result.json` and `c02-value70-...` run IDs. There is no C-03 E2E runner in current `main`. Build and test a C-03-specific runner and exact-run cleanup before any synthetic Production writes; then run under a separately guarded workflow and verify zero residue. Do not repeat the already-successful release activation.
 
-The runtime release is bound to code SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`. The subsequent handoff/governance commits are documentation-only and do not change the Edge source manifest; they are not represented as a new runtime build.
+---
 
 ---
 
