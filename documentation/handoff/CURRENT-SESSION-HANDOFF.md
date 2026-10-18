@@ -1,23 +1,24 @@
-# C-03 FINAL PRODUCTION CLOSEOUT — 2026-10-18
+# C-03 CURRENT SESSION HANDOFF — PRODUCTION RELEASE COMPLETE; LIVE E2E CLOSEOUT PENDING — 2026-10-18
 
-**Status: C-03 PRODUCTION RELEASE CLOSED.** The guarded release completed successfully; the active release gate and all five release pointers were verified in Production. Per owner direction, live E2E is a separate post-closure task and was not treated as a prerequisite or run in this release workflow.
+**Verified status:** the guarded C-03 Production release succeeded, but the full owner-requested closeout is **not yet complete** because live E2E and exact-run synthetic-data cleanup have not been executed or evidenced. Do not report the entire C-03 task as fully closed until those checks are complete.
 
-## Final verified release identity
-- Release workflow: [run #39109714790](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790) — **SUCCESS** (OIDC preflight and guarded release both passed).
-- Exact code/source commit at release: `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`.
-- Runtime Edge source manifest: `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`.
-- Supabase Edge: `assessment-access` ACTIVE v48 (`verify_jwt=false`, preserved public configuration); `assessment-config-release` ACTIVE v10 (`verify_jwt=true`). Both embed the same attestation for the release SHA and source digest.
-- The gate was enabled at `2026-10-18 08:00:11 UTC`; audit fields record workflow run `39109714790` and the exact release SHA.
-- Read-only Production reconciliation after the run: gate `enabled=true`; five published families; five current release pointers; all five active releases are `PUBLISHED` with matching configuration digest, interpretation-registry digest, Git SHA, and Edge source reference.
-- Current release inventory: 5 published/verified rows for the release SHA; 0 PREPARED rows for that SHA.
-- The ten PREPARED rows left by the two failed attempts at SHAs `f64cdd0767f443bdc1390f44825ddb559e4b6723` and `0c3f65fd801600fcc9d4e2614d89902f40f37165` were marked `REJECTED` with supersession reasons. None was an active pointer; the records were retained for audit.
-- The production compatibility migrations for modern Supabase server-side API keys are applied. The fix preserves `EXECUTE` grants for `service_role` only; `anon` and `authenticated` remain denied. Exact-head C-03 disposable PostgreSQL harness, runtime digest tests, handler tests, full Node suite, P3, P4, and C-02 disposable PostgreSQL checks passed for the reviewed PR heads.
+## Confirmed Production release result
+- Workflow run [#39109714790](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790) — **SUCCESS**, including OIDC preflight, runtime attestation, five-family release activation, gate enablement, final read-back, and evidence upload.
+- Release source SHA: `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`.
+- Edge source manifest: `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`.
+- Production gate: `enabled=true`; audit identity records workflow run `39109714790` and the exact source SHA.
+- Live read-only database reconciliation: all five required families have current release pointers; each pointer resolves to a `PUBLISHED` release row for the same source SHA, with no recorded release failure.
+- Deployed Edge functions at release: `assessment-access` v48 (`verify_jwt=false`) and `assessment-config-release` v10 (`verify_jwt=true`); both attest the same SHA and source digest.
+- Release evidence artifact: `c03-production-release-evidence`, artifact ID `12129813276`, attached to the successful workflow run.
 
-## Closure boundary
-- **C-03 production release and activation: CLOSED.**
-- **Live E2E and synthetic-data cleanup: DEFERRED until the separately authorized post-closure task**, per owner direction. Do not represent E2E as having run or passed.
+## Remaining work for the owner's requested full closeout
+- Live E2E has **not** run. The successful release workflow has no E2E step and must not be cited as E2E evidence.
+- No C-03 E2E runner exists in `.github/scripts/` on current `main`. The only similarly named script, `.github/scripts/c03-production-e2e-cleanup.mjs`, is unsafe to reuse as-is: it reads `c02-value70-live-e2e-result.json` and requires a `c02-value70-...` run ID, so it is bound to C-02 evidence rather than C-03.
+- Do not run that cleanup script against any C-03 evidence or synthetic data until it is corrected and tested. Do not use broad deletes or clean any row not tied to exact IDs and markers emitted by the same E2E run.
+- Next bounded step: implement and test a C-03-specific synthetic E2E runner plus run-scoped cleanup/evidence contract; wire it into a separately guarded workflow; run it against the now-enabled Production gate; verify results and zero residue; then update this handoff with the actual run ID and evidence. Preserve the already-successful release; do not repeat release activation or toggle the gate.
 - C-01 remains closed and must not be reopened.
-- The release is bound to code commit `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`; subsequent documentation-only closeout commits do not change the Edge source manifest. Do not claim a new runtime build from documentation changes alone.
+
+---
 
 ---
 
