@@ -23,6 +23,7 @@
 
 - Live ACL inspection confirms `authenticated` has excess `MAINTAIN`, `REFERENCES`, `TRIGGER` and `TRUNCATE` on `admin_audit_log` and `admin_capabilities`, in addition to SELECT. It does not have INSERT/UPDATE/DELETE on these two tables; `anon` has no direct table privileges.
 - The deployed `is_owner(uuid)` and `is_active_admin(uuid)` identity-check functions are SECURITY DEFINER and executable by any authenticated user who knows an arbitrary UUID. The zero-argument variants bind to `auth.uid()`; they already form the intended current-user check. Existing admin RLS policies pass `auth.uid()` into the parameterized variants.
+- A read-only scan of all public function bodies found no other application function calling the UUID overloads; the external callers are the 13 identified RLS policies. `has_admin_capability` and `require_owner` use the zero-argument helpers already, so the candidate revocation is not known to break a server-side function call path.
 - PR #120 narrowly revokes only the four excess privileges on the two named tables, keeps SELECT and service-role rights unchanged, rebinds the affected policies to current-user-only zero-argument helpers, and removes authenticated/anon EXECUTE on the UUID overloads. A disposable PostgreSQL 17 harness verifies the grants, direct-probe denial, and owner-versus-staff RLS visibility. CI passes. **Do not merge/apply/deploy until the D-05 migration sequence blocker is resolved and review gates pass.**
 
 ### D-09 — four bounded Production asset probes
