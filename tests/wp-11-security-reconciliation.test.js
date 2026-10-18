@@ -47,12 +47,16 @@ test("WP-11 RLS policies bind identity checks to the current authenticated user"
     "scores",
     "answers",
   ]) {
-    assert.match(
-      migration,
-      new RegExp(`p0_admin_select_${table} on public\\.${table} for select to authenticated using \\(public\\.is_active_admin\\(\\)\\)`, "i"),
+    assert.ok(
+      migration.includes(`('${table}','p0_admin_select_${table}')`),
+      `preflight must enumerate the expected policy for ${table}`,
     );
   }
 
+  assert.match(
+    migration,
+    /create policy p0_admin_select_%I on public\.%I for select to authenticated using \(public\.is_active_admin\(\)\)/i,
+  );
   assert.match(
     migration,
     /revoke all on function public\.is_active_admin\(uuid\) from public, anon, authenticated/i,
@@ -74,7 +78,10 @@ test("WP-11 migration fails closed on missing expected schema objects or policie
 });
 
 test("WP-11 SQL harness asserts actual privileges, direct probe denial, and RLS behavior", () => {
-  assert.match(harness, /\i supabase\/migrations\/20261018120000_wp11_security_database_reconciliation\.sql/i);
+  assert.ok(
+    harness.includes("\\i supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql"),
+    "the disposable harness must apply the exact candidate migration",
+  );
   assert.match(harness, /has_table_privilege\('authenticated'/i);
   assert.match(harness, /'MAINTAIN'/i);
   assert.match(harness, /has_function_privilege\('authenticated', 'public\.is_owner\(uuid\)', 'EXECUTE'\)/i);
