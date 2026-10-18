@@ -185,6 +185,11 @@ test("WP-10 D-12 admin report prefers official Structured Result and does not re
   assert.ok(admin.includes("officialResult?.scores?.axes"));
   assert.ok(admin.includes("officialResult?.kpis"));
   assert.ok(admin.includes("status: 'historical'"));
+  const reportStart = admin.indexOf("async generateConsultativeReportInsideModal");
+  const reportEnd = admin.indexOf("\\n    translateSpecialty", reportStart);
+  const report = admin.slice(reportStart, reportEnd);
+  assert.ok(!report.includes("lead.score_percentage"));
+  assert.ok(report.includes("بيانات تاريخية"));
   assert.ok(!admin.includes("this.supabase.select('answers'"));
   assert.ok(!admin.includes(".trap_triggered"));
   assert.ok(!admin.includes(".is_trap"));

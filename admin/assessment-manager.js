@@ -1206,7 +1206,7 @@ class AssessmentManager {
 
                 axisGridHtml += `
                     <div class="score-card">
-                        <div class="score-name">${this.escapeHtml(s.name)}</div>
+                        <div class="score-name">${this.escapeHtml(s.name)}${s.status === 'historical' ? ' <small style="display:block;color:#64748b;">بيانات تاريخية</small>' : ''}</div>
                         <div class="score-value">${s.score.toFixed(1)}%</div>
                     </div>
                 `;
@@ -1222,11 +1222,7 @@ class AssessmentManager {
                 return Number(item.value).toFixed(1).replace(/\\.0$/, '') + '%';
             };
 
-            const overallScore = officialResult?.scores?.overallScore ?? (
-                lead.score_percentage !== null && lead.score_percentage !== undefined
-                    ? parseFloat(lead.score_percentage)
-                    : null
-            );
+            const overallScore = officialResult?.scores?.overallScore ?? null;
 
             const tfiIndex = kpiValue('TFI');
             const tapIndex = kpiValue('TAP');
