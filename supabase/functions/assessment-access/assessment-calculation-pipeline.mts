@@ -446,8 +446,8 @@ export function scoreP3IntegratedV1(input: {
         input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
       axis_name_en:
         input.axes.find((a) => a.code === axis.axisCode)?.code ?? axis.axisCode,
-      raw_score: Math.round(axis.rawScore),
-      max_possible: Math.round(axis.maxPossible),
+      raw_score: axis.rawScore,
+      max_possible: axis.maxPossible,
       percentage: axis.percentage,
       weight: axis.weight,
       weighted_score: axis.weightedScore,
