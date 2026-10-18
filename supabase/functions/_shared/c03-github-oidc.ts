@@ -17,6 +17,7 @@ export type C03GithubReleaseIdentity = {
   runAttempt: string;
   workflowRef: string;
   environment: string;
+  eventName: string;
 };
 
 function requiredClaim(payload: JWTPayload, key: string): string {
@@ -60,7 +61,7 @@ export function validateC03GithubReleaseClaims(payload: JWTPayload): C03GithubRe
   if (!/^[0-9a-f]{40}$/.test(sha) || !/^\d+$/.test(runId) || !/^\d+$/.test(runAttempt) || Number(runId) < 1 || Number(runAttempt) < 1) {
     throw new Error("GitHub OIDC commit or run identity is malformed.");
   }
-  return { repository, repositoryOwner, actor, actorId, sha, runId, runAttempt, workflowRef, environment };
+  return { repository, repositoryOwner, actor, actorId, sha, runId, runAttempt, workflowRef, environment, eventName };
 }
 
 /** Validate the signed GitHub workload token and bind it to the one guarded C-03 release workflow. */
