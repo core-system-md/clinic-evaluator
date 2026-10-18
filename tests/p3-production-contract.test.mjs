@@ -186,5 +186,7 @@ test("WP-10 D-12 admin report prefers official Structured Result and does not re
   assert.ok(admin.includes("officialResult?.kpis"));
   assert.ok(admin.includes("status: 'historical'"));
   assert.ok(!admin.includes("this.supabase.select('answers'"));
-  assert.doesNotMatch(admin, /\\.trap_triggered\\b|\\.is_trap\\b|Leakage|الفخاخ السلوكية|المنفذ الرئيسي المسبب للفاقد المالي/);
+  assert.ok(!admin.includes(".trap_triggered"));
+  assert.ok(!admin.includes(".is_trap"));
+  assert.doesNotMatch(admin, /Leakage|الفخاخ السلوكية|المنفذ الرئيسي المسبب للفاقد المالي/);
 });
