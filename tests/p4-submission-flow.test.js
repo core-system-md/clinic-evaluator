@@ -212,14 +212,12 @@ test('P4 completed result is restored from the server-projected user report', ()
   assert.equal(projected.session_id, 'session-1');
 });
 
-test('P4 rolling deployment can project the previous Edge Function stored-result shape', () => {
-  const { ClinicEvaluatorApp, document } = createAppContext();
-  document.defaultView.MDReportInterpretation = require('../assets/js/report-interpretation.js');
+test('P4 client does not build a user report from raw Structured Result', () => {
+  const { ClinicEvaluatorApp } = createAppContext();
   const app = new ClinicEvaluatorApp();
   app.currentSessionId = 'session-legacy';
   app.currentAssessmentKey = 'clinic-performance';
   app.assessment = { version: 1 };
-  app.previousSessionData = null;
   const row = {
     result: {
       schemaVersion: 'P3_STRUCTURED_RESULT_V1',
@@ -234,8 +232,5 @@ test('P4 rolling deployment can project the previous Edge Function stored-result
     },
     assessment_version: 1
   };
-  const projected = app.projectStoredResult(row);
-  assert.equal(projected.overallScore, 82.5);
-  assert.equal(projected.userReport.audience, 'user');
-  assert.equal('structuredResult' in projected, false);
+  assert.equal(app.projectStoredResult(row), null);
 });

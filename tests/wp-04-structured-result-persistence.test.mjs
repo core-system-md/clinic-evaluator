@@ -51,6 +51,28 @@ test("WP-04 measured axes preserve raw/max/percentage and calculation basis", ()
   }
 });
 
+test("WP-10 D-17 preserves fractional raw/max in Structured Result and applies integer score-row projection", () => {
+  const result = resultFor("clinic-performance");
+  const changed = structuredClone(result);
+  const axis = changed.scores.axes.find((item) => item.status === "measured");
+  assert.ok(axis, "fixture must contain a measured axis");
+  axis.rawScore = 12.5;
+  axis.maxPossible = 20.5;
+
+  const scoreRow = projectScoreRowsFromStructuredResult(changed)
+    .find((row) => row.axis_id === axis.axisCode);
+  assert.ok(scoreRow, "measured axis must project to the legacy scores table");
+  assert.equal(axis.rawScore, 12.5);
+  assert.equal(axis.maxPossible, 20.5);
+  assert.equal(scoreRow.raw_score, 13);
+  assert.equal(scoreRow.max_possible, 21);
+
+  const migration = fs.readFileSync("supabase/migrations/20261009164951_structured_result_authority.sql", "utf8");
+  assert.match(migration, /round\\(s\."rawScore"\\)::integer/);
+  assert.match(migration, /round\\(s\."maxPossible"\\)::integer/);
+  assert.match(migration, /result, result_status, calculated_at/);
+});
+
 test("WP-04 persistence projector cannot observe answer/internal engine state", () => {
   const original=resultFor("patient-journey");
   const expected=projectScoreRowsFromStructuredResult(original);

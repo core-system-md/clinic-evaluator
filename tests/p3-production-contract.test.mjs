@@ -167,7 +167,7 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
 });
 
 
-test("persisted raw score fields retain pre-normalization precision", () => {
+test("scorer-side axis rows retain numeric precision before canonical persistence projection", () => {
   const pipeline = fs.readFileSync(
     "supabase/functions/assessment-access/assessment-calculation-pipeline.mts",
     "utf8",

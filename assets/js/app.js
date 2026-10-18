@@ -605,16 +605,6 @@ class ClinicEvaluatorApp {
 
   projectStoredResult(row) {
     let report = row?.userReport || null;
-    // Rolling-deploy compatibility only: the previous Edge Function version
-    // returns a raw stored result. The current server response never does.
-    if (!report && row?.result?.schemaVersion === 'P3_STRUCTURED_RESULT_V1') {
-      try {
-        report = window.MDReportInterpretation.projectUserReport(row.result, this.previousSessionData, this.currentAssessmentKey);
-      } catch (error) {
-        console.error('[app] legacy stored result projection failed:', error);
-        return null;
-      }
-    }
     if (!report || report.audience !== 'user') return null;
     return {
       overallScore: report.overall?.value ?? null,
