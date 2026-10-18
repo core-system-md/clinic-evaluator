@@ -53,9 +53,15 @@ These four exact path probes passed. This is not full WP-12 runtime/E2E proof. D
 - **Remaining D-05 issue:** the canonical audit explicitly states there is no baseline to reconstruct the database from Git and no `CREATE TABLE` in the then-51 migration files. Current source searches still find no creation migration for important pre-existing core tables such as `leads`, `sessions`, `answers`, `scores`, `assessment_types`, `axes`, `questions`, and `options`; the current migrations alter or reference those objects. Therefore the disposable PostgreSQL harnesses are bounded fixtures and do not prove that a fresh database replay reproduces all Production constraints. Do not generate a baseline by dumping Production or infer one from live objects. The deployed `admin-auth` Edge Function remains reported ACTIVE v6, but its fetched source returns HTTP 410 with a retirement message; document its retired/410 behavior and do not delete/redeploy it.
 - Do not rewrite the live ledger, rename or delete applied migrations, infer a baseline from live objects, or apply a new Production migration as part of this read-only provenance reconciliation. This does **not** reopen C-03.
 
-### D-14 — historical migration approvals remain unverified, separate from D-05
+### D-14 — historic owner approval remains unverified; SQL provenance verified
 
-The canonical audit reports no evidenced owner approval for migrations `20261009164918`, `20261009164951` and `20261009170228`. No rollback, restoration, history rewrite or retrospective approval was performed or inferred. Maintain this as a separate evidence/decision record. Do not alter these historical migrations or the live migration ledger.
+- Read-only comparison confirms the one stored SQL statement in each live migration-ledger row matches its existing repository source exactly after normalizing whitespace:
+  - `20261009164918 / canonical_axis_weights`: 8,470 characters; source blob `6715d7cedf8293ebf1686a4f1335eddb4502f3ee`.
+  - `20261009164951 / structured_result_authority`: 19,259 characters; source blob `c5a48db426707f937100b65f620d996061cadb23`.
+  - `20261009170228 / reconstruct_final_assessment_versions`: 97,267 characters; source blob `a81997122f61e652240829ce2a5173d0daf205eb`.
+- The existing D-14 inventory captures their main SQL effects and postconditions; its 70-value constraint finding was routed to the separately closed C-02 repair. Exact SQL/source identity does not prove that the owner approved applying these migrations to Production.
+- The canonical audit and inventory record no evidenced owner approval. The ledger's `created_by` metadata does not establish owner authorization. No rollback, restoration, history rewrite or retrospective approval was performed or inferred.
+- Keep D-14 open unless contemporaneous approval evidence is found or the owner explicitly directs a documentary disposition. Do not change the applied migrations or live ledger. This is separate from D-05, whose 2026-10-18 filename/version mismatch has been reconciled in the candidate branch.
 
 ### Schema-wide default privileges — owner decision required
 
