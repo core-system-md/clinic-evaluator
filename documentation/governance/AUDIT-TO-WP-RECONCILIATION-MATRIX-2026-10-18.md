@@ -96,3 +96,18 @@ WP-12 is the final layered verification stage, not a substitute for implementing
 Before any WP-10 implementation, use the table above to select only findings that actually fall within §40; inspect the current code/data contract for those findings; define explicit acceptance tests and any migration rule; then execute WP-10 as one bounded stage and close it with repository evidence. Stop after that stage and update the handoff. Do not start WP-11 automatically. D-05/D-14/D-11 traceability work should be documented as dependencies for the relevant later gate, not used to broaden WP-10.
 
 This matrix is a current reconciliation snapshot, not a claim that all listed findings were re-tested on Production. Each status is bounded by the evidence cited above and must be updated only when new evidence is obtained.
+
+
+## 7. WP-10 execution evidence addendum — 2026-10-18
+
+This addendum supersedes the prior D-04, D-06, D-12 and D-17 status/action text above only to the extent described here. It does not close WP-10.
+
+| Finding | Current evidence/status | Remaining acceptance gate |
+|---|---|---|
+| D-04 | **PARTIAL — source change committed; tests not run.** `admin/assessment-manager.js` no longer renders the legacy answer-level `trap_triggered` / `is_trap` block or trap/Leakage panel. Unsupported causal financial wording was replaced by a descriptive lowest-measured-axis statement. Commits: `589c7631a4204e5e7166d7ad4a121e86beb4c07e`, `6b520327258401f2244be151ea4b3670339b23cf`. | Run active-code scan and admin-report regression tests; verify remaining admin findings originate from authoritative Structured Result where required. |
+| D-06 | **PARTIAL — implementation and tests committed; tests not run.** The canonical economic model now accepts optional `visitsPerYear` (default 3), validates it, and uses it in base value/output assumptions. The interactive endpoint passes the supplied validated value. Added tests cover a custom value and rejection of zero. Commits: `084e3d1beabdf3f51f5467125f13608731ae20b0`, `732abfac424aff5a8640fdd763cf392aaefa5302`, `114cf38693b8db8871bb578b535828789c8b525e`. | Run `tests/p3-economic-model-v1.test.mjs` and endpoint/integration tests. Verify default=3, supplied positive visits, blank referral=unavailable, 0%=zero, and persisted/report assumption parity. |
+| D-12 | **OPEN.** Removing the legacy trap/Leakage panel is only a partial source change; the admin report's complete score/result data flow has not been proven to rely exclusively on Structured Result. | Trace remaining fallbacks and fields to active callers; remove only proven obsolete/non-authoritative output and test result authority. Keep any database-function work assigned to WP-11. |
+| D-17 | **PARTIAL — source change and static assertion committed; tests not run.** The persistence projection now writes `raw_score` and `max_possible` without `Math.round`, preserving pre-normalization precision. Added a source assertion. Commits: `b087651ad49e12564733e6cb08331200cccf8186`, `a7c7536b90f7eee3c96dac49cbdfeb0874a0a356`. | Run pipeline/persistence regression tests with fractional raw/max values and verify database column types and display-boundary behavior. No new rounding policy is introduced. |
+| D-16 | **NOT IMPLICATED SO FAR.** No evidence yet proves a naming mismatch changes persisted semantics. | Do not change unless such evidence is found within WP-10 scope. |
+
+**WP-10 overall: PARTIAL / NOT CLOSED.** Tests were not executed in this session because repository cloning was blocked by the environment's lack of network access and no local test runner was available through the connected tools. Added tests are not PASS evidence. No Production mutation, migration, deletion, or Edge deployment was performed.
