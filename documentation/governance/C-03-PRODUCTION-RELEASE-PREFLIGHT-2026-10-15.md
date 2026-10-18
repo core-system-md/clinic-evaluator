@@ -1,3 +1,24 @@
+# C-03 FINAL PRODUCTION RELEASE RESULT — 2026-10-18
+
+**Final status: CLOSED — guarded Production release succeeded.**
+
+- Successful guarded workflow: https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790
+- Release code SHA at execution: `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`
+- Runtime source digest: `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`
+- Edge deployments: `assessment-access` ACTIVE v48 (`verify_jwt=false`); `assessment-config-release` ACTIVE v10 (`verify_jwt=true`). Both deployed attestations matched the release SHA and source digest.
+- Production release gate: `enabled=true`; enabled at `2026-10-18 08:00:11 UTC`, with audit metadata `workflow_run_id=39109714790` and `workflow_sha=4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`.
+- Final read-only reconciliation: all 5 published assessment families have active `PUBLISHED` release rows. For every active row, configuration digest, interpretation-registry digest, Git SHA, and Edge source reference match. Five release rows for the release SHA are verified; zero PREPARED rows remain for that SHA.
+- Failed-attempt records for the prior SHA `0c3f65fd801600fcc9d4e2614d89902f40f37165` were transitioned from PREPARED to REJECTED with a supersession reason after the successful release. No active pointer referenced those rows.
+- Two compatibility migrations were added and applied after production logs exposed the modern Supabase `sb_secret` API-key behavior: CI release routines and the runtime verifier no longer require a legacy JWT role claim when the caller has passed the service-role-only EXECUTE boundary. Grants for `anon` and `authenticated` remain revoked. The C-03 disposable PostgreSQL harness passed with the claim absent.
+- Validation on reviewed PR heads passed: C-03 release-state-machine harness, C-03 runtime digest/handler tests, full Node suite, P3 kernel, P4 disposable PostgreSQL, and C-02 answer-save RPC on disposable PostgreSQL.
+
+## Owner-directed boundary
+Live E2E is a **separate post-closure task**, not a prerequisite for C-03 closure. No live E2E result is claimed by this release workflow. C-01 remains closed.
+
+The runtime release is bound to code SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`. The subsequent handoff/governance commits are documentation-only and do not change the Edge source manifest; they are not represented as a new runtime build.
+
+---
+
 # C-03 AUTHORIZATION REQUIREMENT CORRECTION — OWNER DIRECTIVE — 2026-10-15
 
 **Authoritative correction:** `C03_OWNER_JWT` is not required by the current GitHub Actions OIDC CI release path. In `supabase/functions/assessment-config-release/index.ts`, `ci_*` actions validate the signed GitHub OIDC workload token and bind it to the deployed runtime SHA; `requireOwner` applies only to non-CI human/admin actions. Previous statements below that the OIDC production release is blocked by an empty owner JWT are superseded and must not trigger JWT setup requests or credential-preflight loops.
