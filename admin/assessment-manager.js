@@ -1213,25 +1213,6 @@ class AssessmentManager {
                 `;
             });
 
-            let behaviorTrapsHtml = '';
-            const triggeredTraps = answers ? answers.filter(a => a.trap_triggered === true || a.is_trap === true) : [];
-
-            if (triggeredTraps.length > 0) {
-                triggeredTraps.forEach((trap, idx) => {
-                    behaviorTrapsHtml += `
-                        <div class="answer-item" style="background:#fff5f5; border-right:3px solid #ef4444; padding:12px; margin-bottom:8px; border-radius:6px; text-align:right;">
-                            <div class="answer-question" style="font-weight:700; color:#991b1b;">🚨 فجوة سلوكية / منفذ تسريب مكتشف رقم (${idx + 1}):</div>
-                            <div style="font-size:0.85rem; color:#7f1d1d; line-height:1.6; margin-top:4px;">
-                                <strong>المعيار المفحوص:</strong> ${this.escapeHtml(trap.question_text || 'تراجع كفاءة معيار العمل العيادي اليومي.')} <br>
-                                <span style="color:#b91c1c; font-weight:700;">📌 واقع الرد (قيمة: ${this.escapeHtml(trap.answer_value ?? '—')}):</span>
-                            </div>
-                        </div>
-                    `;
-                });
-            } else {
-                behaviorTrapsHtml = '<p style="color:#166534; font-weight:600; font-size:0.85rem; text-align:right;">لا توجد فخاخ مسجلة لهذا السجل.</p>';
-            }
-
             const kpiMap = Object.fromEntries(
                 (Array.isArray(officialResult?.kpis) ? officialResult.kpis : [])
                     .map(k => [k.kpiCode, k])
@@ -1310,7 +1291,7 @@ class AssessmentManager {
                     <div style="background:#f0fdfa; border-right:4px solid #0f766e; padding:12px; border-radius:6px; margin-bottom:8px;">
                         <strong style="color:#134e4a; font-size:0.9rem; display:block; margin-bottom:4px;">🎯 الأولوية التشغيلية القصوى للتدخل السريع:</strong>
                         <p style="font-size:0.85rem; color:#374151; line-height:1.6; margin:0;">
-                            يمثل محور <strong>"${weakestAxis.name}"</strong> الفجوة التشغيلية الأكبر والمنفذ الرئيسي المسبب لـ الفاقد المالي وتسريب المرضى بنسبة أداء بلغت (${weakestAxis.score <= 100 ? weakestAxis.score.toFixed(1) + '%' : 'قيد الاحتساب'}). يتطلب هذا المعيار تدخلاً فورياً لإعادة صياغة بروتوكول العقد المسبق وأنظمة المتابعة لمنع الفاقد المالي (Leakage).
+                            سُجّل محور <strong>"${weakestAxis.name}"</strong> بوصفه أدنى المحاور المقاسة، بنسبة (${weakestAxis.score <= 100 ? weakestAxis.score.toFixed(1) + '%' : 'قيد الاحتساب'}). هذه مقارنة وصفية بين النتائج المسجلة، ولا تثبت بمفردها سبباً مالياً أو تشغيلياً.
                         </p>
                     </div>
                     <div style="background:#f8fafc; border-right:4px solid #6b7280; padding:12px; border-radius:6px;">
@@ -1321,12 +1302,6 @@ class AssessmentManager {
                     </div>
                 </div>
 
-                <div class="detail-section" style="text-align:right;">
-                    <h4>🚨 رصد فجوات الأداء ومنافذ التسريب السلوكي لرحلة المريض</h4>
-                    <div class="answers-list">
-                        ${behaviorTrapsHtml}
-                    </div>
-                </div>
             `;
 
         } catch (err) {
