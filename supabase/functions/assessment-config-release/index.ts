@@ -103,6 +103,54 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
         return json({ error: "GitHub OIDC commit SHA does not match this deployed C-03 Edge bundle" }, 409);
       }
 
+      if (action === "ci_inventory") {
+        const [settingsResult, releaseCountResult, familiesResult, releasesResult] = await Promise.all([
+          dbClient.from("assessment_config_release_settings")
+            .select("singleton,enabled,enabled_at,enabled_by_workflow_run_id,enabled_by_workflow_sha")
+            .eq("singleton", true)
+            .maybeSingle(),
+          dbClient.from("assessment_config_releases").select("id", { count: "exact", head: true }),
+          dbClient.from("assessment_families")
+            .select("id,slug,current_published_version_id,current_release_id")
+            .not("current_published_version_id", "is", null)
+            .order("slug", { ascending: true }),
+          dbClient.from("assessment_config_releases")
+            .select("id,family_id,assessment_type_id,git_commit_sha,config_digest,interpretation_registry_digest,edge_release_ref,state,verified_config_digest,verified_registry_digest,verified_git_commit_sha,verified_edge_release_ref")
+            .eq("git_commit_sha", ciIdentity!.sha),
+        ]);
+        if (settingsResult.error) throw settingsResult.error;
+        if (releaseCountResult.error) throw releaseCountResult.error;
+        if (familiesResult.error) throw familiesResult.error;
+        if (releasesResult.error) throw releasesResult.error;
+
+        const rpcProbe = await dbClient.rpc("c03_require_ci_release_context", {
+          p_workflow_run_id: ciIdentity!.runId,
+          p_workflow_run_attempt: ciIdentity!.runAttempt,
+          p_workflow_sha: ciIdentity!.sha,
+          p_confirmation: "C03_READ_ONLY_PREFLIGHT_INVALID_CONFIRMATION",
+        });
+        const ciRpcReady = Boolean(
+          rpcProbe.error &&
+          (String(rpcProbe.error.code || "") === "42501" ||
+            /Invalid guarded release identity or confirmation/i.test(String(rpcProbe.error.message || ""))),
+        );
+        if (!ciRpcReady) {
+          return json({ error: "C-03 CI release authorization RPC is missing or did not fail closed" }, 503);
+        }
+
+        return json({
+          success: true,
+          data: {
+            settings: settingsResult.data,
+            releaseRows: Number(releaseCountResult.count ?? 0),
+            families: familiesResult.data || [],
+            releases: releasesResult.data || [],
+            ciRpcReady,
+            releaseIdentity: ciIdentity,
+          },
+        });
+      }
+
       if (action === "export" || action === "ci_export") {
         if (!assessmentTypeId) return json({ error: "assessment_type_id is required" }, 400);
         const evidence = await computeEvidenceFn(dbClient, assessmentTypeId);
