@@ -91,6 +91,20 @@ test("WP-11 SQL harness asserts actual privileges, direct probe denial, and RLS 
   assert.match(harness, /has_function_privilege\('authenticated', 'public\.is_owner\(uuid\)', 'EXECUTE'\)/i);
   assert.match(harness, /wp11_owner_visible_rows = 3/i);
   assert.match(harness, /wp11_staff_visible_rows = 1/i);
+  for (const table of [
+    "answers",
+    "assessment_settings",
+    "assessment_types",
+    "axes",
+    "leads",
+    "options",
+    "questions",
+    "scores",
+  ]) {
+    assert.ok(harness.includes(`wp11_owner_${table}`), `owner RLS check missing for ${table}`);
+    assert.ok(harness.includes(`wp11_staff_${table}`), `staff RLS check missing for ${table}`);
+    assert.match(harness, new RegExp(`wp11_staff_${table} = 0`, "i"));
+  }
   assert.match(harness, /identity_probe_rejected/i);
   assert.match(harness, /disposable PostgreSQL/i);
 });
