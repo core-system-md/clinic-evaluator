@@ -18,6 +18,10 @@ on:
       - "supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql"
       - "tests/wp-11-security-reconciliation.test.js"
       - "tests/wp-11-security-reconciliation-harness.sql"
+      - "admin/admin.html"
+      - "admin/assessment-manager.js"
+      - "admin/assessment-lifecycle.js"
+      - "admin/assessment-editor-workspace.js"
       - ".github/workflows/wp-11-security-reconciliation.yml"
   workflow_dispatch:
 
