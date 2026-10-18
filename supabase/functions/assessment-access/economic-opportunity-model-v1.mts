@@ -8,6 +8,7 @@ export type P3EconomicInput = {
   averageVisitValue: number | null;
   relationshipYears: number | null;
   referralPercentage: number | null;
+  visitsPerYear?: number;
 };
 
 export type P3EconomicResult = {
@@ -22,7 +23,7 @@ export type P3EconomicResult = {
     value: number;
     unit: "currency";
     assumptions: {
-      visitsPerYear: 3;
+      visitsPerYear: number;
       referralPercentage: number;
     };
   } | null;
@@ -32,12 +33,15 @@ export function calculateP3RecursiveReferralEconomic(
   input: P3EconomicInput,
 ): P3EconomicResult {
   const { averageVisitValue, relationshipYears, referralPercentage } = input;
+  const visitsPerYear = input.visitsPerYear ?? 3;
 
   const validBaseInputs =
     Number.isFinite(averageVisitValue) &&
     Number(averageVisitValue) > 0 &&
     Number.isFinite(relationshipYears) &&
-    Number(relationshipYears) > 0;
+    Number(relationshipYears) > 0 &&
+    Number.isFinite(visitsPerYear) &&
+    visitsPerYear > 0;
 
   if (!validBaseInputs) {
     return {
@@ -50,7 +54,7 @@ export function calculateP3RecursiveReferralEconomic(
   }
 
   const basePatientValue =
-    Number(averageVisitValue) * 3 * Number(relationshipYears);
+    Number(averageVisitValue) * visitsPerYear * Number(relationshipYears);
   const valueAt = (referral: number) =>
     basePatientValue / (1 - referral / 100);
 
@@ -84,7 +88,7 @@ export function calculateP3RecursiveReferralEconomic(
       value,
       unit: "currency",
       assumptions: {
-        visitsPerYear: 3,
+        visitsPerYear,
         referralPercentage: numericReferral,
       },
     },
