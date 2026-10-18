@@ -13,6 +13,10 @@ const migrationPath = path.join(
 const harnessPath = path.join(__dirname, "wp-11-security-reconciliation-harness.sql");
 const migration = fs.readFileSync(migrationPath, "utf8");
 const harness = fs.readFileSync(harnessPath, "utf8");
+const manager = fs.readFileSync(path.join(__dirname, "..", "admin", "assessment-manager.js"), "utf8");
+const lifecycle = fs.readFileSync(path.join(__dirname, "..", "admin", "assessment-lifecycle.js"), "utf8");
+const workspace = fs.readFileSync(path.join(__dirname, "..", "admin", "assessment-editor-workspace.js"), "utf8");
+const adminHtml = fs.readFileSync(path.join(__dirname, "..", "admin", "admin.html"), "utf8");
 
 test("WP-11 migration bounds excess admin table privileges without reducing approved SELECT", () => {
   assert.match(
@@ -89,4 +93,17 @@ test("WP-11 SQL harness asserts actual privileges, direct probe denial, and RLS 
   assert.match(harness, /wp11_staff_visible_rows = 1/i);
   assert.match(harness, /identity_probe_rejected/i);
   assert.match(harness, /disposable PostgreSQL/i);
+});
+
+test("WP-11 D-12 database path keeps the active editor on its capability-guarded draft RPC", () => {
+  assert.ok(adminHtml.indexOf("assessment-manager.js") < adminHtml.indexOf("assessment-lifecycle.js"));
+  assert.ok(adminHtml.indexOf("assessment-lifecycle.js") < adminHtml.indexOf("assessment-editor-workspace.js"));
+  assert.ok(workspace.includes("AssessmentManager.prototype.editAssessment = async function"));
+  assert.ok(workspace.includes("window.assessmentManager.updateDraftOption"));
+  assert.ok(lifecycle.includes("rpc/update_draft_option_secure"));
+  assert.ok(!lifecycle.includes("rpc/update_option_secure"));
+  assert.ok(!workspace.includes("rpc/update_option_secure"));
+  // The old manager still contains a legacy handler; the active workspace path above
+  // must not depend on granting authenticated EXECUTE to the legacy service-role-only RPC.
+  assert.ok(manager.includes("rpc/update_option_secure"));
 });
