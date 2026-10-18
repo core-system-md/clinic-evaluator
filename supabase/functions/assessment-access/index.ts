@@ -1087,6 +1087,7 @@ export function createAssessmentAccessHandler(
         averageVisitValue: avg,
         relationshipYears: years,
         referralPercentage: referralRaw,
+        visitsPerYear: visits,
       });
 
       return json({
@@ -1096,7 +1097,7 @@ export function createAssessmentAccessHandler(
           modelCode: economic.modelCode,
           basePatientValue: economic.basePatientValue,
           referralPercentage: referralRaw,
-          visitsPerYear: 3,
+          visitsPerYear: visits,
           relationshipYears: years,
           current: economic.output?.value ?? null,
           opt20: economic.scenarios.opt20,
