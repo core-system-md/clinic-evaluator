@@ -10,7 +10,7 @@
 - The gate was enabled at `2026-10-18 08:00:11 UTC`; audit fields record workflow run `39109714790` and the exact release SHA.
 - Read-only Production reconciliation after the run: gate `enabled=true`; five published families; five current release pointers; all five active releases are `PUBLISHED` with matching configuration digest, interpretation-registry digest, Git SHA, and Edge source reference.
 - Current release inventory: 5 published/verified rows for the release SHA; 0 PREPARED rows for that SHA.
-- The five PREPARED rows left by the failed earlier attempt at SHA `0c3f65fd801600fcc9d4e2614d89902f40f37165` were marked `REJECTED` with a supersession reason. They were not active pointers and were not deleted.
+- The ten PREPARED rows left by the two failed attempts at SHAs `f64cdd0767f443bdc1390f44825ddb559e4b6723` and `0c3f65fd801600fcc9d4e2614d89902f40f37165` were marked `REJECTED` with supersession reasons. None was an active pointer; the records were retained for audit.
 - The production compatibility migrations for modern Supabase server-side API keys are applied. The fix preserves `EXECUTE` grants for `service_role` only; `anon` and `authenticated` remain denied. Exact-head C-03 disposable PostgreSQL harness, runtime digest tests, handler tests, full Node suite, P3, P4, and C-02 disposable PostgreSQL checks passed for the reviewed PR heads.
 
 ## Closure boundary
