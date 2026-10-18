@@ -21,6 +21,23 @@ begin
     raise exception 'WP-11 preflight failed: an expected admin table is missing';
   end if;
 
+  -- Fail closed if any protected admin-read table has RLS disabled.
+  with expected_rls_tables(tablename) as (
+    values
+      ('admin_users'),('admin_audit_log'),('admin_capabilities'),
+      ('answers'),('assessment_settings'),('assessment_types'),('axes'),
+      ('leads'),('options'),('questions'),('scores')
+  )
+  select count(*) into v_expected_count
+  from expected_rls_tables e
+  join pg_class c on c.relname = e.tablename
+  join pg_namespace n on n.oid = c.relnamespace and n.nspname = 'public'
+  where c.relkind in ('r','p') and c.relrowsecurity;
+
+  if v_expected_count <> 11 then
+    raise exception 'WP-11 preflight failed: expected RLS enabled on 11 protected tables, found %', v_expected_count;
+  end if;
+
   with expected(tablename, policyname) as (
     values
       ('admin_users','admin_users_delete_owner_admins'),
