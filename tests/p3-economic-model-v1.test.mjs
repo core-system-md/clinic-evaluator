@@ -24,3 +24,28 @@ test("canonical economics matches frozen recursive formula", () => {
   assert.equal(r.scenarios.opt20, 4687.5);
   assert.equal(r.scenarios.opt50, 7500);
 });
+
+
+test("canonical economics honors the supplied annual visit count", () => {
+  const r = calculateP3RecursiveReferralEconomic({
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: 20,
+    visitsPerYear: 8,
+  });
+  assert.equal(r.status, "available");
+  assert.equal(r.basePatientValue, 10000);
+  assert.equal(r.output?.value, 12500);
+  assert.equal(r.output?.assumptions.visitsPerYear, 8);
+});
+
+test("canonical economics rejects non-positive annual visit counts", () => {
+  const r = calculateP3RecursiveReferralEconomic({
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: 20,
+    visitsPerYear: 0,
+  });
+  assert.equal(r.status, "unavailable");
+  assert.equal(r.output, null);
+});
