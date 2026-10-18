@@ -212,10 +212,10 @@ begin
               and policyname = 'p0_admin_select_' || tablename)
         )
         and (
-          coalesce(qual,'') ~* 'is_active_admin\\s*\\([^)]'
-          or coalesce(qual,'') ~* 'is_owner\\s*\\([^)]'
-          or coalesce(with_check,'') ~* 'is_active_admin\\s*\\([^)]'
-          or coalesce(with_check,'') ~* 'is_owner\\s*\\([^)]'
+          coalesce(qual,'') ~ 'is_active_admin[(][^)]'
+          or coalesce(qual,'') ~ 'is_owner[(][^)]'
+          or coalesce(with_check,'') ~ 'is_active_admin[(][^)]'
+          or coalesce(with_check,'') ~ 'is_owner[(][^)]'
         )
      ) <> 0 then
     raise exception 'an affected RLS policy still passes an explicit identity argument';
