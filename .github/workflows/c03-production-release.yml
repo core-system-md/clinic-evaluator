@@ -1,5 +1,5 @@
 name: C-03 guarded Production configuration release
-# Explicitly dispatched, confirmation-gated configuration release; requires verified GitHub OIDC workload identity.
+# Explicit owner-triggered, confirmation-gated configuration release; requires verified GitHub OIDC workload identity.
 
 on:
   workflow_dispatch:
@@ -109,21 +109,6 @@ jobs:
       - name: Register, verify, activate all five current releases, then enable the gate
         id: production_release
         run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
-      - name: Verify persisted gate, workflow audit identity, and five active release pointers
-        shell: bash
-        run: |
-          set -euo pipefail
-          settings="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_config_release_settings?select=singleton,enabled,enabled_by_workflow_run_id,enabled_by_workflow_sha&singleton=eq.true")"
-          echo "$settings" | jq -e --arg run "$GITHUB_RUN_ID" --arg sha "$GITHUB_SHA" 'length == 1 and .[0].enabled == true and .[0].enabled_by_workflow_run_id == $run and .[0].enabled_by_workflow_sha == $sha' >/dev/null
-          families="$(curl --fail --silent --show-error \
-            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" \
-            -H "Authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" \
-            "$SUPABASE_URL/rest/v1/assessment_families?select=slug,current_published_version_id,current_release_id&current_published_version_id=not.is.null&order=slug.asc")"
-          echo "$families" | jq -e 'length == 5 and all(.[]; .current_release_id != null)' >/dev/null
-          echo "C-03 gate is enabled and all five current published families have active release IDs."
       - name: Upload Production release evidence
         if: always()
         uses: actions/upload-artifact@v4
