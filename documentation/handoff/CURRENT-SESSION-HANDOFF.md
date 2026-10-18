@@ -1,3 +1,26 @@
+# C-03 FINAL PRODUCTION CLOSEOUT — 2026-10-18
+
+**Status: C-03 PRODUCTION RELEASE CLOSED.** The guarded release completed successfully; the active release gate and all five release pointers were verified in Production. Per owner direction, live E2E is a separate post-closure task and was not treated as a prerequisite or run in this release workflow.
+
+## Final verified release identity
+- Release workflow: [run #39109714790](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790) — **SUCCESS** (OIDC preflight and guarded release both passed).
+- Exact code/source commit at release: `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`.
+- Runtime Edge source manifest: `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`.
+- Supabase Edge: `assessment-access` ACTIVE v48 (`verify_jwt=false`, preserved public configuration); `assessment-config-release` ACTIVE v10 (`verify_jwt=true`). Both embed the same attestation for the release SHA and source digest.
+- The gate was enabled at `2026-10-18 08:00:11 UTC`; audit fields record workflow run `39109714790` and the exact release SHA.
+- Read-only Production reconciliation after the run: gate `enabled=true`; five published families; five current release pointers; all five active releases are `PUBLISHED` with matching configuration digest, interpretation-registry digest, Git SHA, and Edge source reference.
+- Current release inventory: 5 published/verified rows for the release SHA; 0 PREPARED rows for that SHA.
+- The five PREPARED rows left by the failed earlier attempt at SHA `0c3f65fd801600fcc9d4e2614d89902f40f37165` were marked `REJECTED` with a supersession reason. They were not active pointers and were not deleted.
+- The production compatibility migrations for modern Supabase server-side API keys are applied. The fix preserves `EXECUTE` grants for `service_role` only; `anon` and `authenticated` remain denied. Exact-head C-03 disposable PostgreSQL harness, runtime digest tests, handler tests, full Node suite, P3, P4, and C-02 disposable PostgreSQL checks passed for the reviewed PR heads.
+
+## Closure boundary
+- **C-03 production release and activation: CLOSED.**
+- **Live E2E and synthetic-data cleanup: DEFERRED until the separately authorized post-closure task**, per owner direction. Do not represent E2E as having run or passed.
+- C-01 remains closed and must not be reopened.
+- The release is bound to code commit `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`; subsequent documentation-only closeout commits do not change the Edge source manifest. Do not claim a new runtime build from documentation changes alone.
+
+---
+
 # C-03 AUTHORIZATION REQUIREMENT CORRECTION — OWNER DIRECTIVE — 2026-10-15
 
 **Authoritative correction:** The protected GitHub Actions C-03 CI path does **not** require `C03_OWNER_JWT` or a human-owner JWT. The `assessment-config-release` handler authenticates `ci_*` actions with the verified GitHub Actions OIDC workload token and checks the deployed bundle SHA; only non-CI human/admin actions use the existing `requireOwner` path. Earlier handoff statements treating owner-JWT injection as a blocker for the OIDC release path are superseded and must not be used to request a JWT or restart credential troubleshooting.
