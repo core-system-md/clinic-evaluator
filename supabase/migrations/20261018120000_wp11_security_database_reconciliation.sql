@@ -6,7 +6,6 @@ begin;
 
 do $wp11_preflight$
 declare
-  v_missing text;
   v_expected_count integer;
 begin
   if to_regprocedure('public.is_active_admin()') is null
