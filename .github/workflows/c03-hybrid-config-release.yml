@@ -9,6 +9,7 @@ on:
       - ".github/workflows/c03-credential-preflight.yml"
       - "supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql"
       - "supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql"
+      - "supabase/migrations/20261018100000_c03_service_role_api_key_compatibility.sql"
       - "supabase/functions/_shared/c03-github-oidc.ts"
       - "tests/c03-hybrid-config-release-harness.sql"
       - "supabase/functions/assessment-access/**"
