@@ -264,6 +264,7 @@ select 1 / ((:wp11_owner_scores = 1)::int) as owner_scores_visible_ok;
 
 select set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', false);
 set role authenticated;
+select count(*) as wp11_staff_visible_rows from public.admin_users \gset
 select count(*) as wp11_staff_answers from public.answers \gset
 select count(*) as wp11_staff_assessment_settings from public.assessment_settings \gset
 select count(*) as wp11_staff_assessment_types from public.assessment_types \gset
@@ -273,6 +274,7 @@ select count(*) as wp11_staff_options from public.options \gset
 select count(*) as wp11_staff_questions from public.questions \gset
 select count(*) as wp11_staff_scores from public.scores \gset
 reset role;
+select 1 / ((:wp11_staff_visible_rows = 1)::int) as staff_rls_scope_ok;
 select 1 / ((:wp11_staff_answers = 0)::int) as staff_answers_hidden_ok;
 select 1 / ((:wp11_staff_assessment_settings = 0)::int) as staff_assessment_settings_hidden_ok;
 select 1 / ((:wp11_staff_assessment_types = 0)::int) as staff_assessment_types_hidden_ok;
