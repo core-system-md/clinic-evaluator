@@ -165,3 +165,15 @@ test("production engine is explicitly on consistency scoring contract v2", () =>
   assert.ok(comprehensiveV1Pairs.every((pair) => pair.assessmentSlug === "comprehensive-clinic-assessment" && pair.assessmentVersion === "1"));
   assert.ok(patientV1Pairs.every((pair) => pair.assessmentSlug === "patient-journey" && pair.assessmentVersion === "1"));
 });
+
+
+test("persisted raw score fields retain pre-normalization precision", () => {
+  const pipeline = fs.readFileSync(
+    "supabase/functions/assessment-access/assessment-calculation-pipeline.mts",
+    "utf8",
+  );
+  assert.match(pipeline, /raw_score: axis\.rawScore/);
+  assert.match(pipeline, /max_possible: axis\.maxPossible/);
+  assert.doesNotMatch(pipeline, /raw_score: Math\.round\(axis\.rawScore\)/);
+  assert.doesNotMatch(pipeline, /max_possible: Math\.round\(axis\.maxPossible\)/);
+});
