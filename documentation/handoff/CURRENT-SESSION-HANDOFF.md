@@ -1,22 +1,51 @@
-# WP-10 EXECUTION CHECKPOINT — 2026-10-18
+# WP-10 EXECUTION CHECKPOINT — VERIFIED — 2026-10-18
 
-**Status: PARTIAL / NOT CLOSED.** Source changes and targeted tests were committed to `main`; no Production database mutation, migration, deletion, Edge deployment, or security change was performed. The test suite could not be executed in this session because repository cloning was blocked by the environment's lack of network access and no local test runner was available through connected tools. Do not report the added tests as passing.
+**WP-10 §40 scoped execution: COMPLETE; cross-stage findings remain open where specified below.** No Production database mutation, migration, deletion, Edge deployment, or security change was performed.
 
-## Changes committed
-- D-04: removed legacy answer-level trap rendering and the trap/Leakage panel from `admin/assessment-manager.js`; replaced the unsupported causal financial statement with a descriptive lowest-measured-axis observation. Commits `589c7631a4204e5e7166d7ad4a121e86beb4c07e`, `6b520327258401f2244be151ea4b3670339b23cf`.
-- D-06: the canonical economic model now accepts optional `visitsPerYear` (default 3), uses it in the calculation, and the interactive endpoint passes through the validated input. Added tests for custom visits and zero rejection. Commits `084e3d1beabdf3f51f5467125f13608731ae20b0`, `732abfac424aff5a8640fdd763cf392aaefa5302`, `114cf38693b8db8871bb578b535828789c8b525e`.
-- D-17: persisted `raw_score` and `max_possible` now retain pre-normalization precision rather than being rounded via `Math.round`; added a source assertion. Commits `b087651ad49e12564733e6cb08331200cccf8186`, `a7c7536b90f7eee3c96dac49cbdfeb0874a0a356`.
-- The matrix now contains an evidence-bounded WP-10 status addendum. No claim of test pass or full WP closure is made.
+## Verification evidence
 
-## Required to finish WP-10
-1. Run `node --test tests/p3-economic-model-v1.test.mjs` and relevant pipeline/persistence and admin-report regression tests in a repository-capable environment. Inspect failures; do not weaken tests.
-2. Verify D-06 default=3, supplied positive visits, blank referral=unavailable, 0%=zero, and persisted/report assumption parity.
-3. Complete D-12 trace of the admin report score/result data flow; remove only proven obsolete/non-authoritative fields and test Structured Result authority.
-4. Verify D-17 with fractional raw/max values through persistence and the display boundary; check database column types. No new rounding policy is authorized.
-5. D-16 was not changed because no evidence established a persisted-semantics mismatch.
-6. The original audit artifact `clinic-evaluator-full-audit-report-2026-10-11.md` remains unavailable. D-10/D-11 wording remains unresolved; do not infer it.
+- **Exact final verification commit:** `aa752a54b548e45160dd73932a0b5216963be54d`.
+- **GitHub Actions:** [run #39126698618](https://github.com/core-system-md/clinic-evaluator/actions/runs/39126698618) — **SUCCESS**. P3 isolated kernel, full Node test suite, P4 disposable-PostgreSQL completion harness, and C-02 disposable-PostgreSQL answer-save harness all passed.
+- The P3 kernel workflow now explicitly runs `tests/p3-economic-model-v1.test.mjs` and `tests/wp-04-structured-result-persistence.test.mjs`; the full Node suite runs `tests/p4-submission-flow.test.js`.
+- No Production runtime E2E was performed as part of WP-10. This checkpoint is not a release-wide or WP-12 closure.
 
-**Exact continuation point:** remain within WP-10 §40. First execute the listed tests and inspect results; then finish D-12/D-17 evidence reconciliation and update this handoff and matrix. Do not start WP-11 or WP-12 automatically. C-01/C-02/C-03 remain closed; C-03 E2E remains WAIVED / NOT RUN, not PASS.
+## D-04 — admin report cleanup
+
+- Removed the answer-level trap/Leakage report path and unused direct `answers` query from `admin/assessment-manager.js`.
+- Removed the unsupported causal financial statement and stale trap-oriented loading copy.
+- Official admin report values come from `get_admin_assessment_result_secure` and the Structured Result. When only legacy score rows are available, those axis values are explicitly labelled historical; the overall score no longer falls back to `leads.score_percentage`.
+- Static/admin regression assertions and the full Node suite passed in run #39126698618.
+- **Disposition:** WP-10 implementation verified. WP-12 layered verification remains assigned.
+
+## D-06 — economic input semantics
+
+- Canonical economic model uses supplied `visitsPerYear`, defaulting to 3 only when omitted; the interactive endpoint validates and forwards the supplied visits.
+- Verified cases: default 3 visits, custom positive visits, zero visits rejected, blank referral unavailable with otherwise valid base inputs, 0% referral returns the base patient value, and report projection preserves visit/referral assumptions.
+- **Disposition:** WP-10 implementation verified. WP-12 runtime/integration verification remains assigned.
+
+## D-12 — obsolete report data paths
+
+- Removed the browser fallback that projected a report from raw `row.result` Structured Result data. The client now accepts only the server-owned `userReport` projection.
+- Removed unused compatibility response fields `evSimulator: null` and `traps: []`.
+- Admin report now uses the official Structured Result for current overall score, axes, and KPIs; it no longer reads answers for report construction. Historical axis rows remain visibly labelled historical.
+- Added regression assertions for server-owned user-report authority and the absence of the legacy answer/trap report path. The P3 kernel and full Node suite passed.
+- **Disposition:** WP-10 report-field/data-flow scope verified. D-12 remains open overall for its database-function/permission aspect under WP-11 and layered verification under WP-12; do not absorb those into WP-10.
+
+## D-17 — numeric precision and persistence boundary
+
+- Verified the active path: `engine.ts` calls `projectScoreRowsFromStructuredResult`; the engine does not persist the scorer's legacy `axisPersistenceRows`.
+- The authoritative Structured Result is stored as `p_result` in `assessment_results` without rounding. Its report projection preserves fractional percentage values.
+- The legacy `scores.raw_score` and `scores.max_possible` columns are intentionally integer columns; the active projection and SQL completion migration round at that legacy-table boundary. This is the existing schema contract, not a newly introduced rounding policy.
+- Added tests for fractional raw/max values, integer score-row projection, the database column types, and fractional percentage preservation at the report boundary. All passed in run #39126698618.
+- **Disposition:** WP-10 precision/persistence semantics verified. WP-12 end-to-end persistence/runtime checks remain assigned.
+
+## D-16
+
+No persisted-semantics mismatch was found in the bounded WP-10 review. No renaming or schema/API identity changes were made.
+
+## Exact continuation point
+
+WP-10 §40 scoped work is complete. **STOP here. Do not start WP-11 or WP-12 automatically.** On the next owner instruction, continue with the already-assigned cross-stage findings and their gates. Keep C-01, C-02 and C-03 closed; C-03 live E2E remains **WAIVED / NOT RUN**, not PASS. D-10/D-11 source-wording reconciliation remains unresolved as recorded below. No Production write, migration, deletion, Edge deployment, or security redesign was performed in this WP-10 execution.
 
 ---
 
