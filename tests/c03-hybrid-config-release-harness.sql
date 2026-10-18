@@ -81,6 +81,7 @@ returns jsonb language sql as $c03$ select jsonb_build_object('valid', true) $c0
 \i supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql
 \i supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql
 \i supabase/migrations/20261018100000_c03_service_role_api_key_compatibility.sql
+\i supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql
 
 insert into auth.users(id) values ('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa');
 insert into public.admin_users(user_id,role,active)
@@ -152,7 +153,8 @@ select public.register_assessment_config_release_secure(
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','edge-v1'
 ) as release1 \gset
 
-select set_config('request.jwt.claim.role','service_role',false);
+select set_config('request.jwt.claim.role','',false);
+set role service_role;
 select public.verify_assessment_config_release_secure(
   (:'release1'::jsonb->>'release_id')::uuid,
   '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 1,
@@ -160,6 +162,7 @@ select public.verify_assessment_config_release_secure(
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
   'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
 ) as verified1 \gset
+reset role;
 select 1 / (((:'verified1'::jsonb->>'state')='VERIFIED')::int) as release_verified;
 
 select set_config('request.jwt.claim.role','authenticated',false);
