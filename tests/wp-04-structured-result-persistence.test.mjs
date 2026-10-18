@@ -57,6 +57,7 @@ test("WP-10 D-17 preserves fractional raw/max in Structured Result and applies i
   const changed = structuredClone(result);
   const axis = changed.scores.axes.find((item) => item.status === "measured");
   assert.ok(axis, "fixture must contain a measured axis");
+  changed.provenance.assessmentSlug = "clinic-performance";
   axis.rawScore = 12.5;
   axis.maxPossible = 20.5;
   axis.percentage = 42.125;
