@@ -1,4 +1,77 @@
-# WP-10 EXECUTION CHECKPOINT — VERIFIED — 2026-10-18
+# CURRENT SESSION HANDOFF — WP-11 SECURITY/DATABASE RECONCILIATION — IN PROGRESS — 2026-10-18
+
+**This is the authoritative current continuation point and supersedes older stage-start instructions below wherever they conflict.** The owner explicitly instructed continuation into WP-11 after the bounded WP-10 execution. WP-09 and WP-10 remain closed in their recorded scopes. Do not reopen C-01, C-02 or C-03. Do not start WP-12 automatically.
+
+## Current repository state
+
+- Repository: `core-system-md/clinic-evaluator`.
+- Working branch: `wp-11/least-privilege-reconciliation`, forked from `main` at `cf34521c2a5ff65c9aed6dbfa9b08a012ec7abaa`.
+- Draft candidate PR: [#120 — restrict admin table privileges and UUID identity probes](https://github.com/core-system-md/clinic-evaluator/pull/120).
+- Candidate implementation head with passing tests: `6c06e97510de3ae1087d4d415a4eda7873585ec8`. Subsequent commit(s) add evidence/documentation and do not change the tested SQL/test/workflow files.
+- WP-11 CI run [#39133241328](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133241328): **SUCCESS** (Node contract and disposable PostgreSQL 17 behavioral harness).
+- Regression/P3 run [#39133241215](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133241215): **SUCCESS**.
+- All Supabase SQL operations in this session were read-only. The candidate migration has **not** been applied to Production. No production grant/policy change, Edge deployment, deletion, release-gate change, or migration was run.
+- The canonical audit source has been verified at `documentation/governance/clinic-evaluator-full-audit-report-2026-10-11.md`, SHA `cd2297be4fb6c80efe4f53439481ba4904da6c3e`. Its D-10 and D-11 wording is now reconciled in the matrix; that does not close those findings.
+- Current Supabase `assessment-access`: ACTIVE v48, `verify_jwt=false`, deployed source SHA-256 `019e280fbc4ca859e332ebff40f5eb3ec73dd084548fdf411272d1014bddd370`. Its fetched live `source/index.ts` calls only `complete_p4_assessment_from_result` and `complete_p4_public_assessment_from_result`, not the legacy `complete_p4_*_assessment_session` functions.
+- The `admin-auth` Edge function is still reported ACTIVE v6, but the deployed handler deliberately returns HTTP 410 with a retirement message. Describe its behavior as retired/410; do not delete or redeploy it under this task.
+
+## Verified bounded findings
+
+### D-08 and D-15 — tested candidate, NOT DEPLOYED
+
+- Live ACL inspection confirms `authenticated` has excess `MAINTAIN`, `REFERENCES`, `TRIGGER` and `TRUNCATE` on `admin_audit_log` and `admin_capabilities`, in addition to SELECT. It does not have INSERT/UPDATE/DELETE on these two tables; `anon` has no direct table privileges.
+- The deployed `is_owner(uuid)` and `is_active_admin(uuid)` identity-check functions are SECURITY DEFINER and executable by any authenticated user who knows an arbitrary UUID. The zero-argument variants bind to `auth.uid()`; they already form the intended current-user check. Existing admin RLS policies pass `auth.uid()` into the parameterized variants.
+- PR #120 narrowly revokes only the four excess privileges on the two named tables, keeps SELECT and service-role rights unchanged, rebinds the affected policies to current-user-only zero-argument helpers, and removes authenticated/anon EXECUTE on the UUID overloads. A disposable PostgreSQL 17 harness verifies the grants, direct-probe denial, and owner-versus-staff RLS visibility. CI passes. **Do not merge/apply/deploy until the D-05 migration sequence blocker is resolved and review gates pass.**
+
+### D-09 — four bounded Production asset probes
+
+On `https://clinicevaluat.pages.dev`:
+- `/assets/data/comprehensive_assesstment.json` → 404
+- `/assets/data/admin_reception_assesstment.json` → 404
+- `/assets/data/medical_team_assesstment.json` → 404
+- `/assets/data/report_texts.json` → 200, `application/json`, version `2.2.0`
+
+These four exact path probes passed. This is not full WP-12 runtime/E2E proof. Do not remove the required `report_texts.json` file.
+
+### D-07 / D-12 — partial dependency inventory, no deletions
+
+- The live `traps` table is RLS-enabled, has no policies, and grants no direct SELECT/INSERT/UPDATE/DELETE to `anon` or `authenticated`. It is protected by enabled `p2_traps_immutable`, which calls shared `p2_assert_draft_version()` lifecycle logic used across several assessment-structure tables. Do not remove the table, trigger or shared function without a complete caller/dependency and approval review.
+- `calculate_session_score(uuid)` is non-authoritative and service-role-only. The two old P4 session-completion functions and the current `*_from_result` functions all deny execution to anon/authenticated; current Edge v48 uses only the `*_from_result` pair. `duplicate_assessment(uuid)` is not executable by anon, authenticated or service_role.
+- Both live `update_option_secure` overloads exist and the admin source calls `update_option_secure`; do not label the function as dead or remove it on a stale shorthand. Other tables with zero RLS policies have no direct anon/authenticated table grants in the observed live state; that alone does not prove public exposure.
+- These facts narrow the future dependency check but do not authorize deleting old DB objects.
+
+## Blocking reconciliations
+
+### D-05 — migration ledger / source identity mismatch BLOCKS any new Production migration
+
+Read-only comparison:
+- Live ledger: **57 entries**.
+- Repository `main`: **56 SQL migration files**.
+- Live-only migration records without source files on current main: `20261018075528 / c03_service_role_api_key_compatibility`, `20261018075855 / c03_verifier_api_key_compatibility`.
+- Repository-only SQL migration absent from the live ledger: `20261018110000_c03_verifier_api_key_compatibility.sql`.
+- A matching later ledger/source identity exists for `20261018100000_c03_service_role_api_key_compatibility`.
+
+The earlier two source paths return 404 on current main and are not available in the reviewed PR branches. The present repository version and live deployed function definitions support a related compatibility behavior but do not prove exact historic migration-file/content identity. Do **not** infer byte-equivalence, rewrite migration history, change applied migration names, drop live-only records or run a new `db push`/migration. Reconcile the original source and actual application order first. This is a migration-provenance gate, **not a reopening of C-03**.
+
+### D-14 — historical migration approvals remain unverified, separate from D-05
+
+The canonical audit reports no evidenced owner approval for migrations `20261009164918`, `20261009164951` and `20261009170228`. No rollback, restoration, history rewrite or retrospective approval was performed or inferred. Maintain this as a separate evidence/decision record. Do not alter these historical migrations or the live migration ledger.
+
+### Schema-wide default privileges — owner decision required
+
+Live PostgreSQL default ACLs for `postgres` in `public` grant broad table privileges to `anon` and `authenticated`, sequence privileges to the same roles, and EXECUTE on new functions by default. This is a broader prospective security boundary than D-08’s two current-table grants. PR #120 deliberately does not change it. A change requires explicit owner direction and a complete compatibility/dependency review; do not perform a blanket default-privilege revocation.
+
+## Exact continuation point
+
+1. Continue D-05 source/ledger/order reconciliation read-only; never mutate the Production migration history.
+2. Keep D-14 open independently until original approval evidence or an explicit owner-directed documentary disposition is recorded.
+3. Keep PR #120 in draft; its SQL and disposable PostgreSQL tests passed, but no Production fix is applied.
+4. Continue D-07/D-12 dependency review only with concrete callers, grants and trigger/function dependencies; no speculative deletions.
+5. Preserve D-09 probe evidence above. Keep WP-12 not started, and keep C-01/C-02/C-03 closed. The C-03 live E2E remains **WAIVED / NOT RUN**, not PASS.
+
+---
+
+# HISTORICAL CHECKPOINT — WP-10 EXECUTION VERIFIED — 2026-10-18
 
 **WP-10 §40 scoped execution: COMPLETE; cross-stage findings remain open where specified below.** No Production database mutation, migration, deletion, Edge deployment, or security change was performed.
 
@@ -45,13 +118,13 @@ No persisted-semantics mismatch was found in the bounded WP-10 review. No renami
 
 ## Exact continuation point
 
-WP-10 §40 scoped work is complete. **STOP here. Do not start WP-11 or WP-12 automatically.** On the next owner instruction, continue with the already-assigned cross-stage findings and their gates. Keep C-01, C-02 and C-03 closed; C-03 live E2E remains **WAIVED / NOT RUN**, not PASS. D-10/D-11 source-wording reconciliation remains unresolved as recorded below. No Production write, migration, deletion, Edge deployment, or security redesign was performed in this WP-10 execution.
+WP-10 §40 scoped work is complete. The instruction not to start WP-11 automatically was correct at the time of that checkpoint and was superseded by the owner's explicit subsequent instruction to begin WP-11, recorded in the current section at the top of this handoff. WP-12 remains a separate stage and has not been started by this WP-11 work. Keep C-01, C-02 and C-03 closed; C-03 live E2E remains **WAIVED / NOT RUN**, not PASS. No Production write, migration, deletion, Edge deployment, or security redesign was performed in WP-10.
 
 ---
 
 # AUDIT-TO-WP TRACEABILITY RULE AND EXACT RESUMPTION POINT — 2026-10-18
 
-**Authoritative current continuation point: WP-10 (§40) — implementation readiness / start of the next bounded stage.** WP-09 is closed. WP-10, WP-11 and WP-12 remain distinct stages; do not skip, merge, or start the next stage automatically.
+**Historical continuation point at WP-10 closeout; superseded by the later owner instruction to begin WP-11.** WP-09 and WP-10 are closed within their recorded bounded scopes. WP-11 is now the active stage as documented at the top of this handoff; WP-12 remains a separate, not-yet-started stage.
 
 ## Mandatory no-drop rule
 - The full set of findings C-01–C-03 and D-04–D-19 must remain traceable in [the audit-to-WP reconciliation matrix](../governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md). Every open/partial/unverified/decision-bound item must retain its original ID, responsible WP gate(s), exact remaining action, acceptance evidence, and next continuation point.
@@ -59,8 +132,8 @@ WP-10 §40 scoped work is complete. **STOP here. Do not start WP-11 or WP-12 aut
 - C-01, C-02 and C-03 remain closed under their recorded owner-approved dispositions unless new regression evidence and explicit owner direction justify reopening. The C-03 live E2E waiver remains WAIVED / NOT RUN, not PASS. WP-09 remains closed.
 - This matrix is a traceability overlay on the existing contract, not a parallel plan. No Production mutation, migration, deployment, deletion, release-gate change, or security redesign is authorized by this handoff.
 
-## Audit-source verification limitation
-The exact file named `clinic-evaluator-full-audit-report-2026-10-11.md` was not found in the current `main` tree or available file search. The matrix captures the audit details retained in repository/handoff records, but exact source wording—especially D-10 and D-11—must be checked against the original report when it is located. These items remain visibly unresolved; do not infer their wording or drop them.
+## Audit-source verification correction — 2026-10-18
+The canonical source is present at `documentation/governance/clinic-evaluator-full-audit-report-2026-10-11.md`, blob SHA `cd2297be4fb6c80efe4f53439481ba4904da6c3e`. D-10 refers to V2 identity remnants within final V1 content; D-11 refers to inconsistent interpretation/consistency/version registries and conflicting final contracts. The older statement that the source was not found and that D-11 was an identifier collision is superseded by the verified source. The substantive D-10/D-11 findings remain open; source verification alone does not close them.
 
 ## WP-10 bounded start checklist
 1. Read contract §40 and the matrix before editing.
