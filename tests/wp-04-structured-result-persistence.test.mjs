@@ -5,6 +5,7 @@ import registry from "../documentation/architecture/P3-RESPONSE-INTERPRETATION-R
 import config from "./fixtures/p3-current-published-config-v1.json" with { type: "json" };
 import { scoreP3IntegratedV1 } from "../supabase/functions/assessment-access/assessment-calculation-pipeline.mts";
 import { projectScoreRowsFromStructuredResult } from "../supabase/functions/assessment-access/result-persistence-projection.mts";
+import { projectCompletionResponse } from "../supabase/functions/assessment-access/report-interpretation.mjs";
 
 function selections(slug) {
   const seen = new Set();
@@ -58,6 +59,9 @@ test("WP-10 D-17 preserves fractional raw/max in Structured Result and applies i
   assert.ok(axis, "fixture must contain a measured axis");
   axis.rawScore = 12.5;
   axis.maxPossible = 20.5;
+  axis.percentage = 42.125;
+  axis.score = 42.125;
+  axis.weightedScore = 42.125 * axis.weight / 100;
 
   const scoreRow = projectScoreRowsFromStructuredResult(changed)
     .find((row) => row.axis_id === axis.axisCode);
@@ -66,6 +70,13 @@ test("WP-10 D-17 preserves fractional raw/max in Structured Result and applies i
   assert.equal(axis.maxPossible, 20.5);
   assert.equal(scoreRow.raw_score, 13);
   assert.equal(scoreRow.max_possible, 21);
+
+  const report = projectCompletionResponse(changed).userReport;
+  assert.equal(report.axes.find((item) => item.code === axis.axisCode)?.percentage, 42.125);
+
+  const schema = fs.readFileSync("supabase/migrations/20261002161455_p3_production_implementation.sql", "utf8");
+  assert.match(schema, /raw_score integer/);
+  assert.match(schema, /max_possible integer/);
 
   const migration = fs.readFileSync("supabase/migrations/20261009164951_structured_result_authority.sql", "utf8");
   assert.ok(migration.includes('round(s."rawScore")::integer'));
