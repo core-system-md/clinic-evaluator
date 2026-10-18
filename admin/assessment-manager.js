@@ -1130,7 +1130,7 @@ class AssessmentManager {
         if (!modal || !modalBody) return;
 
         modal.classList.remove('hidden');
-        modalBody.innerHTML = '<p style="text-align:center; padding:24px; font-weight:600; color:#475569;">⏳ جاري قراءة وفحص الفخاخ السلوكية واستنباط التحليلات النصية لرحلة المريض...</p>';
+        modalBody.innerHTML = '<p style="text-align:center; padding:24px; font-weight:600; color:#475569;">⏳ جاري تحميل النتيجة الرسمية والتحقق من بيانات التقرير...</p>';
 
         try {
             let lead = (this.allLeads || []).find(l => l.id === leadId);
@@ -1149,13 +1149,12 @@ class AssessmentManager {
 
             // النتيجة الرسمية تأتي من assessment_results عند توفرها.
             // البيانات القديمة تبقى معروضة كتاريخية، دون إعادة احتساب KPI في المتصفح.
-            const [sessionsPayload, legacyScores, answers, axesForAssessment] = await Promise.all([
+            const [sessionsPayload, legacyScores, axesForAssessment] = await Promise.all([
                 this.supabase.request('rpc/get_admin_report_sessions_secure', {
                     method: 'POST',
                     body: JSON.stringify({ p_lead_id: leadId })
                 }),
                 this.supabase.select('scores', { filter: { lead_id: leadId } }),
-                this.supabase.select('answers', { filter: { lead_id: leadId } }),
                 this.supabase.select('axes', { filter: { assessment_type_id: lead.assessment_type_id } })
             ]);
 

@@ -49,3 +49,60 @@ test("canonical economics rejects non-positive annual visit counts", () => {
   assert.equal(r.status, "unavailable");
   assert.equal(r.output, null);
 });
+
+
+test("canonical economics defaults to three annual visits", () => {
+  const r = calculateP3RecursiveReferralEconomic({
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: 20,
+  });
+  assert.equal(r.status, "available");
+  assert.equal(r.basePatientValue, 3750);
+  assert.equal(r.output?.assumptions.visitsPerYear, 3);
+});
+
+test("canonical economics treats blank referral as unavailable when base inputs are valid", () => {
+  const r = calculateP3RecursiveReferralEconomic({
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: null,
+    visitsPerYear: 6,
+  });
+  assert.equal(r.status, "unavailable");
+  assert.equal(r.basePatientValue, 7500);
+  assert.equal(r.output, null);
+});
+
+test("zero referral percentage produces exactly the base patient value", () => {
+  const r = calculateP3RecursiveReferralEconomic({
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: 0,
+    visitsPerYear: 6,
+  });
+  assert.equal(r.status, "available");
+  assert.equal(r.output?.value, 7500);
+  assert.equal(r.output?.assumptions.visitsPerYear, 6);
+  assert.equal(r.output?.assumptions.referralPercentage, 0);
+});
+
+test("economic report projection preserves the calculation assumptions", async () => {
+  const { projectCompletionResponse } = await import("../supabase/functions/assessment-access/report-interpretation.mjs");
+  const economic = calculateP3RecursiveReferralEconomic({
+    averageVisitValue: 250,
+    relationshipYears: 5,
+    referralPercentage: 20,
+    visitsPerYear: 8,
+  });
+  const projected = projectCompletionResponse({
+    identity: { assessmentFamilyId: "family-1", assessmentVersion: "1" },
+    provenance: { assessmentSlug: "clinic-performance" },
+    scores: { overallScore: 50, axes: [] },
+    classification: { bandCode: "Q2" },
+    kpis: [],
+    economics: { status: "COMPUTED", output: economic.output },
+  });
+  assert.equal(projected.userReport.economicOpportunity.visitsPerYear, economic.output?.assumptions.visitsPerYear);
+  assert.equal(projected.userReport.economicOpportunity.referralPercentage, economic.output?.assumptions.referralPercentage);
+});

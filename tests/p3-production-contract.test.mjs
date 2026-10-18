@@ -177,3 +177,14 @@ test("scorer-side axis rows retain numeric precision before canonical persistenc
   assert.doesNotMatch(pipeline, /raw_score: Math\.round\(axis\.rawScore\)/);
   assert.doesNotMatch(pipeline, /max_possible: Math\.round\(axis\.maxPossible\)/);
 });
+
+
+test("WP-10 D-12 admin report prefers official Structured Result and does not read answer-level trap fields", () => {
+  const admin = fs.readFileSync("admin/assessment-manager.js", "utf8");
+  assert.match(admin, /rpc\\('get_admin_assessment_result_secure'/);
+  assert.match(admin, /officialResult\?\.scores\?\.axes/);
+  assert.match(admin, /officialResult\?\.kpis/);
+  assert.match(admin, /status: 'historical'/);
+  assert.doesNotMatch(admin, /this\.supabase\.select\('answers'/);
+  assert.doesNotMatch(admin, /trap_triggered|is_trap|Leakage|الفخاخ السلوكية|المنفذ الرئيسي المسبب للفاقد المالي/);
+});

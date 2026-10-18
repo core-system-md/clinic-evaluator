@@ -611,7 +611,7 @@ class ClinicEvaluatorApp {
       classification: report.overall?.bandCode ?? null,
       axisScores: Object.fromEntries((report.axes || []).map(axis => [String(axis.code), Number(axis.percentage)])),
       kpis: Object.fromEntries((report.kpis || []).map(kpi => [String(kpi.code), Number(kpi.value)])),
-      evSimulator: null, traps: [], userReport: report,
+      userReport: report,
       provenance: row ? { assessmentVersion: row.assessment_version, interpretationVersion: row.interpretation_version,
         scoringEngineVersion: row.scoring_engine_version, scoringContractVersion: row.scoring_contract_version,
         assessmentConfigDigest: row.assessment_config_digest, calculatedAt: row.calculated_at } : null,
