@@ -1,15 +1,16 @@
-# LATEST AUTHORITATIVE C-03 RECONCILIATION — 2026-10-15
+# LATEST AUTHORITATIVE C-03 RECONCILIATION — 2026-10-18T08:57:41Z
 
-This section supersedes older C-03 queue/status text elsewhere in this historical index. The canonical active handoff is `documentation/handoff/CURRENT-SESSION-HANDOFF.md`.
+**Canonical handoff:** `documentation/handoff/CURRENT-SESSION-HANDOFF.md`  
+**Current gate:** C-03 post-release validation — C-03-specific live E2E runner and exact-run cleanup.  
+**Only next action:** Implement and test the missing C-03-specific synthetic E2E runner plus exact-run cleanup/evidence contract using isolated tests only; do not perform Production writes until the runner and cleanup tests pass.
 
-- Current `main` SHA before this index update: `ab20753d7a1286695f5cc36549f1586bfb05134a`.
-- C-03 scope has since been implemented and integrated through canonical PR #109; do not use this index's 2026-10-14 "do not start C-03" note as the current queue. Do not reopen the old scope decision absent new owner direction or contradictory evidence.
-- Live Supabase: C-03 migration `20261015100000_c03_hybrid_config_release_gate` is applied; release settings exist; gate disabled; release rows = 0; active release pointers = 0; five current published families.
-- Live Edge: `assessment-access` ACTIVE v38; `assessment-config-release` not deployed.
-- Latest read-only credential diagnosis [run #38756301379](https://github.com/core-system-md/clinic-evaluator/actions/runs/38756301379): repository-scope job SUCCESS, including authenticated read-only Supabase state checks; protected `production-e2e` job fails only because `C03_OWNER_JWT` is empty. The service-role key is now injected. No Production mutation occurred.
-- Current status: **C-03 IMPLEMENTED / ISOLATED CI PASS / PRODUCTION RELEASE BLOCKED BY OWNER-JWT INJECTION / NOT CLOSED**.
-- Contract deviation acknowledged: repeated environment-name patches preceded root-cause proof; the UI workflow name was stated incorrectly; a diagnostic workflow was added before reconciling all credentials. The operating contract requires evidence-first reconciliation and bounded work. Do not repeat this pattern.
-- Next canonical action: ensure a valid owner-authenticated JWT is injected as a protected secret into the release environment, then rerun the read-only preflight. Never paste it into chat, manufacture/impersonate it, substitute the service-role key, or bypass owner-authenticated Edge actions with privileged SQL. No deployment/release writes/live E2E until that prerequisite and the exact-SHA dual-Edge attestation gate pass.
+- Remote `main` before this closeout: `7c2ebb031f5598e3052394738f37db2a0f9a25ec`; the closeout commit must be pushed directly to `main` and the remote ref verified afterward.
+- Production release workflow [#39109714790](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790) succeeded for release SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`. Both deployed Edge attestations match source digest `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`; versions: `assessment-access` v48, `assessment-config-release` v10.
+- Live gate is enabled and all five current family pointers resolve to `PUBLISHED` rows bound to the release SHA. Ledger: 57 migrations; latest listed version `20261018100000`. Live counts for leads, sessions, answers, scores, assessment_results and assessment_session_access are all zero.
+- Release evidence artifact: `c03-production-release-evidence`, ID `12129813276`.
+- C-03 is **not CLOSED**: no live E2E run is evidenced and no C-03-specific runner exists. The existing cleanup script is C-02-bound and forbidden for C-03 use until corrected/tested.
+- C-01 remains CLOSED and must not be reopened. Historical C-03 notes claiming owner-JWT injection is a release blocker are superseded by the successful OIDC release and 2026-10-18 release evidence.
+
 
 ---
 

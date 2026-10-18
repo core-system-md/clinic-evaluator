@@ -520,3 +520,88 @@ Continue review of PR #106 and PR #107 against the live repository contract, clo
 
 **Status: CODE MERGED / MIGRATION APPLIED / ISOLATED CI PASS / SECRET INJECTION STILL EMPTY AFTER ENVIRONMENT CORRECTION / C-03 NOT CLOSED.**
 
+
+
+---
+
+## Session closeout and exact continuation point — 2026-10-18T08:57:41Z
+
+### PROJECT STATE
+C-03 Production release activation is **PRODUCTION VERIFIED**. The overall C-03 work item is **not CLOSED**: live E2E and exact-run cleanup have not been implemented/executed/evidenced. The release gate is enabled; do not repeat activation. Current production state was read-only checked after workflow #39109714790.
+
+### CURRENT STAGE
+C-03 post-release closeout: implement and validate a C-03-specific live E2E runner and exact-run cleanup/evidence contract. No Production E2E writes were made in this closeout.
+
+### COMPLETED WORK
+- **Guarded Production release succeeded** in [workflow run #39109714790](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790), head SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`. Both OIDC preflight and release jobs succeeded; all five releases were verified and published, the gate was enabled, and evidence artifact `c03-production-release-evidence` (`12129813276`) was uploaded.
+- Both deployed Edge attestations match release SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7` and source digest `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`: `assessment-access` v48 (`verify_jwt=false`) and `assessment-config-release` v10 (`verify_jwt=true`). **Evidence: PROVEN** by live Edge source readback.
+- Read-only database reconciliation found all five family pointers resolve to `PUBLISHED` release rows bound to the exact release SHA; all five have `verified_at` and no failure reason. Gate audit identity records run `39109714790` and that SHA. **Evidence: PROVEN** by live SQL readback.
+- Live counts: `assessment_families=5`, `assessment_config_releases=15` (5 PUBLISHED, 10 REJECTED, 0 PREPARED and 0 rows whose state is VERIFIED; the five current PUBLISHED rows retain their verification timestamps), `leads=0`, `sessions=0`, `answers=0`, `scores=0`, `assessment_results=0`, `assessment_session_access=0`. **Evidence: PROVEN** by read-only SQL.
+- Production migration ledger: **57 entries**; latest listed version `20261018100000 / c03_service_role_api_key_compatibility`. **Evidence: PROVEN** by `list_migrations`.
+- Latest relevant isolated test run before the successful release: [#39109594752](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109594752), success on reviewed PR head `1df571ce6e3b4740e830069a78e37d7dc1749e80` (not the release SHA). Commands:
+  - `node --test tests/c03-config-digest-coverage.test.js tests/c03-release-verifier-contract.test.js tests/c03-runtime-attestation.test.mjs tests/c03-production-release.test.mjs tests/c03-github-oidc-token.test.mjs`
+  - `deno test --no-check --allow-env --allow-net tests/c03-release-verifier-handler.test.ts tests/c03-oidc-handler-auth.test.ts tests/c03-github-oidc-claims.test.ts`
+  - `node tests/c03-load-real-admin-auth.mjs`
+  - `psql "postgresql://postgres:postgres@127.0.0.1:5432/postgres" -v ON_ERROR_STOP=1 -f tests/c03-hybrid-config-release-harness.sql`
+  **Evidence: PROVEN** for the run and command results. The successful Production release workflow itself does not run a live E2E test.
+- Updated this existing canonical handoff and the existing handoff index in one documentation-only commit. The prior remote `main` SHA before this closeout was `7c2ebb031f5598e3052394738f37db2a0f9a25ec`. Verify the new remote `main` ref after the commit is pushed.
+
+### OPEN WORK
+- Build and test a **C-03-specific** synthetic E2E runner that records exact run ID, family/version identity, session/lead/result/access identifiers, answer/score assertions, and evidence artifact.
+- Correct/replace the cleanup implementation and tests so cleanup is scoped exclusively to exact identifiers produced by that same run; the existing `.github/scripts/c03-production-e2e-cleanup.mjs` is not safe to reuse as-is because it expects `c02-value70-live-e2e-result.json` and `c02-value70-...` run IDs.
+- Add a separately guarded workflow path for the runner/cleanup. Only after the runner and cleanup pass isolated tests, execute the bounded live E2E against the already-enabled gate, then clean the exact run and verify zero residue. Do not repeat release activation.
+- **NOT VERIFIED:** local/untracked worktree state; the available GitHub connector exposes remote repository content but no local working tree.
+
+### VERIFIED EVIDENCE
+| Claim | Classification | Evidence |
+|---|---|---|
+| Release workflow #39109714790 completed successfully | PROVEN | [GitHub Actions run](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790), both jobs SUCCESS |
+| Exact release SHA and Edge source digest match both deployed functions | PROVEN | Live `get_edge_function` source readback, v48/v10 attestations |
+| Gate enabled and all five current pointers target PUBLISHED releases for the exact SHA | PROVEN | Read-only SQL, run audit identity and five family rows |
+| Production synthetic-data tables listed above are currently zero rows | PROVEN | Read-only SQL counts; this is a point-in-time count, not E2E proof |
+| Isolated release harness / digest tests / OIDC handler tests passed | PROVEN | [Run #39109594752](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109594752), commands above, reviewed PR head rather than exact release SHA |
+| Live C-03 E2E and exact-run cleanup completed | NOT VERIFIED | No C-03 runner in current `main`; release workflow contains no live E2E step |
+| Local uncommitted files do not exist | NOT VERIFIED | No local worktree visibility through available connector |
+| Documentation-only push cannot trigger a deployment | CONTRADICTED | Pushes to `main` can trigger Cloudflare Pages auto-deployment; this closeout changes documentation only and does not call Edge deployment or apply a migration |
+
+### KNOWN FAILURES
+- The existing cleanup script is C-02-bound and must not be used against C-03 evidence.
+- No C-03 E2E runner or dedicated C-03 runner test file exists on current `main`.
+- The overall C-03 item must not be marked CLOSED until live E2E assertions, exact-run cleanup, and post-cleanup zero-residue verification are evidenced.
+- Historical handoff/status text still contains superseded 2026-10-15 claims that an owner JWT is required or the release is blocked. The successful OIDC workflow and the 2026-10-18 release result supersede those statements; do not request or introduce `C03_OWNER_JWT` for the CI release path.
+
+### OPEN DECISIONS
+- No owner decision is currently required for the next isolated engineering task. Runner and cleanup implementation must follow existing contracts and keep Production execution separately guarded.
+
+### IMPLEMENTATION-READY STATUS
+- Release activation: **PRODUCTION VERIFIED**.
+- C-03 live E2E runner: **NOT STARTED**.
+- Run-scoped cleanup and evidence verification: **BLOCKED** until the C-03 runner/evidence contract is implemented and tested.
+- Overall C-03: **IMPLEMENTED — UNVERIFIED** (release stage verified; full requested closeout remains open).
+
+### NEXT CANONICAL ACTION
+Implement and test the missing C-03-specific synthetic E2E runner plus exact-run cleanup/evidence contract in the repository, with isolated tests only and **no Production writes**. Add the separately guarded execution path only after these tests pass. Do not repeat the successful release or toggle the gate.
+
+### CONSTRAINTS / FORBIDDEN ACTIONS
+- C-01 remains CLOSED; do not reopen it.
+- Do not repeat the already-successful C-03 release activation, toggle the gate, or redeploy Edge as part of the next action.
+- Do not execute live E2E until the runner and cleanup pass isolated tests and the exact-run evidence/cleanup contract is reviewed.
+- Never use the C-02 cleanup artifact or C-02 run-ID prefix for C-03; no broad or inferred-ID deletes.
+- Do not apply migrations, deploy Edge, or use privileged SQL as a substitute for the guarded release workflow during closeout.
+- A push to `main` may trigger the configured Cloudflare Pages auto-deployment. The closeout commit is documentation-only; no Edge deployment or migration is part of this closeout.
+- No application code, test, workflow, or migration files are changed in this closeout. The connector cannot inventory a local worktree, so do not claim local uncommitted state is clean.
+
+### Final gate state
+| Gate | State | Evidence |
+|---|---|---|
+| OIDC release authorization and exact runtime attestation | PRODUCTION VERIFIED | Workflow #39109714790; deployed v48/v10 attestations |
+| Five-family release registration/verification/publication | PRODUCTION VERIFIED | Five live current pointers, all PUBLISHED at release SHA |
+| Release gate enabled with audit identity | PRODUCTION VERIFIED | Live SQL settings row matches run #39109714790 and release SHA |
+| C-03 live E2E runner | NOT STARTED | No C-03 runner in current main |
+| Exact-run synthetic-data cleanup | BLOCKED | Existing script expects C-02 evidence/run IDs |
+| Overall C-03 closure | IMPLEMENTED — UNVERIFIED | Live E2E and cleanup evidence remain absent |
+
+### Start prompt for the next conversation
+```text
+MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md §Session closeout and exact continuation point — 2026-10-18T08:57:41Z. لا تعِد فحص أو تنفيذ ما أُغلق فيه بدليله. اعمل حصراً على NEXT CANONICAL ACTION المسجّل فيه بعد START/RESUME ENGINEERING والمصالحة مع الواقع.
+```
