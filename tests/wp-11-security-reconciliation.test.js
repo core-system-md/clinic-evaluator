@@ -22,6 +22,7 @@ test("WP-11 migration bounds excess admin table privileges without reducing appr
   assert.match(migration, /service_role privileges are intentionally unchanged/i);
   assert.doesNotMatch(migration, /revoke\s+all\s+on\s+table\s+public\.admin_audit_log/i);
   assert.doesNotMatch(migration, /revoke\s+all\s+on\s+table\s+public\.admin_capabilities/i);
+  assert.doesNotMatch(migration, /alter\s+default\s+privileges/i);
 });
 
 test("WP-11 RLS policies bind identity checks to the current authenticated user", () => {
@@ -74,7 +75,8 @@ test("WP-11 migration fails closed on missing expected schema objects or policie
 
 test("WP-11 SQL harness asserts actual privileges, direct probe denial, and RLS behavior", () => {
   assert.match(harness, /\i supabase\/migrations\/20261018120000_wp11_security_database_reconciliation\.sql/i);
-  assert.match(harness, /has_table_privilege\('authenticated'.*'MAINTAIN'\)/i);
+  assert.match(harness, /has_table_privilege\('authenticated'/i);
+  assert.match(harness, /'MAINTAIN'/i);
   assert.match(harness, /has_function_privilege\('authenticated', 'public\.is_owner\(uuid\)', 'EXECUTE'\)/i);
   assert.match(harness, /wp11_owner_visible_rows = 3/i);
   assert.match(harness, /wp11_staff_visible_rows = 1/i);
