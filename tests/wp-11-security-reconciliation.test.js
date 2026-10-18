@@ -77,6 +77,8 @@ test("WP-11 migration fails closed on missing expected schema objects or policie
   assert.match(migration, /to_regprocedure\('public\.is_active_admin\(uuid\)'\)/i);
   assert.match(migration, /to_regprocedure\('public\.is_owner\(uuid\)'\)/i);
   assert.match(migration, /expected 13 known admin identity policies/i);
+  assert.match(migration, /expected RLS enabled on 11 protected tables/i);
+  assert.match(migration, /c\.relrowsecurity/i);
   assert.match(migration, /begin;/i);
   assert.match(migration, /commit;/i);
 });
