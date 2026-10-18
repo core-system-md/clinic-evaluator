@@ -1,3 +1,22 @@
+# OWNER-DIRECTED FINAL C-03 CLOSEOUT — 2026-10-18
+
+**This entry supersedes earlier instructions in this file to run a C-03 live E2E, create a C-03 runner, or delay closure pending those steps.** The owner has explicitly directed immediate final closure without additional C-03 test/workflow paths.
+
+## Final disposition
+- **C-03: CLOSED BY OWNER DECISION (scope closure).** Do not reopen it or add the previously proposed runner, cleanup workflow, or further C-03 tests.
+- **Production release: VERIFIED.** Workflow [#39109714790](https://github.com/core-system-md/clinic-evaluator/actions/runs/39109714790) succeeded for release SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`. Both deployed Edge attestations match source digest `sha256:614d9ff369ea88629f6b02c248877964c6d3c6ca800cfa265d406bb1092b4dc8`; `assessment-access` v48 and `assessment-config-release` v10. All five current family pointers resolve to PUBLISHED rows bound to the release SHA.
+- **Live E2E:** NOT RUN; explicitly waived by owner decision. This is not represented as a passing test.
+- **Exact-run cleanup:** NOT RUN because no C-03 live E2E was run. C-02 cleanup is not reused.
+- **C-01 remains CLOSED.**
+- **Open PRs:** current repository open-PR search returned none.
+- **Branches:** repository branch search found 21 C-03-related branch names. The available GitHub connector has no branch-delete operation, so branch deletion is **NOT COMPLETED**; this limitation must not be misreported as successful cleanup.
+- **Production state:** the already-verified release gate remains enabled. No gate toggle, migration, Edge redeployment, or additional production write was performed for this closeout.
+
+## Closeout boundary
+This is owner-directed scope closure, not a claim that all previously proposed validation was performed. Any Pages build triggered by a documentation-only push to `main` is separate from Edge release activation.
+
+---
+
 # C-03 CURRENT SESSION HANDOFF — PRODUCTION RELEASE COMPLETE; LIVE E2E CLOSEOUT PENDING — 2026-10-18
 
 **Verified status:** the guarded C-03 Production release succeeded, but the full owner-requested closeout is **not yet complete** because live E2E and exact-run synthetic-data cleanup have not been executed or evidenced. Do not report the entire C-03 task as fully closed until those checks are complete.
