@@ -17,6 +17,24 @@
 - “Verified” below means supported by the listed repository or live evidence. “Partial” means implementation or documentary progress exists but the full acceptance evidence is absent. “Open” means the finding still needs scoped reconciliation. “Decision-bound” means no change may be made without an owner decision.
 - No Production write, migration, deployment, deletion, release-gate change, or security redesign is authorized by this matrix.
 
+## 1A. Mandatory no-drop rule and source-verification boundary
+
+This is a mandatory governance rule for all remaining work:
+
+1. **No audit finding may disappear.** Every finding from the original audit remains represented until it has a documented disposition. Closing a WP does not automatically close every finding associated with it; one finding may require action or verification across more than one WP.
+2. **Explicit assignment is required.** Every open, partial, decision-bound, or unverified finding must name its responsible WP gate(s), the required action, acceptance evidence, and next continuation point. For cross-WP findings, record each stage's responsibility separately and keep the finding open until all required parts are resolved.
+3. **No evidence, no closure.** “Not found,” “not tested,” “not rechecked,” or “owner waived” must never be converted into PASS/CLOSED. A waiver is recorded as WAIVED / NOT RUN and closes only the waived scope, not the technical assertion.
+4. **Stage gate review.** At each WP closeout, compare the actual diff, tests and runtime evidence with the contract and every finding assigned to that WP. Carry every unresolved item forward by its original ID, exact remaining action, and next authorized WP. Stop after the current WP; do not start the next WP automatically.
+5. **Closed scope protection.** C-01, C-02 and C-03 remain closed under their recorded dispositions unless new regression evidence and explicit owner direction justify reopening. WP-09 remains closed. Distinct D findings must not be silently absorbed into those closures.
+6. **No parallel plan.** This matrix is a traceability overlay on the approved WP-09–WP-12 contract sequence, not a new workstream. Out-of-scope items remain documented dependencies/decision requirements and are not implemented as an unapproved parallel project.
+7. **Original-audit verification limitation.** The named artifact `clinic-evaluator-full-audit-report-2026-10-11.md` was not found in the current `main` repository tree or the available file search. This matrix reconciles audit details preserved in existing repository/handoff records, but exact source-text verification—especially D-10 and the conflicting D-11 label—remains OPEN until the original report is located and compared. Do not claim a complete verbatim audit-to-matrix review before that comparison.
+
+## 1B. Required per-finding tracking fields
+
+For every C/D finding, retain: (a) original ID and source wording/reference; (b) factual status and evidence date/source; (c) responsible WP(s), with distinct action per WP for cross-stage items; (d) acceptance criteria/tests; (e) dependency or owner decision; (f) final disposition and evidence link; and (g) if still open, exact next WP gate and remaining action.
+
+A finding with incomplete source traceability remains visible as **OPEN — SOURCE RECONCILIATION REQUIRED**; it must not be dropped or assigned by guesswork.
+
 ## 2. WP contract anchors
 
 | WP | Contract scope | Acceptance boundary for this reconciliation |
