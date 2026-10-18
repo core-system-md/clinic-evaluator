@@ -34,8 +34,10 @@ test("C-03 runtime attestation binds immutable commit, source digest, and versio
 
 test("C-03 deployed verification compares both scorer and verifier attestation endpoints without writes", async () => {
   const verifier = await fs.readFile(path.join(root, ".github/scripts/c03-release-attestation.mjs"), "utf8");
+  assert.match(verifier, /action: "ci_inventory"/);
   assert.match(verifier, /action: "ci_export"/);
   assert.match(verifier, /action: "c03_runtime_attestation"/);
+  assert.doesNotMatch(verifier, /SUPABASE_SERVICE_ROLE_KEY|C03_OWNER_JWT|ownerJwt/);
   assert.match(verifier, /Deployed verifier attestation mismatch/);
   assert.match(verifier, /getC03GithubOidcToken/);
   assert.match(verifier, /supabase\/functions\/_shared/);
