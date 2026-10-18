@@ -68,8 +68,8 @@ test("WP-10 D-17 preserves fractional raw/max in Structured Result and applies i
   assert.equal(scoreRow.max_possible, 21);
 
   const migration = fs.readFileSync("supabase/migrations/20261009164951_structured_result_authority.sql", "utf8");
-  assert.match(migration, /round\\(s\."rawScore"\\)::integer/);
-  assert.match(migration, /round\\(s\."maxPossible"\\)::integer/);
+  assert.ok(migration.includes('round(s."rawScore")::integer'));
+  assert.ok(migration.includes('round(s."maxPossible")::integer'));
   assert.match(migration, /result, result_status, calculated_at/);
 });
 
