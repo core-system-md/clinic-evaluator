@@ -146,19 +146,10 @@ export async function executeC03ProductionRelease({
     finalInventory.settings.enabled !== true ||
     finalInventory.settings.enabled_by_workflow_run_id !== finalInventory.releaseIdentity?.runId ||
     finalInventory.settings.enabled_by_workflow_sha !== finalInventory.releaseIdentity?.sha ||
-    finalInventory.releaseIdentity?.sha !== (await getOidcToken()).claims?.sha
+    !/^[0-9a-f]{40}$/.test(String(finalInventory.releaseIdentity?.sha || "")) ||
+    !/^\d+$/.test(String(finalInventory.releaseIdentity?.runId || ""))
   ) {
-    // Runtime verification below independently checks every current release. The caller identity
-    // is returned from the verified Edge token; a second opaque token cannot be decoded here.
-    if (
-      finalInventoryResponse?.success !== true ||
-      finalInventory?.settings?.singleton !== true ||
-      finalInventory.settings.enabled !== true ||
-      !finalInventory.settings.enabled_by_workflow_run_id ||
-      !finalInventory.settings.enabled_by_workflow_sha
-    ) {
-      throw new Error("C-03 final gate and workload-audit read-back did not pass.");
-    }
+    throw new Error("C-03 final gate and exact workload-audit read-back did not pass.");
   }
 
   const finalFamilies = finalInventory.families;
