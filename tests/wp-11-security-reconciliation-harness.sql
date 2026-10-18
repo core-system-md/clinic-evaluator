@@ -157,6 +157,17 @@ insert into public.admin_users(user_id, role, active) values
   ('22222222-2222-4222-8222-222222222222', 'admin', true),
   ('33333333-3333-4333-8333-333333333333', 'staff', true);
 
+-- Seed one visible row into each representative admin-read surface so the
+-- subsequent owner-vs-staff assertions verify RLS filters, not empty-table counts.
+insert into public.answers(id) values (1);
+insert into public.assessment_settings(id) values (1);
+insert into public.assessment_types(id) values (1);
+insert into public.axes(id) values (1);
+insert into public.leads(id) values (1);
+insert into public.options(id) values (1);
+insert into public.questions(id) values (1);
+insert into public.scores(id) values (1);
+
 \echo 'Apply the WP-11 forward-only migration in disposable PostgreSQL'
 \i supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql
 
@@ -231,11 +242,45 @@ select count(*) as wp11_owner_visible_rows from public.admin_users \gset
 reset role;
 select 1 / ((:wp11_owner_visible_rows = 3)::int) as owner_rls_scope_ok;
 
+select set_config('request.jwt.claim.sub', '11111111-1111-4111-8111-111111111111', false);
+set role authenticated;
+select count(*) as wp11_owner_answers from public.answers \gset
+select count(*) as wp11_owner_assessment_settings from public.assessment_settings \gset
+select count(*) as wp11_owner_assessment_types from public.assessment_types \gset
+select count(*) as wp11_owner_axes from public.axes \gset
+select count(*) as wp11_owner_leads from public.leads \gset
+select count(*) as wp11_owner_options from public.options \gset
+select count(*) as wp11_owner_questions from public.questions \gset
+select count(*) as wp11_owner_scores from public.scores \gset
+reset role;
+select 1 / ((:wp11_owner_answers = 1)::int) as owner_answers_visible_ok;
+select 1 / ((:wp11_owner_assessment_settings = 1)::int) as owner_assessment_settings_visible_ok;
+select 1 / ((:wp11_owner_assessment_types = 1)::int) as owner_assessment_types_visible_ok;
+select 1 / ((:wp11_owner_axes = 1)::int) as owner_axes_visible_ok;
+select 1 / ((:wp11_owner_leads = 1)::int) as owner_leads_visible_ok;
+select 1 / ((:wp11_owner_options = 1)::int) as owner_options_visible_ok;
+select 1 / ((:wp11_owner_questions = 1)::int) as owner_questions_visible_ok;
+select 1 / ((:wp11_owner_scores = 1)::int) as owner_scores_visible_ok;
+
 select set_config('request.jwt.claim.sub', '33333333-3333-4333-8333-333333333333', false);
 set role authenticated;
-select count(*) as wp11_staff_visible_rows from public.admin_users \gset
+select count(*) as wp11_staff_answers from public.answers \gset
+select count(*) as wp11_staff_assessment_settings from public.assessment_settings \gset
+select count(*) as wp11_staff_assessment_types from public.assessment_types \gset
+select count(*) as wp11_staff_axes from public.axes \gset
+select count(*) as wp11_staff_leads from public.leads \gset
+select count(*) as wp11_staff_options from public.options \gset
+select count(*) as wp11_staff_questions from public.questions \gset
+select count(*) as wp11_staff_scores from public.scores \gset
 reset role;
-select 1 / ((:wp11_staff_visible_rows = 1)::int) as staff_rls_scope_ok;
+select 1 / ((:wp11_staff_answers = 0)::int) as staff_answers_hidden_ok;
+select 1 / ((:wp11_staff_assessment_settings = 0)::int) as staff_assessment_settings_hidden_ok;
+select 1 / ((:wp11_staff_assessment_types = 0)::int) as staff_assessment_types_hidden_ok;
+select 1 / ((:wp11_staff_axes = 0)::int) as staff_axes_hidden_ok;
+select 1 / ((:wp11_staff_leads = 0)::int) as staff_leads_hidden_ok;
+select 1 / ((:wp11_staff_options = 0)::int) as staff_options_hidden_ok;
+select 1 / ((:wp11_staff_questions = 0)::int) as staff_questions_hidden_ok;
+select 1 / ((:wp11_staff_scores = 0)::int) as staff_scores_hidden_ok;
 
 -- Assert the two direct UUID probes fail at the PostgreSQL EXECUTE boundary.
 set role authenticated;
