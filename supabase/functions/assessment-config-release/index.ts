@@ -131,8 +131,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
         });
         const ciRpcReady = Boolean(
           rpcProbe.error &&
-          (String(rpcProbe.error.code || "") === "42501" ||
-            /Invalid guarded release identity or confirmation/i.test(String(rpcProbe.error.message || ""))),
+          /Invalid guarded GitHub release identity or confirmation/i.test(String(rpcProbe.error.message || "")),
         );
         if (!ciRpcReady) {
           return json({ error: "C-03 CI release authorization RPC is missing or did not fail closed" }, 503);
