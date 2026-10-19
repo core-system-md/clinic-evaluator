@@ -5,7 +5,7 @@
 **Supabase project:** `oaqpzaarppccbnepffxx`  
 **Scope:** Read-only inventory of the three Production migrations applied on 2026-10-09, their impact, and a forward-only repair design.  
 **Owner authorization clarification (2026-10-19):** The owner explicitly confirms that all three migrations listed below were previously approved and that the approval existed at the time of execution. The apparent absence of approval evidence is a documentation/reconciliation defect; it must not be described as an unapproved Production change. This current confirmation is recorded as owner direction, and does not pretend to reconstruct or replace the original contemporaneous evidence.  
-**Status (reconciled 2026-10-19):** Historical migration-impact inventory complete. The owner’s explicit confirmation resolves the authorization-record discrepancy. The value-70 finding below is historical and was subsequently repaired and closed under C-02; it is not open work for D-14/WP-11. No Production mutation was performed by this inventory.
+**Status (reconciled 2026-10-19):** Historical migration-impact inventory and authorization-record reconciliation complete. The owner’s explicit confirmation resolves the authorization-record discrepancy. The value-70 finding below is historical and was subsequently repaired and closed under C-02; it is not open work for D-14/WP-11. No Production mutation was performed by this inventory.
 
 ## Executive result
 
