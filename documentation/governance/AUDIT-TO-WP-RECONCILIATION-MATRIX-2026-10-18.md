@@ -1,3 +1,15 @@
+
+
+## 7. Read-only live-schema investigation checkpoint — 2026-10-19
+
+This checkpoint records an **incomplete investigation**, not a new Audit finding and not closure of D-05 or WP-11.
+
+- **Evidence obtained:** a live Supabase metadata query returned the public-table inventory and relationship metadata, and the table-inspection tool returned table/column/primary-key/foreign-key metadata. The live schema reports RLS enabled on the 25 public tables previously inventoried. The live `answers.answer_value` check constraint includes 70; this is a consistency observation only and does not reopen C-02.
+- **Important correction to interpretation:** absence of an initial `CREATE TABLE` statement in the currently examined migration subset is not evidence that a table is unused, redundant, or safe to delete. A zero-row estimate is likewise not proof of non-use. No table was classified as unused or a deletion candidate by this investigation.
+- **Not yet established:** a complete per-table source-code call graph; exhaustive migration-history provenance for each table; full synthesis of every column, FK, constraint, index, RLS policy, trigger, function and view; or a complete orphan/integrity assessment. The large combined metadata response was truncated before it could be fully reviewed. No database integrity claims are made from that partial output.
+- **Status mapping:** D-05 remains **PARTIAL / OPEN** under WP-11 §41: the recorded migration-ID/source/order reconciliation remains as documented; the initial-schema reproducibility question remains open. This checkpoint neither confirms nor disproves the “18 of 25” CREATE TABLE statement until each live table is reconciled against the full tracked migration history and any authoritative DDL artifact.
+- **Next required evidence:** obtain non-truncated inventories in compact result sets; map every live table to its initial creation/alteration migrations and runtime references (browser/app, Edge Functions, SQL functions/RPCs, triggers and policies); then test referential integrity with read-only queries. Keep findings per table and cite exact file paths or live catalog results. No deletion, baseline manufacture, schema change or Production mutation is authorized by this checkpoint.
+- **Session execution boundary:** read-only Supabase metadata investigation only. No test suite, migration, deployment, data write, grant/policy change or repository application-code change was performed in this investigation.
 # Audit-to-Work-Package Reconciliation Matrix — 2026-10-18
 
 **Purpose:** Reconcile the 2026-10-11 comprehensive audit against the governing implementation contract, the WP sequence, and evidence available in the repository/current Production handoff. This is a traceability document, not a new implementation plan.
