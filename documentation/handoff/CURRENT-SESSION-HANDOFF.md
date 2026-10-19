@@ -1,3 +1,46 @@
+## SESSION CLOSEOUT — READ-ONLY DATABASE SCHEMA INVESTIGATION — 2026-10-19
+
+**Disposition: SESSION CLOSED AT A SAFE READ-ONLY BOUNDARY. No work package was closed by this session.** This entry supersedes any generic continuation text only for the immediate next action described here; it does not alter C-01/C-02/C-03 dispositions or authorize production changes.
+
+### Work actually performed
+- Read the current `main` handoff and audit-to-WP matrix before documenting this session.
+- Queried live Supabase project `oaqpzaarppccbnepffxx` read-only for the `public` schema using the table catalog and PostgreSQL catalog metadata.
+- Queried table-level metadata including columns/types/defaults where returned by the table listing; primary keys, foreign-key relationships, constraints, indexes, RLS policies, triggers, and public-schema functions/procedures were inspected in catalog output. The full detailed inventory was too large for a complete per-object review in this session; do not treat this as a completed table-by-table functional audit.
+- No repository code search results were obtained in this session. Runtime caller tracing across application code, Edge Functions, SQL function bodies, and deployed workflows remains NOT COMPLETED.
+- No SQL write, data mutation, schema/grant/policy change, migration, deployment, deletion, or branch/PR change was performed.
+
+### Live catalog snapshot — 2026-10-19
+Read-only PostgreSQL catalog query returned:
+- **25** public tables; RLS enabled on **25/25**; **0** tables with RLS disabled.
+- **38** foreign-key constraints; **0** unvalidated foreign keys.
+- **71** RLS policies, **15** non-internal triggers, **87** public functions/procedures, **0** public views/materialized views, and **0** invalid indexes.
+- These counts establish structural presence only. They do **not** establish that each policy is correct, each function is safe, every relationship is semantically correct, or each table is or is not used.
+- Estimated live-row statistics show populated operational/configuration tables (for example `options` ~370, `questions` ~93, `axes` ~22, `assessment_config_releases` ~15, `admin_audit_log` ~126) and zero-estimate tables including `answers`, `scores`, `sessions`, `leads`, `assessment_results`, and `assessment_session_access`. These are planner statistics, not exact row counts; zero estimates are **not** proof of disuse.
+- The schema inventory includes material relationships around `assessment_types`, `assessment_families`, `assessment_config_releases`, `sessions`, `leads`, `answers`, `scores`, `assessment_results`, and `assessment_session_access`. No table was classified as unused, deletable, or safe to rebuild from this evidence.
+
+### D-05 / the “18 tables” statement
+- The current PR #120 description states that 18 of the 25 live public tables lack an initial `CREATE TABLE` definition in tracked migrations and that the original authoritative schema DDL was not found in the repository search. PR #120 remains **OPEN / UNMERGED**; that branch description is not proof of the final main-branch disposition.
+- This session did **not** independently identify the exact 18 names or trace every table to its initial migration and all current callers. The claim remains a migration-provenance/baseline question, not a finding that the tables are unused.
+- No authoritative empty-database baseline was created or inferred from live metadata. Do not synthesize a baseline from Production catalog output, drop/recreate tables, or alter applied migration history.
+
+### What was not completed
+- Exhaustive per-table mapping of every column and constraint to source migrations and current repository source.
+- Complete function-body/dependency/caller analysis, including dynamic SQL and external callers.
+- Per-table data-integrity checks for orphaned rows, uniqueness/semantic consistency, and exact counts where appropriate.
+- Effective-role/RLS behavior tests and end-to-end tests for assessment create → answer save → submission → scoring → result/report → admin access.
+- Independent validation of all 25 table roles and the exact list of the alleged 18 tables.
+- No application tests or runtime E2E were run as part of this read-only investigation.
+
+### Exact continuation point
+**Next action: continue D-05 under WP-11, beginning with a reproducible 25-table reconciliation worksheet.** For each live table, record: exact name; live columns/PKs/unique/check constraints; inbound/outbound FKs; RLS and policies; triggers; indexes; functions that read/write it; repository and Edge Function callers; migration(s) creating/changing it; observed data role; integrity checks; and evidence/source paths. Then explicitly compare the resulting list with the 18-table claim and tracked migration history. Distinguish “initial CREATE TABLE absent from tracked migrations” from “not used” and from “no authoritative replay baseline.” Keep unknowns OPEN. Do not delete/recreate objects, modify Production, apply migrations, or start WP-12. Keep C-01, C-02 and C-03 closed.
+
+### Repository state at close
+- `main` was observed at `ae18c720fb814fa89c0a3eec452ad55ecdf12ad3` before this documentation closeout.
+- PR #120 was observed OPEN / UNMERGED, base `main`, head `wp-11/least-privilege-reconciliation`, head SHA `47c0a79dbee108149f9431ff4e86ac120c420f7a`. PR description reports earlier isolated CI successes but this session did not re-run or independently revalidate those workflows at the observed head.
+- No WP stage is newly closed by this session. The handoff and matrix must be re-read at the exact post-closeout commit before continuing.
+
+---
+
 # WP-10 EXECUTION CHECKPOINT — VERIFIED — 2026-10-18
 
 **WP-10 §40 scoped execution: COMPLETE; cross-stage findings remain open where specified below.** No Production database mutation, migration, deletion, Edge deployment, or security change was performed.
