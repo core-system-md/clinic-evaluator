@@ -4,7 +4,7 @@
 
 ## Owner clarification — D-14 historical migration authorization (2026-10-19)
 
-The owner explicitly confirms that all three Production migrations dated 2026-10-09 — `20261009164918 / canonical_axis_weights`, `20261009164951 / structured_result_authority`, and `20261009170228 / reconstruct_final_assessment_versions` — were approved by the owner before execution. The prior wording that characterized them as applied without owner approval is a documentation error and is superseded. The remaining issue is to reconcile the written record, not to seek retroactive approval. Do not roll back or rerun these migrations because of that documentation defect. This confirmation does not authorize any new Production mutation.
+The owner explicitly confirms that all three Production migrations dated 2026-10-09 — `20261009164918 / canonical_axis_weights`, `20261009164951 / structured_result_authority`, and `20261009170228 / reconstruct_final_assessment_versions` — were approved by the owner before execution. The prior wording that characterized them as applied without owner approval was a documentation error and is superseded. The inventory, handoff and reconciliation matrix now record the confirmation consistently; the D-14 documentation reconciliation is complete. No retroactive approval, rollback, rerun or live-ledger change is required for these already-applied migrations. This confirmation does not authorize any new Production mutation.
 
 ## WP-11 reconciliation and review gate — 2026-10-19
 
