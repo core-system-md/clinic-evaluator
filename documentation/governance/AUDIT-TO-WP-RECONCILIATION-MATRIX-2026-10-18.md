@@ -118,3 +118,16 @@ This addendum supersedes the prior WP-10 evidence/status/action text above for D
 **Protected dispositions:** C-01, C-02 and C-03 remain closed under their recorded owner-approved dispositions. C-03 live E2E remains **WAIVED / NOT RUN**, not PASS. WP-09 remains closed. D-05/D-10/D-11 and other findings retain their existing assignments and must not be dropped or reclassified from this WP-10 evidence.
 
 **Production boundary:** No Production database mutation, migration, deletion, Edge deployment, release-gate change, or security redesign was performed as part of this WP-10 execution.
+
+## 8. Current WP-10 closeout reconciliation — 2026-10-19
+
+This section resolves stale status/continuation text in Sections 3 and 6 against the verified WP-10 evidence addendum in Section 7 and the current handoff checkpoint. It does not change the original finding inventory or close cross-stage work.
+
+- **WP-10 §40 scoped execution: COMPLETE** at verification head `aa752a54b548e45160dd73932a0b5216963be54d`; CI evidence is run [#39126698618](https://github.com/core-system-md/clinic-evaluator/actions/runs/39126698618), recorded SUCCESS in the handoff and Section 7. The latest main documentation head observed during this reconciliation is `cf34521c2a5ff65c9aed6dbfa9b08a012ec7abaa`.
+- For the WP-10 scope only, Section 7 supersedes the earlier D-04, D-06, D-12, D-16 and D-17 status/action cells in Section 3. D-04 and D-06 have WP-10 implementation evidence; D-12's report-field/data-flow scope is verified but the finding remains open for WP-11 database-function/permission work and WP-12 layered verification; D-17 precision/persistence semantics are verified within WP-10 while WP-12 remains; D-16 was not implicated by persisted-semantics evidence.
+- **No Production runtime E2E was run for WP-10.** This closeout does not establish release-wide closure or satisfy WP-12.
+- **C-01, C-02, C-03 remain closed** under their recorded dispositions. C-03 live E2E is **WAIVED / NOT RUN**, not PASS. WP-09 remains closed.
+- The original audit file `clinic-evaluator-full-audit-report-2026-10-11.md` remains NOT FOUND in the current main tree. D-10 and D-11 exact source wording/identity reconciliation remains OPEN; do not infer or rewrite the original finding text.
+- No Production mutation, migration, deletion, Edge deployment, release-gate change, or security redesign was performed for WP-10.
+
+**Exact continuation point:** WP-10 is closed for its §40 bounded scope. STOP. Do not start WP-11 or WP-12 without a new explicit owner instruction. Preserve every C-01–C-03 and D-04–D-19 entry and its remaining assigned gates as recorded above.
