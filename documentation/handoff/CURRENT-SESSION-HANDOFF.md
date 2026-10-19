@@ -51,7 +51,7 @@ WP-10 §40 scoped work is complete. **STOP here. Do not start WP-11 or WP-12 aut
 
 # AUDIT-TO-WP TRACEABILITY RULE AND EXACT RESUMPTION POINT — 2026-10-18
 
-**Authoritative current continuation point: WP-10 (§40) — implementation readiness / start of the next bounded stage.** WP-09 is closed. WP-10, WP-11 and WP-12 remain distinct stages; do not skip, merge, or start the next stage automatically.
+**Historical continuation text superseded on 2026-10-19 by the verified WP-10 EXECUTION CHECKPOINT at the top of this file.** WP-10 §40 scoped execution is COMPLETE; WP-11 and WP-12 remain distinct stages and must not start automatically.
 
 ## Mandatory no-drop rule
 - The full set of findings C-01–C-03 and D-04–D-19 must remain traceable in [the audit-to-WP reconciliation matrix](../governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md). Every open/partial/unverified/decision-bound item must retain its original ID, responsible WP gate(s), exact remaining action, acceptance evidence, and next continuation point.
@@ -62,12 +62,16 @@ WP-10 §40 scoped work is complete. **STOP here. Do not start WP-11 or WP-12 aut
 ## Audit-source verification limitation
 The exact file named `clinic-evaluator-full-audit-report-2026-10-11.md` was not found in the current `main` tree or available file search. The matrix captures the audit details retained in repository/handoff records, but exact source wording—especially D-10 and D-11—must be checked against the original report when it is located. These items remain visibly unresolved; do not infer their wording or drop them.
 
-## WP-10 bounded start checklist
-1. Read contract §40 and the matrix before editing.
-2. Work only on findings assigned to WP-10: D-04, D-06, D-12, D-17, and D-16 only if persisted semantics are actually implicated. Confirm each against current source before implementation; do not assume matrix summaries alone are current runtime proof.
-3. Define the acceptance tests and any explicit migration rule before data mutation. Preserve historical business records absent such a rule; destructive deletion requires the approved reset policy and dependency checks.
-4. Keep cross-stage obligations visible for WP-11 (D-05, D-07, D-08, D-09, D-14, D-15 and the database-function aspect of D-12) and WP-12 (layered verification for D-04–D-18 as applicable). D-10 remains targeted evidence recheck; D-11 remains source/identifier reconciliation until the original wording is verified; D-19 remains documentation/decision-only.
-5. Close WP-10 with evidence and an updated matrix/handoff, then STOP. Do not begin WP-11 without a new explicit continuation instruction.
+## WP-10 closeout reconciliation
+WP-10 §40 is now COMPLETE within its bounded scope, as recorded in the checkpoint at the top of this file and matrix Section 7/8. The acceptance tests and CI evidence are recorded there. No Production data mutation, migration, deletion, Edge deployment, or security change was performed.
+
+Remaining cross-stage items stay assigned, not closed by WP-10:
+- WP-11: D-05, D-07, D-08, D-09, D-14, D-15, and D-12 database-function/permission reconciliation.
+- WP-12: layered verification for applicable D-04–D-18 findings. No WP-10 Production runtime E2E was run.
+- D-10: targeted evidence recheck; D-11: original audit source/identifier reconciliation. The named 2026-10-11 audit file remains NOT FOUND, so exact wording is unverified.
+- D-19 remains documentation/decision-only.
+
+STOP after WP-10. Do not begin WP-11 or WP-12 without a new explicit owner instruction. Keep C-01, C-02 and C-03 closed; C-03 E2E remains WAIVED / NOT RUN, not PASS.
 
 ---
 
