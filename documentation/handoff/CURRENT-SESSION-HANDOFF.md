@@ -864,3 +864,49 @@ Implement and test the missing C-03-specific synthetic E2E runner plus exact-run
 ```text
 MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md §Session closeout and exact continuation point — 2026-10-18T08:57:41Z. لا تعِد فحص أو تنفيذ ما أُغلق فيه بدليله. اعمل حصراً على NEXT CANONICAL ACTION المسجّل فيه بعد START/RESUME ENGINEERING والمصالحة مع الواقع.
 ```
+
+
+---
+
+# SESSION CLOSEOUT — PARTIAL READ-ONLY DATABASE SCHEMA AUDIT — 2026-10-19
+
+## Closeout state
+**No work package was closed by this session. WP-11 remains IN PROGRESS.** The requested comprehensive table/relationship/usage investigation was started but not completed. Stop here; do not begin WP-12 or another WP.
+
+## What was actually done
+- Queried the live Supabase `public` schema using read-only operations.
+- The live table-listing response returned **25 public tables**, all with RLS enabled.
+- A broader read-only catalog query requested live table metadata, foreign keys, constraints, indexes, RLS policies, triggers, and public-schema function metadata. The response was too large and was truncated; a complete durable per-object inventory was not created.
+- Repository table-usage searches were started but not completed into a verified table-by-table map.
+- The specific 18-table list behind the existing D-05 statement was not reconstructed or verified. This session neither proves nor disproves that claim.
+- No tests were run. No files, source code, migrations, workflows, database objects, data, grants, policies, Edge functions, or deployments were changed during the investigation. The two documentation files are being updated solely to record this accurate closeout and the next continuation point.
+- The live inventory query is not a full integrity test: no complete orphan-row checks, relationship-by-relationship data validation, end-to-end caller trace, or per-table operational proof was completed.
+
+## Finding/WP disposition
+- **WP-11: IN PROGRESS; NOT CLOSED.** The comprehensive schema inventory and caller/dependency map remain incomplete.
+- **D-05: OPEN.** Existing migration identity/order reconciliation and owner-confirmed D-14 disposition remain as recorded in the prior WP-11 checkpoint. The separate baseline gap statement (“18 of 25”) was not revalidated during this session. Do not manufacture a baseline from live metadata or infer that any table is unused.
+- **D-07: OPEN / PARTIAL.** No table or database function was proven safe to delete. Absence of a found source caller is not a deletion basis.
+- **D-08/D-15: candidate tested, not deployed; review gate remains outstanding.** No Production privilege/policy change occurred here.
+- **D-12: remains open at its previously documented WP-11/WP-12 boundaries.** No new runtime evidence was established.
+- **C-01, C-02 and C-03 remain closed** under their recorded dispositions. WP-09 and WP-10 remain closed in their documented scopes. Do not reopen them without the already-required regression evidence and owner direction.
+- All other D-04–D-19 findings retain their existing identifiers, statuses, evidence, assigned stages, and unresolved actions in the matrix. This closeout adds no inferred closure and drops no finding.
+
+## Tests and deployment
+- Tests executed in this session: **none**.
+- Tests not executed: all new/targeted tests for this investigation, data-integrity/orphan checks, table-specific runtime/caller verification, and end-to-end workflow tests.
+- Production database writes/migrations/DDL/ACL changes: **none**.
+- Edge deployment or manual release: **none**.
+- Note: repository history records that pushes to `main` can trigger Cloudflare Pages auto-deployment. To honor the no-deployment closeout boundary, these documentation updates are recorded on the existing WP-11 branch rather than pushed directly to `main`. Main remains unchanged by this closeout; no claim of a main commit is made.
+
+## Exact next action — same WP-11 scope, read-only
+1. Start from the current WP-11 branch and this closeout section; do not repeat already recorded D-14, D-08/D-15 candidate-test, or D-07/D-12 findings unless new evidence directly requires it.
+2. Generate a compact, durable list of the exact 25 live `public` tables and map each to columns, PK/FK/unique/check constraints, indexes, RLS policies, triggers, dependent PostgreSQL functions/views, and the tracked migration file(s) that create or alter it.
+3. For each table, trace direct references in application code and Edge Functions, RPC/function calls, and its role in assessment authoring, published configuration, session/access, answer persistence, scoring/results, reporting, administration, or audit.
+4. Check data integrity with bounded read-only queries (including FK/orphan and semantic consistency checks where appropriate), keeping “currently zero rows” distinct from “unused.”
+5. Independently verify the alleged 18-table CREATE-definition gap against the complete migration history and authoritative schema artifacts. If the evidence is insufficient, preserve it as unverified; do not delete/recreate tables or synthesize a baseline from Production.
+6. Update the matrix and handoff with per-table evidence and explicit remaining gaps. Stop at WP-11’s existing gate; do not start WP-12 automatically.
+
+### Start prompt for the next conversation
+```text
+MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md، قسم “SESSION CLOSEOUT — PARTIAL READ-ONLY DATABASE SCHEMA AUDIT — 2026-10-19”، وعلى فرع wp-11/least-privilege-reconciliation. ابدأ حصراً بجرد حيّ مختصر ومحفوظ للجداول الـ25 ثم طابق كل جدول مع القيود والعلاقات والسياسات والمشغلات والدوال والهجرات ومراجع التطبيق/Edge. تحقق من ادعاء الجداول الـ18 بالأدلة لا بالاستنتاج. قراءة فقط: لا حذف أو إعادة إنشاء أو تغيير إنتاجي أو نشر. لا تبدأ WP-12 ولا تعِد فتح C-01/C-02/C-03. حدّث الوثيقتين بالأدلة وتوقف عند بوابة WP-11.
+```
