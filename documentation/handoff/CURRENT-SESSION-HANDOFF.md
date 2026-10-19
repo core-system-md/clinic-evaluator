@@ -32,7 +32,7 @@ This corroborates the names of the candidate set and that these tables existed b
 
 ### Remaining work before D-05 / WP-11 can close
 1. Perform a complete file-level scan of every tracked `supabase/migrations/*.sql` file at current `main` (not only indexed search excerpts) and map each of the 25 tables to exact CREATE/ALTER/DROP/RENAME, constraint, index, policy, grant, trigger and function statements.
-2. Reconcile every repository migration identity and content with the live Supabase migration ledger; the earlier reported repository/live migration count/identity mismatch remains unresolved.
+2. Reconcile every repository migration identity and content with the live Supabase migration ledger; on `main`, the migration identity/source/order discrepancy still needs reconciliation. PR #120's current branch description claims that specific discrepancy is corrected on `wp-11/least-privilege-reconciliation`, but PR #120 remains OPEN / READY FOR REVIEW / UNMERGED, so its changes are not part of `main` or Production. The separate empty-database baseline gap remains OPEN on both references.
 3. Expand code-caller tracing beyond sampled core files and indexed search hits, distinguishing reachable runtime callers, SQL/RPC dependencies, tests, historical docs, and dead paths. Stored-function text matches do not prove a complete dependency graph; dynamic SQL and external callers may be missed.
 4. Verify table privileges, function EXECUTE grants, SECURITY DEFINER boundaries, RLS semantics and effective-role behavior. RLS being enabled on all tables is not a security PASS.
 5. Run justified read-only integrity checks and exact row counts where relevant. Do not interpret planner estimates as counts or infer non-use from zero estimates.
