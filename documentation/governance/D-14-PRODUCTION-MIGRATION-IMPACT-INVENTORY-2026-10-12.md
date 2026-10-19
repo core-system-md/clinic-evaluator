@@ -3,8 +3,9 @@
 **Date:** 2026-10-12  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
-**Scope:** Read-only inventory of the three Production migrations applied on 2026-10-09 without the owner's approval, followed by repair design only.  
-**Status:** Inventory evidence collected; one concrete compatibility defect routed to C-02. No Production mutation performed.
+**Scope:** Read-only inventory of the three Production migrations applied on 2026-10-09, their impact, and a forward-only repair design.  
+**Owner authorization clarification (2026-10-19):** The owner explicitly confirms that all three migrations listed below were previously approved and that the approval existed at the time of execution. The apparent absence of approval evidence is a documentation/reconciliation defect; it must not be described as an unapproved Production change. This current confirmation is recorded as owner direction, and does not pretend to reconstruct or replace the original contemporaneous evidence.  
+**Status:** Inventory evidence collected; one concrete compatibility defect routed to C-02. No Production mutation performed by this inventory.
 
 ## Executive result
 
@@ -124,7 +125,7 @@ No Production DDL, data write, migration-history change, Edge Function deploymen
 - All live database observations above were read-only SQL/catalog queries or Supabase migration/function metadata.
 - No submission E2E test was run in Production.
 - Current zero-row counts do not prove what exact records existed before the three migrations.
-- The migration ledger establishes applied versions, not owner authorization; this report preserves the owner's statement that the three migrations were not approved.
+- The migration ledger establishes applied versions, not authorization by itself. The owner explicitly confirmed on 2026-10-19 that all three migrations were approved before execution; the earlier contrary statement in this report was a documentation error and is superseded by this clarification.
 - No compensating migration was authored or applied in D-14. The 70-value defect is specified for C-02.
 
 ## D-14 decision
@@ -132,4 +133,5 @@ No Production DDL, data write, migration-history change, Edge Function deploymen
 **Inventory:** complete for the three specified migration files and the relevant live contract.  
 **Compensating repair design:** one concrete forward-only constraint correction identified and assigned to C-02.  
 **Production status:** unchanged by this work; no mutation performed.  
-**Next step:** review this report and implement C-02 as a separate bounded work package. Do not execute any Production repair without explicit approval.
+**Authorization disposition (2026-10-19):** The owner confirms prior approval for all three historical migrations. No new approval is required for those already-executed changes, and no rollback or re-execution is authorized or indicated merely to address the documentation defect.  
+**Remaining technical finding:** the value-70 answer constraint incompatibility is a separate implementation defect previously routed to C-02; follow the current authoritative project handoff/status for its disposition. Do not infer that owner confirmation of the three historical migrations authorizes any new Production mutation.
