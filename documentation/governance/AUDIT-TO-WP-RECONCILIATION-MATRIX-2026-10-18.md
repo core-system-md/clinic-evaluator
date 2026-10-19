@@ -150,7 +150,7 @@ This addendum supersedes the prior WP-10 evidence/status/action text above for D
   - [WP-11 disposable security reconciliation run #39133907020](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133907020) — Node contract/source-path tests and PostgreSQL 17 behavior job SUCCESS.
   - [P3 kernel/full Node regression run #39133906976](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133906976) — SUCCESS.
   - Earlier security-harness run [#39133241328](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133241328) also passed on the initial candidate head.
-- **Not deployed.** Keep PR #120 in draft/review state until source and migration-history gates are reconciled. Never treat disposable PostgreSQL success as live Production security-test evidence.
+- **Not deployed.** PR #120 is READY FOR REVIEW, not Draft; the migration identity/order discrepancy is reconciled. Independent review remains outstanding. Never treat disposable PostgreSQL success as live Production security-test evidence.
 
 ### D-09 — deployed static asset exposure (four bounded live probes)
 - On `https://clinicevaluat.pages.dev`, the three audited legacy assessment JSON paths returned **404**:
@@ -162,20 +162,20 @@ This addendum supersedes the prior WP-10 evidence/status/action text above for D
 
 ### D-14 — historical migration effects and owner confirmation (DOCUMENTATION RECONCILIATION; separate from D-05)
 - Live migration ledger rows for `20261009164918 / canonical_axis_weights`, `20261009164951 / structured_result_authority`, and `20261009170228 / reconstruct_final_assessment_versions` each contain one stored SQL statement. Read-only comparison with their current `main` source files confirms exact content equality for all three (lengths 8,470; 19,259; and 97,267 characters respectively; same normalized content), and each source file remains at its recorded migration version.
-- The existing D-14 impact inventory covers the main SQL effects/postconditions, including the cross-migration value-70 incompatibility already routed to C-02 and closed separately. Matching SQL/source verifies provenance, not owner authorization.
+- The existing D-14 impact inventory covers the main SQL effects/postconditions, including the historical value-70 incompatibility routed to C-02 and closed separately. SQL/source matching establishes provenance; the owner's explicit 2026-10-19 confirmation establishes prior authorization.
 - On 2026-10-19, the owner explicitly confirmed that all three migrations had been approved before Production execution. The earlier claim that they were applied without owner approval was a documentation error and is superseded by that confirmation.
-- Reconcile the governance and handoff wording to this confirmation. Do not seek retroactive approval or roll back/rerun the migrations solely because the record was inaccurate. Do not conflate this with the separately reconciled D-05 timestamp/source-path discrepancy.
+- The governance inventory and current handoff now record this confirmation; the D-14 documentation reconciliation is COMPLETE. Do not seek retroactive approval or roll back/rerun the migrations solely because the prior record was inaccurate. Keep this distinct from the separately reconciled D-05 timestamp/source-path discrepancy.
 
 ### Default ACL finding — owner decision required, no change made
 - Live PostgreSQL default ACLs for `postgres` on schema `public` grant broad table privileges to `anon` and `authenticated`, sequence privileges to those roles, and function EXECUTE by default.
 - This is a schema-wide prospective boundary, wider than the two specific D-08 grants. The draft migration deliberately does not change these defaults. A global change needs explicit owner direction and a complete compatibility/dependency review before implementation. No blanket revocation or security redesign was performed.
 
 ### Exact next action
-1. Reconcile D-05 migration ledger identities/order and establish the safe repository-to-production migration sequence before any Production migration.
-2. Preserve D-14 as an independent migration-effects record and record the owner's explicit confirmation of prior approval; do not change historical Production data or migration records.
-3. Continue dependency-backed D-07/D-12 inventory only for candidates whose callers/grants can be established. Do not delete schema objects by naming or stale summaries.
-4. Review PR #120 and its successful isolated evidence; do not merge/apply/deploy until its normal change and migration-order gates are satisfied.
-5. Keep WP-12 separate and not started; do not reopen C-01/C-02/C-03.
+1. **D-05:** migration ledger identity/source/order reconciliation is COMPLETE on the candidate branch. The 18-table initial-DDL baseline gap remains OPEN; locate authoritative original DDL or obtain explicit owner authorization for a separate reviewed baseline/replay package with complete object coverage and isolated fresh-database validation. Do not infer a baseline from Production or rewrite the live ledger.
+2. **D-14:** historical authorization and documentation reconciliation are COMPLETE. No new approval or Production action is required for the three already-applied migrations.
+3. **D-07/D-12:** the bounded dependency inventory found no safe deletion candidate. Preserve unresolved legacy objects and guarded grants; transfer browser/runtime checks to WP-12 only when explicitly authorized. Keep unresolved definition/external-caller evidence gaps visible.
+4. **PR #120:** the candidate is READY FOR REVIEW, not Draft, and the three relevant workflows passed on current head `95d54a56b435ef9ff73f5cdb84c3e3d90acc1a83` (WP-11 #39216778924; P3/full Node #39216778893; existing C-03 isolated harness #39216778868). Obtain independent review; do not auto-merge or apply to Production.
+5. WP-11 remains IN PROGRESS until independent review/gate outcome is recorded and the D-05 baseline gap has an evidence-backed disposition. WP-12 remains separate and not started. Do not reopen C-01/C-02/C-03.
 
 
 ## 9. WP-11 current-state reconciliation — 2026-10-19
@@ -191,3 +191,16 @@ This addendum supersedes the prior WP-10 evidence/status/action text above for D
 - No Production migration/grant/policy action or WP-12 execution occurred in this closeout.
 
 This addendum is authoritative over older snapshots in this matrix where they state that D-14 approval is unverified, D-05 migration order remains mismatched, or PR #120 must stay Draft solely for those now-resolved questions.
+
+
+## 10. WP-11 reconciliation update — 2026-10-19 (authoritative current state)
+
+**WP-11 remains IN PROGRESS.** The bounded candidate and dependency review are documented and isolated CI passes; neither is Production security verification or approval to deploy.
+
+- **D-14 — COMPLETE:** the owner confirmed all three 2026-10-09 migrations were approved before execution. The inventory and handoff record this; prior contrary wording was a documentation defect. The historical value-70 issue is closed under C-02. No new approval, rollback, rerun or live-ledger operation is required.
+- **D-05 — PARTIAL / OPEN:** all 57 live migration IDs map to source paths on the branch and the 2026-10-18 source/order discrepancy is reconciled. No authoritative initial-schema DDL artifact was found in tracked sources; 18 of 25 live public tables have no initial CREATE TABLE definition in the tracked sequence. Keep this baseline gap open. The only valid closure paths are an authoritative pre-existing DDL artifact validated against the full live schema, or explicit owner authorization for a separate reviewed baseline/replay package with complete object coverage and isolated fresh-database validation. Do not infer a baseline from Production or rewrite the live ledger. This gap blocks full WP-11 closure and any claim of complete empty-database replay, but does not block independent review of the narrow D-08/D-15 PR candidate.
+- **D-07 — PARTIAL / NO SAFE DELETION:** the bounded inventory identifies active `traps` and a protected legacy completion RPC used by the regression workflow. No current application caller was found for `calculate_session_score(uuid)` or `duplicate_assessment(uuid)`, but exact definitions/dependencies and dynamic/external callers remain unproven. Preserve these objects; no removal or grant broadening is supported by current evidence. Revisit only with authoritative definitions, ACLs and dependency/caller evidence.
+- **D-12 — WP-11 DATABASE PATH REVIEWED; OVERALL FINDING OPEN:** the active editor uses capability-guarded `update_draft_option_secure`; do not grant authenticated EXECUTE to legacy `update_option_secure`. The persisted `userReport` projection is used for completed-session restoration and does not recompute raw answers. WP-10 removed the obsolete response placeholders. Browser restoration, legacy handler reachability and possible external/dynamic `window.adminServiceKey` injection remain WP-12 runtime checks, only after WP-12 is explicitly authorized.
+- **D-08/D-15 — CANDIDATE TESTED, NOT DEPLOYED:** the migration narrowly revokes four excess privileges from `authenticated` on two admin tables and rebinds policies to zero-argument current-user helpers before revoking client EXECUTE on UUID overloads. PostgreSQL 17 disposable harness and Node contract tests pass. Production grants/policies remain unchanged.
+- **PR #120:** OPEN / READY FOR REVIEW / UNMERGED. No submitted reviews or inline review threads were returned by the current GitHub review queries. Current head `95d54a56b435ef9ff73f5cdb84c3e3d90acc1a83` passed WP-11 run #39216778924, P3/full Node run #39216778893, and existing C-03 isolated harness #39216778868. Independent review remains the immediate PR gate. Do not auto-merge, deploy, or apply Production SQL.
+- **Exact next actions:** (1) obtain and record independent review of PR #120; (2) search for an authoritative pre-existing schema artifact, otherwise obtain explicit owner authorization for a separate baseline/replay work package; (3) preserve D-07/D-12 unknowns as open and carry only their identified runtime assertions to WP-12 when authorized; (4) update this matrix/handoff again only when evidence or an owner decision changes. Do not start WP-12 or reopen C-01/C-02/C-03.
