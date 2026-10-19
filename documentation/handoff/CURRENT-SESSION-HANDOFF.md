@@ -1,3 +1,54 @@
+# SESSION CLOSEOUT — READ-ONLY DATABASE RELATIONSHIP INVESTIGATION — 2026-10-19
+
+**Latest session disposition: PARTIAL INVESTIGATION ONLY. WP-11 remains IN PROGRESS and is not closed.** This entry supersedes any older continuation wording below only for the status and next action of this specific investigation. WP-09/WP-10 and C-01/C-02/C-03 remain closed under their recorded dispositions; do not reopen them.
+
+## What was actually done
+
+- Queried live Supabase metadata in read-only mode for the public schema and table metadata. The available results show 25 public tables with RLS enabled and return table/column/primary-key/foreign-key information; a larger combined catalog query also requested constraints, indexes, policies, triggers, functions and views.
+- Confirmed from the live schema output that `answers.answer_value` accepts `70`. This is a present-state consistency observation only; it does not reopen C-02.
+- The combined catalog response was truncated before complete synthesis. The separate code-search attempt did not produce a reviewed, table-by-table usage map. Therefore, **the requested comprehensive audit of all tables, relationships, references and runtime behavior was not completed in this session**.
+- No tests were run. No database rows, schema, grants, RLS policies, triggers, functions, migration ledger, Edge Functions, application code or deployment settings were changed. No repository changes had been made before this closeout edit.
+
+## Findings and limits
+
+- The live schema inventory is evidence that the tables exist; it is not by itself evidence that each table is operationally correct or unused.
+- An empty table or a missing initial `CREATE TABLE` in a reviewed subset of SQL files does not establish that a table is unused, redundant or safe to remove.
+- D-05 remains **PARTIAL / OPEN** under WP-11 §41. The migration-ID/source/order reconciliation remains as previously documented on this branch. The claim that 18 of 25 live public tables lack initial CREATE TABLE definitions still requires an exhaustive table-to-migration/DDL reconciliation; it is not a deletion recommendation and must not be used to justify a Production rebuild.
+- No Audit finding was closed or reopened by this investigation. C-01, C-02 and C-03 remain closed; no WP-12 work was started.
+
+## Tests and changes
+
+| Category | Result |
+|---|---|
+| Live database access | Read-only catalog/metadata queries executed |
+| Table-by-table relationship synthesis | Partial; not complete |
+| Runtime source-reference mapping | Not completed |
+| Orphan/referential-integrity audit | Not completed |
+| Automated tests | Not run |
+| Production/database changes | None |
+| Deployment / Edge changes | None |
+| Application/test/migration source changes | None |
+| Documentation | This closeout and its matrix addendum are documentation-only changes on `wp-11/least-privilege-reconciliation`; not yet verified on `main` |
+
+## Exact continuation point
+
+**Resume the existing WP-11 / D-05 reconciliation only. Do not start WP-12, create a schema baseline, delete tables, or mutate Production.**
+
+First action in the next session: run compact, non-truncated read-only catalog queries separately to capture (1) all 25 tables and every column/default/nullability, (2) all PK/FK/unique/check constraints and validation state, (3) all indexes, (4) every RLS policy and table RLS/force-RLS flag, (5) non-internal triggers and their function definitions, and (6) public SQL functions/views. Then reconcile each table against the complete tracked migration history and exact source references in the app and Edge Functions. Record a table-by-table result with evidence and uncertainty; only after that assess integrity anomalies. Treat “18 tables without CREATE TABLE” as unverified until this comparison is complete.
+
+## Repository / closeout gate
+
+- Working branch: `wp-11/least-privilege-reconciliation`; PR #120 remains the current WP-11 review path. No merge was performed.
+- The documentation edits from this closeout are on the working branch only. **This session is not declared fully closed under the owner's step 6 until the updated files and resulting commit are verified on `main`.** Directly pushing documentation to `main` can trigger the configured Cloudflare Pages auto-deployment, which conflicts with the explicit instruction not to deploy during closeout. Therefore this session did not write to `main` or merge PR #120. Do not claim the documentation is on `main` or that final closeout verification is complete.
+
+## Start prompt for the next conversation
+
+```text
+MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md — SESSION CLOSEOUT 2026-10-19. استأنف فقط تدقيق WP-11 / D-05 لجداول قاعدة البيانات من نقطة “Exact continuation point” أعلاه. ابدأ باستعلامات كتالوج للقراءة فقط ومجزأة لتفادي اقتطاع النتائج، ثم طابق كل جدول مع الهجرات ومراجع الكود. لا تحذف أو تعِد إنشاء أي جدول، ولا تنفّذ أي تغيير إنتاجي أو نشر، ولا تبدأ WP-12، ولا تعِد فتح C-01 أو C-02 أو C-03. لم يكتمل التدقيق الشامل بعد.
+```
+
+---
+
 # CURRENT SESSION HANDOFF — WP-11 SECURITY/DATABASE RECONCILIATION — IN PROGRESS — 2026-10-19
 
 **This is the authoritative current continuation point and supersedes older stage-start instructions below wherever they conflict.** The owner explicitly instructed continuation into WP-11 after the bounded WP-10 execution. WP-09 and WP-10 remain closed in their recorded scopes. Do not reopen C-01, C-02 or C-03. Do not start WP-12 automatically.
