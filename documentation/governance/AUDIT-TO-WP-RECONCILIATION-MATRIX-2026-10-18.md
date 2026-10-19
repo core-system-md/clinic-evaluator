@@ -86,7 +86,7 @@ WP-12 is the final layered verification stage, not a substitute for implementing
 
 ## 5. Unresolved items that must not become parallel workstreams
 
-1. **D-05 / D-14 remain distinct.** D-05's immediate timestamp/path discrepancy is reconciled in draft PR #120 against the exact SQL retained in the live migration ledger. The broader empty-database/schema-baseline replay gap remains OPEN. D-14 is the separate historical owner-approval/effects question for the three 2026-10-09 migrations. Do not alter the live ledger or apply Production SQL as part of this traceability work.
+1. **D-05 / D-14 remain distinct.** D-05's immediate timestamp/path discrepancy is reconciled in PR #120 against the exact SQL retained in the live migration ledger. The broader empty-database/schema-baseline replay gap remains OPEN. D-14 is the separate historical owner-approval/effects question for the three 2026-10-09 migrations; its authorization and documentation reconciliation are now COMPLETE. Do not alter the live ledger or apply Production SQL as part of this traceability work.
 2. **D-10 / D-11 substantive compatibility:** the canonical audit wording is now verified. D-10 requires checking V2 identifiers/binding remnants inside the final V1 path; D-11 requires reconciling interpretation/consistency registries and the operative contract. Keep both findings separate, and do not reopen C-01/C-02/C-03 without new regression evidence and explicit owner direction.
 3. **D-09 Production exposure:** the four scoped current-production asset probes are verified in the WP-11 addendum. Any broader route/runtime/E2E assertion remains for WP-12.
 4. **D-19:** documentation/decision only unless the owner makes a new security decision.
