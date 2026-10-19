@@ -2,6 +2,10 @@
 
 **This is the authoritative current continuation point and supersedes older stage-start instructions below wherever they conflict.** The owner explicitly instructed continuation into WP-11 after the bounded WP-10 execution. WP-09 and WP-10 remain closed in their recorded scopes. Do not reopen C-01, C-02 or C-03. Do not start WP-12 automatically.
 
+## Owner clarification — D-14 historical migration authorization (2026-10-19)
+
+The owner explicitly confirms that all three Production migrations dated 2026-10-09 — `20261009164918 / canonical_axis_weights`, `20261009164951 / structured_result_authority`, and `20261009170228 / reconstruct_final_assessment_versions` — were approved by the owner before execution. The prior wording that characterized them as applied without owner approval is a documentation error and is superseded. The remaining issue is to reconcile the written record, not to seek retroactive approval. Do not roll back or rerun these migrations because of that documentation defect. This confirmation does not authorize any new Production mutation.
+
 ## Current repository state
 
 - Repository: `core-system-md/clinic-evaluator`.
