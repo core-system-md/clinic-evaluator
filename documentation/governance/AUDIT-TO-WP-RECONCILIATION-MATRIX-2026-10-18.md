@@ -216,3 +216,25 @@ This addendum is authoritative over older snapshots in this matrix where they st
 - **D-08/D-15 — CANDIDATE TESTED, NOT DEPLOYED:** the migration narrowly revokes four excess privileges from `authenticated` on two admin tables and rebinds policies to zero-argument current-user helpers before revoking client EXECUTE on UUID overloads. PostgreSQL 17 disposable harness and Node contract tests pass. Production grants/policies remain unchanged.
 - **PR #120:** OPEN / READY FOR REVIEW / UNMERGED. No submitted reviews or inline review threads were returned by the current GitHub review queries. Latest CI-verified documentation head before this continuation-point edit was `63eead668b928c67ab3dfac987d8ef41383c5449`; WP-11 run #39223417796, P3/full Node run #39223417823, and existing C-03 isolated harness #39223417838 all passed. Independent review remains the immediate PR gate. Do not auto-merge, deploy, or apply Production SQL.
 - **Exact next actions:** (1) obtain and record independent review of PR #120; (2) search for an authoritative pre-existing schema artifact, otherwise obtain explicit owner authorization for a separate baseline/replay work package; (3) preserve D-07/D-12 unknowns as open and carry only their identified runtime assertions to WP-12 when authorized; (4) update this matrix/handoff again only when evidence or an owner decision changes. Do not start WP-12 or reopen C-01/C-02/C-03.
+
+
+## 9. Session closeout — read-only schema inventory attempt — 2026-10-19
+
+**Disposition: PARTIAL INVESTIGATION ONLY. This addendum does not close WP-11 or any audit finding.**
+
+### Work actually performed
+- Read the live Supabase `public` schema through read-only catalog/API calls.
+- The live table listing returned **25 public tables**, all with RLS enabled. The broader catalog query requested table metadata, foreign keys, constraints, indexes, policies, triggers, and public-schema function metadata.
+- The query response was too large and was truncated in the tool output. A durable per-object inventory was **not** produced by this session; therefore the output is not sufficient to assert that every relationship, policy, trigger, function, or table use has been fully analyzed.
+- Initial repository usage-search calls were started but did not produce a complete, retained table-by-table caller map. No exact list of the alleged 18 tables was independently reconstructed or verified in this session.
+- No application, test, migration, workflow, or documentation file was changed before this closeout. No tests were run. No database, data, grants, policies, Edge function, or deployment was changed.
+
+### Effect on finding statuses
+- **D-05 remains OPEN / baseline provenance unresolved.** The existing statement that 18 of 25 live public tables lack initial `CREATE TABLE` definitions in tracked migrations is **not revalidated by this session**. Do not promote it to verified fact from this partial attempt, and do not treat it as disproven either. Reconcile every live table against all tracked migration history and any authoritative schema artifact before changing the finding.
+- **D-07 remains OPEN / partial dependency evidence.** No table/function was established as safe to delete. A missing or unobserved source caller is not proof of non-use.
+- **D-08 and D-15 remain at their existing candidate/review status.** This session did not change production privileges or policies and adds no new acceptance evidence.
+- **D-12 remains open at its previously recorded cross-stage boundaries.** No new runtime reachability claim was established.
+- Every other C/D finding retains its previous status, evidence, owner decision boundary, and assigned WP. **C-01, C-02 and C-03 remain closed under their recorded dispositions; WP-09 and WP-10 remain closed in their recorded scopes.** No finding is dropped or reopened by this addendum.
+
+### Exact continuation action
+Continue the same authorized WP-11 read-only schema reconciliation: produce a compact, retained inventory in bounded query batches; list the exact 25 live table names; map each table to PK/FK/unique/check constraints, indexes, RLS policies, triggers, dependent database functions/views, and exact tracked migration files; then trace application and Edge callers. Separately validate the alleged 18-table CREATE-definition gap against the full migration history and any authoritative schema artifact. Record evidence and unknowns per table. Do not delete/recreate objects, synthesize a Production-derived baseline, change production state, or start WP-12. 
