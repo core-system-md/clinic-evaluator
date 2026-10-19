@@ -1,4 +1,11 @@
+# Audit-to-Work-Package Reconciliation Matrix — 2026-10-18
 
+**Purpose:** Reconcile the 2026-10-11 comprehensive audit against the governing implementation contract, the WP sequence, and evidence available in the repository/current Production handoff. This is a traceability document, not a new implementation plan.
+
+**Repository:** `core-system-md/clinic-evaluator`  
+**Governing contract:** `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`  
+**Current state anchor:** `documentation/handoff/CURRENT-SESSION-HANDOFF.md`  
+**Audit date:** 2026-10-11; later verified evidence is used where it supersedes the audit snapshot.
 
 ## 7. Read-only live-schema investigation checkpoint — 2026-10-19
 
@@ -10,14 +17,7 @@ This checkpoint records an **incomplete investigation**, not a new Audit finding
 - **Status mapping:** D-05 remains **PARTIAL / OPEN** under WP-11 §41: the recorded migration-ID/source/order reconciliation remains as documented; the initial-schema reproducibility question remains open. This checkpoint neither confirms nor disproves the “18 of 25” CREATE TABLE statement until each live table is reconciled against the full tracked migration history and any authoritative DDL artifact.
 - **Next required evidence:** obtain non-truncated inventories in compact result sets; map every live table to its initial creation/alteration migrations and runtime references (browser/app, Edge Functions, SQL functions/RPCs, triggers and policies); then test referential integrity with read-only queries. Keep findings per table and cite exact file paths or live catalog results. No deletion, baseline manufacture, schema change or Production mutation is authorized by this checkpoint.
 - **Session execution boundary:** read-only Supabase metadata investigation only. No test suite, migration, deployment, data write, grant/policy change or repository application-code change was performed in this investigation.
-# Audit-to-Work-Package Reconciliation Matrix — 2026-10-18
 
-**Purpose:** Reconcile the 2026-10-11 comprehensive audit against the governing implementation contract, the WP sequence, and evidence available in the repository/current Production handoff. This is a traceability document, not a new implementation plan.
-
-**Repository:** `core-system-md/clinic-evaluator`  
-**Governing contract:** `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`  
-**Current state anchor:** `documentation/handoff/CURRENT-SESSION-HANDOFF.md`  
-**Audit date:** 2026-10-11; later verified evidence is used where it supersedes the audit snapshot.
 
 ## 1. Rules for reading this matrix
 
