@@ -1,3 +1,54 @@
+## SESSION CLOSEOUT — D-05 / WP-11 SCHEMA RECONCILIATION WORKSHEET — 2026-10-19
+
+**Disposition: reconciliation worksheet committed; D-05 remains OPEN; WP-11 is in progress and not closed.** This entry supersedes the immediate next action in the prior 2026-10-19 read-only investigation closeout. WP-12 was not started.
+
+### Repository artifacts committed
+- Added `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md`.
+- Worksheet commit: `e5072c3e238d37ca90941f668a6a7768f5302bc3`.
+- Added per-table indexed migration/source search references and evidence for the named 18-table candidate list in commit `e4dec91788245a0b4173208a6da80d74892a0309`.
+- This handoff update is the next documentation-only change. No production writes, schema/grant/policy changes, migration applications, deployments, deletions, or branch/PR changes were performed.
+
+### Live schema inventory completed for this bounded step
+A read-only PostgreSQL catalog snapshot was collected for all **25** live `public` tables. The worksheet records, table by table:
+- column names, types, nullability and defaults;
+- table-owned primary/unique/check/foreign-key constraints;
+- indexes and definitions;
+- RLS-enabled / FORCE-RLS flags and current policies;
+- non-internal triggers;
+- public stored-function definitions whose text mentions the table;
+- indexed repository source-file references;
+- indexed migration-file references and initial-CREATE search status.
+
+The existing catalog totals remain structural evidence only: RLS enabled on 25/25, 38 foreign keys (0 unvalidated), 71 policies, 15 non-internal triggers, 87 public functions/procedures, 0 public views/materialized views, and 0 invalid indexes. They do not establish policy correctness, effective-role access, complete dependency graphs, or table usage.
+
+### The 18-table list — names now evidenced, absence claim still OPEN
+The tracked migration `supabase/migrations/20261001190000_p0_security_closure.sql` explicitly enumerates the following 18 existing tables in its privilege-revocation loop:
+
+`admin_users`, `answers`, `assessment_assets`, `assessment_settings`, `assessment_types`, `assessment_users`, `axes`, `experience_multipliers`, `historical_snapshots`, `insights_mapping`, `leads`, `options`, `questions`, `scores`, `sessions`, `specialty_profiles`, `team_capacity_factors`, `traps`.
+
+This corroborates the names of the candidate set and that these tables existed by the P0 migration. Repository search located initial CREATE TABLE declarations for seven other live tables: `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. Thus 25 minus 7 is consistent with the 18-table claim.
+
+**Important limitation:** the search-based absence of an initial CREATE TABLE is not yet proof that the 18 initial definitions are absent from every tracked migration or from an authoritative external/archive source. A table mentioned by an ALTER, grant, policy, trigger, function, or data migration is not thereby proven to have an initial DDL source. The worksheet marks the 18 as candidates and keeps D-05 OPEN.
+
+### Remaining work before D-05 / WP-11 can close
+1. Perform a complete file-level scan of every tracked `supabase/migrations/*.sql` file at current `main` (not only indexed search excerpts) and map each of the 25 tables to exact CREATE/ALTER/DROP/RENAME, constraint, index, policy, grant, trigger and function statements.
+2. Reconcile every repository migration identity and content with the live Supabase migration ledger; the earlier reported repository/live migration count/identity mismatch remains unresolved.
+3. Expand code-caller tracing beyond sampled core files and indexed search hits, distinguishing reachable runtime callers, SQL/RPC dependencies, tests, historical docs, and dead paths. Stored-function text matches do not prove a complete dependency graph; dynamic SQL and external callers may be missed.
+4. Verify table privileges, function EXECUTE grants, SECURITY DEFINER boundaries, RLS semantics and effective-role behavior. RLS being enabled on all tables is not a security PASS.
+5. Run justified read-only integrity checks and exact row counts where relevant. Do not interpret planner estimates as counts or infer non-use from zero estimates.
+6. Locate and verify an authoritative pre-migration schema/source archive if one exists. Do not construct a baseline from Production catalog output.
+
+### Safety and stage boundary
+- No deletion, recreation, speculative baseline, applied migration-history rewrite, production mutation, grant/policy/schema change, or deployment.
+- D-05 remains **OPEN / BLOCKING RECONCILIATION**; WP-11 remains **IN PROGRESS / NOT CLOSED**.
+- WP-12 has **NOT STARTED**. Do not advance automatically.
+- C-01, C-02, and C-03 retain their existing closed dispositions; do not reopen them. C-03 live E2E remains WAIVED / NOT RUN, not PASS.
+
+### Exact continuation point
+Continue with the exhaustive file-level migration scan and migration-ledger reconciliation, using `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` as the table-by-table working register. Preserve the 18 named candidates and every unverified dependency/provenance item as OPEN. Stop at WP-11 until its own acceptance evidence is complete; do not begin WP-12.
+
+---
+
 ## SESSION CLOSEOUT — READ-ONLY DATABASE SCHEMA INVESTIGATION — 2026-10-19
 
 **Disposition: SESSION CLOSED AT A SAFE READ-ONLY BOUNDARY. No work package was closed by this session.** This entry supersedes any generic continuation text only for the immediate next action described here; it does not alter C-01/C-02/C-03 dispositions or authorize production changes.
