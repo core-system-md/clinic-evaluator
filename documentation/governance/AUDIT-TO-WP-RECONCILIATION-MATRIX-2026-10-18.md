@@ -131,3 +131,23 @@ This section resolves stale status/continuation text in Sections 3 and 6 against
 - No Production mutation, migration, deletion, Edge deployment, release-gate change, or security redesign was performed for WP-10.
 
 **Exact continuation point:** WP-10 is closed for its §40 bounded scope. STOP. Do not start WP-11 or WP-12 without a new explicit owner instruction. Preserve every C-01–C-03 and D-04–D-19 entry and its remaining assigned gates as recorded above.
+
+
+## Session evidence addendum — read-only schema investigation — 2026-10-19
+
+This addendum records evidence obtained during the 2026-10-19 session. It does not replace or close any original finding and does not change the C-01/C-02/C-03 dispositions.
+
+### Read-only live catalog evidence
+The live `public` schema query returned 25 tables, RLS enabled on 25/25, 38 foreign keys (0 unvalidated), 71 RLS policies, 15 non-internal triggers, 87 public functions/procedures, 0 public views/materialized views, and 0 invalid indexes. These are structural counts only; they are not a security or functional pass. The catalog snapshot shows populated configuration/content and administrative tables as well as zero-estimate operational tables. Row counts are planner estimates and must not be used to infer that an empty/zero-estimate table is unused.
+
+### D-05 clarification — baseline provenance is not table-use evidence
+PR #120's current description reports that 18 of 25 live tables lack an initial `CREATE TABLE` in tracked migrations and that no authoritative initial schema DDL was found in its repository search. PR #120 is still OPEN/UNMERGED; do not represent its proposed reconciliation as merged into `main`. This session did not independently establish the exact 18 table names or finish tracing each table through all application, Edge Function, SQL function, trigger, policy, and migration references. Therefore:
+- The “18 tables” claim remains a **baseline/migration-provenance gap**, not evidence of unused tables.
+- No table has been identified as safe to delete or recreate.
+- No Production baseline may be synthesized from live metadata.
+- D-05 remains OPEN until exact table names, migration provenance, authoritative schema source (if any), and isolated replay acceptance evidence are reconciled.
+
+### Session scope and next action
+No repository code search results, app tests, effective-role tests, integrity/orphan checks, or E2E tests were completed in this session. No production writes or schema/security changes occurred. No WP was closed.
+
+**Next authorized continuation:** under WP-11/D-05, create a reproducible 25-table worksheet and reconcile every live table to its schema objects, initial/altering migration sources, SQL function dependencies, repository/Edge callers, and observed data role. Independently test the 18-table claim; keep unknowns OPEN. Do not start WP-12 automatically and do not reopen C-01/C-02/C-03.
