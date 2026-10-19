@@ -394,3 +394,469 @@ The remaining 18 live tables are therefore **candidates whose initial CREATE TAB
 - Source file paths and current `main` source SHA values were fetched during this session; see the updated handoff for the exact commit and any remaining limitations.
 - Function references in this worksheet are catalog text matches, not dependency-graph proof. PostgreSQL dependency metadata does not reliably capture all PL/pgSQL/dynamic SQL dependencies.
 - Source references are sampled core files and should be expanded to all tracked source, test, workflow, and SQL files before calling the caller inventory exhaustive.
+
+
+## Indexed repository-wide reference lists — 2026-10-19
+
+The lists below preserve the results of per-table GitHub code-search queries. A migration hit means the table name appears in that migration file; it does **not** automatically mean the file creates or alters the table. Exact DDL effects still require reading the full file. A code hit means the indexed search found the name in the file; it does not alone prove a reachable runtime call. These lists make the source trail auditable and are intentionally not labelled exhaustive.
+
+### Migration-file search hits by live table
+
+#### `public.admin_audit_log`
+
+- `supabase/migrations/20261003183952_p5_owner_audit_read_secure.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261003171123_p5_admin_security_hardening.sql`
+
+#### `public.admin_capabilities`
+
+- `supabase/migrations/20261003175429_p5_assistant_capability_dedup.sql`
+- `supabase/migrations/20261003170948_p5_admin_capability_management.sql`
+- `supabase/migrations/20261003174838_p5_admin_assistant_management.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261003200444_p5_fix_assistant_create_capability_alias.sql`
+- `supabase/migrations/20261003171123_p5_admin_security_hardening.sql`
+
+#### `public.admin_users`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261003174838_p5_admin_assistant_management.sql`
+- `supabase/migrations/20261003175429_p5_assistant_capability_dedup.sql`
+- `supabase/migrations/20261003170948_p5_admin_capability_management.sql`
+- `supabase/migrations/20261003183952_p5_owner_audit_read_secure.sql`
+- `supabase/migrations/20261001061605_admin_dashboard_auth_hardening.sql`
+- `supabase/migrations/20261003200444_p5_fix_assistant_create_capability_alias.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+
+#### `public.answers`
+
+- `supabase/migrations/20261001083056_p1_e_fix_answers_upsert_conflict.sql`
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+
+#### `public.assessment_assets`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.assessment_config_release_settings`
+
+- `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`
+- `supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql`
+
+#### `public.assessment_config_releases`
+
+- `supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql`
+- `supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql`
+- `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`
+
+#### `public.assessment_families`
+
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003183952_p5_owner_audit_read_secure.sql`
+- `supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql`
+- `supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.assessment_results`
+
+- `supabase/migrations/20261003175353_p5_admin_result_read_rpc.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.assessment_session_access`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql`
+- `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.assessment_settings`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+
+#### `public.assessment_types`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001100833_p2_admin_status_guard.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261004102305_p5_ev_mapping_shape_fix.sql`
+- `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql`
+- `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+- `supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+- `supabase/migrations/20261005143243_p5_public_options_projection_recovery.sql`
+
+#### `public.assessment_users`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+
+#### `public.axes`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261004102305_p5_ev_mapping_shape_fix.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.experience_multipliers`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+
+#### `public.historical_snapshots`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.insights_mapping`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.leads`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001061605_admin_dashboard_auth_hardening.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.options`
+
+- `supabase/migrations/20261005143243_p5_public_options_projection_recovery.sql`
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.questions`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+- `supabase/migrations/20261005143243_p5_public_options_projection_recovery.sql`
+
+#### `public.scores`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+- `supabase/migrations/20261001104008_20261001104100_p2_score_weight_precision.sql`
+
+#### `public.sessions`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261003181243_p5_secure_report_session_read.sql`
+- `supabase/migrations/20261004071919_p5_secure_admin_session_counts.sql`
+- `supabase/migrations/20261002161455_p3_production_implementation.sql`
+- `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+- `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+- `supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql`
+- `supabase/migrations/20261003181305_p5_secure_report_session_read_fix_started_at.sql`
+- `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+- `supabase/migrations/20261009164951_structured_result_authority.sql`
+- `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`
+- `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+#### `public.specialty_profiles`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+
+#### `public.team_capacity_factors`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+
+#### `public.traps`
+
+- `supabase/migrations/20261001190000_p0_security_closure.sql`
+- `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+- `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+- `supabase/migrations/20261004145553_p5_lifecycle_trigger_final_fix.sql`
+- `supabase/migrations/20261004115737_p5_lifecycle_immutability_compat.sql`
+- `supabase/migrations/20261003175724_p5_p2_archival_metadata_exception.sql`
+- `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+- `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+- `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+- `supabase/migrations/20261003175807_p5_restore_archived_version_immutability_compat.sql`
+- `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+- `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+- `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+- `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+- `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+- `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+- `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+### Repository source/test/workflow search hits by live table
+
+#### `public.admin_audit_log`
+
+- `tests/c03-hybrid-config-release-harness.sql`
+
+#### `public.admin_capabilities`
+
+- `admin/assessment-manager.js`
+- `tests/c03-hybrid-config-release-harness.sql`
+
+#### `public.admin_users`
+
+- `admin/admin-session.js`
+- `admin/admin.js`
+- `admin/assessment-manager.js`
+- `tests/c03-hybrid-config-release-harness.sql`
+
+#### `public.answers`
+
+- `assets/js/app.js`
+- `supabase/functions/assessment-access/engine.ts`
+
+#### `public.assessment_assets`
+
+- `tests/wp-08-v1-assessment-reconstruction-harness.sql`
+- `tests/p5-editor-workspace.test.js`
+- `tests/wp-08-v1-assessment-reconstruction.test.mjs`
+- `tests/wp-08-v1-assessment-reconstruction-harness-safe.sql`
+
+#### `public.assessment_config_release_settings`
+
+- `supabase/functions/assessment-access/engine.ts`
+- `supabase/functions/assessment-config-release/index.ts`
+- `tests/c03-hybrid-config-release-harness.sql`
+- `.github/scripts/c03-production-e2e-cleanup.mjs`
+- `.github/workflows/c03-credential-preflight.yml`
+
+#### `public.assessment_config_releases`
+
+- `supabase/functions/assessment-config-release/index.ts`
+- `supabase/functions/assessment-access/engine.ts`
+- `tests/c03-hybrid-config-release-harness.sql`
+- `tests/c03-release-verifier-handler.test.ts`
+
+#### `public.assessment_families`
+
+- `admin/assessment-manager.js`
+- `supabase/functions/assessment-access/index.ts`
+- `admin/assessment-editor-workspace.js`
+- `supabase/functions/assessment-access/engine.ts`
+- `supabase/functions/assessment-config-release/index.ts`
+
+#### `public.assessment_results`
+
+- `admin/assessment-manager.js`
+- `supabase/functions/assessment-access/index.ts`
+
+#### `public.assessment_session_access`
+
+- `supabase/functions/assessment-access/index.ts`
+
+#### `public.assessment_settings`
+
+- `admin/assessment-manager.js`
+- `supabase/functions/assessment-access/index.ts`
+
+#### `public.assessment_types`
+
+- `assets/js/app.js`
+- `supabase/functions/assessment-access/report-interpretation.mjs`
+- `admin/assessment-manager.js`
+
+#### `public.assessment_users`
+
+- `supabase/functions/assessment-access/index.ts`
+- `tests/p4-protected-local-fixture.sql`
+- `tests/p4-protected-function-harness.sql`
+
+#### `public.axes`
+
+- `assets/js/report-validation.js`
+- `assets/js/report-interpretation.js`
+- `assets/js/app.js`
+- `supabase/functions/assessment-access/engine.ts`
+- `supabase/functions/assessment-access/report-interpretation.mjs`
+- `admin/assessment-editor-workspace.js`
+- `supabase/functions/assessment-access/structured-result.mts`
+
+#### `public.experience_multipliers`
+
+- No indexed hit returned in the sampled search.
+
+#### `public.historical_snapshots`
+
+- `tests/wp-08-v1-assessment-reconstruction-harness.sql`
+- `tests/wp-08-v1-assessment-reconstruction-harness-safe.sql`
+- `.github/scripts/c03-production-e2e-cleanup.mjs`
+
+#### `public.insights_mapping`
+
+- `tests/wp-08-v1-assessment-reconstruction-harness.sql`
+- `tests/wp-08-v1-assessment-reconstruction.test.mjs`
+- `tests/p5-editor-workspace.test.js`
+- `tests/wp-08-v1-assessment-reconstruction-harness-safe.sql`
+
+#### `public.leads`
+
+- `assets/js/app.js`
+- `admin/assessment-manager.js`
+- `admin/admin.html`
+- `supabase/functions/assessment-access/index.ts`
+
+#### `public.options`
+
+- `_headers`
+- `functions/_middleware.js`
+- `assets/js/supabase-client.js`
+- `supabase/functions/admin-management/index.ts`
+- `supabase/functions/assessment-access/engine.ts`
+- `assets/js/app.js`
+
+#### `public.questions`
+
+- `assets/js/app.js`
+- `supabase/functions/assessment-access/engine.ts`
+- `supabase/functions/assessment-access/response-scorer.mts`
+- `admin/assessment-editor-workspace.js`
+
+#### `public.scores`
+
+- `assets/js/report-interpretation.js`
+- `assets/js/app.js`
+- `supabase/functions/assessment-access/structured-result.mts`
+- `supabase/functions/assessment-access/report-interpretation.mjs`
+- `assets/js/report-validation.js`
+
+#### `public.sessions`
+
+- `assets/js/app.js`
+
+#### `public.specialty_profiles`
+
+- No indexed hit returned in the sampled search.
+
+#### `public.team_capacity_factors`
+
+- No indexed hit returned in the sampled search.
+
+#### `public.traps`
+
+- `supabase/functions/assessment-access/engine.ts`
+- `supabase/functions/assessment-access/assessment-config-digest.mjs`
+- `assets/js/report-validation.js`
+- `supabase/functions/assessment-access/index.ts`
+- `admin/assessment-editor-workspace.js`
+- `admin/assessment-manager.js`
+- `patient-journey.html`
+- `clinic-performance.html`
+
+## Independent evidence for the named 18-table candidate set
+
+The current tracked file `supabase/migrations/20261001190000_p0_security_closure.sql` explicitly enumerates these 18 pre-existing public tables in its privilege-revocation loop: `admin_users`, `answers`, `assessment_assets`, `assessment_settings`, `assessment_types`, `assessment_users`, `axes`, `experience_multipliers`, `historical_snapshots`, `insights_mapping`, `leads`, `options`, `questions`, `scores`, `sessions`, `specialty_profiles`, `team_capacity_factors`, and `traps`. This is strong evidence that the candidate names were known and present by the P0 migration, and it matches the 18 candidates listed above. **It is not proof by itself that their initial CREATE TABLE statements never existed in another tracked file or an authoritative external source.** Initial-creation absence remains OPEN until the complete migration file contents and historical source archive are checked.
