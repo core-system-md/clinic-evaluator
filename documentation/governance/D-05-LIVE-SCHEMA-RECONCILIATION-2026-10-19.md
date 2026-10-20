@@ -2318,3 +2318,57 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: first 10 of 65 rema
 
 - Blob SHA: fda7979f34a5db0bc4c07e06430d491f226d1f25; 22 lines; 724 bytes; classification: WORKFLOW.
 - Table-name references: none found in text scan.
+
+## Repository-wide code/reference scan outside the primary runtime — batch 2 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 11–20 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk.
+
+### .github/workflows/wp-02-local-contract.yml
+
+- Blob SHA: b612c9067828aeaebf722880772f742329e2fe1a; 42 lines; 1123 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/wp-03-local-contract.yml
+
+- Blob SHA: 2105a223ed23d7d12f5d05c79aa99d1dd37aafcd; 54 lines; 1621 bytes; classification: WORKFLOW.
+- Table-name references: options@43
+
+### .github/workflows/wp-04-local-contract.yml
+
+- Blob SHA: 156a63d8b3fa76af247f9b770b0d255b0f11465a; 51 lines; 1546 bytes; classification: WORKFLOW.
+- Table-name references: options@40
+
+### .github/workflows/wp-05-local-contract.yml
+
+- Blob SHA: 84136c16a50e1901d7baa1a0a93a3416399de4e5; 37 lines; 1307 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/wp-06-report-validation-gate.yml
+
+- Blob SHA: df28bc29bd077ede501dde4ce29576fb22364db1; 34 lines; 892 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/wp-07-report-text-model-linkage.yml
+
+- Blob SHA: 5d5ac4ab6f942d557c42fc52b72fe32e7c167d96; 31 lines; 848 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/wp-08-v1-assessment-reconstruction.yml
+
+- Blob SHA: 9b6d4aefc605370b61375745c2bc43586c1c516d; 38 lines; 1271 bytes; classification: WORKFLOW.
+- Table-name references: options@28
+
+### .github/workflows/wp-09-obsolete-engine-references.yml
+
+- Blob SHA: b7542b1e6c926055a154e94c4167a1b981505772; 32 lines; 803 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### tests/app-view-toggle.test.js
+
+- Blob SHA: bc061b323408f97a4b535771a1b6393686e9ce84; 60 lines; 2206 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/c01-current-published-interpretation-binding.test.mjs
+
+- Blob SHA: 0b9500d929c8644a154c44d14899cce6382c93ab; 85 lines; 4033 bytes; classification: TEST.
+- Table-name references: options@10,11,36; questions@10,11,35
