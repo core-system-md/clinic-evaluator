@@ -938,3 +938,116 @@ Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in
 
 - Git blob SHA: `58c25faeea482279e9cd1ddd85ee8be51e8c77f9`; 58 lines; 1532 characters; content scanned.
 - `public.assessment_types`: SQL_REF lines 20,43.
+
+## Full migration-file scan — batch 2 of 5
+
+Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in full: 12/56 (repository files 13–24).
+
+### `supabase/migrations/20261001101014_p2_immutability_trigger_fix.sql`
+
+- Git blob SHA: `1c3931d7b98c7487f5438cfdfa0813190f37ab3c`; 48 lines; 1399 characters; content scanned.
+- `public.assessment_types`: SQL_REF line 35.
+- `public.questions`: SQL_REF line 28.
+
+### `supabase/migrations/20261001104008_20261001104100_p2_score_weight_precision.sql`
+
+- Git blob SHA: `1b65af7f16390822fd5e74e1817ee20a129abf8d`; 10 lines; 451 characters; content scanned.
+- `public.scores`: ALTER_TABLE lines 4,8.
+
+### `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql`
+
+- Git blob SHA: `67c061783bf2eb158226930f693afd8fc3bd5429`; 370 lines; 10688 characters; content scanned.
+- `public.answers`: ALTER_TABLE lines 44,49,51.
+- `public.assessment_session_access`: CREATE_TABLE line 21; ALTER_TABLE line 39; GRANT lines 41,42; SQL_REF lines 79,155,167,175,178,348.
+- `public.assessment_types`: SQL_REF line 106.
+- `public.assessment_users`: FK_REFERENCE lines 12,24; SQL_REF lines 92,275,338.
+- `public.leads`: SQL_REF lines 236,331.
+- `public.scores`: SQL_REF lines 291,294.
+- `public.sessions`: ALTER_TABLE line 10; FK_REFERENCE line 23; SQL_REF lines 114,127,146,217,342.
+
+### `supabase/migrations/20261001190000_p0_security_closure.sql`
+
+- Git blob SHA: `a11255bd74b52e98944900a8b4f829976907b4e3`; 61 lines; 2169 characters; content scanned.
+- `public.admin_users`: POLICY line 29.
+- `public.assessment_session_access`: GRANT line 50.
+
+### `supabase/migrations/20261002161455_p3_production_implementation.sql`
+
+- Git blob SHA: `245c37acdd2611e839a56fa370043c9cffb3f1c0`; 529 lines; 18305 characters; content scanned.
+- `public.assessment_results`: CREATE_TABLE line 10; ALTER_TABLE line 29; GRANT lines 30,31; SQL_REF lines 87,98,235,345,356,476.
+- `public.assessment_session_access`: SQL_REF lines 73,268,331,504.
+- `public.assessment_types`: FK_REFERENCE line 13.
+- `public.assessment_users`: SQL_REF lines 198,254.
+- `public.leads`: SQL_REF lines 95,247,353,488.
+- `public.scores`: SQL_REF lines 214,216,455,457.
+- `public.sessions`: ALTER_TABLE line 5; FK_REFERENCE line 12; SQL_REF lines 60,258,318,495.
+
+### `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+
+- Git blob SHA: `268d292a8c3e1f52aad51f111a076197d68649e1`; 454 lines; 16157 characters; content scanned.
+- `public.assessment_results`: SQL_REF lines 42,53,190,279,290,410.
+- `public.assessment_session_access`: SQL_REF lines 28,223,265,438.
+- `public.assessment_users`: SQL_REF lines 153,209.
+- `public.leads`: SQL_REF lines 50,202,287,422.
+- `public.scores`: SQL_REF lines 169,171,389,391.
+- `public.sessions`: SQL_REF lines 15,213,252,429.
+
+### `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+
+- Git blob SHA: `53f0259deca7502523c563f5487a43dd2e44a2f4`; 460 lines; 13963 characters; content scanned.
+- `public.answers`: SQL_REF line 107.
+- `public.assessment_session_access`: SQL_REF lines 58,154,208,244,293,331,422.
+- `public.assessment_types`: SQL_REF lines 198,345,368,411.
+- `public.assessment_users`: SQL_REF line 355.
+- `public.options`: SQL_REF line 99.
+- `public.questions`: SQL_REF line 89.
+- `public.sessions`: ALTER_TABLE lines 4,20,23; SQL_REF lines 12,17,70,149,221,231,250,265,375,390,428.
+
+### `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+
+- Git blob SHA: `516678ba20014f8f8713c5f7583a7a9325baec6a`; 649 lines; 21832 characters; content scanned.
+- `public.answers`: SQL_REF lines 79,108.
+- `public.assessment_results`: SQL_REF lines 204,330,437,448,591.
+- `public.assessment_session_access`: SQL_REF lines 21,127,183,360,423,626.
+- `public.assessment_users`: SQL_REF lines 554,610.
+- `public.leads`: SQL_REF lines 201,342,445,603.
+- `public.questions`: SQL_REF lines 72,78.
+- `public.scores`: SQL_REF lines 309,311,570,572.
+- `public.sessions`: SQL_REF lines 34,119,170,349,410,614.
+
+### `supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql`
+
+- Git blob SHA: `26c4b3ec475aaa676fbdacf0b94ec7f7cc8db1f4`; 161 lines; 4892 characters; content scanned.
+- `public.answers`: SQL_REF lines 89,118.
+- `public.assessment_session_access`: SQL_REF lines 29,143.
+- `public.questions`: SQL_REF lines 82,88.
+- `public.sessions`: ALTER_TABLE line 2; SQL_REF lines 42,134.
+
+### `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+
+- Git blob SHA: `123793c3c580327df1da1c3c917287d84d8517d5`; 765 lines; 33309 characters; content scanned.
+- `public.admin_audit_log`: CREATE_TABLE line 12; ALTER_TABLE line 28; GRANT lines 31,737,739; SQL_REF line 111; POLICY line 132.
+- `public.admin_capabilities`: CREATE_TABLE line 4; ALTER_TABLE line 27; GRANT lines 30,736,738; SQL_REF lines 72,675,697; POLICY line 124.
+- `public.admin_users`: SQL_REF lines 41,56,73,668,718,721.
+- `public.assessment_families`: FK_REFERENCE line 18; POLICY line 138; GRANT line 144; SQL_REF lines 169,283,355,406,423,446,451,470,485,609,625.
+- `public.assessment_settings`: SQL_REF line 627.
+- `public.assessment_types`: SQL_REF lines 173,214,220,229,276,285,289,352,402,416,419,450,468,480,483,502,511,528,541,556,578,592,643,648.
+- `public.assessment_users`: SQL_REF line 611.
+- `public.axes`: SQL_REF lines 305,307,309,359,366,506,511,531.
+- `public.options`: SQL_REF lines 324,328,362,559,577,581,591,595.
+- `public.questions`: SQL_REF lines 312,314,320,357,359,363,535,541,556,577,591.
+
+### `supabase/migrations/20261003170948_p5_admin_capability_management.sql`
+
+- Git blob SHA: `f68f9098e8dd23743a32ebdaac2c748b075b5c84`; 43 lines; 2953 characters; content scanned.
+- `public.admin_capabilities`: SQL_REF lines 9,21.
+- `public.admin_users`: SQL_REF lines 6,32,35.
+
+### `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+
+- Git blob SHA: `f978ff537ac381a7a065921aafa2fb833e146643`; 204 lines; 12242 characters; content scanned.
+- `public.assessment_families`: SQL_REF line 18.
+- `public.assessment_types`: SQL_REF lines 21,75,94,101,116,129,144,162,177,192,197,199.
+- `public.axes`: SQL_REF lines 35,97,101,104,119.
+- `public.options`: SQL_REF lines 60,147,152,162,166,168,177,181.
+- `public.questions`: SQL_REF lines 46,124,129,132,144,162,177.
