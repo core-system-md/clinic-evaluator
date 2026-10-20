@@ -1,3 +1,17 @@
+# CURRENT UPDATE — LINE-REFERENCED DDL SCAN COMPLETED FOR ALL 56 TRACKED MIGRATIONS — 2026-10-20
+
+**New evidence artifact:** `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` (latest scan-index commit `b1ffbdf73540e3c6da2e24c3b929ecfbb63c57f3`).
+
+All 56 tracked `supabase/migrations/*.sql` files at pinned tree `312c60907649aa62de605937a0a82cf5d3fe3b75` were retrieved, checked against their Git blob byte sizes, and scanned for line-referenced table-owned CREATE/ALTER/DROP, FK REFERENCES, index, policy, trigger, RLS, and direct grant/revoke statements. The index records per-file blob SHA, byte count, line number and statement text for each match. Dynamic SQL loops and function-body dependencies remain a separate review category; absence of a direct DDL line is not absence of an indirect effect.
+
+Current main contains the same 56 migration paths and blob SHAs as the pinned scan tree; only documentation files changed after the scan. Initial persistent CREATE TABLE statements remain located for seven tables; no initial persistent CREATE TABLE was found for the other 18 across all 56 tracked migrations. That repository-source gap is now confirmed; an authoritative external/original schema source has not been identified.
+
+The Production ledger remains 57 rows versus 56 tracked files. Applied versions `20261018075528` and `20261018075855` lack same-version files on main; `20261018110000` is tracked source-only/unapplied. The matching SQL-body comparisons against PR #120 establish source correspondence but not the historical SQL bytes executed in Production. PR #120 remains OPEN / UNMERGED.
+
+**Status:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. Next: line-by-line reconcile each table's live object definitions against the new DDL index, complete dynamic/function-body and effective-role review, and seek authoritative original schema provenance. No Production mutation, migration application, grant/policy/schema change, deletion/recreation, baseline synthesis, or PR merge occurred.
+
+---
+
 # CURRENT UPDATE — PR #120 SOURCE-BODY CROSS-COMPARISON — 2026-10-20
 
 Read-only comparison at PR head `47c0a79dbee108149f9431ff4e86ac120c420f7a` confirms:
