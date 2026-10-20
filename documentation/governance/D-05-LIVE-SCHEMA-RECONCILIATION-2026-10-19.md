@@ -1051,3 +1051,87 @@ Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in
 - `public.axes`: SQL_REF lines 35,97,101,104,119.
 - `public.options`: SQL_REF lines 60,147,152,162,166,168,177,181.
 - `public.questions`: SQL_REF lines 46,124,129,132,144,162,177.
+
+## Full migration-file scan — batch 3 of 5
+
+Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in full: 12/56 (repository files 25–36).
+
+### `supabase/migrations/20261003171123_p5_admin_security_hardening.sql`
+
+- Git blob SHA: `03673cf1fbe6a03e32ff92dd43c59696d084df1f`; 22 lines; 1806 characters; content scanned.
+- `public.admin_audit_log`: INDEX lines 1,2.
+- `public.admin_capabilities`: INDEX line 3.
+
+### `supabase/migrations/20261003174838_p5_admin_assistant_management.sql`
+
+- Git blob SHA: `9e3aaadf7ccf5e23b321422cd027e07444523f04`; 213 lines; 6590 characters; content scanned.
+- `public.admin_capabilities`: SQL_REF lines 60,139,164.
+- `public.admin_users`: ALTER_TABLE line 2; SQL_REF lines 42,56,94,100,106,134,189,196.
+
+### `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+
+- Git blob SHA: `ffdcb82c8f598852f8936a83ab6177bbee8a7948`; 108 lines; 5205 characters; content scanned.
+- `public.assessment_assets`: SQL_REF lines 91,97.
+- `public.assessment_families`: SQL_REF line 25.
+- `public.assessment_types`: SQL_REF lines 16,27,31.
+- `public.axes`: SQL_REF lines 47,48,50.
+- `public.insights_mapping`: SQL_REF lines 83,89.
+- `public.options`: SQL_REF lines 64,68.
+- `public.questions`: SQL_REF lines 53,54,60.
+- `public.traps`: SQL_REF lines 70,80.
+
+### `supabase/migrations/20261003175353_p5_admin_result_read_rpc.sql`
+
+- Git blob SHA: `c2313a5b1fc0beec6aefd5751ecceb48d04b5401`; 27 lines; 943 characters; content scanned.
+- `public.assessment_results`: SQL_REF line 12.
+
+### `supabase/migrations/20261003175429_p5_assistant_capability_dedup.sql`
+
+- Git blob SHA: `6b0919e1de17c2a4ca9f58b0431af6db296189c2`; 59 lines; 2007 characters; content scanned.
+- `public.admin_capabilities`: SQL_REF line 47.
+- `public.admin_users`: SQL_REF lines 26,43.
+
+### `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+
+- Git blob SHA: `a126aa97ad7115d9fa16520c1a45c5ba125283f1`; 113 lines; 5232 characters; content scanned.
+- `public.assessment_assets`: SQL_REF lines 99,105.
+- `public.assessment_families`: SQL_REF line 23.
+- `public.assessment_types`: SQL_REF lines 17,34,39.
+- `public.axes`: SQL_REF lines 55,56,58.
+- `public.insights_mapping`: SQL_REF lines 91,97.
+- `public.options`: SQL_REF lines 72,76.
+- `public.questions`: SQL_REF lines 61,62,68.
+- `public.traps`: SQL_REF lines 78,88.
+
+### `supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql`
+
+- Git blob SHA: `bfe6ffb1b0893c7e7d86c6889515b2fac02df1c5`; 148 lines; 5252 characters; content scanned.
+- `public.assessment_families`: SQL_REF lines 19,45,69,81,110,135.
+- `public.assessment_types`: SQL_REF lines 15,31,37,76,107,121,127.
+
+### `supabase/migrations/20261003175724_p5_p2_archival_metadata_exception.sql`
+
+- Git blob SHA: `d39241ab0c9087ba6d3738cec7a9c6a26c0b7406`; 51 lines; 1923 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261003175807_p5_restore_archived_version_immutability_compat.sql`
+
+- Git blob SHA: `4eac766875dd4c47b4bbd769936b9e4dc57f6b94`; 74 lines; 3208 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261003181243_p5_secure_report_session_read.sql`
+
+- Git blob SHA: `1858547bf67f36b1bf28550481d8fd4c88099e57`; 34 lines; 869 characters; content scanned.
+- `public.sessions`: SQL_REF line 26.
+
+### `supabase/migrations/20261003181305_p5_secure_report_session_read_fix_started_at.sql`
+
+- Git blob SHA: `ffb56b51a99fa1286f796528009ceb4edde21865`; 34 lines; 869 characters; content scanned.
+- `public.sessions`: SQL_REF line 26.
+
+### `supabase/migrations/20261003183952_p5_owner_audit_read_secure.sql`
+
+- Git blob SHA: `d55ba07f0ebcc0097732d354a7a572085f472f05`; 56 lines; 2271 characters; content scanned.
+- `public.admin_audit_log`: SQL_REF lines 22,38.
+- `public.admin_users`: SQL_REF line 39.
+- `public.assessment_families`: SQL_REF line 40.
