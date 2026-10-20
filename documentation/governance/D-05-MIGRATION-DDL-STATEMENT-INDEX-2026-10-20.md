@@ -249,3 +249,31 @@
 
 - Blob SHA: `ffb56b51a99fa1286f796528009ceb4edde21865`; tree bytes: 869; retrieved UTF-8 bytes: 869.
 - No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+
+## Files 36–40 of 56
+
+### `supabase/migrations/20261003183952_p5_owner_audit_read_secure.sql`
+
+- Blob SHA: `d55ba07f0ebcc0097732d354a7a572085f472f05`; tree bytes: 2295; retrieved UTF-8 bytes: 2295.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003195802_p5_revoke_anonymous_assistant_rpcs.sql`
+
+- Blob SHA: `7f4b1312bcfc96934da5fba838789a0bb4ada652`; tree bytes: 605; retrieved UTF-8 bytes: 605.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003200444_p5_fix_assistant_create_capability_alias.sql`
+
+- Blob SHA: `1f39f213dd095c70dd7b089d48abf62a0e6fd579`; tree bytes: 2333; retrieved UTF-8 bytes: 2333.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+
+- Blob SHA: `18ef36c84c936e90707af27af46f7aadd993d0c8`; tree bytes: 26390; retrieved UTF-8 bytes: 26390.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261004071919_p5_secure_admin_session_counts.sql`
+
+- Blob SHA: `2a92d6728c69de2e25301af6d155aca6d8e6c7ff`; tree bytes: 753; retrieved UTF-8 bytes: 753.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
