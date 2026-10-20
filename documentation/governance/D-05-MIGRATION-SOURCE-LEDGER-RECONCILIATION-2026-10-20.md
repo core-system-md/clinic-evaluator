@@ -247,3 +247,14 @@ Do not merge PR #120, rewrite migration history, or apply a migration as part of
 ## Line-referenced DDL index
 
 The complete per-file line-reference inventory for all 56 tracked migrations is in `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md`. Current main has the same migration file paths and blob SHAs as the pinned scan tree. This completes the tracked-file DDL search; it does not close external schema provenance or prove historical applied SQL bodies. D-05 remains OPEN.
+
+## Historical schema/migration provenance review — 2026-10-20
+
+See `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md`.
+
+The targeted Git chronology shows that the original ADR-003 commit recorded an existing live schema while both the repository migration path and remote migration ledger were absent (commit `39c7dfc8443c150ec833881e1f910d42dbb14aa9`, 2026-09-30 22:21:34 UTC). ADR-003 was accepted two minutes later as a requirement to review and establish a baseline, not as delivery of one. The first five tracked migration entries are non-replayable 182-byte markers preserving names/version provenance rather than original SQL bodies.
+
+The examined October 1 deletions concern duplicate/future-dated migration identities. The duplicate P2 file containing the `assessment_families` creation statement was replaced by the canonical migration that remains in main; no reviewed cleanup patch establishes deletion of initial DDL for the 18 legacy tables. The October 10 filename reconciliation likewise addressed already-applied identities and an unapplied candidate. Thus, the strongest supported explanation is that the live legacy schema predates tracked migrations and the planned reviewed baseline is not present in the inspected repository. This is not proof about unexamined pre-2026-09-30 history or external backups/editor history.
+
+**Disposition:** keep D-05 OPEN / BLOCKING RECONCILIATION. Do not attribute the gap to a specific cleanup commit without evidence; do not rebuild tables, synthesize a Production-derived baseline, rewrite/apply migration history, or mutate Production.
+
