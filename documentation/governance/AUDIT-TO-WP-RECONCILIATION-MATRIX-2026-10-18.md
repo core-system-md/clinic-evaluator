@@ -202,3 +202,12 @@ The worksheet records an exhaustive read-only orphan query generated from all 38
 ## 14. D-05 SECURITY DEFINER inventory — 2026-10-20
 
 A read-only aggregate over the 87 public functions/procedures found 65 SECURITY DEFINER functions; 14 have `search_path=""`, 51 have `search_path=public, pg_temp`, none lack a function-level search_path setting and none have other search_path settings. No SECURITY DEFINER function is directly EXECUTE-callable by `anon`; 51 are EXECUTE-callable by `authenticated`. This is catalog evidence, not a full body-level security assessment: explicit schema qualification, authorization gates, dynamic SQL, ownership and reachable callers remain to be checked. Two non-SECURITY-DEFINER trigger functions still report `anon` EXECUTE. No function or grant was changed; WP-12 remains not started.
+
+
+## D-05 / WP-11 checkpoint — full tracked migration inventory and live ledger — 2026-10-20
+
+Evidence artifact: `documentation/governance/D-05-MIGRATION-SOURCE-LEDGER-RECONCILIATION-2026-10-20.md` (commit `1378689e0eccbe191e65dad77ba8c5048e7db92c`). At inspected main tree SHA `312c60907649aa62de605937a0a82cf5d3fe3b75`, 56 tracked SQL migration files were compared with 57 live Supabase migration ledger rows. Applied IDs `20261018075528` and `20261018075855` have no same-version source files on main; `20261018110000_c03_verifier_api_key_compatibility.sql` is source-only/unapplied. This discrepancy is preserved as OPEN; no migration history or production state was changed.
+
+Initial CREATE TABLE declarations were located for seven live tables: `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. The other 18 candidate names match the P0 privilege-revocation list, but their initial-DDL absence is not proven. The large file `20261009170228_reconstruct_final_assessment_versions.sql` has a retrieval-size mismatch (Git tree 130,416 bytes; content endpoint 97,266 characters), leaving full-content inspection unresolved.
+
+**Disposition:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. Next: independently retrieve/verify the full large migration file, finish line-level object evolution and applied-ledger reconciliation, and continue function-body/dynamic dependency/effective-role review. No production mutation, migration application, deletion/recreation, speculative baseline, PR merge, or WP-12 work occurred.
