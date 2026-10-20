@@ -1920,3 +1920,124 @@ Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. Full-text patterns in
 
 - Blob SHA: efbd8844addf01efca0209355692bed67e14c882; 222 lines.
 - No literal table/RPC call was found by the wrapper-aware patterns.
+
+## Application/code caller scan — batch 4 of 4 (wrapper-aware)
+
+Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. Full-text patterns include custom Supabase client wrappers and direct Edge Function SDK calls.
+
+### supabase/functions/assessment-access/consistency-engine.mts
+
+- Blob SHA: 4ddbaa79693e4d655e1039d5af057ca7fa6b2aa1; 314 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-access/coverage-criticality-engine.mts
+
+- Blob SHA: 107a08c7c9c2a72a1523fa29a7368208fd796420; 163 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-access/economic-opportunity-model-v1.mts
+
+- Blob SHA: a9d03af7bba5fcad64416c8c7921c00319dee16d; 97 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-access/engine.ts
+
+- Blob SHA: a75ea54d8227621fd32823367227d35e8ff9cf0b; 541 lines.
+- TABLE_FROM assessment_types at line 221 (table); expression: .from("assessment_types"
+- TABLE_FROM axes at line 228 (table); expression: .from("axes"
+- TABLE_FROM questions at line 233 (table); expression: .from("questions"
+- TABLE_FROM traps at line 240 (table); expression: .from("traps"
+- TABLE_FROM assessment_families at line 251 (table); expression: .from("assessment_families"
+- TABLE_FROM options at line 261 (table); expression: .from("options"
+- TABLE_FROM sessions at line 360 (table); expression: .from("sessions"
+- TABLE_FROM answers at line 391 (table); expression: .from("answers"
+- TABLE_FROM assessment_config_release_settings at line 439 (table); expression: .from("assessment_config_release_settings"
+- TABLE_FROM assessment_config_releases at line 463 (table); expression: .from("assessment_config_releases"
+
+### supabase/functions/assessment-access/index.ts
+
+- Blob SHA: 76673b46a54cf98b5907fdc7e9f751745eebcd05; 1120 lines.
+- TABLE_FROM assessment_session_access at line 74 (table); expression: .from("assessment_session_access"
+- TABLE_FROM assessment_types at line 96 (table); expression: .from("assessment_types"
+- TABLE_FROM axes at line 101 (table); expression: .from("axes"
+- TABLE_FROM questions at line 106 (table); expression: .from("questions"
+- TABLE_FROM options at line 111 (table); expression: .from("options"
+- TABLE_FROM traps at line 115 (table); expression: .from("traps"
+- TABLE_FROM assessment_settings at line 216 (table); expression: .from("assessment_settings"
+- TABLE_FROM leads at line 243 (table); expression: .from("leads"
+- TABLE_FROM sessions at line 271 (table); expression: .from("sessions"
+- TABLE_FROM assessment_results at line 284 (table); expression: .from("assessment_results"
+- TABLE_FROM scores at line 301 (table); expression: .from("scores"
+- TABLE_FROM assessment_types at line 334 (table); expression: .from("assessment_types"
+- TABLE_FROM assessment_families at line 349 (table); expression: .from("assessment_families"
+- TABLE_FROM leads at line 366 (table); expression: .from("leads"
+- TABLE_FROM assessment_families at line 387 (table); expression: .from("assessment_families"
+- TABLE_FROM assessment_types at line 398 (table); expression: .from("assessment_types"
+- TABLE_FROM assessment_session_access at line 417 (table); expression: .from("assessment_session_access"
+- TABLE_FROM assessment_families at line 463 (table); expression: .from("assessment_families"
+- TABLE_FROM assessment_types at line 472 (table); expression: .from("assessment_types"
+- TABLE_FROM assessment_families at line 489 (table); expression: .from("assessment_families"
+- TABLE_FROM assessment_types at line 499 (table); expression: .from("assessment_types"
+- TABLE_FROM assessment_families at line 542 (table); expression: .from("assessment_families"
+- TABLE_FROM assessment_users at line 551 (table); expression: .from("assessment_users"
+- TABLE_FROM assessment_session_access at line 576 (table); expression: .from("assessment_session_access"
+- TABLE_FROM assessment_types at line 606 (table); expression: .from("assessment_types"
+- TABLE_FROM sessions at line 627 (table); expression: .from("sessions"
+- TABLE_FROM leads at line 660 (table); expression: .from("leads"
+- RPC start_assessment_session at line 686 (RPC function); expression: .rpc("start_assessment_session"
+- RPC start_public_assessment_session at line 695 (RPC function); expression: .rpc("start_public_assessment_session"
+- TABLE_FROM leads at line 706 (table); expression: .from("leads"
+- TABLE_FROM assessment_session_access at line 710 (table); expression: .from("assessment_session_access"
+- TABLE_FROM sessions at line 733 (table); expression: .from("sessions"
+- TABLE_FROM answers at line 741 (table); expression: .from("answers"
+- TABLE_FROM assessment_session_access at line 747 (table); expression: .from("assessment_session_access"
+- TABLE_FROM assessment_results at line 752 (table); expression: .from("assessment_results"
+- RPC save_assessment_answer at line 781 (RPC function); expression: .rpc("save_assessment_answer"
+- TABLE_FROM sessions at line 807 (table); expression: .from("sessions"
+- TABLE_FROM assessment_session_access at line 826 (table); expression: .from("assessment_session_access"
+- TABLE_FROM sessions at line 840 (table); expression: .from("sessions"
+- TABLE_FROM assessment_results at line 851 (table); expression: .from("assessment_results"
+- TABLE_FROM leads at line 895 (table); expression: .from("leads"
+- RPC prepare_assessment_submission at line 926 (RPC function); expression: .rpc("prepare_assessment_submission"
+- TABLE_FROM assessment_results at line 940 (table); expression: .from("assessment_results"
+
+### supabase/functions/assessment-access/report-interpretation.mjs
+
+- Blob SHA: d50057cb926fd7c73db30081069af22a510c0316; 215 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-access/response-scorer.mts
+
+- Blob SHA: a46d99780bcdd6d9d4b83bc1950e698a3c224fbd; 206 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-access/result-persistence-projection.mts
+
+- Blob SHA: 491b0020c91ee2b8356f4bfd50ca77b93d1d7cb5; 38 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-access/structured-result.mts
+
+- Blob SHA: 28cc2c8f2318a123a00c947be03bd8a39556a529; 260 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### supabase/functions/assessment-config-release/index.ts
+
+- Blob SHA: 14c4f3b85a2dcd608bd76bb2a0bb191abf220f39; 314 lines.
+- RPC is_owner at line 33 (RPC function); expression: .rpc("is_owner"
+- TABLE_FROM assessment_config_release_settings at line 108 (table); expression: .from("assessment_config_release_settings"
+- TABLE_FROM assessment_config_releases at line 112 (table); expression: .from("assessment_config_releases"
+- TABLE_FROM assessment_families at line 113 (table); expression: .from("assessment_families"
+- TABLE_FROM assessment_config_releases at line 117 (table); expression: .from("assessment_config_releases"
+- RPC c03_require_ci_release_context at line 126 (RPC function); expression: .rpc("c03_require_ci_release_context"
+- RPC register_assessment_config_release_ci_secure at line 196 (RPC function); expression: .rpc("register_assessment_config_release_ci_secure"
+- RPC register_assessment_config_release_secure at line 203 (RPC function); expression: .rpc("register_assessment_config_release_secure"
+- RPC activate_existing_assessment_release_ci_secure at line 214 (RPC function); expression: .rpc("activate_existing_assessment_release_ci_secure"
+- RPC activate_existing_assessment_release_secure at line 222 (RPC function); expression: .rpc("activate_existing_assessment_release_secure"
+- RPC publish_assessment_config_release_secure at line 234 (RPC function); expression: .rpc(
+          "publish_assessment_config_release_secure"
+- RPC enable_assessment_config_release_gate_ci_secure at line 245 (RPC function); expression: .rpc("enable_assessment_config_release_gate_ci_secure"
+- RPC enable_assessment_config_release_gate_secure at line 251 (RPC function); expression: .rpc("enable_assessment_config_release_gate_secure"
+- TABLE_FROM assessment_config_releases at line 261 (table); expression: .from("assessment_config_releases"
+- RPC verify_assessment_config_release_secure at line 271 (RPC function); expression: .rpc(
+          "verify_assessment_config_release_secure"
