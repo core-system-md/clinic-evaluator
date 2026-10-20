@@ -1,3 +1,17 @@
+
+
+## CURRENT UPDATE — full public function EXECUTE-grant inventory — 2026-10-20
+
+Read-only catalog query over the 87 public functions/procedures found 65 SECURITY DEFINER functions; 2 functions show anon EXECUTE and neither is SECURITY DEFINER (`p2_assert_draft_version()` and `p2_assessment_type_immutability()`, both trigger functions); 53 functions show authenticated EXECUTE, 51 of those SECURITY DEFINER. `is_owner()` / `is_active_admin()` and their UUID overloads have no anon EXECUTE but all four have authenticated EXECUTE; review of the UUID overloads remains open under D-15. These are privilege observations only, not proof of exploitability, and no grants/function definitions were changed.
+
+Latest worksheet commit: `1d53cca7f4dc95ff911ff181066b30b8ebe2019c`.
+
+### Remaining current scope
+- D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS / NOT CLOSED.
+- Exact 18 initial-DDL candidates and full migration/caller scan are recorded in the worksheet. `anon` has no direct table privilege among the eight queried privileges for any of the 25 public tables; authenticated's direct table-level non-SELECT privileges are limited to MAINTAIN/REFERENCES/TRIGGER/TRUNCATE on `admin_audit_log` and `admin_capabilities` (those two also have SELECT).
+- Continue with the full per-function SECURITY DEFINER body/permission/caller review and read-only integrity checks; keep any unknown OPEN. Do not modify grants, policies, schema, or migration history; do not merge PR #120 or start WP-12.
+
+---
 # CURRENT UPDATE — D-05 WRAPPER-AWARE CALLER AND EFFECTIVE PRIVILEGE SCAN — 2026-10-20
 
 **Disposition: additional evidence recorded; D-05 remains OPEN / BLOCKING RECONCILIATION, WP-11 remains IN PROGRESS / NOT CLOSED, and WP-12 has NOT STARTED.**
