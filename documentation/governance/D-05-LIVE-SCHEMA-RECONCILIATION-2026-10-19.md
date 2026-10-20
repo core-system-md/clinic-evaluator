@@ -1754,3 +1754,113 @@ Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. This pass recognizes 
 
 - Blob SHA: fec5101c731d3918722ce2494275da8c6c1f355e; 905 lines.
 - No literal table/RPC call was found by the wrapper-aware patterns.
+
+## Application/code caller scan — batch 2 of 4 (wrapper-aware)
+
+Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. Full-text patterns include the project’s custom Supabase data wrapper.
+
+### admin/admin.js
+
+- Blob SHA: a05d0986cee7e72cdf72faea9edbbfb39a3d383d; 191 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### admin/assessment-editor-workspace.js
+
+- Blob SHA: a32af54389e9a1a38c5f7303b88453e08f7a2c4b; 517 lines.
+- TABLE_SELECT assessment_types at line 97 (table); expression: .select('assessment_types'
+- TABLE_SELECT axes at line 101 (table); expression: .select('axes'
+- TABLE_SELECT questions at line 102 (table); expression: .select('questions'
+- TABLE_REQUEST options at line 105 (table); expression: options?select=*&question_id=in.(
+- TABLE_SELECT assessment_families at line 107 (table); expression: .select('assessment_families'
+- RPC validate_assessment_version_secure at line 430 (RPC function); expression: rpc/validate_assessment_version_secure
+- RPC save_assessment_secure at line 464 (RPC function); expression: rpc/save_assessment_secure
+
+### admin/assessment-lifecycle.js
+
+- Blob SHA: 95d4c8a05847ff9e2844f176ce14c7239c76f57a; 474 lines.
+- RPC update_draft_axis_secure at line 33 (RPC function); expression: rpc/update_draft_axis_secure
+- RPC update_draft_question_secure at line 63 (RPC function); expression: rpc/update_draft_question_secure
+- RPC update_draft_option_secure at line 94 (RPC function); expression: rpc/update_draft_option_secure
+- RPC update_published_axis_content_secure at line 119 (RPC function); expression: rpc/update_published_axis_content_secure
+- RPC update_published_question_text_secure at line 134 (RPC function); expression: rpc/update_published_question_text_secure
+- RPC update_published_option_text_secure at line 149 (RPC function); expression: rpc/update_published_option_text_secure
+- RPC update_draft_question_text_secure at line 164 (RPC function); expression: rpc/update_draft_question_text_secure
+- TABLE_SELECT axes at line 185 (table); expression: .select('axes'
+- RPC save_axis_secure at line 187 (RPC function); expression: rpc/save_axis_secure
+- TABLE_SELECT questions at line 200 (table); expression: .select('questions'
+- RPC save_question_secure at line 202 (RPC function); expression: rpc/save_question_secure
+- RPC add_option_secure at line 225 (RPC function); expression: rpc/add_option_secure
+- RPC delete_draft_question_secure at line 248 (RPC function); expression: rpc/delete_draft_question_secure
+- RPC delete_draft_axis_secure at line 259 (RPC function); expression: rpc/delete_draft_axis_secure
+- RPC update_draft_calculation_config_secure at line 294 (RPC function); expression: rpc/update_draft_calculation_config_secure
+- RPC delete_option_secure at line 350 (RPC function); expression: rpc/delete_option_secure
+- RPC stop_public_assessment_secure at line 365 (RPC function); expression: rpc/stop_public_assessment_secure
+- RPC archive_assessment_secure at line 389 (RPC function); expression: rpc/archive_assessment_secure
+- RPC resume_public_assessment_secure at line 404 (RPC function); expression: rpc/resume_public_assessment_secure
+- RPC restore_public_assessment_secure at line 418 (RPC function); expression: rpc/restore_public_assessment_secure
+- RPC delete_assessment_draft_secure at line 443 (RPC function); expression: rpc/delete_assessment_draft_secure
+
+### admin/assessment-manager.js
+
+- Blob SHA: ef196c1e078db867ac9d3d5296567c756ecab394; 1329 lines.
+- TABLE_SELECT assessment_types at line 30 (table); expression: .select('assessment_types'
+- TABLE_SELECT assessment_families at line 31 (table); expression: .select('assessment_families'
+- RPC get_owner_admin_audit_secure at line 85 (RPC function); expression: rpc/get_owner_admin_audit_secure
+- TABLE_SELECT assessment_types at line 226 (table); expression: .select('assessment_types'
+- TABLE_SELECT assessment_families at line 227 (table); expression: .select('assessment_families'
+- TABLE_SELECT assessment_settings at line 230 (table); expression: .select('assessment_settings'
+- RPC get_admin_assessment_session_counts_secure at line 231 (RPC function); expression: rpc/get_admin_assessment_session_counts_secure
+- RPC toggle_assessment_auth_secure at line 282 (RPC function); expression: rpc/toggle_assessment_auth_secure
+- RPC generate_assessment_user_secure at line 315 (RPC function); expression: rpc/generate_assessment_user_secure
+- RPC save_assessment_secure at line 355 (RPC function); expression: rpc/save_assessment_secure
+- RPC create_assessment_version_secure at line 379 (RPC function); expression: rpc/create_assessment_version_secure
+- RPC publish_assessment_version_secure at line 396 (RPC function); expression: rpc/publish_assessment_version_secure
+- RPC save_axis_secure at line 514 (RPC function); expression: rpc/save_axis_secure
+- RPC save_question_secure at line 533 (RPC function); expression: rpc/save_question_secure
+- RPC import_assessment_secure at line 557 (RPC function); expression: rpc/import_assessment_secure
+- RPC update_option_secure at line 578 (RPC function); expression: rpc/update_option_secure
+- TABLE_SELECT options at line 590 (table); expression: .select('options'
+- RPC add_option_secure at line 600 (RPC function); expression: rpc/add_option_secure
+- RPC delete_option_secure at line 623 (RPC function); expression: rpc/delete_option_secure
+- TABLE_SELECT leads at line 640 (table); expression: .select('leads'
+- TABLE_SELECT admin_users at line 804 (table); expression: .select('admin_users'
+- TABLE_SELECT admin_capabilities at line 805 (table); expression: .select('admin_capabilities'
+- RPC update_admin_assistant_profile_secure at line 892 (RPC function); expression: rpc/update_admin_assistant_profile_secure
+- RPC grant_admin_capability_secure at line 901 (RPC function); expression: rpc/grant_admin_capability_secure
+- RPC revoke_admin_capability_secure at line 909 (RPC function); expression: rpc/revoke_admin_capability_secure
+- RPC set_admin_active_secure at line 933 (RPC function); expression: rpc/set_admin_active_secure
+- TABLE_SELECT leads at line 1139 (table); expression: .select('leads'
+- RPC get_admin_report_sessions_secure at line 1153 (RPC function); expression: rpc/get_admin_report_sessions_secure
+- TABLE_SELECT scores at line 1157 (table); expression: .select('scores'
+- TABLE_SELECT axes at line 1158 (table); expression: .select('axes'
+- RPC get_admin_assessment_result_secure at line 1173 (RPC function); expression: rpc/get_admin_assessment_result_secure
+
+### assets/js/app.js
+
+- Blob SHA: 5599aea059681931665d840138595dfc3d80cc14; 1095 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### assets/js/report-interpretation.js
+
+- Blob SHA: 6b3e06eae8f6c2d1eecb61cdeb4e70145fbb48ba; 242 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### assets/js/report-validation.js
+
+- Blob SHA: 6b63fd388474bd41c06fb614bdb8b2764f29a7c8; 206 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### assets/js/supabase-client.js
+
+- Blob SHA: bfaaddd4956d1e8b04bfae91ce72ee2b9fbd862c; 158 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### clinic-performance.html
+
+- Blob SHA: 9f09482fef452d0f14e5edd8720ac27a107069a8; 660 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### comprehensive-clinic-assessment.html
+
+- Blob SHA: f63fd08f28da683cd82319fb18b20f6cb39501fd; 689 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
