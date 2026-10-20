@@ -216,3 +216,8 @@ Initial CREATE TABLE declarations were located for seven live tables: `admin_aud
 ### D-05 source-body comparison with PR #120 — 2026-10-20
 
 At open PR #120 head `47c0a79dbee108149f9431ff4e86ac120c420f7a`, the candidate's `20261018075528` service-role migration SQL body is identical after normalization to main's `20261018100000` file. The candidate's `20261018075855` verifier SQL body matches main's source-only `20261018110000` body after comment/whitespace normalization (one explanatory comment differs). The live ledger records versions/names, not the applied historical SQL body, so exact applied-body provenance remains unproven. PR #120 remains unmerged; no history rewrite, migration application or production change occurred. Keep D-05 OPEN and do not start WP-12.
+
+
+## D-05 line-referenced migration DDL index — 2026-10-20
+
+New artifact: `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` (commit `b1ffbdf73540e3c6da2e24c3b929ecfbb63c57f3`). All 56 tracked migration files at pinned tree `312c60907649aa62de605937a0a82cf5d3fe3b75` were retrieved, their UTF-8 byte sizes checked against Git blob sizes, and line-level table-owned DDL statements indexed with file SHA and line number. Current main has the same migration paths/blob SHAs. This completes the tracked-file DDL search, not the entire D-05 acceptance review: dynamic SQL, function body/authorization review, live object-by-object semantic reconciliation, external schema provenance, and exact historical applied SQL provenance remain OPEN. D-05 remains OPEN; WP-11 remains in progress; WP-12 not started.
