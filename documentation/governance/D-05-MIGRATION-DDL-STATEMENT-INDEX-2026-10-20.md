@@ -277,3 +277,31 @@
 
 - Blob SHA: `2a92d6728c69de2e25301af6d155aca6d8e6c7ff`; tree bytes: 753; retrieved UTF-8 bytes: 753.
 - No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+
+## Files 41–45 of 56
+
+### `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+
+- Blob SHA: `e6f6141f8be110bb737c479dfa93ca84ab40205b`; tree bytes: 12354; retrieved UTF-8 bytes: 12354.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+
+- Blob SHA: `3b9f4b5589ea8adfae51de4a003838bccee527af`; tree bytes: 5524; retrieved UTF-8 bytes: 5524.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+
+- Blob SHA: `7a077fce398ee99008e433148fbe808047706f54`; tree bytes: 3406; retrieved UTF-8 bytes: 3406.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261004102305_p5_ev_mapping_shape_fix.sql`
+
+- Blob SHA: `9202b9211cd03a0984d6633bd5f82cb3ec9c31db`; tree bytes: 4053; retrieved UTF-8 bytes: 4053.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql`
+
+- Blob SHA: `2e01f82a7824b56e9495695a4347802dc1bc7070`; tree bytes: 7915; retrieved UTF-8 bytes: 7915.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
