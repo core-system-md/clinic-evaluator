@@ -1,5 +1,17 @@
 
 
+## CURRENT UPDATE — read-only FK orphan and cross-table consistency checks — 2026-10-20
+
+Latest worksheet commit: `e573e1113de1e8e6f324498897b508c4b7860d52`.
+
+- Read-only catalog scan enumerated 38 public-source foreign keys; all 38 are validated. A generated read-only `NOT EXISTS` query checked every FK using its source/target columns. All 38 returned zero orphan rows.
+- Eight additional cross-table checks returned zero violations: family current-version pointer vs family identity; family current-release pointer vs current version; release family/version identity; question/axis version consistency; session pinned release/version consistency; access/session assessment-type consistency; answer/session lead consistency when both non-null; score/session lead consistency when both non-null.
+- These results close only the bounded queries listed in the worksheet; they do not prove every semantic invariant or all application behavior. Null source FK fields are excluded under standard MATCH SIMPLE behavior.
+- No data/DDL/grant/policy/function/migration changes were made. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS / NOT CLOSED; WP-12 remains NOT STARTED.
+
+---
+
+
 ## CURRENT UPDATE — full public function EXECUTE-grant inventory — 2026-10-20
 
 Read-only catalog query over the 87 public functions/procedures found 65 SECURITY DEFINER functions; 2 functions show anon EXECUTE and neither is SECURITY DEFINER (`p2_assert_draft_version()` and `p2_assessment_type_immutability()`, both trigger functions); 53 functions show authenticated EXECUTE, 51 of those SECURITY DEFINER. `is_owner()` / `is_active_admin()` and their UUID overloads have no anon EXECUTE but all four have authenticated EXECUTE; review of the UUID overloads remains open under D-15. These are privilege observations only, not proof of exploitability, and no grants/function definitions were changed.
