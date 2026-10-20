@@ -1688,3 +1688,69 @@ Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. This pass applies ful
 - RPC call: enable_assessment_config_release_gate_ci_secure at line 245.
 - RPC call: enable_assessment_config_release_gate_secure at line 251.
 - RPC call: verify_assessment_config_release_secure at line 271.
+
+## Application/code caller scan — batch 1 of 4 (wrapper-aware)
+
+Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. This pass recognizes custom supabase-client methods (select/insert/update/delete/upsert/request), direct Supabase .from/.rpc calls, and REST paths, including multi-line call syntax. Test/workflow scripts are separately identified by path.
+
+### .github/scripts/c02-value70-live-e2e-contract.test.js
+
+- Blob SHA: ad5e02786504db77cd87126622d5a158868b57af; 70 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### .github/scripts/c02-value70-live-e2e.mjs
+
+- Blob SHA: 40601077572d4f7e5ec6db1dd090971e7962e7f8; 171 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### .github/scripts/c03-github-oidc-token.mjs
+
+- Blob SHA: 8cbf044d7debf8c6e76291b7abe130e0b4046c34; 25 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### .github/scripts/c03-oidc-preflight.ts
+
+- Blob SHA: 8656a409ea903ae9808f7797c8d8e6e8536b8cdc; 30 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### .github/scripts/c03-production-e2e-cleanup.mjs
+
+- Blob SHA: 3e7b036e6fd4546529f9c4494cdaf485f19af811; 149 lines.
+- TABLE_REST_FETCH assessment_config_release_settings at line 57 (table); expression: /rest/v1/assessment_config_release_settings
+- TABLE_REST_FETCH leads at line 62 (table); expression: /rest/v1/leads
+- TABLE_REST_FETCH sessions at line 72 (table); expression: /rest/v1/sessions
+- TABLE_REST_FETCH leads at line 85 (table); expression: /rest/v1/leads
+- TABLE_REST_FETCH assessment_session_access at line 95 (table); expression: /rest/v1/assessment_session_access
+- TABLE_REST_FETCH leads at line 106 (table); expression: /rest/v1/leads
+- TABLE_REST_FETCH sessions at line 107 (table); expression: /rest/v1/sessions
+- TABLE_REST_FETCH assessment_results at line 108 (table); expression: /rest/v1/assessment_results
+- TABLE_REST_FETCH answers at line 109 (table); expression: /rest/v1/answers
+- TABLE_REST_FETCH scores at line 110 (table); expression: /rest/v1/scores
+- TABLE_REST_FETCH historical_snapshots at line 111 (table); expression: /rest/v1/historical_snapshots
+- TABLE_REST_FETCH assessment_session_access at line 112 (table); expression: /rest/v1/assessment_session_access
+- TABLE_REST_FETCH assessment_session_access at line 113 (table); expression: /rest/v1/assessment_session_access
+
+### .github/scripts/c03-production-release.mjs
+
+- Blob SHA: 4c5ec10f3c76e608e16e35a23c8305e67517ef89; 209 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### .github/scripts/c03-release-attestation.mjs
+
+- Blob SHA: 61a246f1791e11e959f18efeaded5fe7193f6621; 208 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### admin-reception-assessment.html
+
+- Blob SHA: 8c05c5d5950fb3062ef0df45d6505844d34e8386; 688 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
+
+### admin/admin-session.js
+
+- Blob SHA: cb7e98a9ef4beed75fafa8756277141f69e6d881; 205 lines.
+- TABLE_REST_FETCH admin_users at line 68 (table); expression: /rest/v1/admin_users
+
+### admin/admin.html
+
+- Blob SHA: fec5101c731d3918722ce2494275da8c6c1f355e; 905 lines.
+- No literal table/RPC call was found by the wrapper-aware patterns.
