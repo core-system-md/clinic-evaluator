@@ -867,3 +867,74 @@ The current tracked file `supabase/migrations/20261001190000_p0_security_closure
 A separate read-only inspection of PR #120 (`wp-11/least-privilege-reconciliation`) found that its description claims the earlier migration identity/source/order discrepancy has been reconciled on that branch: source was restored for applied IDs `20261018075528` and `20261018075855`, applied ID `20261018100000` remains distinct, and source-only/unapplied `20261018110000` is removed on the candidate branch. The branch proposes `20261018120000_wp11_security_database_reconciliation.sql` as a new, unapplied migration. PR #120 remains **OPEN / READY FOR REVIEW / UNMERGED**; none of those branch changes are part of `main` or Production as a result of this inspection.
 
 Therefore the status must be stated per reference: **main** still needs its migration source/ledger discrepancy reconciled against live migration records; **PR #120 branch** claims to have corrected that migration identity/source/order issue but still has not closed the separate empty-database baseline gap. This worksheet does not merge the PR, apply its proposed migration, or authorize any Production mutation. The branch's isolated CI results are not Production evidence.
+## Full migration-file scan — batch 1 of 5
+
+Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in full: 12/56. The blob SHA values are from the Git tree; all text was retrieved from the raw URL for the pinned commit. This batch appends exact line-reference categories per table; no file was modified.
+
+### `supabase/migrations/20260930233955_add_server_scoring_rpc.sql`
+
+- Git blob SHA: `e2e332e9ea3ad385ae4437eede5305d8df84f673`; 4 lines; 182 characters; historical marker file.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20260930234340_unify_public_and_protected_assessment_access.sql`
+
+- Git blob SHA: `e2e332e9ea3ad385ae4437eede5305d8df84f673`; 4 lines; 182 characters; historical marker file.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20260930234428_preserve_access_for_idempotent_completion.sql`
+
+- Git blob SHA: `e2e332e9ea3ad385ae4437eede5305d8df84f673`; 4 lines; 182 characters; historical marker file.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20260930234953_pin_assessment_version_on_session.sql`
+
+- Git blob SHA: `e2e332e9ea3ad385ae4437eede5305d8df84f673`; 4 lines; 182 characters; historical marker file.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20260930235404_admin_identity_foundation.sql`
+
+- Git blob SHA: `e2e332e9ea3ad385ae4437eede5305d8df84f673`; 4 lines; 182 characters; historical marker file.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261001061605_admin_dashboard_auth_hardening.sql`
+
+- Git blob SHA: `1b703cd7cf71437cebbacfac35ffb8d0c239c6b2`; 72 lines; 2207 characters; content scanned.
+- `public.admin_users`: SQL_REF line 14.
+
+### `supabase/migrations/20261001080710_p1_pg_net_client_execute_revoke.sql`
+
+- Git blob SHA: `78ec66b61baed7998fb9bef4ba64f76f59a10739`; 18 lines; 605 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261001080714_p1_revoke_client_trigger_helper.sql`
+
+- Git blob SHA: `105059bf6e02a465691a41c6a69fadd3fd1cb971`; 3 lines; 164 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261001080806_p1_relocate_pg_net_to_extensions.sql`
+
+- Git blob SHA: `0255f8b80332a1cd06887f4e1f94974b27687574`; 6 lines; 224 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261001083056_p1_e_fix_answers_upsert_conflict.sql`
+
+- Git blob SHA: `837394d11f94420e14433936fbcabe7e1979636e`; 7 lines; 270 characters; content scanned.
+- `public.answers`: ALTER_TABLE line 4.
+
+### `supabase/migrations/20261001100633_p2_assessment_family_versions.sql`
+
+- Git blob SHA: `12d04ecf5f414df2a76381635b78cbdcf1dbcb80`; 442 lines; 15465 characters; content scanned.
+- `public.assessment_assets`: TRIGGER line 146; SQL_REF lines 336,344.
+- `public.assessment_families`: CREATE_TABLE line 7; SQL_REF lines 20,29,68,387,420; FK_REFERENCE line 50; ALTER_TABLE lines 59,62,438; GRANT line 439.
+- `public.assessment_types`: ALTER_TABLE lines 16,42,45,48; SQL_REF lines 22,27,36,71,80,98,230,245,250,373,405,412; FK_REFERENCE line 65; TRIGGER line 207.
+- `public.axes`: TRIGGER line 121; SQL_REF lines 270,273,279.
+- `public.insights_mapping`: TRIGGER line 141; SQL_REF lines 324,333.
+- `public.options`: TRIGGER line 131; SQL_REF lines 299,306.
+- `public.questions`: SQL_REF lines 109,284,287,295,393; TRIGGER line 126.
+- `public.sessions`: SQL_REF line 77.
+- `public.traps`: TRIGGER line 136; SQL_REF lines 309,321.
+
+### `supabase/migrations/20261001100833_p2_admin_status_guard.sql`
+
+- Git blob SHA: `58c25faeea482279e9cd1ddd85ee8be51e8c77f9`; 58 lines; 1532 characters; content scanned.
+- `public.assessment_types`: SQL_REF lines 20,43.
