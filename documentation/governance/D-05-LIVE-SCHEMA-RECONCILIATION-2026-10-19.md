@@ -2177,3 +2177,72 @@ The two functions currently reported as EXECUTE-callable by `anon` are `public.p
 
 `public.is_owner()` and `public.is_active_admin()` plus their UUID overloads are SECURITY DEFINER. `anon` EXECUTE is false on all four. `authenticated` EXECUTE is true on all four; the UUID overloads accept a caller-supplied UUID and are the documented D-15 review point. No function grants were changed. This query summarizes privileges, not the correctness of each function's authorization logic or search path; all 65 SECURITY DEFINER functions and their full reachable callers require a fuller function-level review before WP-11 can close.
 
+
+
+## Read-only referential and cross-table integrity checks — 2026-10-20
+
+### Foreign-key orphan scan
+
+A read-only query enumerated all 38 foreign-key constraints whose source table is in `public`; all 38 are `convalidated=true`. A second read-only query was generated from the live catalog metadata and executed one `NOT EXISTS` check per constraint. For each FK it counted source rows where all FK columns were non-null and no target row matched all referenced columns. **Result: 38/38 checks returned zero orphan rows; 0 unvalidated FKs.** The full per-constraint output (constraint name, source table, target table, orphan count) follows:
+
+| Constraint | Source table | Target table | Orphan rows |
+|---|---|---|---:|
+| `admin_audit_log_actor_user_id_fkey` | `admin_audit_log` | `auth.users` | 0 |
+| `admin_audit_log_family_id_fkey` | `admin_audit_log` | `public.assessment_families` | 0 |
+| `admin_capabilities_granted_by_fkey` | `admin_capabilities` | `auth.users` | 0 |
+| `admin_capabilities_user_id_fkey` | `admin_capabilities` | `auth.users` | 0 |
+| `admin_users_created_by_fkey` | `admin_users` | `auth.users` | 0 |
+| `admin_users_user_id_fkey` | `admin_users` | `auth.users` | 0 |
+| `answers_lead_id_fkey` | `answers` | `public.leads` | 0 |
+| `answers_session_id_fkey` | `answers` | `public.sessions` | 0 |
+| `assessment_assets_assessment_type_id_fkey` | `assessment_assets` | `public.assessment_types` | 0 |
+| `assessment_config_release_settings_enabled_by_fkey` | `assessment_config_release_settings` | `auth.users` | 0 |
+| `assessment_config_releases_assessment_type_id_fkey` | `assessment_config_releases` | `public.assessment_types` | 0 |
+| `assessment_config_releases_created_by_fkey` | `assessment_config_releases` | `auth.users` | 0 |
+| `assessment_config_releases_family_id_fkey` | `assessment_config_releases` | `public.assessment_families` | 0 |
+| `assessment_families_created_by_fkey` | `assessment_families` | `auth.users` | 0 |
+| `assessment_families_current_published_version_fkey` | `assessment_families` | `public.assessment_types` | 0 |
+| `assessment_families_current_release_id_fkey` | `assessment_families` | `public.assessment_config_releases` | 0 |
+| `assessment_results_assessment_type_id_fkey` | `assessment_results` | `public.assessment_types` | 0 |
+| `assessment_results_session_id_fkey` | `assessment_results` | `public.sessions` | 0 |
+| `assessment_session_access_assessment_type_id_fkey` | `assessment_session_access` | `public.assessment_types` | 0 |
+| `assessment_session_access_assessment_user_id_fkey` | `assessment_session_access` | `public.assessment_users` | 0 |
+| `assessment_session_access_session_id_fkey` | `assessment_session_access` | `public.sessions` | 0 |
+| `assessment_types_family_id_fkey` | `assessment_types` | `public.assessment_families` | 0 |
+| `assessment_types_parent_id_fkey` | `assessment_types` | `public.assessment_types` | 0 |
+| `assessment_users_assessment_key_fkey` | `assessment_users` | `public.assessment_settings` | 0 |
+| `axes_assessment_type_id_fkey` | `axes` | `public.assessment_types` | 0 |
+| `historical_snapshots_session_id_fkey` | `historical_snapshots` | `public.sessions` | 0 |
+| `insights_mapping_assessment_type_id_fkey` | `insights_mapping` | `public.assessment_types` | 0 |
+| `leads_assessment_type_id_fkey` | `leads` | `public.assessment_types` | 0 |
+| `options_question_id_fkey` | `options` | `public.questions` | 0 |
+| `questions_assessment_type_id_fkey` | `questions` | `public.assessment_types` | 0 |
+| `questions_axis_id_fkey` | `questions` | `public.axes` | 0 |
+| `scores_lead_id_fkey` | `scores` | `public.leads` | 0 |
+| `scores_session_id_fkey` | `scores` | `public.sessions` | 0 |
+| `sessions_assessment_release_id_fkey` | `sessions` | `public.assessment_config_releases` | 0 |
+| `sessions_assessment_type_id_fkey` | `sessions` | `public.assessment_types` | 0 |
+| `sessions_assessment_user_id_fkey` | `sessions` | `public.assessment_users` | 0 |
+| `sessions_lead_id_fkey` | `sessions` | `public.leads` | 0 |
+| `traps_assessment_type_id_fkey` | `traps` | `public.assessment_types` | 0 |
+
+### Additional semantic cross-table checks
+
+Eight additional read-only relational consistency checks ran against the current configuration/content tables and any operational rows present. All returned **0 violations**:
+
+| Check | Violations |
+|---|---:|
+| Family current published-version pointer references a version belonging to a different family | 0 |
+| Family current release pointer is misaligned with its family/current-published-version | 0 |
+| Release family / referenced assessment-family / assessment-version identity mismatch | 0 |
+| Question assessment-version differs from its linked axis assessment-version | 0 |
+| Session assessment version differs from its pinned release's assessment type | 0 |
+| Assessment-session access assessment type differs from linked session assessment type | 0 |
+| Answer lead differs from linked session lead when both are populated | 0 |
+| Score lead differs from linked session lead when both are populated | 0 |
+
+These checks cover the explicit joins listed above; they are not a general semantic-validity proof of every column, configuration digest, registry, policy, or function. Null FK values are excluded according to standard `MATCH SIMPLE` FK behavior. No row, schema, role, grant, policy or migration was changed.
+
+### Integrity-check disposition
+
+The current live FK and these eight targeted consistency checks show no orphan rows or mismatches in their bounded scope. Continue to treat semantic checks not covered by those query predicates as OPEN. The result does not resolve missing initial-DDL provenance, the main/live migration ID mismatch, dynamic/external code dependencies, or the effective-RLS test gate. D-05 and WP-11 remain OPEN.
