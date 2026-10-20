@@ -2590,3 +2590,32 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 51–60 of 65
 
 - Blob SHA: 97826e39306a828c3416a1a70efa0aab774dce08; 125 lines; 6553 bytes; classification: TEST.
 - Table-name references: axes@27,42,44; scores@35,44,58; assessment_results@116
+
+## Repository-wide code/reference scan outside the primary runtime — batch 7 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 61–65 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk.
+
+### tests/wp-05-report-interpretation.test.mjs
+
+- Blob SHA: db98698c4e4a43dbb74914f9f4b64debf25d8a65; 204 lines; 10248 bytes; classification: TEST.
+- Table-name references: scores@40,132,136; axes@42,93,94; assessment_types@116; leads@174,175
+
+### tests/wp-06-report-validation.test.mjs
+
+- Blob SHA: dbd75f8f60dc02ed4f595b622e1bee7379e4ccce; 159 lines; 7340 bytes; classification: TEST.
+- Table-name references: scores@27; axes@29
+
+### tests/wp-07-report-text-linkage.test.mjs
+
+- Blob SHA: 4fa2cf1f79d2a0f4be01006a3f3b229346dbd446; 74 lines; 4170 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/wp-08-v1-assessment-reconstruction.test.mjs
+
+- Blob SHA: 1bc6629899be1cdfcfa0336b4c37dab0730aa798; 117 lines; 6504 bytes; classification: TEST.
+- Table-name references: axes@13,15,18; questions@14,19,20; options@20,21,110; assessment_results@28; assessment_session_access@29; assessment_types@32,37,110; answers@103; sessions@103; insights_mapping@105,110; assessment_assets@110; traps@110; assessment_families@114
+
+### tests/wp-09-obsolete-engine-references.test.mjs
+
+- Blob SHA: 72a1c8d2209885622942c9f9fd371a9fc254766d; 103 lines; 3107 bytes; classification: TEST.
+- Table-name references: none found in text scan.
