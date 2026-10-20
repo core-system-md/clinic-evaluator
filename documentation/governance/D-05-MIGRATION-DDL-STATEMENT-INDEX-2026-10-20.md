@@ -305,3 +305,31 @@
 
 - Blob SHA: `2e01f82a7824b56e9495695a4347802dc1bc7070`; tree bytes: 7915; retrieved UTF-8 bytes: 7915.
 - No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+
+## Files 46–50 of 56
+
+### `supabase/migrations/20261004115737_p5_lifecycle_immutability_compat.sql`
+
+- Blob SHA: `ac5cb1fcc0af2126da64e89df9efe7ae6fd4f588`; tree bytes: 2123; retrieved UTF-8 bytes: 2123.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261004145553_p5_lifecycle_trigger_final_fix.sql`
+
+- Blob SHA: `7334be7fc1093bd3858829bc075dfbf119b55ee4`; tree bytes: 4260; retrieved UTF-8 bytes: 4260.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261005143243_p5_public_options_projection_recovery.sql`
+
+- Blob SHA: `2b965619f38f28ea0751bcdc578c7eea3729a64b`; tree bytes: 1478; retrieved UTF-8 bytes: 1478.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261009164918_canonical_axis_weights.sql`
+
+- Blob SHA: `6715d7cedf8293ebf1686a4f1335eddb4502f3ee`; tree bytes: 8472; retrieved UTF-8 bytes: 8472.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261009164951_structured_result_authority.sql`
+
+- Blob SHA: `c5a48db426707f937100b65f620d996061cadb23`; tree bytes: 19261; retrieved UTF-8 bytes: 19261.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
