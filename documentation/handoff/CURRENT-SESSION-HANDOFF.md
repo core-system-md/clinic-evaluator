@@ -1,3 +1,26 @@
+# CURRENT UPDATE — D-05 WRAPPER-AWARE CALLER AND EFFECTIVE PRIVILEGE SCAN — 2026-10-20
+
+**Disposition: additional evidence recorded; D-05 remains OPEN / BLOCKING RECONCILIATION, WP-11 remains IN PROGRESS / NOT CLOSED, and WP-12 has NOT STARTED.**
+
+## New worksheet evidence
+- Worksheet: `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md`.
+- Latest effective-privilege evidence commit: `db98b7145bf2202692b3254546ad52d13cda687c`.
+- The wrapper-aware caller scan has now covered 40 tracked browser/admin/Edge/Pages/release/cleanup source files. It recognizes custom `supabase.select/request` wrappers, direct `.from()/.rpc()` calls, literal REST endpoints, and line-break-spanning calls. It logs per-file blob SHA and line references; early line-local zero-hit results are explicitly superseded where the later wrapper-aware scan finds calls.
+- Key callers traced: `assessment-access/engine.ts` reads assessment_types, axes, questions, traps, assessment_families, options, sessions, answers, assessment_config_release_settings, assessment_config_releases; `assessment-access/index.ts` uses assessment_session_access, assessment_types, axes, questions, options, traps, assessment_settings, leads, sessions, assessment_results, scores, assessment_families, assessment_users, answers and the RPCs for session start/save/prepare. The completion RPC is selected dynamically at line 1004 based on whether an assessment user is present; `complete_p4_assessment_from_result` and `complete_p4_public_assessment_from_result` are called via `supabase.rpc(rpcName, rpcPayload)` at line 1032. The active admin manager and editor paths, assessment lifecycle module, admin identity path, release handler, and scoped cleanup script references are separately itemized in the worksheet.
+- Absence of a literal direct caller for `experience_multipliers`, `specialty_profiles`, `team_capacity_factors`, `assessment_assets`, `historical_snapshots`, or `insights_mapping` in the scanned active runtime paths is not evidence that those objects are unused or safe to delete. Indirect stored-function, dynamic SQL, test, or external callers still require review.
+
+## Fresh read-only Production privilege evidence — do not repair in this session
+- Effective `has_table_privilege` checks on `public` found only `admin_audit_log` and `admin_capabilities` among the scanned tables with the flagged privileges. `authenticated` has SELECT plus direct `MAINTAIN`, `REFERENCES`, `TRIGGER`, and `TRUNCATE`; it does not have INSERT/UPDATE/DELETE on those two tables. `anon` has no direct SELECT/INSERT/UPDATE/DELETE on those two tables. This is the specific live D-08 observation, not a permission change.
+- `public.is_owner(uuid)` and `public.is_active_admin(uuid)` are `SECURITY DEFINER` functions and still have EXECUTE for `authenticated` in the live catalog. The zero-argument helpers `is_owner()` and `is_active_admin()` also have authenticated EXECUTE and are called by active policy code. The UUID overload results support the bounded D-15 concern but do not authorize modifications in this read-only task.
+- No table privileges, function grants, RLS policies, schema, data, migrations, Edge Functions, branches, or PR states were changed; no test harness or operational cleanup script was run.
+
+## Remaining D-05/WP-11 work and exact continuation
+1. Find and validate an authoritative external/original schema archive if one exists; none was found in the tracked repository tree, and ADR-003 is only a baseline decision, not the artifact.
+2. Keep the exact `main` migration identity discrepancy open: 56 source migration files versus 57 live version/name records; live-only source identities `20261018075528` and `20261018075855`; main-only source file `20261018110000`. PR #120 contains a source reconciliation candidate but is OPEN / READY FOR REVIEW / UNMERGED and is not part of main/Production.
+3. Complete exact caller/dependency expansion beyond the 40 source files and statically identified paths, including stored function definitions, dynamic SQL, RPC EXECUTE grants, and external callers. Then run justified read-only integrity checks and complete effective-role/RLS verification.
+4. Keep the 18-table missing-initial-CREATE result as proven within the current 56 tracked migrations, but keep the original-schema provenance gap OPEN. No production-derived baseline, deletion/recreation, migration history rewrite/application, privilege/policy repair, or WP-12 start.
+
+---
 # CURRENT SESSION HANDOFF — D-05 FULL MIGRATION FILE SCAN — 2026-10-20
 
 **Current disposition: full tracked SQL migration scan completed; D-05 remains OPEN / BLOCKING RECONCILIATION. WP-11 remains IN PROGRESS / NOT CLOSED. WP-12 has NOT STARTED.** This checkpoint is the current continuation point and supersedes earlier immediate-next-action statements below when they refer to the initial table-by-table inventory or the first migration-source scan. It does not authorize Production changes, a baseline, migration-history changes, or PR merge.
