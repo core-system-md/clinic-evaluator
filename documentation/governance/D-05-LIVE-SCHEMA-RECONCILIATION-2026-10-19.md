@@ -2078,3 +2078,44 @@ This pass scanned all 40 tracked files in the active browser/admin/Edge Function
 ### Caller-scan boundary
 
 The above is a caller trace for the 40 tracked application/entrypoint/operational files specified by directory and extension in the main tree at the pinned commit. It does not include every test, historical/reference fixture, Markdown example, external caller, dynamically named table, or runtime-generated SQL expression. Those are separated from active application calls in the notes above. Before any unused-object or least-privilege conclusion, expand any indirect path with a reachable caller to its full function body and effective privileges. No tests were executed and the operational cleanup script was not run as part of this read-only caller scan.
+
+
+## Effective table/function privilege evidence — read-only Supabase catalog query — 2026-10-20
+
+### Effective table grants for exposed-role identities
+
+A read-only `has_table_privilege` query checked direct effective privileges for roles `anon` and `authenticated` across the 25 public tables. The query filtered to tables with either direct `anon` SELECT/INSERT/UPDATE/DELETE, or `authenticated` MAINTAIN/REFERENCES/TRIGGER/TRUNCATE/INSERT/UPDATE/DELETE. Only two tables were returned:
+
+| Table | anon SELECT/INSERT/UPDATE/DELETE | authenticated SELECT | authenticated INSERT/UPDATE/DELETE | authenticated MAINTAIN | authenticated REFERENCES | authenticated TRIGGER | authenticated TRUNCATE |
+|---|---|---:|---|---:|---:|---:|---:|
+| `public.admin_audit_log` | all false | true | all false | true | true | true | true |
+| `public.admin_capabilities` | all false | true | all false | true | true | true | true |
+
+The filtered query returned no other public table with these directly granted effective privileges. `service_role` retains its expected broad table privileges (queried separately while building the per-table inventory). RLS remains enabled for all public tables; this does not neutralize privileged table-level operations such as TRUNCATE. This is live **finding evidence**, not permission to repair it here. It matches the D-08 privilege issue addressed by the unmerged PR #120 candidate; the bounded candidate has not been merged/applied, and no grant was changed in this session.
+
+### Effective execute privilege on the existing admin identity helpers
+
+Read-only catalog evidence for `SECURITY DEFINER` helpers:
+
+| Function | SECURITY DEFINER / search_path | anon EXECUTE | authenticated EXECUTE | service_role EXECUTE |
+|---|---|---:|---:|---:|
+| `public.is_active_admin()` | true; `search_path=public, pg_temp` | false | true | true |
+| `public.is_active_admin(uuid)` | true; `search_path=""` | false | true | true |
+| `public.is_owner()` | true; `search_path=public, pg_temp` | false | true | true |
+| `public.is_owner(uuid)` | true; `search_path=""` | false | true | true |
+
+The current active policies in the live catalog can use the zero-argument identity helpers; the UUID overloads accept an arbitrary identity argument. Authenticated EXECUTE remains true for these UUID overloads in Production at this query time, which is an evidenced D-15 authorization-boundary concern already scoped by PR #120. No policy/grant/function was modified in this session. The correctness of all 87 public stored functions and their effective grants is not established by this four-function sample; that broader review remains OPEN.
+
+### Dynamic authoritative completion RPC caller confirmed
+
+A line-range recheck of `supabase/functions/assessment-access/index.ts:970–1060` shows that the completion RPC is chosen dynamically by `access.assessment_user_id`:
+
+- `complete_p4_assessment_from_result` for protected assessment users.
+- `complete_p4_public_assessment_from_result` for the public flow.
+- The dynamic caller is `supabase.rpc(rpcName, rpcPayload)` at line 1032 and persists the server-produced Structured Result.
+
+The wrapper-aware caller scan's static-literal RPC list did not find this dynamic RPC name at the call expression. The continuation code has now been read directly and this dynamic dependency is recorded here. Continue treating regex scans as navigation aids, not a complete program analysis.
+
+### Disposition
+
+D-05 remains **OPEN / BLOCKING RECONCILIATION**. WP-11 remains IN PROGRESS and not closed. The live excess grants on `admin_audit_log` and `admin_capabilities`, plus authenticated EXECUTE on `is_owner(uuid)` and `is_active_admin(uuid)`, are evidenced, but no corrections have been applied. PR #120 remains OPEN / READY FOR REVIEW / UNMERGED; its proposed grant/policy migration is not part of main or Production. Do not modify privileges or apply migrations within this read-only reconciliation. WP-12 has NOT STARTED.
