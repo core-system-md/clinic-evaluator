@@ -394,3 +394,15 @@
 
 - Blob SHA: `c20231aad7f239c8ff0b773eb4a16bd0dfd63972`; tree bytes: 2292; retrieved UTF-8 bytes: 2292.
 - No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+
+## File 56 of 56
+
+### `supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql`
+
+- Blob SHA: `538ec2ac2bedd1f9886dac45600969c0a1a3c3bb`; tree bytes: 6480; retrieved UTF-8 bytes: 6480.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+## Scan completion note
+
+All 56 tracked migration file paths at pinned tree `312c60907649aa62de605937a0a82cf5d3fe3b75` were retrieved and scanned for line-level table-owned DDL patterns. Retrieved UTF-8 byte counts were checked against Git tree blob sizes, including the large WP-08 reconstruction migration. This index supplements the live per-table register; it is not a proof of historical applied SQL bodies because the Production ledger exposes only version/name. Dynamic SQL/function dependency analysis and external/original schema provenance remain separate OPEN acceptance items.
