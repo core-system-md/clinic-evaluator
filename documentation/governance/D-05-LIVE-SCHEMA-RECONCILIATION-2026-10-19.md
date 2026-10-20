@@ -2372,3 +2372,57 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 11–20 of 65
 
 - Blob SHA: 0b9500d929c8644a154c44d14899cce6382c93ab; 85 lines; 4033 bytes; classification: TEST.
 - Table-name references: options@10,11,36; questions@10,11,35
+
+## Repository-wide code/reference scan outside the primary runtime — batch 3 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 21–30 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk.
+
+### tests/c02-answer-value-compat.test.mjs
+
+- Blob SHA: b4031bdbbb73bcac51aef78b90a109f991215112; 32 lines; 1532 bytes; classification: TEST.
+- Table-name references: answers@11,13
+
+### tests/c03-config-digest-coverage.test.js
+
+- Blob SHA: c461c0d3245c33d95c3a3e9e0ac5a79dc613c043; 235 lines; 9641 bytes; classification: TEST.
+- Table-name references: axes@24,120,138; questions@28,121,141; options@33,109,122; traps@37,94,105
+
+### tests/c03-edge-handler-regression.test.ts
+
+- Blob SHA: 06cc48a24ff7fe4c4c11571a25dd8f6bd6c74933; 254 lines; 11477 bytes; classification: TEST.
+- Table-name references: options@46,47,117; axes@99,104,130; questions@109,130,134; traps@122,130,134; answers@135,188; assessment_session_access@156,208; sessions@165; leads@166; assessment_types@174; assessment_families@175
+
+### tests/c03-github-oidc-claims.test.ts
+
+- Blob SHA: b3c27d5f9b50d7fac05bcb7f10bcd04e6b51f439; 51 lines; 2212 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/c03-github-oidc-token.test.mjs
+
+- Blob SHA: f0955a5cb0c62ff34ca5c19abb0384fc8446c49e; 32 lines; 1542 bytes; classification: TEST.
+- Table-name references: options@12,13,19
+
+### tests/c03-load-real-admin-auth.mjs
+
+- Blob SHA: d827bdcc61dd203fba74514b585963dfd3730156; 31 lines; 1155 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/c03-oidc-handler-auth.test.ts
+
+- Blob SHA: 7eae32f0c09bcc50fd5e39c000889a22ecb8715b; 56 lines; 3556 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/c03-persisted-result-projection.test.js
+
+- Blob SHA: 58953b0f7c308456aa77a4c66d422eef6af718eb; 61 lines; 2791 bytes; classification: TEST.
+- Table-name references: scores@23; axes@25
+
+### tests/c03-production-release.test.mjs
+
+- Blob SHA: 93af8d47c46d48db8dde1fbbfbde1d969938653e; 200 lines; 7671 bytes; classification: TEST.
+- Table-name references: options@24,25,28
+
+### tests/c03-protected-edge-completion.test.ts
+
+- Blob SHA: fb73666d06d7abd932865dadd5febe38a09362cd; 202 lines; 8409 bytes; classification: TEST.
+- Table-name references: scores@23; axes@25; assessment_session_access@77; sessions@78; leads@82; assessment_results@86; assessment_families@87
