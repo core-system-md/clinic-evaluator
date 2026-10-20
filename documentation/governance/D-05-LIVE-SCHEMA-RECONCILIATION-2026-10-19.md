@@ -1514,3 +1514,58 @@ Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. All 10 files below we
 
 - Blob SHA: f63fd08f28da683cd82319fb18b20f6cb39501fd; 689 lines.
 - No literal direct `.from(table)` call to the 25 public tables found.
+
+## Application/code caller scan — batch 3 of 4 (full-text call syntax)
+
+Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. This pass applies full-text regular expressions across line breaks for .from(), .rpc(), .invoke(), and adminService method calls.
+
+### functions/_middleware.js
+
+- Blob SHA: ff277f23be4f2aeb25926b358d5d8886deb37862; 65 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### index.html
+
+- Blob SHA: f51d5d8b20fefea7f8f9acc9b5b559eb57a35a1c; 365 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### medical-team-assessment.html
+
+- Blob SHA: e8983db8c9b6d5c4e2acea9ea84d90f6643bfbbf; 688 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### patient-journey.html
+
+- Blob SHA: d73b8a3d876c2bb746fb4668d9c1a1eca12653a3; 689 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/_shared/c03-github-oidc.ts
+
+- Blob SHA: 077cb98cdd720a2c6b10ff7b960d6138bd57bc22; 79 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/_shared/c03-runtime-attestation.ts
+
+- Blob SHA: ba11538175124fdde0b615efdabfed2ed824a18d; 10 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/admin-management/index.ts
+
+- Blob SHA: fb62386933abcb3b5a0e8f37eb72ff5ca7dbcff4; 95 lines.
+- RPC call: is_owner at line 26.
+- RPC call: register_admin_assistant_secure at line 62.
+
+### supabase/functions/assessment-access/assessment-calculation-pipeline.mts
+
+- Blob SHA: 13e389734a60e9cddcc49d004b3f74e8d19908c8; 472 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/assessment-config-digest.mjs
+
+- Blob SHA: b263e42db889cebf8af6f0ce4f5da3ad7c16d4d4; 196 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/component-aggregation-engine.mts
+
+- Blob SHA: efbd8844addf01efca0209355692bed67e14c882; 222 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
