@@ -1,3 +1,29 @@
+# CURRENT UPDATE — D-05 TRACKED MIGRATION FILE / LIVE LEDGER RECONCILIATION — 2026-10-20
+
+**New evidence artifact:** `documentation/governance/D-05-MIGRATION-SOURCE-LEDGER-RECONCILIATION-2026-10-20.md` (commit `1378689e0eccbe191e65dad77ba8c5048e7db92c`).
+
+## Findings
+- Inspected `main` tree SHA `312c60907649aa62de605937a0a82cf5d3fe3b75`: **56** tracked `supabase/migrations/*.sql` files.
+- Read-only Production migration ledger: **57** applied rows.
+- Applied versions absent from tracked `main` source: `20261018075528` (`c03_service_role_api_key_compatibility`) and `20261018075855` (`c03_verifier_api_key_compatibility`).
+- Tracked source-only file absent from Production ledger: `supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql`.
+- `20261018100000_c03_service_role_api_key_compatibility.sql` exists on main and is recorded as applied, but the earlier applied service-role compatibility migration at `20261018075528` has no same-version source. This remains a source/history mismatch, not authorization to rewrite history or apply a guessed repair.
+- The five earliest tracked migration files are identical 182-byte historical marker files stating that the production change already exists and the marker must not be replayed. They are not replayable SQL definitions.
+
+## Initial DDL findings
+The scan located initial `CREATE TABLE` definitions for seven live tables: `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. The other 18 names match the explicit list in `20261001190000_p0_security_closure.sql`, but **the claim that their initial DDL is absent everywhere remains OPEN**.
+
+Important retrieval limitation: the Git tree reports `20261009170228_reconstruct_final_assessment_versions.sql` as 130,416 bytes, while the file-content endpoint returned 97,266 characters and returned that same capped body for line-range requests. That file's complete contents are not yet independently verified, so no definitive “18 missing initial DDL” closure may be recorded.
+
+## Status and exact continuation
+- D-05: **OPEN / BLOCKING RECONCILIATION**.
+- WP-11: **IN PROGRESS / NOT CLOSED**.
+- WP-12: **NOT STARTED**.
+- No production write, schema/privilege/RLS change, migration application, deployment, deletion/recreation, baseline synthesis, PR merge, or branch change was performed.
+- Continue by obtaining a non-truncated copy of the large reconstruction migration (or independently checking its blob content), then complete line-level migration-to-live-object reconciliation and review all remaining function bodies, dynamic dependencies and effective-role access. Keep the 18 provenance claims and all unknowns OPEN until evidence supports closure.
+
+---
+
 
 
 ## CURRENT UPDATE — FK integrity + SECURITY DEFINER inventory — 2026-10-20
