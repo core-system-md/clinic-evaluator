@@ -2263,3 +2263,58 @@ A catalog aggregate over all 87 public functions/procedures returned 65 SECURITY
 
 This records the observed catalog settings only. It does not assert that every `SECURITY DEFINER` body is safe: each body still needs review for explicit schema qualification, caller authorization, dynamic SQL, object ownership, and effective EXECUTE grants. The 51 authenticated-executable `SECURITY DEFINER` functions and four admin-identity helper overloads are particularly relevant to WP-11's function/permission review. No function was changed and no privilege test requiring role impersonation was run.
 
+
+## Repository-wide code/reference scan outside the primary runtime — batch 1 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: first 10 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk. Tests/workflows/reference files are separated from live runtime callers. Hits are navigation evidence, not proof of runtime reachability.
+
+### .github/workflows/c02-answer-value-compat.yml
+
+- Blob SHA: 5cf95e7be34f4300ebd43fa2ba4c9969b0be1b07; 52 lines; 1526 bytes; classification: WORKFLOW.
+- Table-name references: options@41
+
+### .github/workflows/c02-value70-live-e2e.yml
+
+- Blob SHA: 057538ed7e32485e35d11f9ce2612ae635c07abb; 40 lines; 1293 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/c03-credential-preflight.yml
+
+- Blob SHA: a142dce77dc70d9d6a99682c50af26ef724ea839; 98 lines; 5321 bytes; classification: WORKFLOW.
+- Literal API calls: REST assessment_config_release_settings@53; REST assessment_families@55; REST assessment_config_release_settings@92; REST assessment_families@94
+- Table-name references: assessment_config_release_settings@53,92; assessment_families@55,94
+
+### .github/workflows/c03-edge-handler-regression.yml
+
+- Blob SHA: 39058f7f1fb1fedae59a5ea36f692d08bba693b2; 32 lines; 990 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/c03-hybrid-config-release.yml
+
+- Blob SHA: 033b63315835c87297590faf427fc0e1345ee5c5; 87 lines; 3495 bytes; classification: WORKFLOW.
+- Table-name references: options@43
+
+### .github/workflows/c03-production-release.yml
+
+- Blob SHA: 5edb708ce6bdde06bf3ad0e6c101d4a9209b6197; 119 lines; 4405 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/c03-protected-edge-handler.yml
+
+- Blob SHA: ce22cb61ea32e9114ba9345a2c1aedc08826f4ea; 29 lines; 821 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/p2-external-e2e.yml
+
+- Blob SHA: 456ac83a2f53976dc5896aba27d02a1d36bb725a; 66 lines; 1867 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
+
+### .github/workflows/p3-kernel-verification.yml
+
+- Blob SHA: f50d9c88e99619234c4503c2aeb36ea4473d4fc4; 220 lines; 8278 bytes; classification: WORKFLOW.
+- Table-name references: sessions@55,121,167; options@91,200; assessment_users@162,186; assessment_results@164,181
+
+### .github/workflows/server-runtime-verification.yml
+
+- Blob SHA: fda7979f34a5db0bc4c07e06430d491f226d1f25; 22 lines; 724 bytes; classification: WORKFLOW.
+- Table-name references: none found in text scan.
