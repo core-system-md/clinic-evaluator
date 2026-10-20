@@ -1,3 +1,19 @@
+# CURRENT UPDATE — HISTORICAL MIGRATION / SCHEMA PROVENANCE REVIEW — 2026-10-20
+
+**New evidence artifact:** `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md` (commit `503c890116936cee533adb56a671c2ee00bab809`).
+
+Historical Git review changes the interpretation of D-05's 18-table initial-DDL gap:
+- ADR-003's original commit `39c7dfc8443c150ec833881e1f910d42dbb14aa9` (2026-09-30 22:21:34 UTC) explicitly recorded that live tables/functions/RLS/data existed while the repository had no `supabase/migrations` path and the remote migration ledger had 0 rows.
+- Commit `7b0a877cbcd74073c6fab5a0246017d01e8ed056` accepted a reviewed schema-baseline plan; it did not create the baseline artifact.
+- The five earliest migration entries are 182-byte non-replayable provenance markers, not their original SQL bodies.
+- Examined October 1 cleanup commits removed duplicate/future-dated migration candidates. The duplicate `assessment_families` creation source remains in canonical `20261001100633_p2_assessment_family_versions.sql`. The October 10 commit aligned applied migration identities and archived a superseded unapplied candidate. The inspected changes do not establish that these cleanup commits deleted initial DDL for the 18 legacy tables.
+
+**Best-supported conclusion, not final proof:** the legacy schema predated the tracked migration path, and the accepted plan to establish a reviewed baseline is not represented by an authoritative baseline file in the inspected tree. The available evidence does not attribute the 18-table gap to the examined October cleanup operations. Pre-2026-09-30 Git history, external archives/backups, local checkouts and Supabase editor/deployment history are not fully verified; do not assert that the gap was caused by a particular cleanup.
+
+**Status unchanged:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. No Production mutation, migration, schema/grant/policy change, baseline synthesis, deletion/recreation, or merge was performed. Continue provenance search and remaining semantic/security reconciliation only within WP-11.
+
+---
+
 # CURRENT UPDATE — LINE-REFERENCED DDL SCAN COMPLETED FOR ALL 56 TRACKED MIGRATIONS — 2026-10-20
 
 **New evidence artifact:** `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` (latest scan-index commit `b1ffbdf73540e3c6da2e24c3b929ecfbb63c57f3`).
