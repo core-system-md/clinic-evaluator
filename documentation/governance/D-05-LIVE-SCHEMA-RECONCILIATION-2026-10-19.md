@@ -2158,3 +2158,22 @@ Here, “none” means no direct privilege among the eight queried privileges. �
 ### Boundary of this privilege pass
 
 The result does not establish the effective outcome of each RLS policy for every user/role claim. No `SET ROLE` negative/positive query was run, and no DML attempt was made. `authenticated` can also execute the UUID overloads `public.is_owner(uuid)` and `public.is_active_admin(uuid)` (both SECURITY DEFINER; `anon` cannot); these are separately recorded above as the D-15 evidence. The live role grant state and function body/authz correctness remain OPEN pending owner-approved remediation/review and appropriate verification. No SQL write or role/policy/grant change occurred.
+
+
+## Public function EXECUTE grant summary — 2026-10-20, read-only
+
+A fresh catalog query across all 87 public functions/procedures returned:
+
+| Aggregate | Exact result |
+|---|---:|
+| Public functions/procedures | 87 |
+| SECURITY DEFINER functions/procedures | 65 |
+| Functions/procedures callable by `anon` | 2 |
+| SECURITY DEFINER functions/procedures callable by `anon` | 0 |
+| Functions/procedures callable by `authenticated` | 53 |
+| SECURITY DEFINER functions/procedures callable by `authenticated` | 51 |
+
+The two functions currently reported as EXECUTE-callable by `anon` are `public.p2_assert_draft_version()` and `public.p2_assessment_type_immutability()`. Both are non-SECURITY-DEFINER trigger functions (`prosecdef=false`, `search_path=""`); both also show authenticated EXECUTE. This inventory is a direct-grant/reachability marker, not a claim those trigger functions are safely callable as ordinary RPCs or that a vulnerability was demonstrated. Trigger-function direct invocation behavior and why EXECUTE remains granted should be verified before any change.
+
+`public.is_owner()` and `public.is_active_admin()` plus their UUID overloads are SECURITY DEFINER. `anon` EXECUTE is false on all four. `authenticated` EXECUTE is true on all four; the UUID overloads accept a caller-supplied UUID and are the documented D-15 review point. No function grants were changed. This query summarizes privileges, not the correctness of each function's authorization logic or search path; all 65 SECURITY DEFINER functions and their full reachable callers require a fuller function-level review before WP-11 can close.
+
