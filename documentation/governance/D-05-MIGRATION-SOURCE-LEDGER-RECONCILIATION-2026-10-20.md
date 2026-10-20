@@ -233,3 +233,12 @@ The five earliest tracked files (`20260930233955`, `20260930234340`, `2026093023
 3. **Table evolution mapping: OPEN.** The statement map above records key DDL/RPC paths, but full per-object line-level mapping of every ALTER, constraint, index, policy, grant, trigger and function must be completed and cross-checked against live catalog definitions.
 4. **Caller and privilege analysis: OPEN.** Use the wrapper-aware caller inventory and live effective-privilege evidence in the current handoff/worksheet; complete the remaining function body, indirect dependency, dynamic SQL, and effective-role review.
 5. No deletion, recreation, baseline synthesis, migration application, grants/RLS/policy changes, deployment, or WP-12 transition. D-05 remains OPEN and WP-11 remains IN PROGRESS.
+
+
+## PR #120 source-body comparison — read-only, not a merge
+
+PR #120 is currently OPEN, unmerged, base `main`, head `wp-11/least-privilege-reconciliation`, SHA `47c0a79dbee108149f9431ff4e86ac120c420f7a`.
+
+The candidate branch's `20261018075528_c03_service_role_api_key_compatibility.sql` and main's `20261018100000_c03_service_role_api_key_compatibility.sql` have SQL bodies identical after normalizing whitespace/comments/final newline. The candidate branch's `20261018075855_c03_verifier_api_key_compatibility.sql` and main's source-only `20261018110000_c03_verifier_api_key_compatibility.sql` also have SQL bodies identical after removing comment lines and normalizing whitespace; one explanatory comment differs. These comparisons show the candidate source bodies are represented on main under different version filenames, but do **not** prove which exact SQL bytes were executed for the applied Production IDs because the live migration ledger exposes version/name, not historical SQL bodies.
+
+Do not merge PR #120, rewrite migration history, or apply a migration as part of this scan. Keep the source/ledger provenance discrepancy OPEN until the approved review path resolves the exact identity/history relationship.
