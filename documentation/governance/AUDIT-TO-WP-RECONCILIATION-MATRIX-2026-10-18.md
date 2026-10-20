@@ -221,3 +221,10 @@ At open PR #120 head `47c0a79dbee108149f9431ff4e86ac120c420f7a`, the candidate's
 ## D-05 line-referenced migration DDL index — 2026-10-20
 
 New artifact: `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` (commit `b1ffbdf73540e3c6da2e24c3b929ecfbb63c57f3`). All 56 tracked migration files at pinned tree `312c60907649aa62de605937a0a82cf5d3fe3b75` were retrieved, their UTF-8 byte sizes checked against Git blob sizes, and line-level table-owned DDL statements indexed with file SHA and line number. Current main has the same migration paths/blob SHAs. This completes the tracked-file DDL search, not the entire D-05 acceptance review: dynamic SQL, function body/authorization review, live object-by-object semantic reconciliation, external schema provenance, and exact historical applied SQL provenance remain OPEN. D-05 remains OPEN; WP-11 remains in progress; WP-12 not started.
+
+## D-05 historical provenance addendum — 2026-10-20
+
+The historical review at `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md` establishes that the original ADR-003 commit documented a pre-existing live schema with no tracked migration directory and zero remote migration records; the accepted ADR planned a reviewed baseline later. The five earliest tracked migration files are provenance markers rather than original SQL bodies. The October 1 duplicate/future-dated migration cleanup and October 10 migration-identity reconciliation inspected so far do not establish that initial DDL for the 18 legacy tables was deleted. The better-supported interpretation is that the legacy schema predated tracked migrations and no reviewed baseline artifact was located. Cause attribution remains OPEN because pre-2026-09-30 history and external/local archives have not been fully examined.
+
+This narrows the next task to authoritative provenance search and the remaining semantic/security reconciliation. It does not close D-05 or WP-11. Do not recreate tables, generate a baseline from Production, rewrite or apply migration history, alter grants/policies/schema, merge PR #120, or start WP-12.
+
