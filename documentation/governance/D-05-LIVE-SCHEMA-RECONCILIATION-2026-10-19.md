@@ -2535,3 +2535,58 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 41–50 of 65
 
 - Blob SHA: 72c9e0911bb41b207df33a19c79f3bf57aa60c41; 116 lines; 4733 bytes; classification: TEST.
 - Table-name references: sessions@115
+
+## Repository-wide code/reference scan outside the primary runtime — batch 6 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 51–60 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk.
+
+### tests/p3-structured-result-v1.test.mjs
+
+- Blob SHA: 9e36319e0cd3f1ed7ccc64d190a514eb6b9e6e50; 56 lines; 3820 bytes; classification: TEST.
+- Table-name references: answers@14
+
+### tests/p4-submission-flow.test.js
+
+- Blob SHA: a4f506b8868a2282e182493726274851338a357a; 237 lines; 8502 bytes; classification: TEST.
+- Table-name references: options@91,137; questions@91,135; answers@170; axes@189,228; scores@228
+
+### tests/p5-editor-workspace.test.js
+
+- Blob SHA: 18ee5e7ec1f567242707b37a68ed4d0298371dd3; 171 lines; 11190 bytes; classification: TEST.
+- Literal API calls: SELECT leads@165
+- Table-name references: traps@37,68; questions@53,72,106; assessment_assets@69; insights_mapping@70; assessment_session_access@71; axes@73; assessment_types@74,169; options@107,109; leads@165
+
+### tests/reference/browser-engine-v4.js
+
+- Blob SHA: fc413fb0ea2760493c7f9da34502d3428d50ec4a; 364 lines; 15048 bytes; classification: TEST.
+- Table-name references: axes@9,39,42; answers@22,32,152; assessment_types@26,27; questions@40,43,48; traps@41,58,174; options@52,53; scores@346,349,351
+
+### tests/reference/score-engine-legacy.mts
+
+- Blob SHA: db24106203aa8ab48ee0097f768b51b8980bf9d2; 147 lines; 5552 bytes; classification: TEST.
+- Table-name references: options@13; axes@27,52,81; questions@28,56; traps@29,68,143; answers@47,57,69
+
+### tests/server-scoring-parity.test.js
+
+- Blob SHA: f4a195882d78840010c61bd324010c8bb4473eda; 89 lines; 4027 bytes; classification: TEST.
+- Table-name references: assessment_types@20,45; axes@22,47; questions@26,48; options@27,28,29; traps@32,55,86; answers@70,71,72; scores@81
+
+### tests/support/historical-result-reconciliation.mts
+
+- Blob SHA: 19907c78b85e54a6dc2d54879e9d563cacd47141; 40 lines; 1218 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/wp-02-contract-local.test.mjs
+
+- Blob SHA: 8d59f47830a084b00acc3d1ec65a7ecdfc5529c6; 147 lines; 6288 bytes; classification: TEST.
+- Table-name references: axes@80,94,112; scores@93,94,121
+
+### tests/wp-03-configuration-semantics.test.mjs
+
+- Blob SHA: 34a93bb09172e7c21e7e10f7ae30f81c019deeb2; 125 lines; 6687 bytes; classification: TEST.
+- Table-name references: axes@20,62
+
+### tests/wp-04-structured-result-persistence.test.mjs
+
+- Blob SHA: 97826e39306a828c3416a1a70efa0aab774dce08; 125 lines; 6553 bytes; classification: TEST.
+- Table-name references: axes@27,42,44; scores@35,44,58; assessment_results@116
