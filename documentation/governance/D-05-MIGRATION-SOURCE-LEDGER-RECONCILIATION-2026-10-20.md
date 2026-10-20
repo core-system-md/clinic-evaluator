@@ -116,7 +116,7 @@ The applied records `20261018075528` and `20261018075855` are absent from `main`
 
 The seven located definitions are `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. The other 18 names match the candidate list enumerated in `20261001190000_p0_security_closure.sql`.
 
-**Retrieval limitation:** the Git tree reports `20261009170228_reconstruct_final_assessment_versions.sql` as 130,416 bytes, while the content endpoint returned 97,266 characters and returned that same capped body even when line ranges were requested. Its complete contents therefore could not be independently inspected through that response. This limitation keeps the “18 have no initial DDL anywhere” claim OPEN; it must not be silently converted into proof of absence.
+**Retrieval verified:** `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql` returns 97,267 Unicode characters encoding to exactly 130,416 UTF-8 bytes, matching the Git tree blob size, and ends with its expected `commit;`. Its complete 142-line content was inspected. The file contains trigger toggles and two temporary working tables, but no persistent `CREATE TABLE` for any of the 25 live tables. The initial-DDL gap is confirmed within the 56 tracked migration files on this `main` tree; existence of an authoritative external/original schema source remains OPEN.
 
 ## 3. Per-table migration statement map
 
