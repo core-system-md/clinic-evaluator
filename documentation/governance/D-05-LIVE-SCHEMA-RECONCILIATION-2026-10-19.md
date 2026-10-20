@@ -2119,3 +2119,42 @@ The wrapper-aware caller scan's static-literal RPC list did not find this dynami
 ### Disposition
 
 D-05 remains **OPEN / BLOCKING RECONCILIATION**. WP-11 remains IN PROGRESS and not closed. The live excess grants on `admin_audit_log` and `admin_capabilities`, plus authenticated EXECUTE on `is_owner(uuid)` and `is_active_admin(uuid)`, are evidenced, but no corrections have been applied. PR #120 remains OPEN / READY FOR REVIEW / UNMERGED; its proposed grant/policy migration is not part of main or Production. Do not modify privileges or apply migrations within this read-only reconciliation. WP-12 has NOT STARTED.
+
+
+## Complete direct table-grant matrix — `anon`, `authenticated`, and `service_role` — 2026-10-20
+
+This is a second read-only privilege pass across **all 25** live public tables, using PostgreSQL `has_table_privilege` for SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER and MAINTAIN. The privileges listed are effective direct table privileges; they do not replace analysis of RLS policies, function EXECUTE privileges, membership/inherited roles, views, or function behavior.
+
+| Table | anon direct table privileges | authenticated direct table privileges | service_role direct table privileges | RLS | FORCE RLS |
+|---|---|---|---|---:|---:|
+| `admin_audit_log` | none of the queried privileges | SELECT, MAINTAIN, REFERENCES, TRIGGER, TRUNCATE | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN | enabled | no |
+| `admin_capabilities` | none of the queried privileges | SELECT, MAINTAIN, REFERENCES, TRIGGER, TRUNCATE | SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER, MAINTAIN | enabled | no |
+| `admin_users` | none | SELECT | full queried privilege set | enabled | no |
+| `answers` | none | SELECT | full queried privilege set | enabled | no |
+| `assessment_assets` | none | none | full queried privilege set | enabled | no |
+| `assessment_config_release_settings` | none | none | full queried privilege set | enabled | no |
+| `assessment_config_releases` | none | none | full queried privilege set | enabled | no |
+| `assessment_families` | none | SELECT | full queried privilege set | enabled | no |
+| `assessment_results` | none | none | full queried privilege set | enabled | no |
+| `assessment_session_access` | none | none | full queried privilege set | enabled | no |
+| `assessment_settings` | none | SELECT | full queried privilege set | enabled | no |
+| `assessment_types` | none | SELECT | full queried privilege set | enabled | no |
+| `assessment_users` | none | none | full queried privilege set | enabled | no |
+| `axes` | none | SELECT | full queried privilege set | enabled | no |
+| `experience_multipliers` | none | none | full queried privilege set | enabled | no |
+| `historical_snapshots` | none | none | full queried privilege set | enabled | no |
+| `insights_mapping` | none | none | full queried privilege set | enabled | no |
+| `leads` | none | SELECT | full queried privilege set | enabled | no |
+| `options` | none | SELECT | full queried privilege set | enabled | no |
+| `questions` | none | SELECT | full queried privilege set | enabled | no |
+| `scores` | none | SELECT | full queried privilege set | enabled | no |
+| `sessions` | none | none | full queried privilege set | enabled | no |
+| `specialty_profiles` | none | none | full queried privilege set | enabled | no |
+| `team_capacity_factors` | none | none | full queried privilege set | enabled | no |
+| `traps` | none | none | full queried privilege set | enabled | no |
+
+Here, “none” means no direct privilege among the eight queried privileges. “Full queried privilege set” means service_role has all eight queried privileges, as returned by the live query. In total, no `anon` direct table privileges were found on any of the 25 tables; authenticated had direct SELECT on 12 tables and no direct INSERT/UPDATE/DELETE in this table-level query. The only unexpected/decision-relevant direct table grants surfaced by this query are MAINTAIN, REFERENCES, TRIGGER and TRUNCATE on `admin_audit_log` and `admin_capabilities` for `authenticated`. This is direct-grant evidence for D-08; it is not an implementation request or permission to change Production.
+
+### Boundary of this privilege pass
+
+The result does not establish the effective outcome of each RLS policy for every user/role claim. No `SET ROLE` negative/positive query was run, and no DML attempt was made. `authenticated` can also execute the UUID overloads `public.is_owner(uuid)` and `public.is_active_admin(uuid)` (both SECURITY DEFINER; `anon` cannot); these are separately recorded above as the D-15 evidence. The live role grant state and function body/authz correctness remain OPEN pending owner-approved remediation/review and appropriate verification. No SQL write or role/policy/grant change occurred.
