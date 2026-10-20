@@ -20,7 +20,7 @@ Important retrieval limitation: the Git tree reports `20261009170228_reconstruct
 - WP-11: **IN PROGRESS / NOT CLOSED**.
 - WP-12: **NOT STARTED**.
 - No production write, schema/privilege/RLS change, migration application, deployment, deletion/recreation, baseline synthesis, PR merge, or branch change was performed.
-- Continue by obtaining a non-truncated copy of the large reconstruction migration (or independently checking its blob content), then complete line-level migration-to-live-object reconciliation and review all remaining function bodies, dynamic dependencies and effective-role access. Keep the 18 provenance claims and all unknowns OPEN until evidence supports closure.
+- Continue by locating/validating an authoritative external or historical schema source, complete line-level per-object migration-to-live-catalog reconciliation, and review all remaining function bodies, dynamic dependencies and effective-role access. Keep the 18 provenance claims and all unknowns OPEN until evidence supports closure.
 
 ---
 
