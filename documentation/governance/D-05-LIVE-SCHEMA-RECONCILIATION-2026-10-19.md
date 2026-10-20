@@ -2642,3 +2642,8 @@ The tracked migration scan, table-by-table live catalog, per-table migration ref
 ## Source/ledger body comparison — 2026-10-20
 
 PR #120 remains open and unmerged at `47c0a79dbee108149f9431ff4e86ac120c420f7a`. Its `20261018075528` SQL body matches main's `20261018100000` service-role migration after normalization. Its `20261018075855` SQL body matches main's source-only `20261018110000` verifier migration after comment/whitespace normalization, with one explanatory comment differing. These comparisons establish source-body correspondence only; the live ledger does not expose historical applied SQL bodies. Do not merge PR #120 or rewrite/apply migration history from this evidence. D-05 remains OPEN.
+
+
+## Line-referenced migration DDL index — 2026-10-20
+
+See `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` for the line-level DDL hits across all 56 tracked migration files, including file blob SHAs and byte-size checks. Current main retains the same migration paths/blob SHAs as the pinned scan tree. The tracked-repository absence of initial persistent CREATE TABLE for the 18 candidate tables is confirmed. Remaining OPEN items are: external/original schema provenance; exact historical SQL body for the three migration source/ledger mismatches; table-by-table semantic reconciliation of live objects to each DDL statement; dynamic SQL/function dependency review; and SECURITY DEFINER/effective-role/RLS acceptance.
