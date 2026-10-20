@@ -2246,3 +2246,20 @@ These checks cover the explicit joins listed above; they are not a general seman
 ### Integrity-check disposition
 
 The current live FK and these eight targeted consistency checks show no orphan rows or mismatches in their bounded scope. Continue to treat semantic checks not covered by those query predicates as OPEN. The result does not resolve missing initial-DDL provenance, the main/live migration ID mismatch, dynamic/external code dependencies, or the effective-RLS test gate. D-05 and WP-11 remain OPEN.
+
+
+## SECURITY DEFINER search-path inventory — 2026-10-20, read-only
+
+A catalog aggregate over all 87 public functions/procedures returned 65 SECURITY DEFINER functions. Of those 65:
+
+| SECURITY DEFINER `search_path` category | Count |
+|---|---:|
+| `search_path=""` (empty) | 14 |
+| `search_path=public, pg_temp` | 51 |
+| No function-level `search_path` setting | 0 |
+| Other function-level `search_path` settings | 0 |
+| SECURITY DEFINER callable by `anon` | 0 |
+| SECURITY DEFINER callable by `authenticated` | 51 |
+
+This records the observed catalog settings only. It does not assert that every `SECURITY DEFINER` body is safe: each body still needs review for explicit schema qualification, caller authorization, dynamic SQL, object ownership, and effective EXECUTE grants. The 51 authenticated-executable `SECURITY DEFINER` functions and four admin-identity helper overloads are particularly relevant to WP-11's function/permission review. No function was changed and no privilege test requiring role impersonation was run.
+
