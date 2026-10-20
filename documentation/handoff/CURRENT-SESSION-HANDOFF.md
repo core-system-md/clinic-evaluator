@@ -13,7 +13,7 @@
 ## Initial DDL findings
 The scan located initial `CREATE TABLE` definitions for seven live tables: `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. The other 18 names match the explicit list in `20261001190000_p0_security_closure.sql`, but **the claim that their initial DDL is absent everywhere remains OPEN**.
 
-Important retrieval limitation: the Git tree reports `20261009170228_reconstruct_final_assessment_versions.sql` as 130,416 bytes, while the file-content endpoint returned 97,266 characters and returned that same capped body for line-range requests. That file's complete contents are not yet independently verified, so no definitive “18 missing initial DDL” closure may be recorded.
+Retrieval is now verified: `20261009170228_reconstruct_final_assessment_versions.sql` contains 97,267 Unicode characters encoding to exactly 130,416 UTF-8 bytes, matching its Git tree blob size; the full 142-line file was inspected and ends with `commit;`. It contains trigger toggles and two temporary working tables, but no persistent CREATE TABLE for any of the 25 live tables. The 18-table initial-DDL absence is confirmed within the 56 tracked migration files; an authoritative external/original schema source remains unverified.
 
 ## Status and exact continuation
 - D-05: **OPEN / BLOCKING RECONCILIATION**.
