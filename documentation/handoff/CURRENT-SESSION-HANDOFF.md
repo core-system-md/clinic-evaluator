@@ -1,5 +1,20 @@
 
 
+## CURRENT UPDATE — FK integrity + SECURITY DEFINER inventory — 2026-10-20
+
+Latest worksheet commit: `0bfbd081489ebddf32079334bcf0ab20e26f44d4`.
+
+- Read-only per-FK orphan query checked all **38** public-source foreign keys: all 38 are validated and all returned 0 orphan rows for populated FK values. Eight semantic cross-table checks also returned 0 violations; these are bounded checks, not a universal integrity proof.
+- Read-only `SECURITY DEFINER` search-path inventory: 65 functions total; 14 use an empty search_path, 51 use `public, pg_temp`, none have an unset or other function-level search_path; 0 SECURITY DEFINER functions are executable by `anon`, 51 are executable by `authenticated`. Function body review for schema qualification, auth gates, dynamic SQL and ownership remains OPEN.
+- Effective table grants on all 25 tables are recorded in the worksheet. `anon` has none of the eight queried direct table privileges on any table; `authenticated` has direct MAINTAIN/REFERENCES/TRIGGER/TRUNCATE on `admin_audit_log` and `admin_capabilities`; 12 tables have authenticated SELECT. This is D-08 evidence, not a grant change.
+- Public functions/procedures count 87; 2 non-SECURITY-DEFINER trigger functions report `anon` EXECUTE. Their direct EXECUTE grant should be dispositioned only after confirming expected trigger-only behavior and review. Authenticated EXECUTE remains on `is_owner(uuid)` and `is_active_admin(uuid)`; no permissions were modified.
+
+### Exact next action
+Continue read-only function body/caller and effective-access review within WP-11, retain the 18 missing initial-DDL provenance entries and three exact main-vs-live migration unmatched paths/IDs as OPEN, and do not merge PR #120 or start WP-12. No production writes/DDL/grant/policy changes, migration application, deletion/recreation, or tests/E2E were performed.
+
+---
+
+
 ## CURRENT UPDATE — read-only FK orphan and cross-table consistency checks — 2026-10-20
 
 Latest worksheet commit: `e573e1113de1e8e6f324498897b508c4b7860d52`.
