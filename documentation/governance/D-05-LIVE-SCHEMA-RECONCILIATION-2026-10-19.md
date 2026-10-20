@@ -2619,3 +2619,21 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 61–65 of 65
 
 - Blob SHA: 72a1c8d2209885622942c9f9fd371a9fc254766d; 103 lines; 3107 bytes; classification: TEST.
 - Table-name references: none found in text scan.
+
+
+## Final repository-wide caller/reference scan coverage — 2026-10-20
+
+The wrapper-aware production/entrypoint scan covered 40 tracked JS/TS/HTML files in application/admin/Edge/Pages middleware/release and scoped operational-script paths. A separate seven-batch scan then inspected the remaining **65** tracked JavaScript/TypeScript/HTML/GitHub workflow files not already covered: **18 workflow files and 47 test/reference/support files**. Both passes record Git blob SHAs, line counts and line-referenced table-name/API-call hits. The test/reference/workflow pass distinguishes table names used by fixtures, SQL harness references, and CI commands from active production application calls; these are not attributed as active runtime consumers unless an actual application entrypoint was found.
+
+Tree verification was repeated after writing the scan records: the scanned source tree `67182c92126ff77e1d47f5bcacae5bf3aa8170d8` and current main `0bf0c877cb4b6db2aef869338014ae5f41e2141b` each contain 105 such tracked code/markup/workflow files, and **0 of their paths/blob SHAs changed**. Thus the exact text scanned is still present on current main. The 56 migration files were likewise compared at their scan tree and later main snapshot with no path/hash changes.
+
+### Caller-scan result boundaries
+
+- Active DB consumers have been identified for the primary assessment runtime, admin manager/editor/lifecycle, admin identity lookup, admin-management Edge handler, assessment-config-release Edge handler, and the run-scoped release/E2E cleanup script. The dynamic completion RPC selection in `assessment-access/index.ts` is separately documented at line 1032.
+- Tests include references to live-schema names for fixtures, regression contracts and reference scoring modules. Workflow YAML contains paths and names used for CI harness setup/filtering, but does not itself constitute a production DB client call.
+- No literal direct active caller was found in the 40 primary active/operational source paths for `experience_multipliers`, `specialty_profiles`, and `team_capacity_factors`; `historical_snapshots`, `insights_mapping`, and `assessment_assets` have indirect SQL/test/cleanup references as recorded. Do not classify any of these tables as unused or deletable from static search absence.
+- A static scan, even across all 105 paths, cannot establish zero external callers or discover arbitrary runtime-generated identifiers, dynamic SQL, dashboard-issued SQL, service-role scripts not in Git, or external integrations. For each SECURITY DEFINER function, complete body/authz/search-path review remains an acceptance item, not an inferred PASS.
+
+### D-05 state after the full scan
+
+The tracked migration scan, table-by-table live catalog, per-table migration reference inventory, wrapper-aware application caller scan, test/workflow reference scan, effective table privileges, public function EXECUTE and SECURITY DEFINER search-path summaries, FK orphan scan, and eight targeted consistency checks are now recorded in this worksheet. **D-05 remains OPEN / BLOCKING RECONCILIATION** because (a) initial CREATE TABLE is absent for 18 tables across the 56 tracked migrations and there is no authoritative full schema baseline in the tracked tree; (b) `main` has three unmatched migration source/version identities against live history; (c) the full SECURITY DEFINER body and effective-role/RLS behavior review is not complete; and (d) the external/original schema archive has not been examined. WP-11 remains IN PROGRESS / NOT CLOSED; WP-12 has NOT STARTED.
