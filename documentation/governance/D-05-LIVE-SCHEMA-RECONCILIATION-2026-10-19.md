@@ -2647,3 +2647,12 @@ PR #120 remains open and unmerged at `47c0a79dbee108149f9431ff4e86ac120c420f7a`.
 ## Line-referenced migration DDL index — 2026-10-20
 
 See `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` for the line-level DDL hits across all 56 tracked migration files, including file blob SHAs and byte-size checks. Current main retains the same migration paths/blob SHAs as the pinned scan tree. The tracked-repository absence of initial persistent CREATE TABLE for the 18 candidate tables is confirmed. Remaining OPEN items are: external/original schema provenance; exact historical SQL body for the three migration source/ledger mismatches; table-by-table semantic reconciliation of live objects to each DDL statement; dynamic SQL/function dependency review; and SECURITY DEFINER/effective-role/RLS acceptance.
+
+## Historical schema/migration provenance addendum — 2026-10-20
+
+The original ADR-003 commit (`39c7dfc8443c150ec833881e1f910d42dbb14aa9`, 2026-09-30 22:21:34 UTC) documented that the live schema already contained tables, RLS policies, PostgreSQL functions, Edge Functions and operational data while the repository had no `supabase/migrations` path and the remote migration ledger had zero entries. The accepted ADR commit (`7b0a877cbcd74073c6fab5a0246017d01e8ed056`) required a reviewed baseline later; it was not itself that baseline.
+
+The first five tracked migration files are non-replayable 182-byte provenance markers, not original SQL bodies. Targeted history review of October 1 duplicate/future-dated migration cleanup and October 10 filename reconciliation did not find evidence that those operations deleted initial DDL for the 18 legacy tables; the canonical `assessment_families` creation source remains tracked. Therefore, the best-supported explanation is that legacy table DDL was not captured in the tracked migration path when it was introduced, while the specific cause of the gap remains unproven. See `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md`.
+
+This narrows the provenance question but does not close it: pre-2026-09-30 Git history, external archives/backups and Supabase editor/deployment history have not been fully verified. **D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS / NOT CLOSED; WP-12 remains NOT STARTED.** No database or Production changes were made.
+
