@@ -1460,3 +1460,57 @@ Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. All 10 files below we
 
 - Blob SHA: fec5101c731d3918722ce2494275da8c6c1f355e; 905 lines.
 - No literal direct `.from(table)` call to the 25 public tables found.
+
+## Application/code caller scan — batch 2 of 4
+
+Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. All 10 files below were fetched in full; the Git blob SHA is included.
+
+### admin/admin.js
+
+- Blob SHA: a05d0986cee7e72cdf72faea9edbbfb39a3d383d; 191 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### admin/assessment-editor-workspace.js
+
+- Blob SHA: a32af54389e9a1a38c5f7303b88453e08f7a2c4b; 517 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### admin/assessment-lifecycle.js
+
+- Blob SHA: 95d4c8a05847ff9e2844f176ce14c7239c76f57a; 474 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### admin/assessment-manager.js
+
+- Blob SHA: ef196c1e078db867ac9d3d5296567c756ecab394; 1329 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### assets/js/app.js
+
+- Blob SHA: 5599aea059681931665d840138595dfc3d80cc14; 1095 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### assets/js/report-interpretation.js
+
+- Blob SHA: 6b3e06eae8f6c2d1eecb61cdeb4e70145fbb48ba; 242 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### assets/js/report-validation.js
+
+- Blob SHA: 6b63fd388474bd41c06fb614bdb8b2764f29a7c8; 206 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### assets/js/supabase-client.js
+
+- Blob SHA: bfaaddd4956d1e8b04bfae91ce72ee2b9fbd862c; 158 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### clinic-performance.html
+
+- Blob SHA: 9f09482fef452d0f14e5edd8720ac27a107069a8; 660 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
+
+### comprehensive-clinic-assessment.html
+
+- Blob SHA: f63fd08f28da683cd82319fb18b20f6cb39501fd; 689 lines.
+- No literal direct `.from(table)` call to the 25 public tables found.
