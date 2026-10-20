@@ -1,3 +1,48 @@
+# CURRENT SESSION HANDOFF — D-05 FULL MIGRATION FILE SCAN — 2026-10-20
+
+**Current disposition: full tracked SQL migration scan completed; D-05 remains OPEN / BLOCKING RECONCILIATION. WP-11 remains IN PROGRESS / NOT CLOSED. WP-12 has NOT STARTED.** This checkpoint is the current continuation point and supersedes earlier immediate-next-action statements below when they refer to the initial table-by-table inventory or the first migration-source scan. It does not authorize Production changes, a baseline, migration-history changes, or PR merge.
+
+## Evidence committed on main
+- Full per-table worksheet and five batch-by-batch source scan entries: documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md.
+- Latest worksheet scan/conclusion commit: 866e1dd8420030b48b68999eee84f252c4a57a05.
+- The SQL migration files were fully fetched from pinned Git tree d9cd749ffffa358409b11e11cf405d5ae1be7d53 and scanned in five documented batches. A later tree comparison with main at 2eb0b6ed7bdc6f1e5416a04f69f0e59836c29dc1 showed no changed migration paths or blob hashes; all 56 scanned migration files are unchanged in that main snapshot.
+- The full-content source scan is textual and line-referenced. It does not replace effective-permission, caller, or runtime dependency verification.
+
+## Confirmed full-scan result — the 18 tables
+The 56 tracked supabase/migrations/*.sql files contain initial CREATE TABLE declarations for exactly seven live public tables:
+- assessment_families — 20261001100633_p2_assessment_family_versions.sql:7
+- assessment_session_access — 20261001120000_protected_assessment_access_foundation.sql:21
+- assessment_results — 20261002161455_p3_production_implementation.sql:10
+- admin_capabilities and admin_audit_log — 20261003170912_p5_admin_architecture.sql:4 and :12
+- assessment_config_releases and assessment_config_release_settings — 20261015100000_c03_hybrid_config_release_gate.sql:7 and :44
+
+The exact 18 live tables with no initial CREATE TABLE found in those 56 tracked migrations are: admin_users, answers, assessment_assets, assessment_settings, assessment_types, assessment_users, axes, experience_multipliers, historical_snapshots, insights_mapping, leads, options, questions, scores, sessions, specialty_profiles, team_capacity_factors, and traps. The same 18 names appear in the table array in 20261001190000_p0_security_closure.sql, confirming they existed by that migration. No full production DDL baseline was located.
+
+Nine tracked SQL files exist outside supabase/migrations/. CREATE TABLE statements there occur in explicitly scoped test harnesses/fixtures with partial or reduced table definitions, not an authoritative production schema. ADR-003 is an accepted decision to review/build a baseline later, not a baseline artifact. Other inspected provenance documents are design/history records, not a complete schema dump. No external archive or backup has been examined.
+
+## Exact main-vs-live migration identity reconciliation
+- Live Supabase ledger: 57 migration version/name entries.
+- Current main: 56 tracked SQL migration files.
+- 55 source paths match live ledger version and name exactly.
+- Live IDs with no same-version file on main: 20261018075528 / c03_service_role_api_key_compatibility and 20261018075855 / c03_verifier_api_key_compatibility.
+- Source-only file on main with no live ledger version: supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql.
+- 20261018100000 / c03_service_role_api_key_compatibility does have a matching source path on main.
+- These are the exact known unmatched identity entries; no other version/name mismatch was found in the 56-vs-57 comparison.
+
+PR #120 at head 47c0a79dbee108149f9431ff4e86ac120c420f7a remains OPEN / READY FOR REVIEW / UNMERGED. Its branch contains source paths matching all 57 live identity pairs plus a separate proposed source-only migration 20261018120000_wp11_security_database_reconciliation.sql. It adds source files 20261018075528 and 20261018075855, retains 20261018100000, and removes 20261018110000; those changes are not on main/Production. Source comparison found that main 20261018100000 vs branch 20261018075528 differs only by the final newline, and main source-only 20261018110000 vs branch 20261018075855 differs by one comment line plus the final newline. The live migration listing returns version/name metadata, not the original executed SQL bodies, so exact historical byte-for-byte equality cannot be proven from that ledger alone.
+
+## Exact current row counts — read-only
+admin_audit_log=126, admin_capabilities=7, admin_users=2, answers=0, assessment_assets=0, assessment_config_release_settings=1, assessment_config_releases=15, assessment_families=5, assessment_results=0, assessment_session_access=0, assessment_settings=3, assessment_types=5, assessment_users=0, axes=22, experience_multipliers=4, historical_snapshots=0, insights_mapping=0, leads=0, options=370, questions=93, scores=0, sessions=0, specialty_profiles=7, team_capacity_factors=4, traps=1. Counts are time-specific and must not be used to infer table disuse. RLS is enabled on 25/25; catalog totals are 38 FKs (0 unvalidated), 71 policies, 15 non-internal triggers, 87 public functions/procedures, 0 views/materialized views, and 0 invalid indexes. All 25 have FORCE ROW LEVEL SECURITY=false; this is structural state, not a security PASS.
+
+## Still open before D-05 / WP-11 may close
+1. Find an authoritative original database schema or backup/source archive outside the tracked repository, if one exists; none was found in the inspected tracked tree.
+2. Reconcile the three exact unmatched migration paths/IDs on main against historical source and deployment evidence. Do not merge PR #120 or alter filenames/history without the required review/approval; do not infer applied SQL contents from version/name metadata.
+3. Expand call-site tracing beyond sampled core browser/admin/Edge files and text-matched SQL function bodies; distinguish active execution paths, dynamic SQL, test-only use, and retired callers.
+4. Review table/function grants, SECURITY DEFINER functions, policy semantics, and effective-role authorization; perform justified read-only integrity checks where applicable.
+5. Preserve each unresolved item as OPEN. No production writes, migration applications, schema/grant/policy modifications, deletions, recreations, speculative baseline, or deployment were performed. C-01/C-02/C-03 stay closed. WP-12 is not started.
+
+## Exact continuation point
+Continue D-05 under WP-11 with source/caller/dependency and effective-permission reconciliation. Treat the 18-table initial-DDL absence as established within the 56 tracked migration files, but keep the authoritative pre-migration schema provenance unresolved. Keep migration identity mismatches on main OPEN, and do not treat PR #120 as merged. Stop before WP-12 until the owner separately authorizes that stage.
 ## SESSION CLOSEOUT — D-05 / WP-11 SCHEMA RECONCILIATION WORKSHEET — 2026-10-19
 
 **Disposition: reconciliation worksheet committed; D-05 remains OPEN; WP-11 is in progress and not closed.** This entry supersedes the immediate next action in the prior 2026-10-19 read-only investigation closeout. WP-12 was not started.
