@@ -1569,3 +1569,122 @@ Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. This pass applies ful
 
 - Blob SHA: efbd8844addf01efca0209355692bed67e14c882; 222 lines.
 - No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+## Application/code caller scan — batch 4 of 4 (full-text call syntax)
+
+Pinned main tree de047e94a7ac5552bcbd0ad356e8ec73455adc2a. This pass applies full-text regular expressions across line breaks for .from(), .rpc(), .invoke(), and adminService method calls.
+
+### supabase/functions/assessment-access/consistency-engine.mts
+
+- Blob SHA: 4ddbaa79693e4d655e1039d5af057ca7fa6b2aa1; 314 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/coverage-criticality-engine.mts
+
+- Blob SHA: 107a08c7c9c2a72a1523fa29a7368208fd796420; 163 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/economic-opportunity-model-v1.mts
+
+- Blob SHA: a9d03af7bba5fcad64416c8c7921c00319dee16d; 97 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/engine.ts
+
+- Blob SHA: a75ea54d8227621fd32823367227d35e8ff9cf0b; 541 lines.
+- Direct table call: public.assessment_types at line 221.
+- Direct table call: public.axes at line 228.
+- Direct table call: public.questions at line 233.
+- Direct table call: public.traps at line 240.
+- Direct table call: public.assessment_families at line 251.
+- Direct table call: public.options at line 261.
+- Direct table call: public.sessions at line 360.
+- Direct table call: public.answers at line 391.
+- Direct table call: public.assessment_config_release_settings at line 439.
+- Direct table call: public.assessment_config_releases at line 463.
+
+### supabase/functions/assessment-access/index.ts
+
+- Blob SHA: 76673b46a54cf98b5907fdc7e9f751745eebcd05; 1120 lines.
+- Direct table call: public.assessment_session_access at line 74.
+- Direct table call: public.assessment_types at line 96.
+- Direct table call: public.axes at line 101.
+- Direct table call: public.questions at line 106.
+- Direct table call: public.options at line 111.
+- Direct table call: public.traps at line 115.
+- Direct table call: public.assessment_settings at line 216.
+- Direct table call: public.leads at line 243.
+- Direct table call: public.sessions at line 271.
+- Direct table call: public.assessment_results at line 284.
+- Direct table call: public.scores at line 301.
+- Direct table call: public.assessment_types at line 334.
+- Direct table call: public.assessment_families at line 349.
+- Direct table call: public.leads at line 366.
+- Direct table call: public.assessment_families at line 387.
+- Direct table call: public.assessment_types at line 398.
+- Direct table call: public.assessment_session_access at line 417.
+- Direct table call: public.assessment_families at line 463.
+- Direct table call: public.assessment_types at line 472.
+- Direct table call: public.assessment_families at line 489.
+- Direct table call: public.assessment_types at line 499.
+- Direct table call: public.assessment_families at line 542.
+- Direct table call: public.assessment_users at line 551.
+- Direct table call: public.assessment_session_access at line 576.
+- Direct table call: public.assessment_types at line 606.
+- Direct table call: public.sessions at line 627.
+- Direct table call: public.leads at line 660.
+- Direct table call: public.leads at line 706.
+- Direct table call: public.assessment_session_access at line 710.
+- Direct table call: public.sessions at line 733.
+- Direct table call: public.answers at line 741.
+- Direct table call: public.assessment_session_access at line 747.
+- Direct table call: public.assessment_results at line 752.
+- Direct table call: public.sessions at line 807.
+- Direct table call: public.assessment_session_access at line 826.
+- Direct table call: public.sessions at line 840.
+- Direct table call: public.assessment_results at line 851.
+- Direct table call: public.leads at line 895.
+- Direct table call: public.assessment_results at line 940.
+- RPC call: start_assessment_session at line 686.
+- RPC call: start_public_assessment_session at line 695.
+- RPC call: save_assessment_answer at line 781.
+- RPC call: prepare_assessment_submission at line 926.
+
+### supabase/functions/assessment-access/report-interpretation.mjs
+
+- Blob SHA: d50057cb926fd7c73db30081069af22a510c0316; 215 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/response-scorer.mts
+
+- Blob SHA: a46d99780bcdd6d9d4b83bc1950e698a3c224fbd; 206 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/result-persistence-projection.mts
+
+- Blob SHA: 491b0020c91ee2b8356f4bfd50ca77b93d1d7cb5; 38 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-access/structured-result.mts
+
+- Blob SHA: 28cc2c8f2318a123a00c947be03bd8a39556a529; 260 lines.
+- No literal direct table/RPC/invoke/adminService calls found by these patterns.
+
+### supabase/functions/assessment-config-release/index.ts
+
+- Blob SHA: 14c4f3b85a2dcd608bd76bb2a0bb191abf220f39; 314 lines.
+- Direct table call: public.assessment_config_release_settings at line 108.
+- Direct table call: public.assessment_config_releases at line 112.
+- Direct table call: public.assessment_families at line 113.
+- Direct table call: public.assessment_config_releases at line 117.
+- Direct table call: public.assessment_config_releases at line 261.
+- RPC call: is_owner at line 33.
+- RPC call: c03_require_ci_release_context at line 126.
+- RPC call: register_assessment_config_release_ci_secure at line 196.
+- RPC call: register_assessment_config_release_secure at line 203.
+- RPC call: activate_existing_assessment_release_ci_secure at line 214.
+- RPC call: activate_existing_assessment_release_secure at line 222.
+- RPC call: publish_assessment_config_release_secure at line 234.
+- RPC call: enable_assessment_config_release_gate_ci_secure at line 245.
+- RPC call: enable_assessment_config_release_gate_secure at line 251.
+- RPC call: verify_assessment_config_release_secure at line 271.
