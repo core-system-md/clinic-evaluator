@@ -333,3 +333,64 @@
 
 - Blob SHA: `c5a48db426707f937100b65f620d996061cadb23`; tree bytes: 19261; retrieved UTF-8 bytes: 19261.
 - No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+
+## Files 51–55 of 56
+
+### `supabase/migrations/20261009170228_reconstruct_final_assessment_versions.sql`
+
+- Blob SHA: `a81997122f61e652240829ce2a5173d0daf205eb`; tree bytes: 130416; retrieved UTF-8 bytes: 130416.
+- L37 [assessment_types]: `alter table public.assessment_types disable trigger user;`
+- L38 [axes]: `alter table public.axes disable trigger user;`
+- L39 [questions]: `alter table public.questions disable trigger user;`
+- L40 [options]: `alter table public.options disable trigger user;`
+- L41 [traps]: `alter table public.traps disable trigger user;`
+- L42 [insights_mapping]: `alter table public.insights_mapping disable trigger user;`
+- L43 [assessment_assets]: `alter table public.assessment_assets disable trigger user;`
+- L128 [assessment_assets]: `alter table public.assessment_assets enable trigger user;`
+- L129 [insights_mapping]: `alter table public.insights_mapping enable trigger user;`
+- L130 [traps]: `alter table public.traps enable trigger user;`
+- L131 [options]: `alter table public.options enable trigger user;`
+- L132 [questions]: `alter table public.questions enable trigger user;`
+- L133 [axes]: `alter table public.axes enable trigger user;`
+- L134 [assessment_types]: `alter table public.assessment_types enable trigger user;`
+
+### `supabase/migrations/20261013110000_c02_allow_answer_value_70.sql`
+
+- Blob SHA: `106ff5ed6efa580ae9c0fb79a2c518876f54d76e`; tree bytes: 1132; retrieved UTF-8 bytes: 1132.
+- L31 [answers]: `alter table public.answers`
+- L34 [answers]: `alter table public.answers`
+
+### `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql`
+
+- Blob SHA: `5b8c65678a14f18fa7c074537d094b34377745a0`; tree bytes: 30481; retrieved UTF-8 bytes: 30481.
+- L7 [assessment_config_releases]: `create table if not exists public.assessment_config_releases (`
+- L9 [assessment_families]: `family_id uuid not null references public.assessment_families(id) on delete restrict,`
+- L10 [assessment_types]: `assessment_type_id uuid not null references public.assessment_types(id) on delete restrict,`
+- L44 [assessment_config_release_settings]: `create table if not exists public.assessment_config_release_settings (`
+- L54 [assessment_families]: `alter table public.assessment_families`
+- L56 [sessions]: `alter table public.sessions`
+- L66 [assessment_families]: `alter table public.assessment_families`
+- L68 [assessment_config_releases]: `foreign key (current_release_id) references public.assessment_config_releases(id)`
+- L76 [sessions]: `alter table public.sessions`
+- L78 [assessment_config_releases]: `foreign key (assessment_release_id) references public.assessment_config_releases(id)`
+- L89 [assessment_config_releases]: `alter table public.assessment_config_releases enable row level security;`
+- L90 [assessment_config_release_settings]: `alter table public.assessment_config_release_settings enable row level security;`
+- L91 [assessment_config_releases]: `revoke all on public.assessment_config_releases from public, anon, authenticated;`
+- L92 [assessment_config_release_settings]: `revoke all on public.assessment_config_release_settings from public, anon, authenticated;`
+- L129 [assessment_config_releases]: `drop trigger if exists c03_release_immutable_guard on public.assessment_config_releases;`
+- L417 [assessment_families]: `drop trigger if exists c03_guard_family_release_pointer on public.assessment_families;`
+- L457 [sessions]: `drop trigger if exists c03_pin_session_release on public.sessions;`
+
+### `supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql`
+
+- Blob SHA: `77c54d98f3efe559b8a5796f6cc96eca3abb2f5a`; tree bytes: 15261; retrieved UTF-8 bytes: 15261.
+- L5 [assessment_config_releases]: `alter table public.assessment_config_releases`
+- L8 [assessment_config_release_settings]: `alter table public.assessment_config_release_settings`
+- L12 [assessment_config_releases]: `alter table public.assessment_config_releases`
+- L14 [assessment_config_releases]: `alter table public.assessment_config_releases`
+
+### `supabase/migrations/20261018100000_c03_service_role_api_key_compatibility.sql`
+
+- Blob SHA: `c20231aad7f239c8ff0b773eb4a16bd0dfd63972`; tree bytes: 2292; retrieved UTF-8 bytes: 2292.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
