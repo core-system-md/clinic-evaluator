@@ -2480,3 +2480,58 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 31–40 of 65
 
 - Blob SHA: f5fb51ef76fc9a4dd33f6e4df359de657eb0c1ad; 109 lines; 3800 bytes; classification: TEST.
 - Table-name references: axes@101; scores@101
+
+## Repository-wide code/reference scan outside the primary runtime — batch 5 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 41–50 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk.
+
+### tests/p3-engine-ownership.test.mjs
+
+- Blob SHA: 73bee85b0f7088b9e7d8aae0a20954049322eac9; 73 lines; 3369 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/p3-gate-e-contract.test.mjs
+
+- Blob SHA: 2031f9c60857e6611fd53fcf95fdd9269c28342d; 167 lines; 4678 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/p3-historical-reconciliation.test.mjs
+
+- Blob SHA: b7d3c941c5e2334ddae25b0c11310de65d43a65f; 25 lines; 1662 bytes; classification: TEST.
+- Table-name references: answers@10
+
+### tests/p3-integrated-scorer-v1.test.mjs
+
+- Blob SHA: 9fd047d3eac26eb7100944c5a577feec76e2c010; 326 lines; 12388 bytes; classification: TEST.
+- Table-name references: axes@38,62,80; scores@80,81,83; questions@93,98,192
+
+### tests/p3-overall-score-projection.test.mjs
+
+- Blob SHA: 372a0a70159228be028658b0ba05ef2e1cf347bd; 76 lines; 2603 bytes; classification: TEST.
+- Table-name references: axes@33,38,42
+
+### tests/p3-production-contract.test.mjs
+
+- Blob SHA: 77b9d0b50738d71758b281e4f4241d33d45f5229; 198 lines; 9688 bytes; classification: TEST.
+- Literal API calls: SELECT answers@193
+- Table-name references: axes@63,94,185; scores@76,185; answers@193
+
+### tests/p3-production-external-e2e.mjs
+
+- Blob SHA: 854100c3820c432a3b933b62065ccae4fe4de550; 257 lines; 11294 bytes; classification: TEST.
+- Table-name references: questions@58,61,145; axes@59,62; sessions@116; options@147,148,233; answers@160
+
+### tests/p3-response-interpretation-registry.test.mjs
+
+- Blob SHA: e7381b909bce2458fba2eea81637be6e055801cf; 16 lines; 2025 bytes; classification: TEST.
+- Table-name references: options@8; questions@8
+
+### tests/p3-scorer-v1.test.mjs
+
+- Blob SHA: 0b2a49f8531b7efedcdb702c1782c0d7f5a29932; 89 lines; 5041 bytes; classification: TEST.
+- Table-name references: questions@50
+
+### tests/p3-shadow-replay-current-sessions.test.mjs
+
+- Blob SHA: 72c9e0911bb41b207df33a19c79f3bf57aa60c41; 116 lines; 4733 bytes; classification: TEST.
+- Table-name references: sessions@115
