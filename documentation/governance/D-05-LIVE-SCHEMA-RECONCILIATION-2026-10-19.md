@@ -2426,3 +2426,57 @@ Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 21–30 of 65
 
 - Blob SHA: fb73666d06d7abd932865dadd5febe38a09362cd; 202 lines; 8409 bytes; classification: TEST.
 - Table-name references: scores@23; axes@25; assessment_session_access@77; sessions@78; leads@82; assessment_results@86; assessment_families@87
+
+## Repository-wide code/reference scan outside the primary runtime — batch 4 of 7
+
+Pinned tree 67182c92126ff77e1d47f5bcacae5bf3aa8170d8. Scope: files 31–40 of 65 remaining tracked JS/TS/HTML/workflow files not already covered in the wrapper-aware active-caller crosswalk.
+
+### tests/c03-release-verifier-contract.test.js
+
+- Blob SHA: 67f681169a7974be35ba97e2b06e6038e96bb893; 53 lines; 2994 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/c03-release-verifier-handler.test.ts
+
+- Blob SHA: 9d5d444298e4b83a8bf5dd9c4fe31be723db2a37; 163 lines; 8642 bytes; classification: TEST.
+- Table-name references: questions@15; options@33,58,70; assessment_config_releases@43
+
+### tests/c03-runtime-attestation.test.mjs
+
+- Blob SHA: 5b30f13db7a15e4c945f4af1b543ed245e45108f; 59 lines; 2697 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/d09-pages-asset-exposure.test.js
+
+- Blob SHA: 77d24ee88ca2e5b447c4d0e83e1f4e5458115f3e; 84 lines; 2698 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/external-assessment-access.mjs
+
+- Blob SHA: 734e14a13d464c23aaa19b0f0d03bc6879fe3cbf; 141 lines; 6562 bytes; classification: TEST.
+- Table-name references: questions@62,66,71; axes@63,72; options@66,67,113
+
+### tests/p3-70-scoring-activation.test.mjs
+
+- Blob SHA: a145726d0c4a84fc9c5673f93fed42f0092648f8; 69 lines; 4515 bytes; classification: TEST.
+- Table-name references: axes@54,57; scores@57,58
+
+### tests/p3-aggregation-engine.test.mjs
+
+- Blob SHA: 462f398172d847cff518e58d45c16acb093c4807; 71 lines; 4227 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/p3-consistency-engine.test.mjs
+
+- Blob SHA: 268208a314351dab2f72d27106a87f5f0d6ffec7; 194 lines; 6799 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/p3-criticality-coverage-engine.test.mjs
+
+- Blob SHA: b8e8ccf45e35e9b89174e7930293b283f6cd7f5c; 53 lines; 2735 bytes; classification: TEST.
+- Table-name references: none found in text scan.
+
+### tests/p3-economic-model-v1.test.mjs
+
+- Blob SHA: f5fb51ef76fc9a4dd33f6e4df359de657eb0c1ad; 109 lines; 3800 bytes; classification: TEST.
+- Table-name references: axes@101; scores@101
