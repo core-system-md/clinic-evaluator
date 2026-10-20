@@ -242,3 +242,8 @@ PR #120 is currently OPEN, unmerged, base `main`, head `wp-11/least-privilege-re
 The candidate branch's `20261018075528_c03_service_role_api_key_compatibility.sql` and main's `20261018100000_c03_service_role_api_key_compatibility.sql` have SQL bodies identical after normalizing whitespace/comments/final newline. The candidate branch's `20261018075855_c03_verifier_api_key_compatibility.sql` and main's source-only `20261018110000_c03_verifier_api_key_compatibility.sql` also have SQL bodies identical after removing comment lines and normalizing whitespace; one explanatory comment differs. These comparisons show the candidate source bodies are represented on main under different version filenames, but do **not** prove which exact SQL bytes were executed for the applied Production IDs because the live migration ledger exposes version/name, not historical SQL bodies.
 
 Do not merge PR #120, rewrite migration history, or apply a migration as part of this scan. Keep the source/ledger provenance discrepancy OPEN until the approved review path resolves the exact identity/history relationship.
+
+
+## Line-referenced DDL index
+
+The complete per-file line-reference inventory for all 56 tracked migrations is in `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md`. Current main has the same migration file paths and blob SHAs as the pinned scan tree. This completes the tracked-file DDL search; it does not close external schema provenance or prove historical applied SQL bodies. D-05 remains OPEN.
