@@ -1,3 +1,15 @@
+# CURRENT UPDATE — PR #120 SOURCE-BODY CROSS-COMPARISON — 2026-10-20
+
+Read-only comparison at PR head `47c0a79dbee108149f9431ff4e86ac120c420f7a` confirms:
+- PR source version `20261018075528` and main source `20261018100000` have SQL bodies identical after normalization.
+- PR source version `20261018075855` and main source-only `20261018110000` have SQL bodies identical after comment/whitespace normalization; one explanatory comment differs.
+- The live migration ledger exposes version/name entries, not the original applied SQL bodies, so this does not independently prove exact SQL bytes previously executed for either applied ID.
+- PR #120 remains OPEN / UNMERGED. No PR merge, migration application, history rewrite, or Production mutation occurred. D-05 remains OPEN; WP-11 remains in progress; WP-12 not started.
+
+Continue by preserving this source-body evidence, completing per-object DDL-to-catalog reconciliation and the SECURITY DEFINER/effective-role review, and locating an authoritative external/original schema source if one exists.
+
+---
+
 # CURRENT UPDATE — D-05 TRACKED MIGRATION FILE / LIVE LEDGER RECONCILIATION — 2026-10-20
 
 **New evidence artifact:** `documentation/governance/D-05-MIGRATION-SOURCE-LEDGER-RECONCILIATION-2026-10-20.md` (commit `1378689e0eccbe191e65dad77ba8c5048e7db92c`).
