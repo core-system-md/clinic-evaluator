@@ -2637,3 +2637,8 @@ Tree verification was repeated after writing the scan records: the scanned sourc
 ### D-05 state after the full scan
 
 The tracked migration scan, table-by-table live catalog, per-table migration reference inventory, wrapper-aware application caller scan, test/workflow reference scan, effective table privileges, public function EXECUTE and SECURITY DEFINER search-path summaries, FK orphan scan, and eight targeted consistency checks are now recorded in this worksheet. **D-05 remains OPEN / BLOCKING RECONCILIATION** because (a) initial CREATE TABLE is absent for 18 tables across the 56 tracked migrations and there is no authoritative full schema baseline in the tracked tree; (b) `main` has three unmatched migration source/version identities against live history; (c) the full SECURITY DEFINER body and effective-role/RLS behavior review is not complete; and (d) the external/original schema archive has not been examined. WP-11 remains IN PROGRESS / NOT CLOSED; WP-12 has NOT STARTED.
+
+
+## Source/ledger body comparison — 2026-10-20
+
+PR #120 remains open and unmerged at `47c0a79dbee108149f9431ff4e86ac120c420f7a`. Its `20261018075528` SQL body matches main's `20261018100000` service-role migration after normalization. Its `20261018075855` SQL body matches main's source-only `20261018110000` verifier migration after comment/whitespace normalization, with one explanatory comment differing. These comparisons establish source-body correspondence only; the live ledger does not expose historical applied SQL bodies. Do not merge PR #120 or rewrite/apply migration history from this evidence. D-05 remains OPEN.
