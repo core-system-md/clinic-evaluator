@@ -193,3 +193,31 @@
 - L1 [admin_audit_log]: `create index if not exists admin_audit_log_actor_idx on public.admin_audit_log(actor_user_id);`
 - L2 [admin_audit_log]: `create index if not exists admin_audit_log_family_idx on public.admin_audit_log(family_id);`
 - L3 [admin_capabilities]: `create index if not exists admin_capabilities_granted_by_idx on public.admin_capabilities(granted_by);`
+
+
+## Files 26–30 of 56
+
+### `supabase/migrations/20261003174838_p5_admin_assistant_management.sql`
+
+- Blob SHA: `9e3aaadf7ccf5e23b321422cd027e07444523f04`; tree bytes: 6590; retrieved UTF-8 bytes: 6590.
+- L2 [admin_users]: `alter table public.admin_users`
+
+### `supabase/migrations/20261003175220_p5_working_copy_deep_copy_and_legacy_write_lock.sql`
+
+- Blob SHA: `ffdcb82c8f598852f8936a83ab6177bbee8a7948`; tree bytes: 5205; retrieved UTF-8 bytes: 5205.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003175353_p5_admin_result_read_rpc.sql`
+
+- Blob SHA: `c2313a5b1fc0beec6aefd5751ecceb48d04b5401`; tree bytes: 943; retrieved UTF-8 bytes: 943.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003175429_p5_assistant_capability_dedup.sql`
+
+- Blob SHA: `6b0919e1de17c2a4ca9f58b0431af6db296189c2`; tree bytes: 2007; retrieved UTF-8 bytes: 2007.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003175601_p5_working_copy_stable_family_slug.sql`
+
+- Blob SHA: `a126aa97ad7115d9fa16520c1a45c5ba125283f1`; tree bytes: 5232; retrieved UTF-8 bytes: 5232.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
