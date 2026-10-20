@@ -112,3 +112,40 @@
 - L44 [answers]: `alter table public.answers`
 - L49 [answers]: `alter table public.answers drop constraint if exists answers_answer_value_check;`
 - L51 [answers]: `alter table public.answers`
+
+
+## Files 16–20 of 56
+
+### `supabase/migrations/20261001190000_p0_security_closure.sql`
+
+- Blob SHA: `a11255bd74b52e98944900a8b4f829976907b4e3`; tree bytes: 2169; retrieved UTF-8 bytes: 2169.
+- L29 [admin_users]: `drop policy if exists p0_admin_select_admin_users on public.admin_users;`
+- L50 [assessment_session_access]: `revoke all on table public.assessment_session_access from anon, authenticated;`
+
+### `supabase/migrations/20261002161455_p3_production_implementation.sql`
+
+- Blob SHA: `245c37acdd2611e839a56fa370043c9cffb3f1c0`; tree bytes: 18305; retrieved UTF-8 bytes: 18305.
+- L5 [sessions]: `alter table public.sessions`
+- L10 [assessment_results]: `create table if not exists public.assessment_results (`
+- L12 [sessions]: `session_id uuid not null unique references public.sessions(id) on delete cascade,`
+- L13 [assessment_types]: `assessment_type_id uuid not null references public.assessment_types(id),`
+- L29 [assessment_results]: `alter table public.assessment_results enable row level security;`
+- L30 [assessment_results]: `revoke all on table public.assessment_results from public, anon, authenticated;`
+- L31 [assessment_results]: `grant all on table public.assessment_results to service_role;`
+
+### `supabase/migrations/20261002161945_p3_preserve_completion_access_v2.sql`
+
+- Blob SHA: `268d292a8c3e1f52aad51f111a076197d68649e1`; tree bytes: 16157; retrieved UTF-8 bytes: 16157.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003082558_20261003090000_p4_submission_foundation.sql`
+
+- Blob SHA: `53f0259deca7502523c563f5487a43dd2e44a2f4`; tree bytes: 13963; retrieved UTF-8 bytes: 13963.
+- L4 [sessions]: `alter table public.sessions`
+- L20 [sessions]: `alter table public.sessions`
+- L23 [sessions]: `alter table public.sessions`
+
+### `supabase/migrations/20261003082603_20261003093000_p4_submission_prepare_finalize.sql`
+
+- Blob SHA: `516678ba20014f8f8713c5f7583a7a9325baec6a`; tree bytes: 21832; retrieved UTF-8 bytes: 21832.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
