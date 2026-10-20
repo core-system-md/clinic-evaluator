@@ -149,3 +149,47 @@
 
 - Blob SHA: `516678ba20014f8f8713c5f7583a7a9325baec6a`; tree bytes: 21832; retrieved UTF-8 bytes: 21832.
 - No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+
+## Files 21–25 of 56
+
+### `supabase/migrations/20261003084304_20261003103000_p4_submission_context_lock.sql`
+
+- Blob SHA: `26c4b3ec475aaa676fbdacf0b94ec7f7cc8db1f4`; tree bytes: 4892; retrieved UTF-8 bytes: 4892.
+- L2 [sessions]: `alter table public.sessions`
+
+### `supabase/migrations/20261003170912_p5_admin_architecture.sql`
+
+- Blob SHA: `123793c3c580327df1da1c3c917287d84d8517d5`; tree bytes: 33364; retrieved UTF-8 bytes: 33364.
+- L4 [admin_capabilities]: `create table if not exists public.admin_capabilities (`
+- L12 [admin_audit_log]: `create table if not exists public.admin_audit_log (`
+- L18 [assessment_families]: `family_id uuid references public.assessment_families(id),`
+- L27 [admin_capabilities]: `alter table public.admin_capabilities enable row level security;`
+- L28 [admin_audit_log]: `alter table public.admin_audit_log enable row level security;`
+- L30 [admin_capabilities]: `grant select on public.admin_capabilities to authenticated;`
+- L31 [admin_audit_log]: `grant select on public.admin_audit_log to authenticated;`
+- L124 [admin_capabilities]: `drop policy if exists "admin capabilities self read" on public.admin_capabilities;`
+- L132 [admin_audit_log]: `drop policy if exists "owner audit read" on public.admin_audit_log;`
+- L138 [assessment_families]: `drop policy if exists "active admin family read" on public.assessment_families;`
+- L144 [assessment_families]: `grant select on public.assessment_families to authenticated;`
+- L736 [admin_capabilities]: `revoke all on public.admin_capabilities from anon;`
+- L737 [admin_audit_log]: `revoke all on public.admin_audit_log from anon;`
+- L738 [admin_capabilities]: `revoke insert,update,delete on public.admin_capabilities from authenticated;`
+- L739 [admin_audit_log]: `revoke insert,update,delete on public.admin_audit_log from authenticated;`
+
+### `supabase/migrations/20261003170948_p5_admin_capability_management.sql`
+
+- Blob SHA: `f68f9098e8dd23743a32ebdaac2c748b075b5c84`; tree bytes: 2953; retrieved UTF-8 bytes: 2953.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003171050_p5_admin_canonical_import_and_audit.sql`
+
+- Blob SHA: `f978ff537ac381a7a065921aafa2fb833e146643`; tree bytes: 12300; retrieved UTF-8 bytes: 12300.
+- No line-level table-owned DDL hit in the scanned lines; references/function bodies are handled in the 25-table worksheet.
+
+### `supabase/migrations/20261003171123_p5_admin_security_hardening.sql`
+
+- Blob SHA: `03673cf1fbe6a03e32ff92dd43c59696d084df1f`; tree bytes: 1806; retrieved UTF-8 bytes: 1806.
+- L1 [admin_audit_log]: `create index if not exists admin_audit_log_actor_idx on public.admin_audit_log(actor_user_id);`
+- L2 [admin_audit_log]: `create index if not exists admin_audit_log_family_idx on public.admin_audit_log(family_id);`
+- L3 [admin_capabilities]: `create index if not exists admin_capabilities_granted_by_idx on public.admin_capabilities(granted_by);`
