@@ -1135,3 +1135,100 @@ Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in
 - `public.admin_audit_log`: SQL_REF lines 22,38.
 - `public.admin_users`: SQL_REF line 39.
 - `public.assessment_families`: SQL_REF line 40.
+
+## Full migration-file scan — batch 4 of 5
+
+Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in full: 12/56 (repository files 37–48).
+
+### `supabase/migrations/20261003195802_p5_revoke_anonymous_assistant_rpcs.sql`
+
+- Git blob SHA: `7f4b1312bcfc96934da5fba838789a0bb4ada652`; 8 lines; 605 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261003200444_p5_fix_assistant_create_capability_alias.sql`
+
+- Git blob SHA: `1f39f213dd095c70dd7b089d48abf62a0e6fd579`; 65 lines; 2333 characters; content scanned.
+- `public.admin_capabilities`: SQL_REF line 48.
+- `public.admin_users`: SQL_REF lines 27,44.
+
+### `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`
+
+- Git blob SHA: `18ef36c84c936e90707af27af46f7aadd993d0c8`; 751 lines; 26388 characters; content scanned.
+- `public.assessment_families`: SQL_REF line 516.
+- `public.assessment_results`: SQL_REF line 522.
+- `public.assessment_types`: SQL_REF lines 29,56,58,184,195,204,232,279,328,374,419,473,506,520,540,577,624,679,721.
+- `public.axes`: SQL_REF lines 231,243,252,577,582,593,631,720,729,738.
+- `public.leads`: SQL_REF line 523.
+- `public.options`: SQL_REF lines 326,339,348,417,432,438,447,454.
+- `public.questions`: SQL_REF lines 27,50,52,278,290,298,327,418,624,636,648,678,687,695.
+- `public.sessions`: SQL_REF line 521.
+
+### `supabase/migrations/20261004071919_p5_secure_admin_session_counts.sql`
+
+- Git blob SHA: `2a92d6728c69de2e25301af6d155aca6d8e6c7ff`; 22 lines; 753 characters; content scanned.
+- `public.sessions`: SQL_REF line 13.
+
+### `supabase/migrations/20261004074332_p5_admin_editor_completeness_2026_10_04.sql`
+
+- Git blob SHA: `e6f6141f8be110bb737c479dfa93ca84ab40205b`; 362 lines; 12354 characters; content scanned.
+- `public.assessment_families`: SQL_REF line 319.
+- `public.assessment_results`: SQL_REF line 324.
+- `public.assessment_types`: SQL_REF lines 30,88,105,138,164,205,275,284,309,341.
+- `public.axes`: SQL_REF lines 137,162,165,225.
+- `public.leads`: SQL_REF line 325.
+- `public.options`: SQL_REF lines 28,50,63.
+- `public.questions`: SQL_REF lines 29,87,103,106,151,166.
+- `public.sessions`: SQL_REF line 323.
+- `public.traps`: SQL_REF lines 99,154,333.
+
+### `supabase/migrations/20261004074428_p5_draft_cascade_delete_trigger_fix_2026_10_04.sql`
+
+- Git blob SHA: `3b9f4b5589ea8adfae51de4a003838bccee527af`; 138 lines; 5524 characters; content scanned.
+- `public.assessment_types`: SQL_REF lines 41,76,80.
+- `public.questions`: SQL_REF lines 26,31,68,71.
+
+### `supabase/migrations/20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql`
+
+- Git blob SHA: `7a077fce398ee99008e433148fbe808047706f54`; 115 lines; 3406 characters; content scanned.
+- `public.assessment_assets`: SQL_REF line 71.
+- `public.assessment_families`: SQL_REF line 38.
+- `public.assessment_results`: SQL_REF line 48.
+- `public.assessment_session_access`: SQL_REF line 77.
+- `public.assessment_types`: SQL_REF lines 25,58,98.
+- `public.axes`: SQL_REF line 83.
+- `public.insights_mapping`: SQL_REF line 74.
+- `public.leads`: SQL_REF line 51.
+- `public.questions`: SQL_REF line 80.
+- `public.sessions`: SQL_REF line 45.
+- `public.traps`: SQL_REF line 68.
+
+### `supabase/migrations/20261004102305_p5_ev_mapping_shape_fix.sql`
+
+- Git blob SHA: `9202b9211cd03a0984d6633bd5f82cb3ec9c31db`; 119 lines; 4053 characters; content scanned.
+- `public.assessment_types`: SQL_REF lines 33,99,108.
+- `public.axes`: SQL_REF line 54.
+
+### `supabase/migrations/20261004115546_p5_public_visibility_option_allocation.sql`
+
+- Git blob SHA: `2e01f82a7824b56e9495695a4347802dc1bc7070`; 281 lines; 7911 characters; content scanned.
+- `public.assessment_families`: SQL_REF lines 97,175,192,244,260.
+- `public.assessment_types`: SQL_REF lines 33,110,126,162,187,227,252.
+- `public.options`: SQL_REF lines 46,56,59,73.
+- `public.questions`: SQL_REF line 32.
+
+### `supabase/migrations/20261004115737_p5_lifecycle_immutability_compat.sql`
+
+- Git blob SHA: `ac5cb1fcc0af2126da64e89df9efe7ae6fd4f588`; 51 lines; 2123 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261004145553_p5_lifecycle_trigger_final_fix.sql`
+
+- Git blob SHA: `7334be7fc1093bd3858829bc075dfbf119b55ee4`; 97 lines; 4260 characters; content scanned.
+- No direct table DDL/reference statements for the 25 live tables were found in this file.
+
+### `supabase/migrations/20261005143243_p5_public_options_projection_recovery.sql`
+
+- Git blob SHA: `2b965619f38f28ea0751bcdc578c7eea3729a64b`; 44 lines; 1478 characters; content scanned.
+- `public.assessment_types`: SQL_REF line 34.
+- `public.options`: SQL_REF line 32.
+- `public.questions`: SQL_REF line 33.
