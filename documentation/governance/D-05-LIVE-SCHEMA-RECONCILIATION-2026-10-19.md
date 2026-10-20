@@ -19,6 +19,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.admin_audit_log`
 
+- **Exact live row count (2026-10-20, read-only):** 126.
 - **Live columns (12):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `actor_user_id uuid`; `action text NOT NULL`; `entity_type text NOT NULL`; `entity_id uuid`; `family_id uuid`; `before_data jsonb`; `after_data jsonb`; `created_at timestamp with time zone NOT NULL DEFAULT now()`; `correlation_id uuid NOT NULL DEFAULT gen_random_uuid()`; `success boolean NOT NULL DEFAULT true`; `failure_reason text`
 - **Constraints / relationships:** `admin_audit_log_actor_user_id_fkey: FOREIGN KEY (actor_user_id) REFERENCES auth.users(id)`; `admin_audit_log_family_id_fkey: FOREIGN KEY (family_id) REFERENCES assessment_families(id)`; `admin_audit_log_pkey: PRIMARY KEY (id)`
 - **Indexes:** `admin_audit_log_actor_idx: CREATE INDEX admin_audit_log_actor_idx ON public.admin_audit_log USING btree (actor_user_id)`; `admin_audit_log_family_idx: CREATE INDEX admin_audit_log_family_idx ON public.admin_audit_log USING btree (family_id)`; `admin_audit_log_pkey: CREATE UNIQUE INDEX admin_audit_log_pkey ON public.admin_audit_log USING btree (id)`
@@ -32,6 +33,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.admin_capabilities`
 
+- **Exact live row count (2026-10-20, read-only):** 7.
 - **Live columns (4):** `user_id uuid NOT NULL`; `capability text NOT NULL`; `granted_by uuid NOT NULL`; `created_at timestamp with time zone NOT NULL DEFAULT now()`
 - **Constraints / relationships:** `admin_capabilities_granted_by_fkey: FOREIGN KEY (granted_by) REFERENCES auth.users(id)`; `admin_capabilities_pkey: PRIMARY KEY (user_id, capability)`; `admin_capabilities_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE`
 - **Indexes:** `admin_capabilities_granted_by_idx: CREATE INDEX admin_capabilities_granted_by_idx ON public.admin_capabilities USING btree (granted_by)`; `admin_capabilities_pkey: CREATE UNIQUE INDEX admin_capabilities_pkey ON public.admin_capabilities USING btree (user_id, capability)`
@@ -45,6 +47,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.admin_users`
 
+- **Exact live row count (2026-10-20, read-only):** 2.
 - **Live columns (6):** `user_id uuid NOT NULL`; `role text NOT NULL DEFAULT 'admin'::text`; `active boolean NOT NULL DEFAULT true`; `created_at timestamp with time zone NOT NULL DEFAULT now()`; `created_by uuid`; `display_name text`
 - **Constraints / relationships:** `admin_users_created_by_fkey: FOREIGN KEY (created_by) REFERENCES auth.users(id) ON DELETE SET NULL`; `admin_users_pkey: PRIMARY KEY (user_id)`; `admin_users_role_check: CHECK ((role = ANY (ARRAY['owner'::text, 'admin'::text])))`; `admin_users_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE`
 - **Indexes:** `admin_users_pkey: CREATE UNIQUE INDEX admin_users_pkey ON public.admin_users USING btree (user_id)`; `admin_users_single_owner_uidx: CREATE UNIQUE INDEX admin_users_single_owner_uidx ON public.admin_users USING btree (role) WHERE (role = 'owner'::text)`
@@ -58,6 +61,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.answers`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (13):** `id uuid NOT NULL DEFAULT uuid_generate_v4()`; `session_id uuid`; `lead_id uuid`; `question_id text NOT NULL`; `axis_id text NOT NULL`; `question_text text`; `answer_value integer NOT NULL`; `is_trap boolean DEFAULT false`; `trap_triggered boolean DEFAULT false`; `answered_at timestamp with time zone DEFAULT now()`; `option_index integer`; `option_value integer`; `chosen_option_label text`
 - **Constraints / relationships:** `answers_answer_value_compat_check: CHECK ((answer_value = ANY (ARRAY[0, 1, 2, 3, 4, 5, 40, 70, 100])))`; `answers_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE`; `answers_pkey: PRIMARY KEY (id)`; `answers_session_id_fkey: FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE`; `answers_session_question_unique: UNIQUE (session_id, question_id)`
 - **Indexes:** `answers_pkey: CREATE UNIQUE INDEX answers_pkey ON public.answers USING btree (id)`; `answers_session_question_uidx: CREATE UNIQUE INDEX answers_session_question_uidx ON public.answers USING btree (session_id, question_id) WHERE (session_id IS NOT NULL)`; `answers_session_question_unique: CREATE UNIQUE INDEX answers_session_question_unique ON public.answers USING btree (session_id, question_id)`; `idx_answers_session: CREATE INDEX idx_answers_session ON public.answers USING btree (session_id)`
@@ -71,6 +75,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_assets`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (13):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `assessment_type_id uuid NOT NULL`; `asset_type character varying(50) NOT NULL`; `file_url text NOT NULL`; `file_name character varying(255)`; `file_size integer`; `mime_type character varying(100)`; `alt_text character varying(255)`; `alt_text_ar character varying(255)`; `display_order integer DEFAULT 0`; `is_active boolean DEFAULT true`; `created_at timestamp with time zone DEFAULT now()`; `updated_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `assessment_assets_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id) ON DELETE CASCADE`; `assessment_assets_pkey: PRIMARY KEY (id)`
 - **Indexes:** `assessment_assets_pkey: CREATE UNIQUE INDEX assessment_assets_pkey ON public.assessment_assets USING btree (id)`; `idx_assets_assessment: CREATE INDEX idx_assets_assessment ON public.assessment_assets USING btree (assessment_type_id)`; `idx_assets_type: CREATE INDEX idx_assets_type ON public.assessment_assets USING btree (assessment_type_id, asset_type)`
@@ -84,6 +89,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_config_release_settings`
 
+- **Exact live row count (2026-10-20, read-only):** 1.
 - **Live columns (7):** `singleton boolean NOT NULL DEFAULT true`; `enabled boolean NOT NULL DEFAULT false`; `enabled_at timestamp with time zone`; `enabled_by uuid`; `updated_at timestamp with time zone NOT NULL DEFAULT now()`; `enabled_by_workflow_run_id text`; `enabled_by_workflow_sha text`
 - **Constraints / relationships:** `assessment_config_release_settings_enabled_by_fkey: FOREIGN KEY (enabled_by) REFERENCES auth.users(id)`; `assessment_config_release_settings_pkey: PRIMARY KEY (singleton)`; `assessment_config_release_settings_singleton_check: CHECK (singleton)`
 - **Indexes:** `assessment_config_release_settings_pkey: CREATE UNIQUE INDEX assessment_config_release_settings_pkey ON public.assessment_config_release_settings USING btree (singleton)`
@@ -97,6 +103,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_config_releases`
 
+- **Exact live row count (2026-10-20, read-only):** 15.
 - **Live columns (34):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `family_id uuid NOT NULL`; `assessment_type_id uuid NOT NULL`; `assessment_version integer NOT NULL`; `git_commit_sha text NOT NULL`; `config_digest text NOT NULL`; `canonicalizer_version text NOT NULL`; `interpretation_version integer NOT NULL`; `interpretation_registry_digest text NOT NULL`; `scoring_engine_version text NOT NULL`; `scoring_contract_version text NOT NULL`; `report_model_version text NOT NULL`; `fixture_set_version text NOT NULL`; `migration_contract_version text NOT NULL`; `edge_release_ref text NOT NULL`; `state text NOT NULL DEFAULT 'PREPARED'::text`; `created_by uuid`; `created_at timestamp with time zone NOT NULL DEFAULT now()`; `verified_at timestamp with time zone`; `verified_config_digest text`; `verified_registry_digest text`; `verified_git_commit_sha text`; `verified_edge_release_ref text`; `verified_interpretation_version integer`; `verified_scoring_engine_version text`; `verified_scoring_contract_version text`; `verified_report_model_version text`; `verified_fixture_set_version text`; `verified_migration_contract_version text`; `validation_report jsonb NOT NULL DEFAULT '{}'::jsonb`; `failure_reason text`; `published_at timestamp with time zone`; `release_actor jsonb NOT NULL DEFAULT '{}'::jsonb`; `activation_actor jsonb NOT NULL DEFAULT '{}'::jsonb`
 - **Constraints / relationships:** `assessment_config_releases_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id) ON DELETE RESTRICT`; `assessment_config_releases_assessment_type_id_git_commit_sh_key: UNIQUE (assessment_type_id, git_commit_sha, config_digest)`; `assessment_config_releases_assessment_version_check: CHECK ((assessment_version > 0))`; `assessment_config_releases_canonicalizer_version_check: CHECK ((length(TRIM(BOTH FROM canonicalizer_version)) > 0))`; `assessment_config_releases_ci_actor_object_check: CHECK (((jsonb_typeof(release_actor) = 'object'::text) AND (jsonb_typeof(activation_actor) = 'object'::text)))`; `assessment_config_releases_config_digest_check: CHECK ((config_digest ~ '^[0-9a-f]{64}$'::text))`; `assessment_config_releases_created_by_fkey: FOREIGN KEY (created_by) REFERENCES auth.users(id)`; `assessment_config_releases_edge_release_ref_check: CHECK ((length(TRIM(BOTH FROM edge_release_ref)) > 0))`; `assessment_config_releases_family_id_fkey: FOREIGN KEY (family_id) REFERENCES assessment_families(id) ON DELETE RESTRICT`; `assessment_config_releases_fixture_set_version_check: CHECK ((length(TRIM(BOTH FROM fixture_set_version)) > 0))`; `assessment_config_releases_git_commit_sha_check: CHECK ((git_commit_sha ~ '^[0-9a-f]{40}([0-9a-f]{24})?$'::text))`; `assessment_config_releases_interpretation_registry_digest_check: CHECK ((interpretation_registry_digest ~ '^[0-9a-f]{64}$'::text))`; `assessment_config_releases_interpretation_version_check: CHECK ((interpretation_version > 0))`; `assessment_config_releases_migration_contract_version_check: CHECK ((length(TRIM(BOTH FROM migration_contract_version)) > 0))`; `assessment_config_releases_pkey: PRIMARY KEY (id)`; `assessment_config_releases_report_model_version_check: CHECK ((length(TRIM(BOTH FROM report_model_version)) > 0))`; `assessment_config_releases_scoring_contract_version_check: CHECK ((length(TRIM(BOTH FROM scoring_contract_version)) > 0))`; `assessment_config_releases_scoring_engine_version_check: CHECK ((length(TRIM(BOTH FROM scoring_engine_version)) > 0))`; `assessment_config_releases_state_check: CHECK ((state = ANY (ARRAY['PREPARED'::text, 'VERIFIED'::text, 'PUBLISHED'::text, 'REJECTED'::text, 'DEGRADED'::text])))`; `assessment_config_releases_verified_config_digest_check: CHECK (((verified_config_digest IS NULL) OR (verified_config_digest ~ '^[0-9a-f]{64}$'::text)))`; `assessment_config_releases_verified_registry_digest_check: CHECK (((verified_registry_digest IS NULL) OR (verified_registry_digest ~ '^[0-9a-f]{64}$'::text)))`
 - **Indexes:** `assessment_config_releases_assessment_type_id_git_commit_sh_key: CREATE UNIQUE INDEX assessment_config_releases_assessment_type_id_git_commit_sh_key ON public.assessment_config_releases USING btree (assessment_type_id, git_commit_sha, config_digest)`; `assessment_config_releases_pkey: CREATE UNIQUE INDEX assessment_config_releases_pkey ON public.assessment_config_releases USING btree (id)`; `assessment_config_releases_version_state_idx: CREATE INDEX assessment_config_releases_version_state_idx ON public.assessment_config_releases USING btree (family_id, assessment_type_id, state, verified_at DESC)`
@@ -110,6 +117,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_families`
 
+- **Exact live row count (2026-10-20, read-only):** 5.
 - **Live columns (7):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `slug text NOT NULL`; `current_published_version_id uuid`; `created_at timestamp with time zone NOT NULL DEFAULT now()`; `updated_at timestamp with time zone NOT NULL DEFAULT now()`; `created_by uuid`; `current_release_id uuid`
 - **Constraints / relationships:** `assessment_families_created_by_fkey: FOREIGN KEY (created_by) REFERENCES auth.users(id)`; `assessment_families_current_published_version_fkey: FOREIGN KEY (current_published_version_id) REFERENCES assessment_types(id) ON DELETE RESTRICT`; `assessment_families_current_release_id_fkey: FOREIGN KEY (current_release_id) REFERENCES assessment_config_releases(id) ON DELETE RESTRICT`; `assessment_families_pkey: PRIMARY KEY (id)`; `assessment_families_slug_key: UNIQUE (slug)`
 - **Indexes:** `assessment_families_current_published_idx: CREATE INDEX assessment_families_current_published_idx ON public.assessment_families USING btree (current_published_version_id)`; `assessment_families_pkey: CREATE UNIQUE INDEX assessment_families_pkey ON public.assessment_families USING btree (id)`; `assessment_families_slug_key: CREATE UNIQUE INDEX assessment_families_slug_key ON public.assessment_families USING btree (slug)`
@@ -123,6 +131,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_results`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (12):** `id uuid NOT NULL`; `session_id uuid NOT NULL`; `assessment_type_id uuid NOT NULL`; `assessment_version integer NOT NULL`; `interpretation_version integer NOT NULL`; `scoring_engine_version text NOT NULL`; `scoring_contract_version text NOT NULL`; `assessment_config_digest text NOT NULL`; `calculated_at timestamp with time zone NOT NULL`; `result_status text NOT NULL DEFAULT 'PRODUCTION'::text`; `result jsonb NOT NULL`; `created_at timestamp with time zone NOT NULL DEFAULT now()`
 - **Constraints / relationships:** `assessment_results_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id)`; `assessment_results_pkey: PRIMARY KEY (id)`; `assessment_results_result_status_check: CHECK ((result_status = ANY (ARRAY['SHADOW'::text, 'PRODUCTION'::text, 'LEGACY'::text])))`; `assessment_results_session_id_fkey: FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE`; `assessment_results_session_id_key: UNIQUE (session_id)`
 - **Indexes:** `assessment_results_assessment_type_created_idx: CREATE INDEX assessment_results_assessment_type_created_idx ON public.assessment_results USING btree (assessment_type_id, calculated_at DESC)`; `assessment_results_pkey: CREATE UNIQUE INDEX assessment_results_pkey ON public.assessment_results USING btree (id)`; `assessment_results_session_id_key: CREATE UNIQUE INDEX assessment_results_session_id_key ON public.assessment_results USING btree (session_id)`
@@ -136,6 +145,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_session_access`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (9):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `session_id uuid`; `assessment_user_id uuid`; `token_hash text NOT NULL`; `created_at timestamp with time zone NOT NULL DEFAULT now()`; `last_seen_at timestamp with time zone NOT NULL DEFAULT now()`; `expires_at timestamp with time zone NOT NULL`; `revoked_at timestamp with time zone`; `assessment_type_id uuid`
 - **Constraints / relationships:** `assessment_session_access_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id) ON DELETE CASCADE`; `assessment_session_access_assessment_user_id_fkey: FOREIGN KEY (assessment_user_id) REFERENCES assessment_users(id) ON DELETE CASCADE`; `assessment_session_access_pkey: PRIMARY KEY (id)`; `assessment_session_access_session_id_fkey: FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE`; `assessment_session_access_token_hash_key: UNIQUE (token_hash)`
 - **Indexes:** `assessment_session_access_pkey: CREATE UNIQUE INDEX assessment_session_access_pkey ON public.assessment_session_access USING btree (id)`; `assessment_session_access_token_hash_key: CREATE UNIQUE INDEX assessment_session_access_token_hash_key ON public.assessment_session_access USING btree (token_hash)`; `assessment_session_access_type_idx: CREATE INDEX assessment_session_access_type_idx ON public.assessment_session_access USING btree (assessment_type_id, created_at DESC)`; `assessment_session_access_user_idx: CREATE INDEX assessment_session_access_user_idx ON public.assessment_session_access USING btree (assessment_user_id, expires_at)`
@@ -149,6 +159,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_settings`
 
+- **Exact live row count (2026-10-20, read-only):** 3.
 - **Live columns (3):** `assessment_key text NOT NULL`; `auth_enabled boolean DEFAULT false`; `created_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `assessment_settings_pkey: PRIMARY KEY (assessment_key)`
 - **Indexes:** `assessment_settings_pkey: CREATE UNIQUE INDEX assessment_settings_pkey ON public.assessment_settings USING btree (assessment_key)`
@@ -162,6 +173,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_types`
 
+- **Exact live row count (2026-10-20, read-only):** 5.
 - **Live columns (23):** `id uuid NOT NULL DEFAULT uuid_generate_v4()`; `slug text NOT NULL`; `title_ar text NOT NULL`; `title_en text`; `description text`; `question_count integer NOT NULL DEFAULT 0`; `axis_count integer NOT NULL DEFAULT 0`; `has_traps boolean DEFAULT false`; `has_ev_simulator boolean DEFAULT false`; `config_version integer DEFAULT 1`; `is_active boolean DEFAULT true`; `created_at timestamp with time zone DEFAULT now()`; `status character varying(20) DEFAULT 'published'::character varying`; `version integer DEFAULT 1`; `updated_at timestamp with time zone DEFAULT now()`; `published_at timestamp with time zone`; `archived_at timestamp with time zone`; `created_by uuid`; `parent_id uuid`; `kpi_mappings jsonb`; `ev_mappings jsonb`; `axis_roles jsonb`; `family_id uuid NOT NULL`
 - **Constraints / relationships:** `assessment_types_family_id_fkey: FOREIGN KEY (family_id) REFERENCES assessment_families(id)`; `assessment_types_parent_id_fkey: FOREIGN KEY (parent_id) REFERENCES assessment_types(id)`; `assessment_types_pkey: PRIMARY KEY (id)`; `assessment_types_slug_key: UNIQUE (slug)`; `chk_assessment_status: CHECK (((status)::text = ANY ((ARRAY['draft'::character varying, 'published'::character varying, 'archived'::character varying])::text[])))`
 - **Indexes:** `assessment_types_family_version_uidx: CREATE UNIQUE INDEX assessment_types_family_version_uidx ON public.assessment_types USING btree (family_id, version)`; `assessment_types_one_published_per_family_uidx: CREATE UNIQUE INDEX assessment_types_one_published_per_family_uidx ON public.assessment_types USING btree (family_id) WHERE ((status)::text = 'published'::text)`; `assessment_types_pkey: CREATE UNIQUE INDEX assessment_types_pkey ON public.assessment_types USING btree (id)`; `assessment_types_slug_key: CREATE UNIQUE INDEX assessment_types_slug_key ON public.assessment_types USING btree (slug)`
@@ -175,6 +187,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.assessment_users`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (9):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `assessment_key text`; `username text NOT NULL`; `password_hash text NOT NULL`; `max_uses integer DEFAULT 1`; `used_count integer DEFAULT 0`; `expires_at timestamp with time zone`; `active boolean DEFAULT true`; `created_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `assessment_users_assessment_key_fkey: FOREIGN KEY (assessment_key) REFERENCES assessment_settings(assessment_key) ON DELETE CASCADE`; `assessment_users_pkey: PRIMARY KEY (id)`
 - **Indexes:** `assessment_users_pkey: CREATE UNIQUE INDEX assessment_users_pkey ON public.assessment_users USING btree (id)`
@@ -188,6 +201,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.axes`
 
+- **Exact live row count (2026-10-20, read-only):** 22.
 - **Live columns (11):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `assessment_type_id uuid NOT NULL`; `code character varying(10) NOT NULL`; `title character varying(255) NOT NULL`; `title_ar character varying(255)`; `description text`; `weight numeric(5,2) NOT NULL DEFAULT 0.00`; `display_order integer NOT NULL DEFAULT 0`; `status character varying(20) DEFAULT 'active'::character varying`; `created_at timestamp with time zone DEFAULT now()`; `updated_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `axes_assessment_type_id_code_key: UNIQUE (assessment_type_id, code)`; `axes_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id) ON DELETE CASCADE`; `axes_pkey: PRIMARY KEY (id)`
 - **Indexes:** `axes_assessment_type_id_code_key: CREATE UNIQUE INDEX axes_assessment_type_id_code_key ON public.axes USING btree (assessment_type_id, code)`; `axes_pkey: CREATE UNIQUE INDEX axes_pkey ON public.axes USING btree (id)`; `idx_axes_assessment: CREATE INDEX idx_axes_assessment ON public.axes USING btree (assessment_type_id)`; `idx_axes_code: CREATE INDEX idx_axes_code ON public.axes USING btree (code)`
@@ -201,6 +215,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.experience_multipliers`
 
+- **Exact live row count (2026-10-20, read-only):** 4.
 - **Live columns (7):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `years_range text NOT NULL`; `years_min integer`; `years_max integer`; `multiplier real NOT NULL DEFAULT 1.0`; `label_ar text NOT NULL`; `label_en text NOT NULL`
 - **Constraints / relationships:** `experience_multipliers_pkey: PRIMARY KEY (id)`; `experience_multipliers_years_range_key: UNIQUE (years_range)`
 - **Indexes:** `experience_multipliers_pkey: CREATE UNIQUE INDEX experience_multipliers_pkey ON public.experience_multipliers USING btree (id)`; `experience_multipliers_years_range_key: CREATE UNIQUE INDEX experience_multipliers_years_range_key ON public.experience_multipliers USING btree (years_range)`
@@ -214,6 +229,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.historical_snapshots`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (5):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `session_id uuid NOT NULL`; `assessment_type_id uuid NOT NULL`; `snapshot_data jsonb NOT NULL`; `created_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `historical_snapshots_pkey: PRIMARY KEY (id)`; `historical_snapshots_session_id_fkey: FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE`
 - **Indexes:** `historical_snapshots_pkey: CREATE UNIQUE INDEX historical_snapshots_pkey ON public.historical_snapshots USING btree (id)`
@@ -227,6 +243,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.insights_mapping`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (15):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `assessment_type_id uuid`; `insight_code character varying(50) NOT NULL`; `severity character varying(20) DEFAULT 'info'::character varying`; `title character varying(255) NOT NULL`; `title_ar character varying(255)`; `message text NOT NULL`; `message_ar text`; `recommendation text`; `recommendation_ar text`; `category character varying(50)`; `display_order integer DEFAULT 0`; `is_active boolean DEFAULT true`; `created_at timestamp with time zone DEFAULT now()`; `updated_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `insights_mapping_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id) ON DELETE CASCADE`; `insights_mapping_assessment_type_id_insight_code_key: UNIQUE (assessment_type_id, insight_code)`; `insights_mapping_pkey: PRIMARY KEY (id)`
 - **Indexes:** `idx_insights_assessment: CREATE INDEX idx_insights_assessment ON public.insights_mapping USING btree (assessment_type_id)`; `idx_insights_code: CREATE INDEX idx_insights_code ON public.insights_mapping USING btree (insight_code)`; `insights_mapping_assessment_type_id_insight_code_key: CREATE UNIQUE INDEX insights_mapping_assessment_type_id_insight_code_key ON public.insights_mapping USING btree (assessment_type_id, insight_code)`; `insights_mapping_pkey: CREATE UNIQUE INDEX insights_mapping_pkey ON public.insights_mapping USING btree (id)`
@@ -240,6 +257,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.leads`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (20):** `id uuid NOT NULL DEFAULT uuid_generate_v4()`; `assessment_type_id uuid`; `full_name text NOT NULL`; `email text`; `phone text`; `clinic_name text`; `country text DEFAULT 'JO'::text`; `source text DEFAULT 'website'::text`; `utm_campaign text`; `completed boolean DEFAULT false`; `score_total integer DEFAULT 0`; `score_percentage numeric(5,2) DEFAULT 0`; `created_at timestamp with time zone DEFAULT now()`; `completed_at timestamp with time zone`; `specialty text`; `years text`; `team text`; `ev_current integer`; `ev_potential integer`; `ev_gap integer`
 - **Constraints / relationships:** `leads_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id)`; `leads_pkey: PRIMARY KEY (id)`
 - **Indexes:** `idx_leads_assessment: CREATE INDEX idx_leads_assessment ON public.leads USING btree (assessment_type_id)`; `idx_leads_email: CREATE INDEX idx_leads_email ON public.leads USING btree (email)`; `leads_pkey: CREATE UNIQUE INDEX leads_pkey ON public.leads USING btree (id)`
@@ -253,6 +271,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.options`
 
+- **Exact live row count (2026-10-20, read-only):** 370.
 - **Live columns (11):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `question_id uuid NOT NULL`; `option_index integer NOT NULL`; `option_value integer NOT NULL`; `label character varying(255) NOT NULL`; `label_ar character varying(255)`; `display_text text`; `display_text_ar text`; `is_trap boolean DEFAULT false`; `display_order integer NOT NULL DEFAULT 0`; `created_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `options_pkey: PRIMARY KEY (id)`; `options_question_id_fkey: FOREIGN KEY (question_id) REFERENCES questions(id) ON DELETE CASCADE`; `options_question_id_option_index_key: UNIQUE (question_id, option_index)`
 - **Indexes:** `idx_options_index: CREATE INDEX idx_options_index ON public.options USING btree (question_id, option_index)`; `idx_options_question: CREATE INDEX idx_options_question ON public.options USING btree (question_id)`; `options_pkey: CREATE UNIQUE INDEX options_pkey ON public.options USING btree (id)`; `options_question_id_option_index_key: CREATE UNIQUE INDEX options_question_id_option_index_key ON public.options USING btree (question_id, option_index)`
@@ -266,6 +285,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.questions`
 
+- **Exact live row count (2026-10-20, read-only):** 93.
 - **Live columns (16):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `axis_id uuid NOT NULL`; `assessment_type_id uuid NOT NULL`; `code character varying(20) NOT NULL`; `question_text text NOT NULL`; `question_text_ar text`; `question_type character varying(50) DEFAULT 'likert'::character varying`; `display_order integer NOT NULL DEFAULT 0`; `is_required boolean DEFAULT true`; `trap_index integer`; `status character varying(20) DEFAULT 'active'::character varying`; `created_at timestamp with time zone DEFAULT now()`; `updated_at timestamp with time zone DEFAULT now()`; `impact text DEFAULT 'medium'::text`; `layer text DEFAULT 'A'::text`; `trap_for jsonb DEFAULT '[]'::jsonb`
 - **Constraints / relationships:** `questions_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id) ON DELETE CASCADE`; `questions_axis_id_code_key: UNIQUE (axis_id, code)`; `questions_axis_id_fkey: FOREIGN KEY (axis_id) REFERENCES axes(id) ON DELETE CASCADE`; `questions_pkey: PRIMARY KEY (id)`
 - **Indexes:** `idx_questions_assessment: CREATE INDEX idx_questions_assessment ON public.questions USING btree (assessment_type_id)`; `idx_questions_axis: CREATE INDEX idx_questions_axis ON public.questions USING btree (axis_id)`; `questions_axis_id_code_key: CREATE UNIQUE INDEX questions_axis_id_code_key ON public.questions USING btree (axis_id, code)`; `questions_pkey: CREATE UNIQUE INDEX questions_pkey ON public.questions USING btree (id)`
@@ -279,6 +299,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.scores`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (13):** `id uuid NOT NULL DEFAULT uuid_generate_v4()`; `session_id uuid`; `lead_id uuid`; `axis_id text NOT NULL`; `axis_name_ar text`; `axis_name_en text`; `raw_score integer DEFAULT 0`; `max_possible integer DEFAULT 0`; `percentage numeric(5,2) DEFAULT 0`; `weight numeric(5,2) DEFAULT 1.00`; `weighted_score numeric(10,2) DEFAULT 0`; `grade text`; `created_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `scores_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE`; `scores_pkey: PRIMARY KEY (id)`; `scores_session_id_fkey: FOREIGN KEY (session_id) REFERENCES sessions(id) ON DELETE CASCADE`
 - **Indexes:** `idx_scores_session: CREATE INDEX idx_scores_session ON public.scores USING btree (session_id)`; `scores_pkey: CREATE UNIQUE INDEX scores_pkey ON public.scores USING btree (id)`
@@ -292,6 +313,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.sessions`
 
+- **Exact live row count (2026-10-20, read-only):** 0.
 - **Live columns (25):** `id uuid NOT NULL DEFAULT uuid_generate_v4()`; `lead_id uuid`; `assessment_type_id uuid`; `status text DEFAULT 'in_progress'::text`; `current_question integer DEFAULT 1`; `started_at timestamp with time zone DEFAULT now()`; `completed_at timestamp with time zone`; `duration_seconds integer DEFAULT 0`; `ip_address inet`; `user_agent text`; `assessment_user_id uuid`; `usage_consumed_at timestamp with time zone`; `assessment_version integer`; `scoring_engine_version text`; `interpretation_version integer`; `scoring_contract_version text`; `assessment_config_digest text`; `submission_state text NOT NULL DEFAULT 'draft'::text`; `submission_snapshot jsonb`; `submission_fingerprint text`; `submission_started_at timestamp with time zone`; `last_activity_at timestamp with time zone`; `attempt_key_hash text`; `submission_economic_input jsonb`; `assessment_release_id uuid`
 - **Constraints / relationships:** `sessions_assessment_release_id_fkey: FOREIGN KEY (assessment_release_id) REFERENCES assessment_config_releases(id) ON DELETE RESTRICT`; `sessions_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id)`; `sessions_assessment_user_id_fkey: FOREIGN KEY (assessment_user_id) REFERENCES assessment_users(id) ON DELETE SET NULL`; `sessions_lead_id_fkey: FOREIGN KEY (lead_id) REFERENCES leads(id) ON DELETE CASCADE`; `sessions_pkey: PRIMARY KEY (id)`; `sessions_submission_state_check: CHECK ((submission_state = ANY (ARRAY['draft'::text, 'processing'::text, 'completed'::text])))`
 - **Indexes:** `idx_sessions_assessment: CREATE INDEX idx_sessions_assessment ON public.sessions USING btree (assessment_type_id)`; `idx_sessions_lead: CREATE INDEX idx_sessions_lead ON public.sessions USING btree (lead_id)`; `sessions_active_attempt_key_uidx: CREATE UNIQUE INDEX sessions_active_attempt_key_uidx ON public.sessions USING btree (assessment_type_id, attempt_key_hash) WHERE ((attempt_key_hash IS NOT NULL) AND (status = 'in_progress'::text))`; `sessions_assessment_release_id_idx: CREATE INDEX sessions_assessment_release_id_idx ON public.sessions USING btree (assessment_release_id) WHERE (assessment_release_id IS NOT NULL)`; `sessions_assessment_user_id_idx: CREATE INDEX sessions_assessment_user_id_idx ON public.sessions USING btree (assessment_user_id)`; `sessions_assessment_user_status_idx: CREATE INDEX sessions_assessment_user_status_idx ON public.sessions USING btree (assessment_user_id, assessment_type_id, status, started_at DESC)`; `sessions_assessment_version_idx: CREATE INDEX sessions_assessment_version_idx ON public.sessions USING btree (assessment_type_id, assessment_version)`; `sessions_attempt_lookup_idx: CREATE INDEX sessions_attempt_lookup_idx ON public.sessions USING btree (assessment_type_id, attempt_key_hash) WHERE (attempt_key_hash IS NOT NULL)`; `sessions_pkey: CREATE UNIQUE INDEX sessions_pkey ON public.sessions USING btree (id)`
@@ -305,6 +327,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.specialty_profiles`
 
+- **Exact live row count (2026-10-20, read-only):** 7.
 - **Live columns (13):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `specialty_key text NOT NULL`; `specialty_name_ar text NOT NULL`; `specialty_name_en text NOT NULL`; `default_avg_visit real NOT NULL DEFAULT 50`; `default_visits_per_year real NOT NULL DEFAULT 4`; `default_years_relationship real NOT NULL DEFAULT 5`; `default_referral_rate real NOT NULL DEFAULT 10`; `specialty_multiplier real NOT NULL DEFAULT 1.0`; `team_capacity_factor real NOT NULL DEFAULT 1.0`; `description_ar text`; `created_at timestamp with time zone DEFAULT now()`; `updated_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `specialty_profiles_pkey: PRIMARY KEY (id)`; `specialty_profiles_specialty_key_key: UNIQUE (specialty_key)`
 - **Indexes:** `specialty_profiles_pkey: CREATE UNIQUE INDEX specialty_profiles_pkey ON public.specialty_profiles USING btree (id)`; `specialty_profiles_specialty_key_key: CREATE UNIQUE INDEX specialty_profiles_specialty_key_key ON public.specialty_profiles USING btree (specialty_key)`
@@ -318,6 +341,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.team_capacity_factors`
 
+- **Exact live row count (2026-10-20, read-only):** 4.
 - **Live columns (7):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `team_range text NOT NULL`; `team_min integer`; `team_max integer`; `capacity_factor real NOT NULL DEFAULT 1.0`; `label_ar text NOT NULL`; `label_en text NOT NULL`
 - **Constraints / relationships:** `team_capacity_factors_pkey: PRIMARY KEY (id)`; `team_capacity_factors_team_range_key: UNIQUE (team_range)`
 - **Indexes:** `team_capacity_factors_pkey: CREATE UNIQUE INDEX team_capacity_factors_pkey ON public.team_capacity_factors USING btree (id)`; `team_capacity_factors_team_range_key: CREATE UNIQUE INDEX team_capacity_factors_team_range_key ON public.team_capacity_factors USING btree (team_range)`
@@ -331,6 +355,7 @@ The read-only catalog snapshot returned **25** tables. All had RLS enabled; none
 
 ### `public.traps`
 
+- **Exact live row count (2026-10-20, read-only):** 1.
 - **Live columns (11):** `id uuid NOT NULL DEFAULT gen_random_uuid()`; `assessment_type_id uuid`; `name text`; `question_id text`; `validates text`; `target_axis text`; `penalty_base numeric`; `penalty_max numeric`; `message text`; `message_ar text`; `created_at timestamp with time zone DEFAULT now()`
 - **Constraints / relationships:** `traps_assessment_type_id_fkey: FOREIGN KEY (assessment_type_id) REFERENCES assessment_types(id)`; `traps_pkey: PRIMARY KEY (id)`
 - **Indexes:** `traps_pkey: CREATE UNIQUE INDEX traps_pkey ON public.traps USING btree (id)`
@@ -1303,3 +1328,81 @@ Pinned `main` tree: `d9cd749ffffa358409b11e11cf405d5ae1be7d53`. Files scanned in
 
 - Git blob SHA: `538ec2ac2bedd1f9886dac45600969c0a1a3c3bb`; 106 lines; 6480 characters; content scanned.
 - `public.assessment_config_releases`: SQL_REF lines 40,69,81.
+
+
+## Consolidated full-scan conclusion and migration-ledger reconciliation — 2026-10-20
+
+### Scope and reproducibility
+
+- The full contents of all **56** tracked `supabase/migrations/*.sql` files on `main` were fetched from the pinned Git tree `d9cd749ffffa358409b11e11cf405d5ae1be7d53` and scanned in five documented batches above. A follow-up comparison of every migration path and Git blob SHA against the later `main` tree `2eb0b6ed7bdc6f1e5416a04f69f0e59836c29dc1` found **no migration path or blob changes**, so the scan applies to the 56 migration files present at that main snapshot.
+- The scan classifies table-related DDL and SQL references by file and line. It is a textual source scan: dynamic SQL constructed from variables, identifiers passed from application requests, and dependencies beyond tracked text require separate analysis. It is not proof of effective permission behavior.
+- A fresh read-only exact `COUNT(*)` query returned the counts inserted into each table section above. These are counts at the time of that read-only query, not long-term invariants and not a basis to classify a table as unused.
+
+### Result of the full migration-file CREATE TABLE scan
+
+The 56 migration files contain initial `CREATE TABLE` declarations for exactly these seven live public tables (file and source line from the full-content scan):
+
+| Live table | Initial CREATE TABLE source found in tracked migrations |
+|---|---|
+| `public.assessment_families` | `supabase/migrations/20261001100633_p2_assessment_family_versions.sql:7` |
+| `public.assessment_session_access` | `supabase/migrations/20261001120000_protected_assessment_access_foundation.sql:21` |
+| `public.assessment_results` | `supabase/migrations/20261002161455_p3_production_implementation.sql:10` |
+| `public.admin_capabilities` | `supabase/migrations/20261003170912_p5_admin_architecture.sql:4` |
+| `public.admin_audit_log` | `supabase/migrations/20261003170912_p5_admin_architecture.sql:12` |
+| `public.assessment_config_releases` | `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql:7` |
+| `public.assessment_config_release_settings` | `supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql:44` |
+
+The exact **18 live tables with no initial CREATE TABLE declaration found in those 56 migration files** are:
+
+`admin_users`, `answers`, `assessment_assets`, `assessment_settings`, `assessment_types`, `assessment_users`, `axes`, `experience_multipliers`, `historical_snapshots`, `insights_mapping`, `leads`, `options`, `questions`, `scores`, `sessions`, `specialty_profiles`, `team_capacity_factors`, `traps`.
+
+The same 18 identifiers appear in the explicit table list in `supabase/migrations/20261001190000_p0_security_closure.sql` (the P0 privilege-revocation loop), which establishes that these objects were already expected to exist by that migration. This corroborates the names and chronology; it does not supply their original definitions.
+
+### SQL files outside the migration directory
+
+A full tree listing found **9** tracked `.sql` files outside `supabase/migrations/`. Full-text inspection found table-creation statements only in the following test harnesses:
+
+- `tests/c03-hybrid-config-release-harness.sql`: isolated fixture definitions for `auth.users`, `assessment_families`, `assessment_types`, `sessions`, `admin_users`, `admin_capabilities`, and `admin_audit_log`.
+- `tests/p4-protected-function-harness.sql`: reduced fixture definitions for ten tables in the protected-completion path.
+- `tests/wp-04-structured-result-persistence-harness.sql`: reduced fixture definitions for six result/persistence tables.
+- `tests/wp-08-v1-assessment-reconstruction-harness.sql` and `tests/wp-08-v1-assessment-reconstruction-harness-safe.sql`: abbreviated test-only schemas for assessment content and execution tables, plus the test sentinel `_wp08_old_content_marker`.
+
+The remaining four non-migration SQL files contain no `CREATE TABLE` declaration. These test fixtures are explicitly harness/test paths and their schemas are reduced or purpose-specific; they are **not** an authoritative full production schema and must not be used as a baseline. The tracked file `documentation/audit/migrations/superseded-unapplied-20261003233000-p5-assessment-lifecycle-correction.sql` defines/replaces a function but creates no table.
+
+### Search for an authoritative original schema/source archive
+
+- `documentation/architecture/ADR-003-database-schema-source-of-truth.md` is an accepted **decision to create and review a baseline later**, not the baseline artifact itself. It explicitly says the live schema must not be converted blindly and requires review of tables, policies, functions and grants before baseline creation.
+- `documentation/audit/P2-migration-provenance-reconciliation-2026-10-01.md` records an earlier live/repository history discrepancy and cautions against blindly replaying migrations or inventing a baseline; it contains no full schema dump.
+- `documentation/architecture/P3-PRODUCTION-MIGRATION-ROLLBACK-PROVENANCE-V1-2026-10-02.md` is a migration/design/provenance document with a provisional description for `assessment_results`, not a complete DDL snapshot of all 25 tables.
+- The current repository tree contains no identified canonical full-schema dump/backup/baseline file. No authoritative original schema DDL was located in the inspected tracked tree. **This conclusion is limited to available repository artifacts; an external archive or backup has not been examined.**
+
+### Exact main-to-production migration identity comparison
+
+The read-only Supabase migration listing contains **57** applied version/name entries. Current `main` contains **56** SQL migration files:
+
+| Comparison | Exact result |
+|---|---|
+| Source filename version + suffix matches live ledger version + name | **55** |
+| Live ledger IDs with no same-version source path on `main` | `20261018075528 / c03_service_role_api_key_compatibility`; `20261018075855 / c03_verifier_api_key_compatibility` |
+| Source path on `main` with no same-version live ledger entry | `supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql` |
+| Existing matching identity `20261018100000 / c03_service_role_api_key_compatibility` | Source path exists on `main` |
+
+No other version/name identity mismatch was found in the current main file list vs the live ledger. The two missing source identities and one source-only file explain the 57-vs-56 count and remain unreconciled on `main`.
+
+### PR #120 branch comparison — evidence only, not merged
+
+PR #120 is still **OPEN / READY FOR REVIEW / UNMERGED** at head `47c0a79dbee108149f9431ff4e86ac120c420f7a`. That branch contains **58** migration files: every one of the 57 live ledger version/name identities has a source path, plus a new source-only proposed migration `20261018120000_wp11_security_database_reconciliation.sql`. It contains `20261018075528_c03_service_role_api_key_compatibility.sql` and `20261018075855_c03_verifier_api_key_compatibility.sql`, retains `20261018100000_c03_service_role_api_key_compatibility.sql`, and omits `20261018110000_c03_verifier_api_key_compatibility.sql`.
+
+Source-file comparisons show:
+- main `20261018100000` vs PR-branch `20261018075528`: source text is identical except the trailing final newline.
+- main source-only `20261018110000` vs PR-branch `20261018075855`: one comment line differs, and the trailing final newline differs; SQL statements otherwise compare line-for-line identical.
+
+These comparisons establish source text relationships only. The live Supabase migration listing exposes version/name entries, not each original applied SQL body, so this tool evidence cannot independently prove byte-for-byte equality to the SQL executed at the time. PR #120 remains separate from `main` and Production; no merge or migration application occurred during this scan.
+
+### D-05 disposition and exact next action
+
+**D-05 remains OPEN / BLOCKING RECONCILIATION. WP-11 remains IN PROGRESS / NOT CLOSED. WP-12 has NOT STARTED.**
+
+The exhaustive migration file scan now identifies the exact 18 missing initial CREATE TABLE declarations and the exact migration identity discrepancy on main. Remaining evidence gaps are: (1) finding an authoritative external/original schema source, if one exists; (2) independently reviewing original applied SQL/provenance beyond the live version/name ledger; (3) reviewing the full function/RPC/grant/policy dependency graph and effective-role behavior; and (4) completing per-table caller and integrity review beyond text search.
+
+Do not create a baseline from production catalog output, infer missing CREATE TABLE SQL, rewrite migration history, delete/recreate tables, apply any migration, alter grants/RLS/policies, merge PR #120, or start WP-12. Keep all unresolved provenance and dependency items OPEN.
