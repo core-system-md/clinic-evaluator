@@ -2670,3 +2670,55 @@ This narrows the provenance question but does not close it: pre-2026-09-30 Git h
 - SECURITY DEFINER functions use either `search_path = ''` or `search_path = public, pg_temp`. This inventory alone does not prove search-path safety for each unqualified identifier; per-function review remains required.
 
 **Disposition:** no anonymous EXECUTE exposure was identified by this screening, but this is not a PASS for D-05. Complete function-by-function authorization, effective-role, dynamic SQL and RLS interaction review remains OPEN. D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED.
+
+## Read-only function-by-function security review — 2026-10-21
+
+**Scope:** live definitions, owner, function ACL, effective EXECUTE for `anon` and `authenticated`, `proconfig/search_path`, explicit authorization checks, state transitions, and direct SQL-function callers for the three D-05 continuation targets. Evidence obtained through read-only Supabase catalog queries against project `oaqpzaarppccbnepffxx`; no tests were run and no database state was changed.
+
+### Live catalog evidence
+
+| Live signature | Owner / SECURITY DEFINER | Function setting | Stored ACL | Effective EXECUTE |
+|---|---|---|---|---|
+| `public.create_assessment_secure(text,text,text,text,boolean,boolean)` | `postgres` / true | `search_path=public, pg_temp` | `postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres` | anon=false; authenticated=true |
+| `public.update_published_assessment_content_secure(uuid,text,text,text)` | `postgres` / true | `search_path=public, pg_temp` | `postgres=X/postgres,authenticated=X/postgres,service_role=X/postgres` | anon=false; authenticated=true |
+| `public.update_assessment_working_copy_secure(uuid,text,text,text,boolean,boolean)` | `postgres` / true | `search_path=public, pg_temp` | `postgres=X/postgres,service_role=X/postgres,authenticated=X/postgres` | anon=false; authenticated=true |
+
+The definitions returned by `pg_get_functiondef` explicitly set the same search path. The inspected application tables and project functions in these bodies are schema-qualified as `public.*`; the identity lookup is schema-qualified as `auth.uid()`. No dynamic SQL appears in these three returned bodies. This finding is limited to the inspected bodies and does not prove safety of every dependency or caller.
+
+### Per-function behavior and authorization evidence
+
+1. **`create_assessment_secure`**
+   - First executable authorization operation: `PERFORM public.require_admin_capability('assessment.edit')`.
+   - Rejects null/blank slug with SQLSTATE `22023`; inserts a new `assessment_families` row and a new `assessment_types` row with `status='draft'`, `version=1`, `is_active=true`, and generated version UUID; records `assessment.create` through `public.write_admin_audit`.
+   - Uses `lower(trim(p_slug))` for family/type slug and returns family/version IDs and draft status.
+   - No branch permitting published/archived creation is present in the live body. Creation, inserts, and audit write execute within the function's calling transaction; runtime behavior was not tested.
+
+2. **`update_published_assessment_content_secure`**
+   - First executable authorization operation: `PERFORM public.require_admin_capability('assessment.edit')`.
+   - Selects the requested `assessment_types` row `FOR UPDATE`; raises `P0002` if missing and `55000` unless the selected row status is exactly `published`.
+   - Updates only `title_ar`, `title_en`, `description`, and `updated_at`; `title_ar` preserves the old value for null/blank input, `title_en` preserves the old value for null, while description is assigned directly. Writes before/after audit data using event `assessment.published_content_edit`.
+   - Returns `status='published'`. The separate live immutability trigger is an additional guard, not a substitute for the function's own status check.
+
+3. **`update_assessment_working_copy_secure`**
+   - First executable authorization operation: `PERFORM public.require_admin_capability('assessment.edit')`.
+   - Selects the requested `assessment_types` row `FOR UPDATE`; raises `P0002` if missing and `55000` unless status is exactly `draft`.
+   - Updates title/description and the two boolean flags only; blank/null Arabic title preserves its old value, while the other listed values are assigned directly. Writes before/after audit data using event `assessment.edit`; returns success and the version ID.
+   - The status check prevents this function from being the path for editing a published or archived row.
+
+### Authorization helper inspected
+
+The live `public.require_admin_capability(text)` is owned by `postgres`, SECURITY DEFINER, configured with `search_path=public, pg_temp`, and its ACL/effective privileges show no EXECUTE for `anon` or `authenticated` (service_role and postgres only). Its body calls `public.has_admin_capability(p_capability)` and raises SQLSTATE `42501` if false. The live `public.has_admin_capability(text)` is owned by `postgres`, SECURITY DEFINER, uses the same search path, and has authenticated EXECUTE. It returns true when `public.is_owner()` is true or when the current `auth.uid()` has an active `admin_users` row with role `admin` and a matching `admin_capabilities.capability`. This establishes the visible authorization chain in the live definitions; role impersonation/RLS/runtime negative-access behavior has not been exercised.
+
+### Direct caller and compatibility wrapper
+
+- The live SQL function-body text scan found one public SQL-function caller referencing these three targets: `public.save_assessment_secure(uuid,text,text,text,text,text,boolean,boolean)`. It is owned by `postgres`, SECURITY DEFINER, uses `search_path=public, pg_temp`, and has effective EXECUTE for authenticated and service_role, not anon.
+- Live wrapper flow: if `p_id IS NULL`, delegate to `create_assessment_secure`; otherwise select the row status `FOR UPDATE`, raise `P0002` if absent, delegate published rows to `update_published_assessment_content_secure`, reject archived rows with `55000`, and delegate the remaining status to `update_assessment_working_copy_secure`. Each write delegate performs its own `assessment.edit` capability check.
+- The wrapper reads/locks status before the delegated capability check and returns not-found/archived errors before authorization is checked by the delegate. This is consistent with the previously recorded D-17 observation; this review does not reclassify or reopen that audit item and does not establish exploitability. No fix is authorized or applied here.
+- Repository caller evidence: `admin/assessment-manager.js` and `admin/assessment-editor-workspace.js` call `rpc/save_assessment_secure`. The tracked migration source for the wrapper and published-content function is `supabase/migrations/20261003224353_p5_published_content_edit_lifecycle.sql`; the working-copy function and wrapper also appear in `supabase/migrations/20261003170912_p5_admin_architecture.sql`. Source text is provenance evidence, not proof that a particular migration body was executed byte-for-byte in Production.
+
+### Evidence limits and disposition
+
+- Verified: live definitions, owners, SECURITY DEFINER flags, function settings, stored ACLs, effective EXECUTE results for anon/authenticated, explicit authorization and state branches, helper definitions, one direct SQL-function caller, and two tracked admin RPC caller files.
+- Not verified: runtime behavior under impersonated roles; negative-access tests; full dependency/RLS interactions; every possible non-SQL caller or dynamically constructed invocation; historical executed migration bytes. No unit, integration, E2E, or production write-path tests were run.
+- No production writes, schema/grant/policy changes, deployment, migration application, PR merge, deletion/recreation, or migration-history changes were performed.
+- **Disposition unchanged:** this bounded review adds evidence but does not close the broader 25-table reconciliation, historical initial-DDL provenance gap, or migration source/ledger discrepancies. D-05 remains **OPEN / BLOCKING RECONCILIATION**; WP-11 remains **IN PROGRESS / NOT CLOSED**; WP-12 remains **NOT STARTED**.
