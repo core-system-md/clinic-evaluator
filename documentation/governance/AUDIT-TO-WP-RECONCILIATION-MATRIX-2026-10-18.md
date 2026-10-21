@@ -1,3 +1,29 @@
+# SESSION CLOSEOUT ADDENDUM — 2026-10-21 (D-05 / WP-11)
+
+**This addendum records the session closeout; it does not replace the original audit inventory below.** Every C/D finding remains represented in Section 3. Keep its original ID, prior status/evidence, responsible gate and remaining action. Where later evidence supersedes an earlier summary, append evidence rather than deleting the audit trail.
+
+## Actual work performed in this session
+
+- Read-only GitHub review of `main`, the existing D-05 worksheet, migration DDL/source-ledger/provenance artifacts, and current handoff.
+- Read-only Supabase catalog/body screening on project `oaqpzaarppccbnepffxx` for public-schema SECURITY DEFINER functions, `prosecdef`, function `proconfig`, effective EXECUTE privileges via `has_function_privilege`, and selected definitions.
+- The screening returned no public-schema SECURITY DEFINER function executable by `anon`. This is a bounded catalog result only; it does not prove all authorization paths, search-path safety, dynamic SQL, effective-role behavior, or RLS interactions are safe.
+- The body of `save_assessment_secure` delegates create/published-edit/draft-edit operations to `create_assessment_secure`, `update_published_assessment_content_secure`, and `update_assessment_working_copy_secure`. These paths were identified as remaining review targets, not declared passed.
+- Two documentation commits were saved and verified on `main` during this session: `03aca8cab38028ab59d4cecab4a8d1424aa2d87b` updates the live-schema worksheet; `0635674ee99cec176632687f050a76f754af09a7` updates the handoff. No application source, SQL migration, grants, policies, schema, production data, deployment, or PR state was changed.
+- No automated test suite, E2E test, deployment test, negative-access runtime test, or isolated migration replay was run in this session. No WP was closed.
+
+## Current stage gate and exact continuation
+
+- **WP-10 §40:** closed for its bounded scope under the previously recorded evidence; do not reopen it absent new regression evidence.
+- **WP-11 §41 / D-05:** IN PROGRESS / NOT CLOSED; D-05 remains OPEN / BLOCKING RECONCILIATION. Existing evidence includes the 56-file tracked migration DDL index, 25-table live worksheet, 57-row live migration ledger reconciliation, caller/reference scans, privilege summaries, 38 validated FK checks with zero orphan rows, and eight targeted semantic checks with zero violations. These are bounded checks, not full acceptance.
+- **WP-12 §42:** NOT STARTED. No automatic stage transition.
+- **C-01, C-02, C-03:** preserve existing CLOSED dispositions. C-03 live E2E remains WAIVED / NOT RUN, not PASS. Do not reopen without new regression evidence and owner direction.
+- **D-05 remaining:** inspect delegated secure function bodies and their authorization/state boundaries; review each SECURITY DEFINER function's effective role, search-path and dynamic SQL behavior; reconcile DDL evolution against live catalog; seek authoritative original schema provenance and resolve migration source/ledger identity differences without rewriting history or merging PR #120. Unknowns stay OPEN.
+- No production mutation, baseline synthesized from Production, table delete/recreate, migration apply/history rewrite, grants/policy/schema change, deployment, or PR merge is authorized by this closeout.
+
+**Next session's first action:** resume WP-11/D-05 by fetching the live definitions and ACLs of `create_assessment_secure`, `update_published_assessment_content_secure`, and `update_assessment_working_copy_secure`, then trace each call's authorization checks and state boundary against its callers. Record exact evidence in the D-05 worksheet before any decision or change. Stop after this bounded review; do not start WP-12.
+
+---
+
 # Audit-to-Work-Package Reconciliation Matrix — 2026-10-18
 
 **Purpose:** Reconcile the 2026-10-11 comprehensive audit against the governing implementation contract, the WP sequence, and evidence available in the repository/current Production handoff. This is a traceability document, not a new implementation plan.
