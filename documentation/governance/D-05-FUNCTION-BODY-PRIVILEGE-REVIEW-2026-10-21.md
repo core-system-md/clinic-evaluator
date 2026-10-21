@@ -131,3 +131,10 @@ All 25 current `public` tables are owned by `postgres` and have explicit ACLs. E
 The current direct ACLs on `admin_audit_log` and `admin_capabilities` are exactly `authenticated=rDxtm` (plus owner and service_role ACLs). This means authenticated retains SELECT, TRUNCATE, REFERENCES, TRIGGER, and MAINTAIN; INSERT, UPDATE, and DELETE are not granted. The source `20261003170912_p5_admin_architecture.sql` explicitly grants SELECT and later revokes only INSERT/UPDATE/DELETE from authenticated, leaving the other defaulted privileges. RLS does not constrain TRUNCATE. This is a real direct database privilege observation; this review did not establish a direct PostgREST route that invokes TRUNCATE, and no privilege was exercised.
 
 **Disposition:** record as **OPEN / HIGH-PRIORITY LEAST-PRIVILEGE RECONCILIATION** under existing D-08/WP-11 scope. Determine the intended default ACL for future public tables/functions/sequences, source/origin of the live default ACL, and approved forward-only remediation/negative-access acceptance criteria. Do not alter defaults or grants without the required owner authorization; no SQL changes were made.
+
+
+### Source-side cross-check for the default-ACL finding
+
+The tracked `20261001190000_p0_security_closure.sql` does contain migration-level dynamic SQL: its `EXECUTE format(...)` loop revokes all table privileges from `anon` and `authenticated` on the exact 18-table legacy list, then grants authenticated SELECT on a smaller explicit list. That loop does not cover the later-created `admin_capabilities` and `admin_audit_log` tables. In `20261003170912_p5_admin_architecture.sql`, those later tables receive SELECT for authenticated and only INSERT/UPDATE/DELETE are revoked. The live residual `rDxtm` ACL matches the broad default ACL plus those specific revokes.
+
+This links the present residual table grants to a concrete source omission in the P5 migration and confirms that migration-level dynamic SQL exists even though the current stored function bodies showed no executable dynamic-SQL statements. It does not establish who originally configured the broad default ACL or authorize a repair.
