@@ -1067,3 +1067,14 @@ No role-impersonation or negative-access runtime tests, unit/integration/E2E tes
 The existing `documentation/project-audit/03-p0-auth-data-rpc-decision.md` still records that an owner-approved trust-boundary architecture decision is required before production RLS/grant/function remediation. This evidence does not authorize choosing that architecture or changing policies. No tests or production writes were executed; no schema/grant/policy change, migration application, deployment, merge, deletion/recreation, baseline synthesis or migration-history rewrite was performed.
 
 **Stage unchanged:** D-05 **OPEN / BLOCKING RECONCILIATION**; WP-11 **IN PROGRESS / NOT CLOSED**; WP-12 **NOT STARTED**. C-01/C-02/C-03 remain closed. Exact remaining gates: owner decision before broad-policy remediation; authoritative original schema provenance (or separately owner-authorized baseline/replay package); migration source/ledger identity reconciliation without rewriting applied history or merging PR #120; runtime effective-role/RLS evidence. Do not repeat the three secure assessment function inspection absent a new specific gap, and do not start WP-12.
+
+
+## FOLLOW-UP — Option C selected; candidate RLS policy work updated — 2026-10-21
+
+The owner selected **Option C — Hybrid**. The decision is recorded in `documentation/project-audit/03-p0-auth-data-rpc-decision.md` (commit `af1c17640f38fd57c04999f5c7bdbe9cb9534022`). This closes the architecture-selection question only; it does not authorize Production execution.
+
+On branch `wp-11/least-privilege-reconciliation`, PR #120 candidate head is now `4cbebd0982428987f911a2d6f84b6b5ca400039c`. Its WP-11 migration removes nine broad RLS policy entries found in live Production, and its disposable SQL harness now reproduces those entries and asserts they are removed. The static contract test was updated accordingly. The commit-status query returned no check statuses at inspection time; no new CI success is confirmed yet.
+
+No Production SQL, policy/grant changes, migration application, deployment, merge, data deletion, or history rewrite occurred. The candidate still preserves narrow authenticated admin read policies and does not alter table grants; therefore Option C's complete server-gateway/sensitive-data boundary is **not yet proven by this change alone**. Verify the updated candidate in CI and complete caller/runtime reconciliation before any production release.
+
+**Status:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. Next action stays within WP-11: verify the candidate harness/CI, then reconcile remaining source/ledger provenance and runtime access-boundary evidence. Do not apply to Production or begin WP-12.
