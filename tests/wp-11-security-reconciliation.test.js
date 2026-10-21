@@ -38,7 +38,7 @@ test("WP-11 RLS policies bind identity checks to the current authenticated user"
     "p0_admin_select_admin_users",
   ];
   for (const policy of identityPolicies) {
-    assert.match(migration, new RegExp(`drop policy ${policy} on public\\.admin_users`, "i"));
+    assert.match(migration, new RegExp(`drop policy ${policy} on public\.admin_users`, "i"));
   }
 
   for (const table of [
@@ -75,15 +75,15 @@ test("WP-11 RLS policies bind identity checks to the current authenticated user"
 
 test("WP-11 D-05 removes the observed broad public RLS policies", () => {
   const requiredDrops = [
-    /drop policy if exists answers_public_select on public\\.answers/i,
-    /drop policy if exists "Allow public read access" on public\\.assessment_types/i,
-    /drop policy if exists assessment_types_public_read on public\\.assessment_types/i,
-    /drop policy if exists "Allow public read access" on public\\.axes/i,
-    /drop policy if exists "Allow all on axes" on public\\.axes/i,
-    /drop policy if exists "Allow public read access" on public\\.options/i,
-    /drop policy if exists "Allow public read access" on public\\.questions/i,
-    /drop policy if exists leads_owner_read on public\\.leads/i,
-    /drop policy if exists scores_public_select on public\\.scores/i,
+    /drop policy if exists answers_public_select on public\.answers/i,
+    /drop policy if exists "Allow public read access" on public\.assessment_types/i,
+    /drop policy if exists assessment_types_public_read on public\.assessment_types/i,
+    /drop policy if exists "Allow public read access" on public\.axes/i,
+    /drop policy if exists "Allow all on axes" on public\.axes/i,
+    /drop policy if exists "Allow public read access" on public\.options/i,
+    /drop policy if exists "Allow public read access" on public\.questions/i,
+    /drop policy if exists leads_owner_read on public\.leads/i,
+    /drop policy if exists scores_public_select on public\.scores/i,
   ];
   for (const pattern of requiredDrops) assert.match(migration, pattern);
   for (const policy of [
