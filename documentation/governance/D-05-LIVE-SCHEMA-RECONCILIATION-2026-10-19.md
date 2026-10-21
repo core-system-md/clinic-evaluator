@@ -2786,3 +2786,8 @@ Latest candidate head at this checkpoint: `4cbebd0982428987f911a2d6f84b6b5ca4000
 This candidate intentionally preserves the existing narrow `p0_admin_select_*` policies for authenticated administrators and does not change table grants. The selected hybrid architecture still requires verification that the deployed public workflow uses the server gateway and that sensitive result reads cannot bypass the intended authenticated server authorization path. Do not claim the broader architecture is fully implemented from these policy drops alone.
 
 D-05 remains OPEN: authoritative initial schema provenance for 18 tables, main/live migration identity reconciliation, runtime effective-role/RLS verification, and independent review/CI of the updated candidate remain unresolved. WP-11 remains IN PROGRESS; WP-12 NOT STARTED; C-01/C-02/C-03 remain closed.
+
+
+### Candidate-head correction — 2026-10-21
+
+The latest PR #120 head supersedes the earlier candidate SHA recorded above: `c293d6894bb10021c5795a23abe100666f10df18`. The policy-drop migration, expanded disposable harness, and static contract test were re-fetched from that exact branch head. The commit-workflow query returned no PR-triggered workflow runs and the combined status list was empty; CI remains **unverified**. PR #120 remains OPEN / UNMERGED. No Production changes occurred.
