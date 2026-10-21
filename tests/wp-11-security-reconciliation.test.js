@@ -73,6 +73,31 @@ test("WP-11 RLS policies bind identity checks to the current authenticated user"
   assert.doesNotMatch(migration, /revoke all on function public\.is_owner\(\) from/i);
 });
 
+test("WP-11 D-05 removes the observed broad public RLS policies", () => {
+  const requiredDrops = [
+    /drop policy if exists answers_public_select on public\\.answers/i,
+    /drop policy if exists "Allow public read access" on public\\.assessment_types/i,
+    /drop policy if exists assessment_types_public_read on public\\.assessment_types/i,
+    /drop policy if exists "Allow public read access" on public\\.axes/i,
+    /drop policy if exists "Allow all on axes" on public\\.axes/i,
+    /drop policy if exists "Allow public read access" on public\\.options/i,
+    /drop policy if exists "Allow public read access" on public\\.questions/i,
+    /drop policy if exists leads_owner_read on public\\.leads/i,
+    /drop policy if exists scores_public_select on public\\.scores/i,
+  ];
+  for (const pattern of requiredDrops) assert.match(migration, pattern);
+  for (const policy of [
+    "answers_public_select",
+    "assessment_types_public_read",
+    "leads_owner_read",
+    "scores_public_select",
+    "Allow all on axes",
+  ]) {
+    assert.ok(harness.includes(policy), `disposable harness must reproduce ${policy}`);
+  }
+  assert.match(harness, /assert_broad_policies_removed/i);
+});
+
 test("WP-11 migration fails closed on missing expected schema objects or policies", () => {
   assert.match(migration, /to_regprocedure\('public\.is_active_admin\(uuid\)'\)/i);
   assert.match(migration, /to_regprocedure\('public\.is_owner\(uuid\)'\)/i);
