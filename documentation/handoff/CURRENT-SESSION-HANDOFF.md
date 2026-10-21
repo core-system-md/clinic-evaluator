@@ -1,3 +1,30 @@
+# CURRENT UPDATE — D-05 FUNCTION / EFFECTIVE EXECUTE / HISTORICAL-REF REVIEW — 2026-10-21
+
+**Evidence artifact:** [D-05-FUNCTION-BODY-PRIVILEGE-REVIEW-2026-10-21.md](../governance/D-05-FUNCTION-BODY-PRIVILEGE-REVIEW-2026-10-21.md)  
+**Branch:** `wp-11/d05-function-body-review-20261021`  
+**Base main SHA:** `be834661dd12a75032b1e0e6542284e3ff1090be`  
+**Evidence commit:** `2387d5d3e0b6965b625f00e2b7f0a8f897e6282a` (artifact only; handoff update follows on this branch).
+
+## Work completed in this continuation
+
+- Extended the historical-source check across five reachable historical branch trees and the Git tag-ref query. No authoritative original schema/baseline/dump artifact was found in those inspected trees; the result is bounded and does not cover unreachable Git objects, local checkouts, external backups, or Supabase editor/deployment history.
+- Rechecked the live public function catalog read-only: 87 functions/procedures; 65 SECURITY DEFINER; all 65 have either `search_path = ''` (14) or `search_path = public, pg_temp` (51); none has an unset/other function-level search_path; zero SECURITY DEFINER functions have anon EXECUTE; 51 have authenticated EXECUTE; all 65 have service_role EXECUTE.
+- Confirmed the only two direct PUBLIC/anon EXECUTE ACLs are trigger-returning functions `p2_assert_draft_version()` and `p2_assessment_type_immutability()`, attached to seven row triggers. Their ACL hygiene disposition remains open; no grant was changed.
+- A targeted live function-definition scan found no executable dynamic-SQL statement patterns in the 87 stored function/procedure definitions. This does not cover dynamic SQL in migration bodies and is not a parser-level proof.
+- Reviewed the authenticated-callable SECURITY DEFINER wrapper `save_assessment_secure`: its three mutation callees each enforce `require_admin_capability('assessment.edit')`, but the wrapper reads the target status before delegation. A limited version-existence/status oracle is a possible concern; impact remains OPEN and no runtime probe or repair was performed.
+- Reconfirmed the D-15 permission concern for `is_owner(uuid)` and `is_active_admin(uuid)`: authenticated callers can invoke these SECURITY DEFINER boolean checks for supplied UUIDs; anon/PUBLIC cannot. No grant change was made.
+- Reconciled the apparent `assessment_session_access.assessment_type_id` source gap more carefully: the tracked migration uses `CREATE TABLE IF NOT EXISTS` and lacks that column/index in its declaration, while the accepted P2 design already refers to the column as an existing concrete-version reference. This is consistent with the live table pre-existing the tracked migration path; exact historical origin remains OPEN, not attributed to a cleanup.
+
+## Status and next action
+
+**D-05 OPEN / BLOCKING RECONCILIATION. WP-11 IN PROGRESS / NOT CLOSED. WP-12 NOT STARTED.**
+
+Continue the per-function semantic authorization review and table-by-table source-to-live evolution mapping. Keep the 18-table initial-DDL provenance gap, the `assessment_session_access.assessment_type_id` origin, the possible `save_assessment_secure` metadata oracle, the existing D-15 UUID-overload concern, and the 56-source/57-ledger mismatch open until each has its own acceptance evidence/disposition.
+
+No Production writes, schema/permission/policy changes, migration application, deployment, deletion/recreation, PR merge, or WP-12 start occurred. The evidence and handoff changes are on the non-main WP-11 branch, so they do not trigger the main-branch Pages deployment path.
+
+---
+
 # CURRENT UPDATE — HISTORICAL MIGRATION / SCHEMA PROVENANCE REVIEW — 2026-10-20
 
 **New evidence artifact:** `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md` (commit `503c890116936cee533adb56a671c2ee00bab809`).
