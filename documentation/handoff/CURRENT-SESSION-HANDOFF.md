@@ -1028,3 +1028,25 @@ Implement and test the missing C-03-specific synthetic E2E runner plus exact-run
 ```text
 MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md §Session closeout and exact continuation point — 2026-10-18T08:57:41Z. لا تعِد فحص أو تنفيذ ما أُغلق فيه بدليله. اعمل حصراً على NEXT CANONICAL ACTION المسجّل فيه بعد START/RESUME ENGINEERING والمصالحة مع الواقع.
 ```
+
+## CURRENT UPDATE — three secure assessment functions reviewed read-only — 2026-10-21
+
+The exact next action from the preceding closeout was completed as a bounded, read-only unit. Detailed evidence is appended to `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` under “Read-only function-by-function security review — 2026-10-21” (worksheet commit `8c86c379801f16d4c0916ddf0c7e36dbd99e0ac2`).
+
+### Verified live evidence
+- Retrieved `pg_get_functiondef`, owner, SECURITY DEFINER, function settings, ACL and effective anon/authenticated EXECUTE for `public.create_assessment_secure`, `public.update_published_assessment_content_secure`, and `public.update_assessment_working_copy_secure`.
+- All three are owned by `postgres`, SECURITY DEFINER, set `search_path=public, pg_temp`, have authenticated and service_role EXECUTE but no anon EXECUTE, and begin with `public.require_admin_capability('assessment.edit')`.
+- Verified creation inserts a draft family/version; published-content editing locks and requires a published row and updates only editorial metadata; working-copy editing locks and requires draft status. Each function writes an admin audit record.
+- Inspected live `require_admin_capability(text)` and `has_admin_capability(text)` definitions. The capability helper checks owner status or active admin role plus the requested capability for `auth.uid()`.
+- Live SQL function-body scan identified `public.save_assessment_secure` as the direct SQL-function caller. Its null-ID/published/draft/archived branches delegate to the reviewed functions; the wrapper reads/locks row state before the delegated capability check. This is consistent with the already recorded D-17 observation and does not independently establish exploitability or authorize a fix.
+- Repository callers verified by source search: `admin/assessment-manager.js` and `admin/assessment-editor-workspace.js` call `rpc/save_assessment_secure`.
+
+### Limits / no-change statement
+No role-impersonation or negative-access runtime tests, unit/integration/E2E tests, or production write-path tests were run. Full dependency/RLS interactions, every possible non-SQL/dynamic caller, and historical executed migration bytes remain unverified. No production write, schema/grant/policy change, migration application, deployment, PR merge, deletion/recreation, or migration-history change was performed.
+
+### Stage and exact continuation
+- D-05: **OPEN / BLOCKING RECONCILIATION**.
+- WP-11: **IN PROGRESS / NOT CLOSED**.
+- WP-12: **NOT STARTED**.
+- Preserve C-01/C-02/C-03 as closed dispositions; do not reopen absent new regression evidence and explicit authorization.
+- Continue only the remaining WP-11 / D-05 reconciliation gaps already enumerated in the worksheet: per-object migration-to-live catalog reconciliation, authoritative provenance for the 18-table initial-DDL gap, three source/ledger migration identity discrepancies, and remaining function dependency/effective-role/RLS review. Do not repeat the completed three-function inspection unless new evidence identifies a specific gap. Stop at the WP-11 gate.
