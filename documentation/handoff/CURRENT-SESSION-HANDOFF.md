@@ -1,3 +1,9 @@
+# CURRENT UPDATE — D-05 READ-ONLY SECURITY DEFINER SCREENING — 2026-10-21
+
+A bounded read-only catalog/body screening was run against Supabase project `oaqpzaarppccbnepffxx` and recorded in `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` under “Read-only SECURITY DEFINER screening refresh — 2026-10-21”. No `anon` EXECUTE privilege was found among the returned public SECURITY DEFINER functions. This is only a screening, not a security PASS: delegated authorization paths (especially `save_assessment_secure` and its three secure callees), per-function search-path behavior, effective-role behavior, dynamic SQL and RLS interactions remain open for review. No production writes or configuration changes were made. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED.
+
+---
+
 # CURRENT UPDATE — HISTORICAL MIGRATION / SCHEMA PROVENANCE REVIEW — 2026-10-20
 
 **New evidence artifact:** `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md` (commit `503c890116936cee533adb56a671c2ee00bab809`).
