@@ -1,3 +1,53 @@
+# SESSION CLOSEOUT — 2026-10-21 — EXACT CONTINUATION POINT
+
+## Safe stop and actual scope
+
+The session is stopped at the current safe boundary. No new WP is started. No production write, migration, schema/grant/policy change, deployment, deletion/recreation, baseline generation from Production, PR merge, or migration-history rewrite was performed.
+
+### Work actually completed in this session
+
+1. Read the existing D-05 worksheet, the 56-file migration DDL index, migration/source-ledger reconciliation, historical provenance review, audit-to-WP matrix, and current handoff on GitHub main.
+2. Ran read-only Supabase catalog/function-body screening for public-schema SECURITY DEFINER functions, prosecdef, function-level proconfig, effective EXECUTE privileges using has_function_privilege, and selected function definitions.
+3. The returned inventory contained no public-schema SECURITY DEFINER function with effective EXECUTE for anon. This is not a security PASS and does not settle full function-body authorization, search-path qualification, dynamic SQL, caller reachability, effective-role, or RLS behavior.
+4. Identified save_assessment_secure delegation to create_assessment_secure, update_published_assessment_content_secure, and update_assessment_working_copy_secure. These delegated paths remain unreviewed for final acceptance; no fix was made.
+5. Updated the D-05 live-schema worksheet with the bounded screening result and committed it as 03aca8cab38028ab59d4cecab4a8d1424aa2d87b.
+6. Updated this handoff and committed it as 0635674ee99cec176632687f050a76f754af09a7.
+7. Added a session-closeout snapshot to documentation/governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md, preserving the original C/D inventory and appending current status, evidence, gate, and exact next action. Commit: 688040ce67fc99338e29c6cbabf890f52e46fb2c.
+
+## Stage status
+
+- WP-10 §40: CLOSED for the bounded scope and evidence previously recorded in the matrix/handoff. Do not reopen absent new regression evidence.
+- WP-11 §41: IN PROGRESS / NOT CLOSED.
+- D-05: OPEN / BLOCKING RECONCILIATION.
+- WP-12 §42: NOT STARTED.
+- C-01 / C-02 / C-03: preserve the existing CLOSED dispositions. C-03 live E2E is WAIVED / NOT RUN, not PASS. Do not reopen without new regression evidence and explicit owner direction.
+- Other D findings retain their original IDs, statuses, evidence limits, assigned gates, and remaining actions in the matrix. The matrix is the audit-to-WP traceability source; this handoff does not silently close or drop any finding.
+
+## Evidence already recorded — do not repeat without a specific gap
+
+The D-05 worksheet and prior handoff already record: full tracked scan of 56 migration files; 25-table live schema inventory; comparison of 56 tracked files with 57 live migration ledger rows; seven tracked initial CREATE TABLE sources and 18 candidate tables with no initial declaration found in those files; repository-wide caller/reference scan batches; direct table privilege and public function EXECUTE summaries; 38 validated FK checks with zero orphan rows; eight targeted semantic checks with zero violations; historical ADR-003 provenance review; and the PR #120 source-body comparison. These checks are bounded and do not close D-05. The historical search did not prove that a particular cleanup commit deleted the missing initial DDL. PR #120 remains OPEN / UNMERGED; do not merge it as part of this handoff.
+
+## Tests and results for this session
+
+- Run: read-only Supabase catalog queries and selected function-definition inspection; GitHub file/commit fetches to verify documentation updates.
+- Result: no anon EXECUTE found among the returned public SECURITY DEFINER inventory; remaining delegated authorization and per-function security review is unresolved.
+- Not run in this session: unit tests, integration tests, E2E, negative-access runtime tests, deployment tests, isolated migration replay, or production write-path tests.
+- No code changes or runtime deployment were made; documentation-only changes are recorded by the three commit SHAs above.
+
+## Exact next action for the next conversation
+
+Resume inside WP-11 / D-05, not at the beginning of the project and not at WP-12. First run read-only retrieval of the live definitions, owners, ACLs, and function settings for:
+
+- public.create_assessment_secure
+- public.update_published_assessment_content_secure
+- public.update_assessment_working_copy_secure
+
+Trace the authorization and state-transition checks through each function and its caller, with exact evidence for each branch. Append findings to documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md; do not make changes unless a concrete defect is proven and separately authorized. Then continue the per-function SECURITY DEFINER/effective-role/dynamic SQL review only within WP-11. Keep every uncertainty OPEN, preserve all original audit IDs, and stop at the WP-11 gate. Do not start WP-12 automatically.
+
+**Start-of-next-conversation instruction:** “Resume from the 2026-10-21 SESSION CLOSEOUT in documentation/handoff/CURRENT-SESSION-HANDOFF.md. Do not repeat completed D-05 scans. Begin with a read-only review of create_assessment_secure, update_published_assessment_content_secure, and update_assessment_working_copy_secure—definitions, ACLs, search_path, authorization/state checks and callers—record evidence in the existing D-05 worksheet, make no production changes, do not reopen C-01/C-02/C-03, and do not start WP-12.”
+
+---
+
 # CURRENT UPDATE — D-05 READ-ONLY SECURITY DEFINER SCREENING — 2026-10-21
 
 A bounded read-only catalog/body screening was run against Supabase project `oaqpzaarppccbnepffxx` and recorded in `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` under “Read-only SECURITY DEFINER screening refresh — 2026-10-21”. No `anon` EXECUTE privilege was found among the returned public SECURITY DEFINER functions. This is only a screening, not a security PASS: delegated authorization paths (especially `save_assessment_secure` and its three secure callees), per-function search-path behavior, effective-role behavior, dynamic SQL and RLS interactions remain open for review. No production writes or configuration changes were made. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED.
