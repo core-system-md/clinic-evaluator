@@ -2656,3 +2656,17 @@ The first five tracked migration files are non-replayable 182-byte provenance ma
 
 This narrows the provenance question but does not close it: pre-2026-09-30 Git history, external archives/backups and Supabase editor/deployment history have not been fully verified. **D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS / NOT CLOSED; WP-12 remains NOT STARTED.** No database or Production changes were made.
 
+
+
+## Read-only SECURITY DEFINER screening refresh — 2026-10-21
+
+**Method:** read-only PostgreSQL catalog queries against project `oaqpzaarppccbnepffxx`; inspected `pg_proc.prosecdef`, `proconfig`, effective EXECUTE privileges via `has_function_privilege`, and selected function bodies. No database writes or configuration changes were made.
+
+**Confirmed screening results (not a complete security acceptance):**
+- No public-schema SECURITY DEFINER function in the returned inventory was executable by role `anon` according to `has_function_privilege`.
+- The inspected privileged entry points callable by `authenticated` generally show explicit authorization delegation/checks (for example `require_admin_capability`, `require_owner`, or a guarded secure routine). This is only a textual screening; it does not prove all authorization paths are correct.
+- `save_assessment_secure(uuid,text,text,text,text,text,boolean,boolean)` has no direct authorization call in its own body, but delegates creation to `create_assessment_secure`, published edits to `update_published_assessment_content_secure`, and draft edits to `update_assessment_working_copy_secure`. Acceptance still requires verifying each delegated routine and the state/authorization boundary together.
+- `is_owner(uuid)` and `is_active_admin(uuid)` are SECURITY DEFINER predicates that query `admin_users`; their bodies intentionally test the supplied UUID and do not themselves contain an authz marker. Their safety depends on caller authorization and the exposed function ACL, so do not treat the text-only marker scan as a finding against them.
+- SECURITY DEFINER functions use either `search_path = ''` or `search_path = public, pg_temp`. This inventory alone does not prove search-path safety for each unqualified identifier; per-function review remains required.
+
+**Disposition:** no anonymous EXECUTE exposure was identified by this screening, but this is not a PASS for D-05. Complete function-by-function authorization, effective-role, dynamic SQL and RLS interaction review remains OPEN. D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED.
