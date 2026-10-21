@@ -2770,3 +2770,19 @@ The same live screen reconfirmed the existing D-15 access boundary: `public.is_o
 - **No audit ID or closed C item is reclassified by this note.** C-01/C-02/C-03 remain closed. Keep D-05 **OPEN / BLOCKING RECONCILIATION** and WP-11 **IN PROGRESS / NOT CLOSED**. WP-12 remains **NOT STARTED**.
 
 **Exact remaining gates:** owner decision on the trust-boundary architecture before any broad-policy/grant remediation; authoritative pre-migration schema provenance (or a separately owner-authorized baseline/replay package); reconciliation of the three main/live migration identity discrepancies without editing applied history or merging PR #120; and further evidence for runtime effective-role/RLS behavior. Do not synthesize a baseline from Production catalog output and do not start WP-12.
+
+
+## Follow-up — owner-selected Option C and candidate-only policy remediation — 2026-10-21
+
+The project owner selected **Option C — Hybrid** in the continuation conversation. The architecture-selection gate is resolved; this is not authorization to apply changes to Production. The decision was recorded in `documentation/project-audit/03-p0-auth-data-rpc-decision.md` at commit `af1c17640f38fd57c04999f5c7bdbe9cb9534022`.
+
+The WP-11 candidate on `wp-11/least-privilege-reconciliation` was updated after the decision:
+- Migration `supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql` now drops the nine observed broad policy entries: `answers_public_select`; `Allow public read access` on `assessment_types`, `axes`, `options`, and `questions`; `assessment_types_public_read`; `Allow all on axes`; `leads_owner_read`; and `scores_public_select`.
+- Disposable harness `tests/wp-11-security-reconciliation-harness.sql` now reproduces these broad policies before applying the candidate migration and asserts none survive.
+- Static contract test `tests/wp-11-security-reconciliation.test.js` now asserts that the migration drops these policies and that the harness reproduces them.
+
+Latest candidate head at this checkpoint: `4cbebd0982428987f911a2d6f84b6b5ca400039c`. PR #120 remains OPEN / UNMERGED. The commit status query returned no check statuses at the time of inspection; **the updated harness has not yet been verified by a new CI run**, and must not be described as passing. No Production SQL or permission changes, migration application, deployment, or merge occurred.
+
+This candidate intentionally preserves the existing narrow `p0_admin_select_*` policies for authenticated administrators and does not change table grants. The selected hybrid architecture still requires verification that the deployed public workflow uses the server gateway and that sensitive result reads cannot bypass the intended authenticated server authorization path. Do not claim the broader architecture is fully implemented from these policy drops alone.
+
+D-05 remains OPEN: authoritative initial schema provenance for 18 tables, main/live migration identity reconciliation, runtime effective-role/RLS verification, and independent review/CI of the updated candidate remain unresolved. WP-11 remains IN PROGRESS; WP-12 NOT STARTED; C-01/C-02/C-03 remain closed.
