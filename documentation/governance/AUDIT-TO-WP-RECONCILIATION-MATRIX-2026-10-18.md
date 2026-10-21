@@ -280,3 +280,8 @@ D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS; WP-12 NO
 ### Candidate-head correction — 2026-10-21
 
 The current PR #120 head is `c293d6894bb10021c5795a23abe100666f10df18`. Its migration, disposable harness, and static contract test are present, but GitHub reported no associated PR workflow runs or commit status entries; CI is **unverified**. PR #120 remains OPEN / UNMERGED and D-05 remains OPEN.
+
+
+### Final checkpoint — 2026-10-21
+
+PR #120 current head: `82548fabe56e49abc2ce147732f7306286175c40`. Candidate files are present; GitHub returned no associated PR workflow runs or commit statuses, so CI is unverified. The live `sessions_public_select` policy has `USING (true)`, but neither `anon` nor `authenticated` has direct SELECT on `sessions`; it remains a latent cleanup item outside this candidate's modeled fixture. D-05 remains open; WP-11 remains in progress; WP-12 is not started.
