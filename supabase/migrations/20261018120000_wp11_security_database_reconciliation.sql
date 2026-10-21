@@ -80,6 +80,7 @@ drop policy if exists "Allow public read access" on public.options;
 drop policy if exists "Allow public read access" on public.questions;
 drop policy if exists leads_owner_read on public.leads;
 drop policy if exists scores_public_select on public.scores;
+drop policy if exists sessions_public_select on public.sessions;
 
 -- D-08: these tables are SELECT-only for authenticated clients. Mutation remains
 -- behind guarded RPCs; the service_role privileges are intentionally unchanged.
