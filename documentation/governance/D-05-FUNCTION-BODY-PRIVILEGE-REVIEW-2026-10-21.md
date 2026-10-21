@@ -83,3 +83,15 @@ Additional live-definition/ACL inspection confirmed:
 - The UUID overloads `is_owner(uuid)` and `is_active_admin(uuid)` differ from the caller-bound helpers: they test the supplied UUID rather than `auth.uid()`. The D-15 disposition must explicitly decide whether authenticated callers need this arbitrary-subject check or whether those overloads should be restricted in a separately authorized permission repair.
 
 This remains an evidence/disposition item only. No grant, function, policy, or schema change was made.
+
+
+## 7. Unqualified relation resolution and function-to-table text map
+
+A line-based scan of live SECURITY DEFINER definitions found a bounded set of unqualified relation references:
+- `check_assessment_leads_secure(uuid)`: `FROM leads`; the body calls `require_admin()`.
+- `create_assessment_version_secure(uuid)`: unqualified references to `_p5_axis_map` and `_p5_question_map`; the function creates both as temporary tables with `ON COMMIT DROP` before using them.
+- `duplicate_assessment_secure(uuid,text)`, `save_option_secure(...)`, and `update_option_secure(...)`: unqualified references to `assessment_types`, `axes`, `questions`, or `options`; these names exist in `public`, and the function-level search path is `public, pg_temp` (public is searched first). The relevant routines are either guarded or service-role-only in the live ACL.
+
+The live role catalog reports `CREATE` on schema `public` only for `postgres`; `anon`, `authenticated`, and `service_role` have no public-schema CREATE privilege. The unqualified references above therefore did not reveal a demonstrated application-role object-shadowing path in this bounded review. No change was made.
+
+A text scan of live stored function definitions found no direct table-name text for four existing tables: `experience_multipliers`, `historical_snapshots`, `specialty_profiles`, and `team_capacity_factors`. The repository caller scan likewise did not identify literal active-runtime callers for these objects in its sampled paths. This is **not** evidence that they are unused, removable, or safe to alter: dynamic/external callers, SQL outside the sampled paths, and historical consumers remain unproven. Keep their disposition OPEN and do not delete them.
