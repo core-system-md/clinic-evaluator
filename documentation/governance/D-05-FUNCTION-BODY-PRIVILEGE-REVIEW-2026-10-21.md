@@ -138,3 +138,10 @@ The current direct ACLs on `admin_audit_log` and `admin_capabilities` are exactl
 The tracked `20261001190000_p0_security_closure.sql` does contain migration-level dynamic SQL: its `EXECUTE format(...)` loop revokes all table privileges from `anon` and `authenticated` on the exact 18-table legacy list, then grants authenticated SELECT on a smaller explicit list. That loop does not cover the later-created `admin_capabilities` and `admin_audit_log` tables. In `20261003170912_p5_admin_architecture.sql`, those later tables receive SELECT for authenticated and only INSERT/UPDATE/DELETE are revoked. The live residual `rDxtm` ACL matches the broad default ACL plus those specific revokes.
 
 This links the present residual table grants to a concrete source omission in the P5 migration and confirms that migration-level dynamic SQL exists even though the current stored function bodies showed no executable dynamic-SQL statements. It does not establish who originally configured the broad default ACL or authorize a repair.
+
+
+## 10. Guard-order scan across authenticated-executable SECURITY DEFINER bodies
+
+A position-based scan compared the first detected `require_admin_capability` / `require_owner` / `require_admin` call with the first detected SQL data statement in each authenticated-executable SECURITY DEFINER definition. For the admin mutation/read routines that contain direct guard calls, the guard precedes the first detected data statement. The no-direct-`require_*` cases are caller-bound predicates (`has_admin_capability(text)`, `is_active_admin()`, `is_owner()`), the arbitrary-subject UUID predicates already noted, and the `require_owner()` helper itself.
+
+The only stateful wrapper in this scan where a data read occurs before authorization delegation is `save_assessment_secure(...)`: it selects the target version's status and then delegates to the guarded create/update operations. Its metadata-oracle disposition remains OPEN. This is a source-text/position scan; it does not prove every branch, dynamic expression, or indirect dependency is secure, and it does not replace contract-level review of argument ownership and returned fields.
