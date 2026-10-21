@@ -3,7 +3,7 @@
 **Evidence artifact:** [D-05-FUNCTION-BODY-PRIVILEGE-REVIEW-2026-10-21.md](../governance/D-05-FUNCTION-BODY-PRIVILEGE-REVIEW-2026-10-21.md)  
 **Branch:** `wp-11/d05-function-body-review-20261021`  
 **Base main SHA:** `be834661dd12a75032b1e0e6542284e3ff1090be`  
-**Evidence commit:** `2387d5d3e0b6965b625f00e2b7f0a8f897e6282a` (artifact only; handoff update follows on this branch).
+**Scope of branch changes:** documentation-only evidence artifact, handoff, and governance-matrix updates. No PR was opened; this branch remains separate from `main`.
 
 ## Work completed in this continuation
 
