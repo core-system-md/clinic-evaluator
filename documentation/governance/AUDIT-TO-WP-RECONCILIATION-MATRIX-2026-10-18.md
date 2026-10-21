@@ -275,3 +275,8 @@ The owner selected Option C (Hybrid); the decision-selection gate is recorded in
 Candidate head: `4cbebd0982428987f911a2d6f84b6b5ca400039c`; PR #120 remains OPEN / UNMERGED. The commit-status query had no check statuses at the time of this update, so new candidate verification remains pending. No Production changes were performed. The candidate leaves existing authenticated admin policies and grants intact; full Option C alignment for sensitive result access is not established by this bounded policy change alone.
 
 D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. Historical schema provenance and current-main/live migration identity reconciliation remain open.
+
+
+### Candidate-head correction — 2026-10-21
+
+The current PR #120 head is `c293d6894bb10021c5795a23abe100666f10df18`. Its migration, disposable harness, and static contract test are present, but GitHub reported no associated PR workflow runs or commit status entries; CI is **unverified**. PR #120 remains OPEN / UNMERGED and D-05 remains OPEN.
