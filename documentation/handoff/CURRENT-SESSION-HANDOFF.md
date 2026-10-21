@@ -1083,3 +1083,12 @@ No Production SQL, policy/grant changes, migration application, deployment, merg
 ### Candidate-head correction — 2026-10-21
 
 PR #120 latest head is `c293d6894bb10021c5795a23abe100666f10df18` (supersedes `4cbebd0982428987f911a2d6f84b6b5ca400039c`). The migration, harness, and static test were verified present on that exact head. GitHub returned no associated PR workflow runs and no commit status entries; **CI remains unverified**. Do not claim the candidate tests passed. No Production changes or PR merge occurred.
+
+
+### Final checkpoint — 2026-10-21
+
+Current PR #120 head is `82548fabe56e49abc2ce147732f7306286175c40`; migration, harness, and static test were re-fetched at that exact head. No associated PR workflow runs or commit status entries were returned, so CI is **unverified**. PR #120 remains OPEN / UNMERGED.
+
+A targeted live query found `sessions_public_select USING (true)`, but both `anon` and `authenticated` lack direct SELECT on `sessions`. It is a latent policy cleanup item, not a confirmed current direct-read path. It was not added to the candidate because the disposable harness does not model `sessions`; leave it open rather than making an untested change.
+
+No Production changes occurred. D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
