@@ -2722,3 +2722,51 @@ The live `public.require_admin_capability(text)` is owned by `postgres`, SECURIT
 - Not verified: runtime behavior under impersonated roles; negative-access tests; full dependency/RLS interactions; every possible non-SQL caller or dynamically constructed invocation; historical executed migration bytes. No unit, integration, E2E, or production write-path tests were run.
 - No production writes, schema/grant/policy changes, deployment, migration application, PR merge, deletion/recreation, or migration-history changes were performed.
 - **Disposition unchanged:** this bounded review adds evidence but does not close the broader 25-table reconciliation, historical initial-DDL provenance gap, or migration source/ledger discrepancies. D-05 remains **OPEN / BLOCKING RECONCILIATION**; WP-11 remains **IN PROGRESS / NOT CLOSED**; WP-12 remains **NOT STARTED**.
+
+## Read-only residual WP-11 reconciliation — RLS semantics and remaining privilege gaps — 2026-10-21
+
+**Evidence source:** read-only catalog and privilege queries against Supabase project `oaqpzaarppccbnepffxx`, cross-checked against tracked migration source and PR #120 files. This is a targeted semantic review of remaining WP-11 gaps, not a complete security acceptance and not permission to remediate them.
+
+### RLS finding: permissive public SELECT policies override the intended admin-only read filters
+
+The live catalog shows each of the following seven tables has (a) direct `SELECT` for `authenticated`, (b) a permissive policy applying to role `public` with command `SELECT` and `USING (true)`, and (c) a separate `p0_admin_select_*` policy intended to constrain the administrative read path:
+
+| Table | Live permissive broad policy | Authenticated direct SELECT | Anon direct SELECT |
+|---|---|---:|---:|
+| `answers` | `answers_public_select` | true | false |
+| `assessment_types` | `Allow public read access` | true | false |
+| `axes` | `Allow public read access` | true | false |
+| `leads` | `leads_owner_read` | true | false |
+| `options` | `Allow public read access` | true | false |
+| `questions` | `Allow public read access` | true | false |
+| `scores` | `scores_public_select` | true | false |
+
+PostgreSQL combines applicable permissive policies using **OR**, so the broad `USING (true)` policy is sufficient to pass the row-policy test for an `authenticated` role that has SELECT, regardless of the separate `p0_admin_select_*` predicate. PostgreSQL documents that semantics at https://www.postgresql.org/docs/current/ddl-rowsecurity.html. This is a catalog-verified access-configuration defect in the current database; no authenticated REST query or row read was attempted, so no claim is made that a user actually retrieved data during this review. The queried anon direct SELECT privileges were false for all seven tables; do not describe this evidence as proof of anonymous direct table access.
+
+The schema includes sensitive or security-relevant fields on these relations (for example, lead contact data, answer values, score percentages/weighted scores, option values, axis weights, and assessment KPI/EV mapping configuration). Thus the potential impact of the broad authenticated SELECT path is material even though actual row-return behavior and current row contents were not tested.
+
+### Source and candidate-test reconciliation
+
+- The live migration ledger contains `20261001190000 / p0_security_closure`. Its tracked source `supabase/migrations/20261001190000_p0_security_closure.sql` revokes table rights on the listed legacy tables, then grants SELECT to `authenticated` on `assessment_settings`, `assessment_types`, `axes`, `questions`, `options`, `leads`, `scores`, and `answers`, and creates the `p0_admin_select_*` policies. The tracked file does **not** drop the broad policy names listed in the table above.
+- The full tracked migration DDL index does not contain those exact broad policy identifiers. Repository code search did not identify an authoritative tracked migration that creates them. Their exact original creation/migration provenance therefore remains **unresolved**; the live policy definitions are verified, but historical origin is not inferred.
+- Read-only inspection of PR #120's candidate `supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql` (branch `wp-11/least-privilege-reconciliation`, blob SHA `b3b034d917c950ac80eda99d9a9ed9065ce11e39`) found no drop for any broad policy in the table above. Its candidate harness `tests/wp-11-security-reconciliation-harness.sql` (blob SHA `73b0adfb586e3fca217ab146d7c2c69bdb10250a`) does not define those broad legacy policies. Consequently, that fixture does not reproduce the live permissive-policy composition and its staff-hidden assertions cannot prove the live policy configuration restricts authenticated reads on these seven tables. PR #120 remains OPEN / UNMERGED; no merge or candidate change was made here, and CI was not rerun in this session.
+- Existing artifact `documentation/project-audit/03-p0-auth-data-rpc-decision.md` records the broader sensitive-data/policy issue and states production policy/grant changes require an owner-approved trust-boundary architecture decision. That decision is not replaced by this evidence. No policy or grant was changed.
+
+### SECURITY DEFINER/effective-role residual screen
+
+A fresh read-only summary query returned **65** public SECURITY DEFINER functions: **0** with effective anon EXECUTE, **51** with effective authenticated EXECUTE, **14** with function-level `search_path = ''`, and **51** with `search_path = public, pg_temp`. The bounded textual screen over stored function source (after stripping line comments) found no literal SQL `EXECUTE` statement; this is a static heuristic, not proof against every dynamic invocation or dependency, and it does not replace full caller/effective-role review.
+
+For the 14 SECURITY DEFINER functions configured with an empty search path, a compact catalog check did not find unqualified references to the known 25 public base-table names in statement-like FROM/JOIN/UPDATE/INSERT patterns. This is limited static evidence, not a parsed dependency graph or runtime test. The 25 current public base tables are all owned by `postgres`, all have RLS enabled, and all have `FORCE ROW LEVEL SECURITY = false`; the live role catalog reports both `postgres` and `service_role` with `BYPASSRLS = true`. Any SECURITY DEFINER function owned by the table owner can therefore bypass RLS, making its own authorization boundary material. No role-impersonation, negative-access, or runtime RLS test was run.
+
+Two non-SECURITY-DEFINER trigger functions, `public.p2_assert_draft_version()` and `public.p2_assessment_type_immutability()`, still have effective anon EXECUTE according to `has_function_privilege`. Both return `trigger`, have `SECURITY INVOKER` semantics (not SECURITY DEFINER), use `search_path = ''`, and have user triggers attached. This ACL observation is not evidence that either is callable as a standalone RPC; no attempt was made to invoke a trigger function directly and no privilege was changed.
+
+The same live screen reconfirmed the existing D-15 access boundary: `public.is_owner(uuid)` and `public.is_active_admin(uuid)` are SECURITY DEFINER functions with `search_path = ''`, effective authenticated EXECUTE, no anon EXECUTE, and bodies that test the supplied UUID rather than binding it to the caller's `auth.uid()`. This supports the already recorded UUID identity-probe concern; the candidate remediation remains unmerged and no grants were altered. The current-user no-argument helpers are distinct signatures and were not treated as interchangeable with these UUID overloads.
+
+### Remaining reconciliation status and safe boundary
+
+- **Verified in this unit:** the seven exact live broad-policy entries and effective table SELECT privilege comparison; the false anon direct SELECT result for those tables; the recorded intent/source content of the applied P0 security-closure migration; the missing broad-policy removal in the inspected PR #120 migration and missing reproduction in its disposable harness; current summary counts for SECURITY DEFINER privileges/search paths; live RLS ownership/FORCE state; the two trigger-function EXECUTE ACLs; and the authenticated UUID identity-probe EXECUTE boundary.
+- **Not verified:** actual row returns through the authenticated API; runtime impersonated-role/RLS outcomes; original migration provenance for the broad policies; external schema archive/backup/editor history; exact bytes originally applied for live-only migration identities; complete table-by-table semantic equivalence or fresh-database replay.
+- **No tests** (unit, integration, E2E, negative-access, role impersonation, or production write-path) were executed in this unit. No database write, DDL/grant/policy change, migration application, deployment, PR merge, table deletion/recreation, baseline creation, or history rewrite occurred.
+- **No audit ID or closed C item is reclassified by this note.** C-01/C-02/C-03 remain closed. Keep D-05 **OPEN / BLOCKING RECONCILIATION** and WP-11 **IN PROGRESS / NOT CLOSED**. WP-12 remains **NOT STARTED**.
+
+**Exact remaining gates:** owner decision on the trust-boundary architecture before any broad-policy/grant remediation; authoritative pre-migration schema provenance (or a separately owner-authorized baseline/replay package); reconciliation of the three main/live migration identity discrepancies without editing applied history or merging PR #120; and further evidence for runtime effective-role/RLS behavior. Do not synthesize a baseline from Production catalog output and do not start WP-12.
