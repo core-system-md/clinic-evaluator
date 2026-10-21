@@ -114,3 +114,20 @@ A live definition-marker classification accounted for all 51 authenticated-execu
 The explicit capability-guard group includes the assessment editing/lifecycle RPCs and the authenticated release-control wrapper. The owner-guard group includes owner audit/capability/admin-account operations and `require_owner()`. The service-role-only release CI/verifier functions are outside these 51 authenticated-executable functions and remain restricted by their live EXECUTE ACLs.
 
 This classification is now a repeatable inventory of guard patterns, not a closure claim. Full per-function argument-validation, ownership-scope, error-path, nested-call, and RLS-bypass semantics remain OPEN.
+
+
+## 9. Newly confirmed default-ACL exposure — D-08 / WP-11 blocker
+
+A fresh read-only `pg_default_acl` query found broad defaults for objects created by both `postgres` and `supabase_admin` in schema `public`:
+
+| Object class | Default privileges granted to `anon`, `authenticated`, and `service_role` |
+|---|---|
+| Tables | `arwdDxtm` — all table privileges, including SELECT/INSERT/UPDATE/DELETE/TRUNCATE/REFERENCES/TRIGGER/MAINTAIN |
+| Functions/procedures | EXECUTE |
+| Sequences | USAGE/SELECT/UPDATE |
+
+All 25 current `public` tables are owned by `postgres` and have explicit ACLs. Effective current-role checks still found no direct table privilege for `anon` on these 25 tables; per-table migration revokes have constrained the current tables. However, the broad default ACL is a prospective exposure for future objects unless each creation path explicitly revokes/narrows it. No tracked migration containing `ALTER DEFAULT PRIVILEGES` was found in the source search.
+
+The current direct ACLs on `admin_audit_log` and `admin_capabilities` are exactly `authenticated=rDxtm` (plus owner and service_role ACLs). This means authenticated retains SELECT, TRUNCATE, REFERENCES, TRIGGER, and MAINTAIN; INSERT, UPDATE, and DELETE are not granted. The source `20261003170912_p5_admin_architecture.sql` explicitly grants SELECT and later revokes only INSERT/UPDATE/DELETE from authenticated, leaving the other defaulted privileges. RLS does not constrain TRUNCATE. This is a real direct database privilege observation; this review did not establish a direct PostgREST route that invokes TRUNCATE, and no privilege was exercised.
+
+**Disposition:** record as **OPEN / HIGH-PRIORITY LEAST-PRIVILEGE RECONCILIATION** under existing D-08/WP-11 scope. Determine the intended default ACL for future public tables/functions/sequences, source/origin of the live default ACL, and approved forward-only remediation/negative-access acceptance criteria. Do not alter defaults or grants without the required owner authorization; no SQL changes were made.
