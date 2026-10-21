@@ -37,7 +37,7 @@ create table public.admin_audit_log (id integer primary key);
 create table public.admin_capabilities (user_id uuid not null, capability text not null);
 create table public.answers (id integer primary key);
 create table public.assessment_settings (id integer primary key);
-create table public.assessment_types (id integer primary key);
+create table public.assessment_types (id integer primary key, is_active boolean not null default true);
 create table public.axes (id integer primary key);
 create table public.leads (id integer primary key);
 create table public.options (id integer primary key);
@@ -152,6 +152,17 @@ begin
 end;
 $initial_p0_policies$;
 
+-- Reproduce the live permissive-policy composition found during D-05 review.
+create policy answers_public_select on public.answers for select to public using (true);
+create policy "Allow public read access" on public.assessment_types for select to public using (true);
+create policy assessment_types_public_read on public.assessment_types for select to public using (is_active = true);
+create policy "Allow public read access" on public.axes for select to public using (true);
+create policy "Allow all on axes" on public.axes for all to anon, authenticated using (true) with check (true);
+create policy "Allow public read access" on public.options for select to public using (true);
+create policy "Allow public read access" on public.questions for select to public using (true);
+create policy leads_owner_read on public.leads for select to public using (true);
+create policy scores_public_select on public.scores for select to public using (true);
+
 insert into public.admin_users(user_id, role, active) values
   ('11111111-1111-4111-8111-111111111111', 'owner', true),
   ('22222222-2222-4222-8222-222222222222', 'admin', true),
@@ -233,6 +244,27 @@ begin
   end if;
 end;
 $assert_grants$;
+
+-- The candidate must remove every broad policy reproduced from Production.
+do $assert_broad_policies_removed$
+begin
+  if exists (
+    select 1 from pg_policies
+    where schemaname = 'public'
+      and (
+        (tablename = 'answers' and policyname = 'answers_public_select')
+        or (tablename = 'assessment_types' and policyname in ('Allow public read access','assessment_types_public_read'))
+        or (tablename = 'axes' and policyname in ('Allow public read access','Allow all on axes'))
+        or (tablename = 'options' and policyname = 'Allow public read access')
+        or (tablename = 'questions' and policyname = 'Allow public read access')
+        or (tablename = 'leads' and policyname = 'leads_owner_read')
+        or (tablename = 'scores' and policyname = 'scores_public_select')
+      )
+  ) then
+    raise exception 'a broad permissive public policy survived WP-11 migration';
+  end if;
+end;
+$assert_broad_policies_removed$;
 
 -- The current-user RLS boundary still works: owner sees all admin rows,
 -- a non-admin staff user sees only their own row.
