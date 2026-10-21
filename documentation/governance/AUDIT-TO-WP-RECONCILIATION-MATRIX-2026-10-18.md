@@ -266,3 +266,12 @@ This checkpoint adds verified live catalog evidence and leaves the gate open. De
 - `documentation/project-audit/03-p0-auth-data-rpc-decision.md` retains the owner decision gate for trust-boundary architecture; no RLS/grant/function fix was authorized or applied. The 18-table initial-DDL provenance gap, external archive gap, and current-main/live migration identity mismatches also remain open. No tests, Production writes, schema/grant/policy changes, migration application, deployment, PR merge, baseline synthesis, deletion/recreation, or migration-history rewrite were performed.
 
 **Disposition unchanged:** D-05 **OPEN / BLOCKING RECONCILIATION**; WP-11 **IN PROGRESS / NOT CLOSED**; WP-12 **NOT STARTED**. C-01/C-02/C-03 remain closed. The next work stays within WP-11: obtain the owner's trust-boundary decision before any policy remediation, seek authoritative original schema provenance, and reconcile source/ledger identities without rewriting applied history or merging PR #120. Do not start WP-12.
+
+
+## Follow-up — owner-selected Option C / updated D-05 candidate — 2026-10-21
+
+The owner selected Option C (Hybrid); the decision-selection gate is recorded in `documentation/project-audit/03-p0-auth-data-rpc-decision.md`. The WP-11 candidate branch now drops the nine broad permissive policies identified by live catalog inspection and extends the disposable harness to reproduce and assert removal of them. Static assertions were added to `tests/wp-11-security-reconciliation.test.js`.
+
+Candidate head: `4cbebd0982428987f911a2d6f84b6b5ca400039c`; PR #120 remains OPEN / UNMERGED. The commit-status query had no check statuses at the time of this update, so new candidate verification remains pending. No Production changes were performed. The candidate leaves existing authenticated admin policies and grants intact; full Option C alignment for sensitive result access is not established by this bounded policy change alone.
+
+D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. Historical schema provenance and current-main/live migration identity reconciliation remain open.
