@@ -72,3 +72,14 @@ This is not sufficient evidence that a cleanup deleted the column's source. The 
 - The 18-table gap remains a proven absence within the 56 current tracked migration files, while historical source provenance remains open.
 - Continue full per-function semantic review and exact caller/dependency expansion, reconcile each live table object against source, and retain the migration ledger mismatch (56 tracked files vs 57 live records; two live-only identities and one main-only source) as open.
 - Do not synthesize a Production-derived baseline, rewrite applied migration history, apply migrations, change schema/grants/policies, delete/recreate objects, merge PR #120, or start WP-12.
+
+
+## 6. Caller-bound authorization helpers
+
+Additional live-definition/ACL inspection confirmed:
+- `is_owner()`, `is_active_admin()`, and `has_admin_capability(text)` use `auth.uid()` internally and are executable by `authenticated`; these are caller-bound predicates used by the existing admin/policy authorization model.
+- `require_owner()` is also executable by `authenticated`, but only checks `is_owner()` and raises SQLSTATE `42501` for non-owners; it performs no data mutation. Its success/error distinction is another owner-status oracle, though the direct boolean helpers already expose the same class of signal.
+- `require_admin()` and `require_admin_capability(text)` themselves are not executable by `authenticated`; they are internal guard routines invoked by protected functions.
+- The UUID overloads `is_owner(uuid)` and `is_active_admin(uuid)` differ from the caller-bound helpers: they test the supplied UUID rather than `auth.uid()`. The D-15 disposition must explicitly decide whether authenticated callers need this arbitrary-subject check or whether those overloads should be restricted in a separately authorized permission repair.
+
+This remains an evidence/disposition item only. No grant, function, policy, or schema change was made.
