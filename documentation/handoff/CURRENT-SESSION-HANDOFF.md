@@ -1078,3 +1078,8 @@ On branch `wp-11/least-privilege-reconciliation`, PR #120 candidate head is now 
 No Production SQL, policy/grant changes, migration application, deployment, merge, data deletion, or history rewrite occurred. The candidate still preserves narrow authenticated admin read policies and does not alter table grants; therefore Option C's complete server-gateway/sensitive-data boundary is **not yet proven by this change alone**. Verify the updated candidate in CI and complete caller/runtime reconciliation before any production release.
 
 **Status:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. Next action stays within WP-11: verify the candidate harness/CI, then reconcile remaining source/ledger provenance and runtime access-boundary evidence. Do not apply to Production or begin WP-12.
+
+
+### Candidate-head correction — 2026-10-21
+
+PR #120 latest head is `c293d6894bb10021c5795a23abe100666f10df18` (supersedes `4cbebd0982428987f911a2d6f84b6b5ca400039c`). The migration, harness, and static test were verified present on that exact head. GitHub returned no associated PR workflow runs and no commit status entries; **CI remains unverified**. Do not claim the candidate tests passed. No Production changes or PR merge occurred.
