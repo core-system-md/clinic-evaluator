@@ -148,3 +148,12 @@ The only stateful wrapper in this scan where a data read occurs before authoriza
 
 
 A historical cross-check compared the old-name `20261003190000_p5_admin_architecture.sql` in branch `chore/reconcile-p5-migration-history-2026-10-04` with the current-name `20261003170912_p5_admin_architecture.sql` on `main`. Both resolve to the same blob SHA `123793c3c580327df1da1c3c917287d84d8517d5` and the same 765-line body, including the SELECT grants at lines 30–31 and the limited INSERT/UPDATE/DELETE revokes at lines 738–739. This establishes that the residual-grant omission is present in the historical migration body before/current filename reconciliation; it is not introduced by that filename cleanup.
+
+
+## 11. Applied P0 migration proves the 18 legacy tables pre-existed the tracked CREATE path
+
+A read-only query of `supabase_migrations.schema_migrations` confirmed the production ledger records `20261001190000 / p0_security_closure` as applied. Its tracked body contains a `DO` loop over the exact 18 legacy table names and executes `REVOKE ALL ON TABLE public.<name> FROM anon, authenticated` for each name. PostgreSQL would fail that statement if a listed relation did not exist at application time.
+
+None of those 18 names has an initial CREATE TABLE declaration in the preceding tracked migration set. Taken together, the applied-ledger record and the loop establish that all 18 tables already existed by the time P0 ran, while their initial creation was not represented by the tracked migration sources that precede P0. This is stronger than a code-search miss and supports a pre-existing/out-of-band schema origin.
+
+It still does **not** prove why the original creation SQL is absent: possibilities include an earlier untracked/manual setup, a source artifact that was never committed, or a prior deletion outside the examined reachable history. The evidence does not attribute the gap to a specific cleanup operation. Keep the origin and any external source recovery **OPEN**; do not reconstruct the initial schema from live metadata.
