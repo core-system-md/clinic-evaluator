@@ -2791,3 +2791,12 @@ D-05 remains OPEN: authoritative initial schema provenance for 18 tables, main/l
 ### Candidate-head correction — 2026-10-21
 
 The latest PR #120 head supersedes the earlier candidate SHA recorded above: `c293d6894bb10021c5795a23abe100666f10df18`. The policy-drop migration, expanded disposable harness, and static contract test were re-fetched from that exact branch head. The commit-workflow query returned no PR-triggered workflow runs and the combined status list was empty; CI remains **unverified**. PR #120 remains OPEN / UNMERGED. No Production changes occurred.
+
+
+### Final checkpoint — 2026-10-21
+
+The current PR #120 head is `82548fabe56e49abc2ce147732f7306286175c40`. The migration, disposable harness, and static contract test blobs were re-fetched at this exact head. No PR-triggered workflow runs or commit status entries were returned; CI is **unverified**. PR #120 remains OPEN / UNMERGED.
+
+A separate targeted live query found `sessions_public_select` with `USING (true)`, but `has_table_privilege` returned false for both `anon` and `authenticated` on `sessions`. The policy is therefore a latent cleanup item, not verified as an effective direct table-read path. It is not included in this candidate because the disposable fixture does not model `sessions`; do not claim it was removed. This unit leaves that item open for a properly modeled WP-11 test rather than making an untested migration change.
+
+No Production SQL, grant/policy changes, migration application, deployment, merge, table deletion/recreation, or migration-history rewrite occurred. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
