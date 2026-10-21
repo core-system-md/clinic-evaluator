@@ -67,6 +67,20 @@ begin
 end;
 $wp11_preflight$;
 
+-- D-05 / Option C: remove the observed permissive policies that bypass
+-- admin-only SELECT predicates. Public assessment configuration remains served
+-- by the purpose-built assessment-access gateway; sensitive submissions/results
+-- must not be made readable by a broad public policy.
+drop policy if exists answers_public_select on public.answers;
+drop policy if exists "Allow public read access" on public.assessment_types;
+drop policy if exists assessment_types_public_read on public.assessment_types;
+drop policy if exists "Allow public read access" on public.axes;
+drop policy if exists "Allow all on axes" on public.axes;
+drop policy if exists "Allow public read access" on public.options;
+drop policy if exists "Allow public read access" on public.questions;
+drop policy if exists leads_owner_read on public.leads;
+drop policy if exists scores_public_select on public.scores;
+
 -- D-08: these tables are SELECT-only for authenticated clients. Mutation remains
 -- behind guarded RPCs; the service_role privileges are intentionally unchanged.
 revoke maintain, references, trigger, truncate
