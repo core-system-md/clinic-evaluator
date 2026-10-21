@@ -95,3 +95,22 @@ A line-based scan of live SECURITY DEFINER definitions found a bounded set of un
 The live role catalog reports `CREATE` on schema `public` only for `postgres`; `anon`, `authenticated`, and `service_role` have no public-schema CREATE privilege. The unqualified references above therefore did not reveal a demonstrated application-role object-shadowing path in this bounded review. No change was made.
 
 A text scan of live stored function definitions found no direct table-name text for four existing tables: `experience_multipliers`, `historical_snapshots`, `specialty_profiles`, and `team_capacity_factors`. The repository caller scan likewise did not identify literal active-runtime callers for these objects in its sampled paths. This is **not** evidence that they are unused, removable, or safe to alter: dynamic/external callers, SQL outside the sampled paths, and historical consumers remain unproven. Keep their disposition OPEN and do not delete them.
+
+
+## 8. Categorization of all 51 authenticated-executable SECURITY DEFINER functions
+
+A live definition-marker classification accounted for all 51 authenticated-executable SECURITY DEFINER functions; none fell into the scan's “manual review required” bucket:
+
+| Body-marker classification | Count | Disposition |
+|---|---:|---|
+| Explicit capability guard | 37 | Guard call observed; full semantic behavior still requires review |
+| Explicit owner guard | 7 | Guard call observed; full semantic behavior still requires review |
+| Explicit admin guard | 1 | `check_assessment_leads_secure(uuid)`; calls `require_admin()` |
+| Caller-bound predicate/auth marker | 3 | `has_admin_capability(text)`, `is_active_admin()`, `is_owner()` |
+| Arbitrary-subject predicate | 2 | `is_active_admin(uuid)`, `is_owner(uuid)`; D-15 remains open |
+| Guarded delegation with pre-authorization status read | 1 | `save_assessment_secure(...)`; potential status oracle remains open |
+| **Total** | **51** | Marker classification only; not a formal proof of authorization correctness |
+
+The explicit capability-guard group includes the assessment editing/lifecycle RPCs and the authenticated release-control wrapper. The owner-guard group includes owner audit/capability/admin-account operations and `require_owner()`. The service-role-only release CI/verifier functions are outside these 51 authenticated-executable functions and remain restricted by their live EXECUTE ACLs.
+
+This classification is now a repeatable inventory of guard patterns, not a closure claim. Full per-function argument-validation, ownership-scope, error-path, nested-call, and RLS-bypass semantics remain OPEN.
