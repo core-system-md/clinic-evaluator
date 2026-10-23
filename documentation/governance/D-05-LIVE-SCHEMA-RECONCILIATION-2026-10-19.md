@@ -2839,3 +2839,18 @@ The 18-table initial-DDL provenance gap, the three source/ledger migration ident
 ### Operational correction — documentation-only Pages deployment — 2026-10-23
 
 The two documentation commits `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` and `9e4e9cd8413c3faa990cd5764272905f75aaf553` were pushed to `main` without the repository's required `[CF-Pages-Skip]` commit-message prefix. Cloudflare Pages confirms that each triggered a production deployment and both deployment stages succeeded; the latest deployed commit is `9e4e9cd8413c3faa990cd5764272905f75aaf553`. Both commits changed documentation only, not application/runtime code, database schema, policies, grants, data, or migrations. This was an avoidable deployment trigger; no rollback was attempted. Subsequent documentation-only commits must use `[CF-Pages-Skip]`. This correction does not change the D-05 disposition or authorize further production deployment.
+
+
+### Full 25-table effective privilege matrix — 2026-10-23
+
+A fresh catalog query enumerated all 25 ordinary tables in `public`, reporting RLS/FORCE state, owner, effective table privileges for `anon` and `authenticated`, and policy count per table.
+
+- RLS enabled: **25/25**.
+- FORCE ROW LEVEL SECURITY: **0/25**.
+- Owner: **postgres for 25/25**.
+- Direct table SELECT privilege for `anon`: **0/25**.
+- Direct table SELECT privilege for `authenticated`: **12/25** — `admin_audit_log`, `admin_capabilities`, `admin_users`, `answers`, `assessment_families`, `assessment_settings`, `assessment_types`, `axes`, `leads`, `options`, `questions`, and `scores`.
+- Direct table INSERT/UPDATE/DELETE privileges: none of the 25 tables returned true for either `anon` or `authenticated` in the checked privilege matrix. This does not cover function-mediated writes, service-role access, inherited/owner bypass, or other roles.
+- Per-table policy counts ranged from 0 to 8; counts alone do not prove policy correctness. The seven previously identified broad authenticated SELECT paths remain confirmed: `answers`, `assessment_types`, `axes`, `leads`, `options`, `questions`, `scores`. The separate `sessions_public_select USING (true)` policy remains latent because both tested client roles lack direct SELECT on `sessions`.
+
+This is catalog/effective-privilege evidence, not an HTTP API test and not a semantic PASS for all 25 tables. The 12 authenticated SELECT grants include intentional admin/read paths as well as the seven broad-policy defects; each policy's caller authorization must be reviewed independently. No privilege, RLS policy, schema object, or data was changed.
