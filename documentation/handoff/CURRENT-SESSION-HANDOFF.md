@@ -1092,3 +1092,26 @@ Current PR #120 head is `82548fabe56e49abc2ce147732f7306286175c40`; migration, h
 A targeted live query found `sessions_public_select USING (true)`, but both `anon` and `authenticated` lack direct SELECT on `sessions`. It is a latent policy cleanup item, not a confirmed current direct-read path. It was not added to the candidate because the disposable harness does not model `sessions`; leave it open rather than making an untested change.
 
 No Production changes occurred. D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
+
+
+## CURRENT UPDATE — D-05 effective-role evidence and closure gate — 2026-10-23
+
+The D-05 worksheet was updated in commit `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` with a bounded read-only Production role check and a re-screen of authenticated-executable SECURITY DEFINER functions. No Production write or security change was performed.
+
+### New verified evidence
+- Under an explicit PostgreSQL `authenticated` role in a read-only transaction (`ROLLBACK`), `row_security=on`; SELECT privileges were true for `answers`, `leads`, and `scores`. Visible counts were 0, 0, and 0 respectively; `axes=22`, `questions=93`, `options=370`, `assessment_types=5`. This confirms the effective database-role SELECT path, but does not demonstrate retrieval of sensitive rows (the three sensitive tables currently returned zero rows) and is not an HTTP/PostgREST end-to-end test.
+- Under an explicit PostgreSQL `anon` role, SELECT privilege checks were false for all seven tested relations (`answers`, `leads`, `scores`, `axes`, `questions`, `options`, `assessment_types`).
+- A bounded literal-marker screen of authenticated-executable SECURITY DEFINER bodies returned three functions without the selected simple auth-marker strings: `is_active_admin(uuid)`, `is_owner(uuid)`, and `save_assessment_secure(...)`. The first two are the previously recorded D-15 caller-supplied-UUID identity-probe issue; the third is the previously recorded D-17 pre-delegation row-state read/lock note. This is triage evidence only, not a complete authorization proof or new fix authorization.
+- PR #120 remains OPEN / UNMERGED at `82548fabe56e49abc2ce147732f7306286175c40`. The commit workflow query returned no PR-triggered workflow runs and the combined status query returned no statuses for that SHA on 2026-10-23. CI is UNVERIFIED on the current head; historical CI results on an older head do not satisfy this gate.
+- The live migration ledger still contains 57 version/name entries while main has 56 tracked migration files. Main's two missing source identities are `20261018075528` and `20261018075855`; source-only main file `20261018110000` remains. PR #120 proposes the source reconciliation but is not part of main/Production.
+
+### Closure determination
+D-05 **cannot truthfully be closed yet**. The initial DDL for 18 of the 25 live public tables is absent from tracked migrations; no authoritative full schema artifact was found in the inspected repository, and no external archive/backup or Supabase editor/deployment history was available to verify here. The source/ledger discrepancy remains on main, the candidate lacks CI/review proof at its current head, and the complete table/function/effective-role dependency acceptance gate is not satisfied.
+
+No Production mutation, migration application, policy/grant change, deployment, PR merge, baseline synthesis, deletion/recreation, or migration-history rewrite occurred. WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
+
+### Exact remaining blocking inputs/actions
+1. Obtain an authoritative pre-migration schema artifact or approved external backup/deployment record that contains complete original DDL for the 18 legacy tables and related objects; validate its identity and completeness against the live catalog. Do not synthesize DDL from Production catalog output.
+2. Independently review and verify PR #120's migration source/ledger reconciliation and current-head CI; then obtain the required review/approval before merging. No merge or Production application is implied by this handoff.
+3. Complete the remaining table-by-table function/RPC dependency and role/RLS acceptance checks and record each unproven point as OPEN.
+4. Only after all evidence gates pass, update the D-05 disposition, WP-11 status, and reconciliation matrix together. Do not start WP-12 automatically.
