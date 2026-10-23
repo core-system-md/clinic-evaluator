@@ -1120,3 +1120,10 @@ No Production mutation, migration application, policy/grant change, deployment, 
 ## Operational correction — Pages deployment triggered by documentation commits — 2026-10-23
 
 The two documentation-only commits `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` and `9e4e9cd8413c3faa990cd5764272905f75aaf553` were created without the required `[CF-Pages-Skip]` prefix. Read-only Cloudflare Pages inspection confirms both pushed commits triggered production deployments; both completed successfully. The latest deployed commit is `9e4e9cd8413c3faa990cd5764272905f75aaf553`. The commits modified only D-05/handoff Markdown documentation; they did not modify app/runtime code or the database, and no migration, schema, grant, policy, or data operation was performed. This deployment trigger was unintended and avoidable. No rollback was attempted. The corrective documentation commit uses `[CF-Pages-Skip]`; continue using that prefix for all documentation-only commits. Do not infer authorization for any further production deployment from this incident.
+
+
+### Follow-up — full 25-table effective privilege sweep — 2026-10-23
+
+The D-05 worksheet was extended in commit `4e0ddc35c3890ff9265848384a92992f80af1cb3` with a full live privilege matrix for all 25 public ordinary tables. Results: RLS enabled 25/25; FORCE RLS 0/25; owner postgres 25/25; anon direct SELECT 0/25; authenticated direct SELECT 12/25; direct INSERT/UPDATE/DELETE privileges false for anon and authenticated across all 25 in the queried privilege matrix. The 12 authenticated SELECT tables and all seven broad permissive-policy paths are listed in the worksheet. This does not cover function-mediated writes, service-role access, inherited/owner bypass, or prove semantic policy correctness. No DB permissions or policies were changed.
+
+D-05 remains blocked by the missing authoritative initial-DDL provenance for 18 tables, main/live migration source identity mismatch, unverified current-head CI/review for PR #120, and remaining full dependency/runtime acceptance. Do not mark closed or start WP-12 until those gates are met.
