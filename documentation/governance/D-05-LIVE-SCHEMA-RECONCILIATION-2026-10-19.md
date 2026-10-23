@@ -2800,3 +2800,37 @@ The current PR #120 head is `82548fabe56e49abc2ce147732f7306286175c40`. The migr
 A separate targeted live query found `sessions_public_select` with `USING (true)`, but `has_table_privilege` returned false for both `anon` and `authenticated` on `sessions`. The policy is therefore a latent cleanup item, not verified as an effective direct table-read path. It is not included in this candidate because the disposable fixture does not model `sessions`; do not claim it was removed. This unit leaves that item open for a properly modeled WP-11 test rather than making an untested migration change.
 
 No Production SQL, grant/policy changes, migration application, deployment, merge, table deletion/recreation, or migration-history rewrite occurred. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
+
+
+## Read-only effective-role verification — 2026-10-23
+
+### Method
+Executed two read-only SQL transactions against Production using explicit PostgreSQL role switching, each ended with `ROLLBACK`. No table writes or privilege changes were attempted. This is direct database-session evidence for role privileges/RLS, not an HTTP/PostgREST/API-token end-to-end test.
+
+### Authenticated role
+Under `SET LOCAL ROLE authenticated`, `row_security=on`; effective SELECT privileges were true for `answers`, `leads`, and `scores`. Counts visible under that role were:
+- `answers`: 0
+- `leads`: 0
+- `scores`: 0
+- `axes`: 22
+- `questions`: 93
+- `options`: 370
+- `assessment_types`: 5
+
+This confirms the effective database-role SELECT path and visible row counts for the tested session. The sensitive tables currently return zero rows, so this test does not demonstrate retrieval of any existing lead/answer/score record. It does demonstrate that the broad permissive-policy configuration is effective for authenticated reads on the tested relations; the risk is prospective if sensitive rows are later present. The public content counts are consistent with the earlier live inventory and do not establish whether draft/version filtering is correct.
+
+### Anonymous role
+Under `SET LOCAL ROLE anon`, effective SELECT privileges were false for each of the same seven tables: `answers`, `leads`, `scores`, `axes`, `questions`, `options`, and `assessment_types`. No row SELECT was attempted under `anon` because the table privilege check was false.
+
+### SECURITY DEFINER bounded re-screen
+A live query of authenticated-executable SECURITY DEFINER functions whose stored body did not contain the simple textual markers `require_admin_capability`, `require_owner`, `require_admin(`, `is_active_admin()`, `is_owner()`, `auth.uid()`, or `auth.jwt()` returned exactly three functions:
+- `public.is_active_admin(uuid)`: checks the caller-supplied UUID against `admin_users`; authenticated EXECUTE true, anon EXECUTE false. This is the previously recorded D-15 identity-probe issue.
+- `public.is_owner(uuid)`: checks the caller-supplied UUID against `admin_users`; authenticated EXECUTE true, anon EXECUTE false. This is the previously recorded D-15 identity-probe issue.
+- `public.save_assessment_secure(...)`: branches to the reviewed secure functions for authorization, but reads/locks assessment state before delegation. This is the previously recorded D-17 review note; no exploitability claim or new fix authorization follows from the textual screen.
+
+This marker scan is only a triage heuristic: a missing literal marker does not itself prove a function lacks authorization, and a present marker does not prove every branch safe. No impersonated JWT identity, authenticated admin/staff persona, negative RPC invocation, or HTTP API request was tested.
+
+### D-05 disposition
+This new runtime-role evidence narrows the effective privilege question but does not close D-05. PR #120 is still OPEN / UNMERGED at `82548fabe56e49abc2ce147732f7306286175c40`; GitHub returned no PR-triggered workflow runs and no commit statuses for that exact head on 2026-10-23, so CI remains unverified. The candidate is not part of `main` or Production.
+
+The 18-table initial-DDL provenance gap, the three source/ledger migration identity discrepancies on `main`, the missing independent review/CI evidence for the candidate, and the remaining per-object/dependency/RLS acceptance work remain open. No Production mutation, migration application, policy/grant change, deployment, PR merge, deletion/recreation, baseline synthesis, or migration-history rewrite occurred. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
