@@ -1115,3 +1115,8 @@ No Production mutation, migration application, policy/grant change, deployment, 
 2. Independently review and verify PR #120's migration source/ledger reconciliation and current-head CI; then obtain the required review/approval before merging. No merge or Production application is implied by this handoff.
 3. Complete the remaining table-by-table function/RPC dependency and role/RLS acceptance checks and record each unproven point as OPEN.
 4. Only after all evidence gates pass, update the D-05 disposition, WP-11 status, and reconciliation matrix together. Do not start WP-12 automatically.
+
+
+## Operational correction — Pages deployment triggered by documentation commits — 2026-10-23
+
+The two documentation-only commits `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` and `9e4e9cd8413c3faa990cd5764272905f75aaf553` were created without the required `[CF-Pages-Skip]` prefix. Read-only Cloudflare Pages inspection confirms both pushed commits triggered production deployments; both completed successfully. The latest deployed commit is `9e4e9cd8413c3faa990cd5764272905f75aaf553`. The commits modified only D-05/handoff Markdown documentation; they did not modify app/runtime code or the database, and no migration, schema, grant, policy, or data operation was performed. This deployment trigger was unintended and avoidable. No rollback was attempted. The corrective documentation commit uses `[CF-Pages-Skip]`; continue using that prefix for all documentation-only commits. Do not infer authorization for any further production deployment from this incident.
