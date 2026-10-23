@@ -1127,3 +1127,8 @@ The two documentation-only commits `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` an
 The D-05 worksheet was extended in commit `4e0ddc35c3890ff9265848384a92992f80af1cb3` with a full live privilege matrix for all 25 public ordinary tables. Results: RLS enabled 25/25; FORCE RLS 0/25; owner postgres 25/25; anon direct SELECT 0/25; authenticated direct SELECT 12/25; direct INSERT/UPDATE/DELETE privileges false for anon and authenticated across all 25 in the queried privilege matrix. The 12 authenticated SELECT tables and all seven broad permissive-policy paths are listed in the worksheet. This does not cover function-mediated writes, service-role access, inherited/owner bypass, or prove semantic policy correctness. No DB permissions or policies were changed.
 
 D-05 remains blocked by the missing authoritative initial-DDL provenance for 18 tables, main/live migration source identity mismatch, unverified current-head CI/review for PR #120, and remaining full dependency/runtime acceptance. Do not mark closed or start WP-12 until those gates are met.
+
+
+### PR #120 current reviewability check — 2026-10-23
+
+A fresh GitHub PR metadata query confirms PR #120 is OPEN, UNMERGED, with head `82548fabe56e49abc2ce147732f7306286175c40`, base `cf34521c2a5ff65c9aed6dbfa9b08a012ec7abaa`, and `mergeable_state=dirty` (`mergeable=false`). No workflow runs or combined commit statuses exist for the current head. Therefore the candidate is not currently merge-ready and its current-head CI is unverified. Do not merge or treat the earlier successful workflows on an older head as current acceptance evidence.
