@@ -285,3 +285,12 @@ The current PR #120 head is `c293d6894bb10021c5795a23abe100666f10df18`. Its migr
 ### Final checkpoint — 2026-10-21
 
 PR #120 current head: `82548fabe56e49abc2ce147732f7306286175c40`. Candidate files are present; GitHub returned no associated PR workflow runs or commit statuses, so CI is unverified. The live `sessions_public_select` policy has `USING (true)`, but neither `anon` nor `authenticated` has direct SELECT on `sessions`; it remains a latent cleanup item outside this candidate's modeled fixture. D-05 remains open; WP-11 remains in progress; WP-12 is not started.
+
+
+## D-05 / WP-11 status update — effective-role evidence, 2026-10-23
+
+The D-05 worksheet records a fresh read-only Production role check and full 25-table privilege matrix (worksheet update commits `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` and `4e0ddc35c3890ff9265848384a92992f80af1cb3`; operational deployment correction is recorded later in the worksheet). All 25 public tables have RLS enabled and are owned by postgres; none has FORCE RLS. `anon` has no direct SELECT privilege on the 25 tables; `authenticated` has SELECT on 12, including the seven previously identified broad permissive-policy paths. A read-only `SET LOCAL ROLE authenticated` query confirmed SELECT path visibility on `axes` (22), `questions` (93), `options` (370), and `assessment_types` (5); `answers`, `leads`, and `scores` returned zero rows. This is database-role evidence, not an HTTP/API end-to-end test.
+
+PR #120 remains OPEN / UNMERGED at `82548fabe56e49abc2ce147732f7306286175c40`; no current-head workflow runs or commit statuses were returned. Main still has 56 migration files against 57 live migration ledger entries, with source identity discrepancies `20261018075528`, `20261018075855`, and source-only `20261018110000`. The initial CREATE TABLE definitions for 18 live public tables remain absent from tracked migrations, and no authoritative external schema archive was located in the available repository/Library search. No baseline was synthesized from Production metadata.
+
+**Disposition unchanged:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. No database permissions/policies/schema were changed, no migration was applied, and PR #120 was not merged. The required `[CF-Pages-Skip]` prefix must be used for documentation-only commits.
