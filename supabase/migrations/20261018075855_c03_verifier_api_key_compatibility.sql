@@ -1,5 +1,5 @@
 -- C-03: allow the service_role-only verifier RPC to work with modern non-JWT sb_secret API keys.
--- The EXECUTE grant remains service_role-only; explicit non-service JWT claims are still rejected.
+-- The EXECUTE grant remains service_role-only; explicitly conflicting JWT role claims are rejected.
 begin;
 
 create or replace function public.verify_assessment_config_release_secure(
