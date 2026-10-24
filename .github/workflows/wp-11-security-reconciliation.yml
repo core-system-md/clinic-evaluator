@@ -4,7 +4,7 @@ on:
   pull_request:
     branches: [main]
     paths:
-      - "supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql"
+      - "supabase/migrations/20261024095410_wp11_security_database_reconciliation.sql"
       - "tests/wp-11-security-reconciliation.test.js"
       - "tests/wp-11-security-reconciliation-harness.sql"
       - "admin/admin.html"
@@ -15,7 +15,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql"
+      - "supabase/migrations/20261024095410_wp11_security_database_reconciliation.sql"
       - "tests/wp-11-security-reconciliation.test.js"
       - "tests/wp-11-security-reconciliation-harness.sql"
       - "admin/admin.html"

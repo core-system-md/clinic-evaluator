@@ -8,7 +8,7 @@ const migrationPath = path.join(
   "..",
   "supabase",
   "migrations",
-  "20261018120000_wp11_security_database_reconciliation.sql",
+  "20261024095410_wp11_security_database_reconciliation.sql",
 );
 const harnessPath = path.join(__dirname, "wp-11-security-reconciliation-harness.sql");
 const migration = fs.readFileSync(migrationPath, "utf8");
@@ -116,7 +116,7 @@ test("WP-11 migration fails closed on missing expected schema objects or policie
 
 test("WP-11 SQL harness asserts actual privileges, direct probe denial, and RLS behavior", () => {
   assert.ok(
-    harness.includes("\\i supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql"),
+    harness.includes("\\i supabase/migrations/20261024095410_wp11_security_database_reconciliation.sql"),
     "the disposable harness must apply the exact candidate migration",
   );
   assert.match(harness, /has_table_privilege\('authenticated'/i);

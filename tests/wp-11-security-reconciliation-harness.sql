@@ -185,7 +185,7 @@ insert into public.questions(id) values (1);
 insert into public.scores(id) values (1);
 
 \echo 'Apply the WP-11 forward-only migration in disposable PostgreSQL'
-\i supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql
+\i supabase/migrations/20261024095410_wp11_security_database_reconciliation.sql
 
 do $assert_grants$
 begin
