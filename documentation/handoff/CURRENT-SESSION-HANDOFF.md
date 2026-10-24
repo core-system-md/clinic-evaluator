@@ -1,3 +1,34 @@
+# SESSION CLOSEOUT — WP-12 SCOPE EXPLANATION ONLY — 2026-10-24
+
+**Safe stop:** This session explained the scope of WP-12; it did not execute WP-12. No source code, tests, CI, E2E, runtime HTTP/PostgREST, deployment, or Production operation was performed. WP-11 §41 and D-05 remain CLOSED according to the authoritative closeout below. WP-12 §42 remains NOT STARTED. C-01/C-02/C-03 remain CLOSED.
+
+## Actual work and repository changes
+- Read the final implementation contract §42–§44 and the current audit-to-WP matrix; explained WP-12's static, unit, integration, E2E, failure/retry, and runtime verification layers.
+- No implementation or test result was newly generated in this session. The explanation does not close D-04, D-06, D-12, or D-17; their residual WP-12 verification obligations remain as recorded in the matrix.
+- During this closeout, appended a session-boundary and exact continuation addendum to `documentation/governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md`. Commit: `5032e23e16da6de679a3aed634b054000a4c6e90`. This is documentation only; it does not change Audit dispositions.
+- This handoff update is the second and final documentation change for the current session. Documentation-only commit messages must use `[CF-Pages-Skip]` to avoid triggering Cloudflare Pages deployments.
+
+## WP-12 requirements to carry forward
+Use `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md` §§42–44 as the controlling contract. Before any implementation, inventory the existing repository tests and CI workflows, map existing evidence to each required gate, and identify only the actual gaps. Do not rerun completed work without a specific evidence gap. Track each requirement as PASS / FAIL / NOT RUN / BLOCKED with evidence and commit/version context.
+
+Required layers:
+1. Source/static: imports, ownership, forbidden engine paths, forbidden Leakage fields, report references, version naming.
+2. Unit: scoring, weights, interpretation, consistency, KPI, EV, diagnostics, report selection, report validation.
+3. Integration: assessment session, answer storage, completion, engine, Structured Result, persistence.
+4. E2E for every in-scope V1 assessment: `open → answer → save → complete → calculate → persist → produce report`.
+5. Failure/retry: missing/malformed answer, partial coverage, repeated/concurrent completion, stale version, invalid configuration.
+6. Runtime: deployed Edge Function and final public/admin behavior. A direct HTTP/PostgREST request was not executed during the WP-11 closeout and must not be recorded as passed.
+
+Cross-stage obligations: D-04 report/admin output and no Leakage; D-06 annual visits/economic assumptions end-to-end; D-12 authoritative engine/report paths and remaining layered behavior (do not reopen WP-11's closed database reconciliation without new evidence); D-17 Structured Result precision through persistence/reporting. Do not infer that any of these findings is fully closed solely from earlier unit/CI evidence.
+
+## Exact first action in the next conversation
+Read this handoff's current top section, `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md` §§42–44, and the latest WP-12 addendum in `documentation/governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md`. Then create a **read-only requirement-to-existing-test/evidence inventory** from repository tests and CI workflows. No code changes, test execution, PR merge, deployment, or Production mutation until the inventory identifies concrete gaps and the required authorization is present. Preserve all Audit IDs and dispositions; do not reopen C-01/C-02/C-03. Do not start implementation or any later WP automatically.
+
+## Copy-ready start instruction
+“استأنف مشروع `core-system-md/clinic-evaluator` من أحدث قسم في `documentation/handoff/CURRENT-SESSION-HANDOFF.md`. WP-11 وD-05 مغلقان؛ WP-12 غير مبدوءة. اقرأ العقد النهائي §§42–44 ومُلحق WP-12 في مصفوفة التدقيق، ثم نفّذ جرداً للقرائن والاختبارات الموجودة في المستودع وCI وربطها بمتطلبات WP-12 دون تعديل الملفات أو تشغيل اختبارات أو لمس الإنتاج. صنّف كل بوابة PASS/FAIL/NOT RUN/BLOCKED بالدليل المحدد، ولا تكرر عملاً موثقاً، ولا تبدأ إصلاحاً أو نشراً قبل تحديد الفجوات والحصول على التفويض اللازم. حافظ على C-01/C-02/C-03 مغلقة ولا تسقط أي Audit ID.”
+
+---
+
 # CURRENT SESSION STATUS — WP-11 CLOSED — 2026-10-24
 
 **WP-11 §41: CLOSED. D-05: CLOSED with accepted non-blocking historical provenance limitation. WP-12 §42: NOT STARTED.** C-01/C-02/C-03 remain CLOSED.
