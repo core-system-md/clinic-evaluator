@@ -1,171 +1,343 @@
-# SESSION CLOSEOUT — READ-ONLY DATABASE RELATIONSHIP INVESTIGATION — 2026-10-19
+# CURRENT OWNER DECISION — D-05 HISTORICAL SCHEMA PROVENANCE — 2026-10-24
 
-**Latest session disposition: PARTIAL INVESTIGATION ONLY. WP-11 remains IN PROGRESS and is not closed.** This entry supersedes any older continuation wording below only for the status and next action of this specific investigation. WP-09/WP-10 and C-01/C-02/C-03 remain closed under their recorded dispositions; do not reopen them.
+The owner has directed that the absence of original schema DDL/backups must not repeatedly block current or future work. Decision record: `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md` (commit `0015c91dd0ea1071c030f2f571e5b7269d04b5a1`).
 
-## What was actually done
+- The missing initial DDL for 18/25 tables is now a **non-blocking historical-provenance limitation**, not a prerequisite for future work. Do not ask the owner again to locate the same unavailable artifacts; do not synthesize a historical baseline from Production.
+- The live-schema worksheet remains an observational record, not proof of original schema intent or complete empty-database replay.
+- **D-05 is not yet technically closed:** the source/ledger discrepancy remains represented by open, unmerged PR #120; current PR head is `82548fabe56e49abc2ce147732f7306286175c40`, `mergeable=false`, with no status checks or PR workflow runs on that exact head. Reviews are absent. Do not use successful runs on another SHA as current-head acceptance.
+- Remaining WP-11 technical acceptance also includes the recorded RLS/function authorization review and required targeted negative-access/API evidence. No Production writes, migration-history rewrite, policy/grant changes, deployment, PR merge, or WP-12 start was authorized by this decision.
+- Continue only the concrete remaining technical gates. Do not repeat historical provenance searches absent a newly identified source. WP-12 remains NOT STARTED; C-01/C-02/C-03 remain CLOSED.
 
-- Queried live Supabase metadata in read-only mode for the public schema and table metadata. The available results show 25 public tables with RLS enabled and return table/column/primary-key/foreign-key information; a larger combined catalog query also requested constraints, indexes, policies, triggers, functions and views.
-- Confirmed from the live schema output that `answers.answer_value` accepts `70`. This is a present-state consistency observation only; it does not reopen C-02.
-- The combined catalog response was truncated before complete synthesis. The separate code-search attempt did not produce a reviewed, table-by-table usage map. Therefore, **the requested comprehensive audit of all tables, relationships, references and runtime behavior was not completed in this session**.
-- No tests were run. No database rows, schema, grants, RLS policies, triggers, functions, migration ledger, Edge Functions, application code or deployment settings were changed. No repository changes had been made before this closeout edit.
+---
 
-## Findings and limits
+# SESSION CLOSEOUT — 2026-10-21 — EXACT CONTINUATION POINT
 
-- The live schema inventory is evidence that the tables exist; it is not by itself evidence that each table is operationally correct or unused.
-- An empty table or a missing initial `CREATE TABLE` in a reviewed subset of SQL files does not establish that a table is unused, redundant or safe to remove.
-- D-05 remains **PARTIAL / OPEN** under WP-11 §41. The migration-ID/source/order reconciliation remains as previously documented on this branch. The claim that 18 of 25 live public tables lack initial CREATE TABLE definitions still requires an exhaustive table-to-migration/DDL reconciliation; it is not a deletion recommendation and must not be used to justify a Production rebuild.
-- No Audit finding was closed or reopened by this investigation. C-01, C-02 and C-03 remain closed; no WP-12 work was started.
+## Safe stop and actual scope
 
-## Tests and changes
+The session is stopped at the current safe boundary. No new WP is started. No production write, migration, schema/grant/policy change, deployment, deletion/recreation, baseline generation from Production, PR merge, or migration-history rewrite was performed.
 
-| Category | Result |
-|---|---|
-| Live database access | Read-only catalog/metadata queries executed |
-| Table-by-table relationship synthesis | Partial; not complete |
-| Runtime source-reference mapping | Not completed |
-| Orphan/referential-integrity audit | Not completed |
-| Automated tests | Not run |
-| Production/database changes | None |
-| Deployment / Edge changes | None |
-| Application/test/migration source changes | None |
-| Documentation | This closeout and its matrix addendum are documentation-only changes on `wp-11/least-privilege-reconciliation`; not yet verified on `main` |
+### Work actually completed in this session
+
+1. Read the existing D-05 worksheet, the 56-file migration DDL index, migration/source-ledger reconciliation, historical provenance review, audit-to-WP matrix, and current handoff on GitHub main.
+2. Ran read-only Supabase catalog/function-body screening for public-schema SECURITY DEFINER functions, prosecdef, function-level proconfig, effective EXECUTE privileges using has_function_privilege, and selected function definitions.
+3. The returned inventory contained no public-schema SECURITY DEFINER function with effective EXECUTE for anon. This is not a security PASS and does not settle full function-body authorization, search-path qualification, dynamic SQL, caller reachability, effective-role, or RLS behavior.
+4. Identified save_assessment_secure delegation to create_assessment_secure, update_published_assessment_content_secure, and update_assessment_working_copy_secure. These delegated paths remain unreviewed for final acceptance; no fix was made.
+5. Updated the D-05 live-schema worksheet with the bounded screening result and committed it as 03aca8cab38028ab59d4cecab4a8d1424aa2d87b.
+6. Updated this handoff and committed it as 0635674ee99cec176632687f050a76f754af09a7.
+7. Added a session-closeout snapshot to documentation/governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md, preserving the original C/D inventory and appending current status, evidence, gate, and exact next action. Commit: 688040ce67fc99338e29c6cbabf890f52e46fb2c.
+
+## Stage status
+
+- WP-10 §40: CLOSED for the bounded scope and evidence previously recorded in the matrix/handoff. Do not reopen absent new regression evidence.
+- WP-11 §41: IN PROGRESS / NOT CLOSED.
+- D-05: OPEN / BLOCKING RECONCILIATION.
+- WP-12 §42: NOT STARTED.
+- C-01 / C-02 / C-03: preserve the existing CLOSED dispositions. C-03 live E2E is WAIVED / NOT RUN, not PASS. Do not reopen without new regression evidence and explicit owner direction.
+- Other D findings retain their original IDs, statuses, evidence limits, assigned gates, and remaining actions in the matrix. The matrix is the audit-to-WP traceability source; this handoff does not silently close or drop any finding.
+
+## Evidence already recorded — do not repeat without a specific gap
+
+The D-05 worksheet and prior handoff already record: full tracked scan of 56 migration files; 25-table live schema inventory; comparison of 56 tracked files with 57 live migration ledger rows; seven tracked initial CREATE TABLE sources and 18 candidate tables with no initial declaration found in those files; repository-wide caller/reference scan batches; direct table privilege and public function EXECUTE summaries; 38 validated FK checks with zero orphan rows; eight targeted semantic checks with zero violations; historical ADR-003 provenance review; and the PR #120 source-body comparison. These checks are bounded and do not close D-05. The historical search did not prove that a particular cleanup commit deleted the missing initial DDL. PR #120 remains OPEN / UNMERGED; do not merge it as part of this handoff.
+
+## Tests and results for this session
+
+- Run: read-only Supabase catalog queries and selected function-definition inspection; GitHub file/commit fetches to verify documentation updates.
+- Result: no anon EXECUTE found among the returned public SECURITY DEFINER inventory; remaining delegated authorization and per-function security review is unresolved.
+- Not run in this session: unit tests, integration tests, E2E, negative-access runtime tests, deployment tests, isolated migration replay, or production write-path tests.
+- No code changes or runtime deployment were made; documentation-only changes are recorded by the three commit SHAs above.
+
+## Exact next action for the next conversation
+
+Resume inside WP-11 / D-05, not at the beginning of the project and not at WP-12. First run read-only retrieval of the live definitions, owners, ACLs, and function settings for:
+
+- public.create_assessment_secure
+- public.update_published_assessment_content_secure
+- public.update_assessment_working_copy_secure
+
+Trace the authorization and state-transition checks through each function and its caller, with exact evidence for each branch. Append findings to documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md; do not make changes unless a concrete defect is proven and separately authorized. Then continue the per-function SECURITY DEFINER/effective-role/dynamic SQL review only within WP-11. Keep every uncertainty OPEN, preserve all original audit IDs, and stop at the WP-11 gate. Do not start WP-12 automatically.
+
+**Start-of-next-conversation instruction:** “Resume from the 2026-10-21 SESSION CLOSEOUT in documentation/handoff/CURRENT-SESSION-HANDOFF.md. Do not repeat completed D-05 scans. Begin with a read-only review of create_assessment_secure, update_published_assessment_content_secure, and update_assessment_working_copy_secure—definitions, ACLs, search_path, authorization/state checks and callers—record evidence in the existing D-05 worksheet, make no production changes, do not reopen C-01/C-02/C-03, and do not start WP-12.”
+
+---
+
+# CURRENT UPDATE — D-05 READ-ONLY SECURITY DEFINER SCREENING — 2026-10-21
+
+A bounded read-only catalog/body screening was run against Supabase project `oaqpzaarppccbnepffxx` and recorded in `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` under “Read-only SECURITY DEFINER screening refresh — 2026-10-21”. No `anon` EXECUTE privilege was found among the returned public SECURITY DEFINER functions. This is only a screening, not a security PASS: delegated authorization paths (especially `save_assessment_secure` and its three secure callees), per-function search-path behavior, effective-role behavior, dynamic SQL and RLS interactions remain open for review. No production writes or configuration changes were made. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED.
+
+---
+
+# CURRENT UPDATE — HISTORICAL MIGRATION / SCHEMA PROVENANCE REVIEW — 2026-10-20
+
+**New evidence artifact:** `documentation/governance/D-05-HISTORICAL-MIGRATION-PROVENANCE-REVIEW-2026-10-20.md` (commit `503c890116936cee533adb56a671c2ee00bab809`).
+
+Historical Git review changes the interpretation of D-05's 18-table initial-DDL gap:
+- ADR-003's original commit `39c7dfc8443c150ec833881e1f910d42dbb14aa9` (2026-09-30 22:21:34 UTC) explicitly recorded that live tables/functions/RLS/data existed while the repository had no `supabase/migrations` path and the remote migration ledger had 0 rows.
+- Commit `7b0a877cbcd74073c6fab5a0246017d01e8ed056` accepted a reviewed schema-baseline plan; it did not create the baseline artifact.
+- The five earliest migration entries are 182-byte non-replayable provenance markers, not their original SQL bodies.
+- Examined October 1 cleanup commits removed duplicate/future-dated migration candidates. The duplicate `assessment_families` creation source remains in canonical `20261001100633_p2_assessment_family_versions.sql`. The October 10 commit aligned applied migration identities and archived a superseded unapplied candidate. The inspected changes do not establish that these cleanup commits deleted initial DDL for the 18 legacy tables.
+
+**Best-supported conclusion, not final proof:** the legacy schema predated the tracked migration path, and the accepted plan to establish a reviewed baseline is not represented by an authoritative baseline file in the inspected tree. The available evidence does not attribute the 18-table gap to the examined October cleanup operations. Pre-2026-09-30 Git history, external archives/backups, local checkouts and Supabase editor/deployment history are not fully verified; do not assert that the gap was caused by a particular cleanup.
+
+**Status unchanged:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. No Production mutation, migration, schema/grant/policy change, baseline synthesis, deletion/recreation, or merge was performed. Continue provenance search and remaining semantic/security reconciliation only within WP-11.
+
+---
+
+# CURRENT UPDATE — LINE-REFERENCED DDL SCAN COMPLETED FOR ALL 56 TRACKED MIGRATIONS — 2026-10-20
+
+**New evidence artifact:** `documentation/governance/D-05-MIGRATION-DDL-STATEMENT-INDEX-2026-10-20.md` (latest scan-index commit `b1ffbdf73540e3c6da2e24c3b929ecfbb63c57f3`).
+
+All 56 tracked `supabase/migrations/*.sql` files at pinned tree `312c60907649aa62de605937a0a82cf5d3fe3b75` were retrieved, checked against their Git blob byte sizes, and scanned for line-referenced table-owned CREATE/ALTER/DROP, FK REFERENCES, index, policy, trigger, RLS, and direct grant/revoke statements. The index records per-file blob SHA, byte count, line number and statement text for each match. Dynamic SQL loops and function-body dependencies remain a separate review category; absence of a direct DDL line is not absence of an indirect effect.
+
+Current main contains the same 56 migration paths and blob SHAs as the pinned scan tree; only documentation files changed after the scan. Initial persistent CREATE TABLE statements remain located for seven tables; no initial persistent CREATE TABLE was found for the other 18 across all 56 tracked migrations. That repository-source gap is now confirmed; an authoritative external/original schema source has not been identified.
+
+The Production ledger remains 57 rows versus 56 tracked files. Applied versions `20261018075528` and `20261018075855` lack same-version files on main; `20261018110000` is tracked source-only/unapplied. The matching SQL-body comparisons against PR #120 establish source correspondence but not the historical SQL bytes executed in Production. PR #120 remains OPEN / UNMERGED.
+
+**Status:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. Next: line-by-line reconcile each table's live object definitions against the new DDL index, complete dynamic/function-body and effective-role review, and seek authoritative original schema provenance. No Production mutation, migration application, grant/policy/schema change, deletion/recreation, baseline synthesis, or PR merge occurred.
+
+---
+
+# CURRENT UPDATE — PR #120 SOURCE-BODY CROSS-COMPARISON — 2026-10-20
+
+Read-only comparison at PR head `47c0a79dbee108149f9431ff4e86ac120c420f7a` confirms:
+- PR source version `20261018075528` and main source `20261018100000` have SQL bodies identical after normalization.
+- PR source version `20261018075855` and main source-only `20261018110000` have SQL bodies identical after comment/whitespace normalization; one explanatory comment differs.
+- The live migration ledger exposes version/name entries, not the original applied SQL bodies, so this does not independently prove exact SQL bytes previously executed for either applied ID.
+- PR #120 remains OPEN / UNMERGED. No PR merge, migration application, history rewrite, or Production mutation occurred. D-05 remains OPEN; WP-11 remains in progress; WP-12 not started.
+
+Continue by preserving this source-body evidence, completing per-object DDL-to-catalog reconciliation and the SECURITY DEFINER/effective-role review, and locating an authoritative external/original schema source if one exists.
+
+---
+
+# CURRENT UPDATE — D-05 TRACKED MIGRATION FILE / LIVE LEDGER RECONCILIATION — 2026-10-20
+
+**New evidence artifact:** `documentation/governance/D-05-MIGRATION-SOURCE-LEDGER-RECONCILIATION-2026-10-20.md` (commit `1378689e0eccbe191e65dad77ba8c5048e7db92c`).
+
+## Findings
+- Inspected `main` tree SHA `312c60907649aa62de605937a0a82cf5d3fe3b75`: **56** tracked `supabase/migrations/*.sql` files.
+- Read-only Production migration ledger: **57** applied rows.
+- Applied versions absent from tracked `main` source: `20261018075528` (`c03_service_role_api_key_compatibility`) and `20261018075855` (`c03_verifier_api_key_compatibility`).
+- Tracked source-only file absent from Production ledger: `supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql`.
+- `20261018100000_c03_service_role_api_key_compatibility.sql` exists on main and is recorded as applied, but the earlier applied service-role compatibility migration at `20261018075528` has no same-version source. This remains a source/history mismatch, not authorization to rewrite history or apply a guessed repair.
+- The five earliest tracked migration files are identical 182-byte historical marker files stating that the production change already exists and the marker must not be replayed. They are not replayable SQL definitions.
+
+## Initial DDL findings
+The scan located initial `CREATE TABLE` definitions for seven live tables: `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. The other 18 names match the explicit list in `20261001190000_p0_security_closure.sql`, but **the claim that their initial DDL is absent everywhere remains OPEN**.
+
+Retrieval is now verified: `20261009170228_reconstruct_final_assessment_versions.sql` contains 97,267 Unicode characters encoding to exactly 130,416 UTF-8 bytes, matching its Git tree blob size; the full 142-line file was inspected and ends with `commit;`. It contains trigger toggles and two temporary working tables, but no persistent CREATE TABLE for any of the 25 live tables. The 18-table initial-DDL absence is confirmed within the 56 tracked migration files; an authoritative external/original schema source remains unverified.
+
+## Status and exact continuation
+- D-05: **OPEN / BLOCKING RECONCILIATION**.
+- WP-11: **IN PROGRESS / NOT CLOSED**.
+- WP-12: **NOT STARTED**.
+- No production write, schema/privilege/RLS change, migration application, deployment, deletion/recreation, baseline synthesis, PR merge, or branch change was performed.
+- Continue by locating/validating an authoritative external or historical schema source, complete line-level per-object migration-to-live-catalog reconciliation, and review all remaining function bodies, dynamic dependencies and effective-role access. Keep the 18 provenance claims and all unknowns OPEN until evidence supports closure.
+
+---
+
+
+
+## CURRENT UPDATE — FK integrity + SECURITY DEFINER inventory — 2026-10-20
+
+Latest worksheet commit: `0bfbd081489ebddf32079334bcf0ab20e26f44d4`.
+
+- Read-only per-FK orphan query checked all **38** public-source foreign keys: all 38 are validated and all returned 0 orphan rows for populated FK values. Eight semantic cross-table checks also returned 0 violations; these are bounded checks, not a universal integrity proof.
+- Read-only `SECURITY DEFINER` search-path inventory: 65 functions total; 14 use an empty search_path, 51 use `public, pg_temp`, none have an unset or other function-level search_path; 0 SECURITY DEFINER functions are executable by `anon`, 51 are executable by `authenticated`. Function body review for schema qualification, auth gates, dynamic SQL and ownership remains OPEN.
+- Effective table grants on all 25 tables are recorded in the worksheet. `anon` has none of the eight queried direct table privileges on any table; `authenticated` has direct MAINTAIN/REFERENCES/TRIGGER/TRUNCATE on `admin_audit_log` and `admin_capabilities`; 12 tables have authenticated SELECT. This is D-08 evidence, not a grant change.
+- Public functions/procedures count 87; 2 non-SECURITY-DEFINER trigger functions report `anon` EXECUTE. Their direct EXECUTE grant should be dispositioned only after confirming expected trigger-only behavior and review. Authenticated EXECUTE remains on `is_owner(uuid)` and `is_active_admin(uuid)`; no permissions were modified.
+
+### Exact next action
+Continue read-only function body/caller and effective-access review within WP-11, retain the 18 missing initial-DDL provenance entries and three exact main-vs-live migration unmatched paths/IDs as OPEN, and do not merge PR #120 or start WP-12. No production writes/DDL/grant/policy changes, migration application, deletion/recreation, or tests/E2E were performed.
+
+---
+
+
+## CURRENT UPDATE — read-only FK orphan and cross-table consistency checks — 2026-10-20
+
+Latest worksheet commit: `e573e1113de1e8e6f324498897b508c4b7860d52`.
+
+- Read-only catalog scan enumerated 38 public-source foreign keys; all 38 are validated. A generated read-only `NOT EXISTS` query checked every FK using its source/target columns. All 38 returned zero orphan rows.
+- Eight additional cross-table checks returned zero violations: family current-version pointer vs family identity; family current-release pointer vs current version; release family/version identity; question/axis version consistency; session pinned release/version consistency; access/session assessment-type consistency; answer/session lead consistency when both non-null; score/session lead consistency when both non-null.
+- These results close only the bounded queries listed in the worksheet; they do not prove every semantic invariant or all application behavior. Null source FK fields are excluded under standard MATCH SIMPLE behavior.
+- No data/DDL/grant/policy/function/migration changes were made. D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS / NOT CLOSED; WP-12 remains NOT STARTED.
+
+---
+
+
+## CURRENT UPDATE — full public function EXECUTE-grant inventory — 2026-10-20
+
+Read-only catalog query over the 87 public functions/procedures found 65 SECURITY DEFINER functions; 2 functions show anon EXECUTE and neither is SECURITY DEFINER (`p2_assert_draft_version()` and `p2_assessment_type_immutability()`, both trigger functions); 53 functions show authenticated EXECUTE, 51 of those SECURITY DEFINER. `is_owner()` / `is_active_admin()` and their UUID overloads have no anon EXECUTE but all four have authenticated EXECUTE; review of the UUID overloads remains open under D-15. These are privilege observations only, not proof of exploitability, and no grants/function definitions were changed.
+
+Latest worksheet commit: `1d53cca7f4dc95ff911ff181066b30b8ebe2019c`.
+
+### Remaining current scope
+- D-05 remains OPEN / BLOCKING RECONCILIATION; WP-11 remains IN PROGRESS / NOT CLOSED.
+- Exact 18 initial-DDL candidates and full migration/caller scan are recorded in the worksheet. `anon` has no direct table privilege among the eight queried privileges for any of the 25 public tables; authenticated's direct table-level non-SELECT privileges are limited to MAINTAIN/REFERENCES/TRIGGER/TRUNCATE on `admin_audit_log` and `admin_capabilities` (those two also have SELECT).
+- Continue with the full per-function SECURITY DEFINER body/permission/caller review and read-only integrity checks; keep any unknown OPEN. Do not modify grants, policies, schema, or migration history; do not merge PR #120 or start WP-12.
+
+---
+# CURRENT UPDATE — D-05 WRAPPER-AWARE CALLER AND EFFECTIVE PRIVILEGE SCAN — 2026-10-20
+
+**Disposition: additional evidence recorded; D-05 remains OPEN / BLOCKING RECONCILIATION, WP-11 remains IN PROGRESS / NOT CLOSED, and WP-12 has NOT STARTED.**
+
+## New worksheet evidence
+- Worksheet: `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md`.
+- Latest effective-privilege evidence commit: `db98b7145bf2202692b3254546ad52d13cda687c`.
+- The wrapper-aware caller scan has now covered 40 tracked browser/admin/Edge/Pages/release/cleanup source files. It recognizes custom `supabase.select/request` wrappers, direct `.from()/.rpc()` calls, literal REST endpoints, and line-break-spanning calls. It logs per-file blob SHA and line references; early line-local zero-hit results are explicitly superseded where the later wrapper-aware scan finds calls.
+- Key callers traced: `assessment-access/engine.ts` reads assessment_types, axes, questions, traps, assessment_families, options, sessions, answers, assessment_config_release_settings, assessment_config_releases; `assessment-access/index.ts` uses assessment_session_access, assessment_types, axes, questions, options, traps, assessment_settings, leads, sessions, assessment_results, scores, assessment_families, assessment_users, answers and the RPCs for session start/save/prepare. The completion RPC is selected dynamically at line 1004 based on whether an assessment user is present; `complete_p4_assessment_from_result` and `complete_p4_public_assessment_from_result` are called via `supabase.rpc(rpcName, rpcPayload)` at line 1032. The active admin manager and editor paths, assessment lifecycle module, admin identity path, release handler, and scoped cleanup script references are separately itemized in the worksheet.
+- Absence of a literal direct caller for `experience_multipliers`, `specialty_profiles`, `team_capacity_factors`, `assessment_assets`, `historical_snapshots`, or `insights_mapping` in the scanned active runtime paths is not evidence that those objects are unused or safe to delete. Indirect stored-function, dynamic SQL, test, or external callers still require review.
+
+## Fresh read-only Production privilege evidence — do not repair in this session
+- Effective `has_table_privilege` checks on `public` found only `admin_audit_log` and `admin_capabilities` among the scanned tables with the flagged privileges. `authenticated` has SELECT plus direct `MAINTAIN`, `REFERENCES`, `TRIGGER`, and `TRUNCATE`; it does not have INSERT/UPDATE/DELETE on those two tables. `anon` has no direct SELECT/INSERT/UPDATE/DELETE on those two tables. This is the specific live D-08 observation, not a permission change.
+- `public.is_owner(uuid)` and `public.is_active_admin(uuid)` are `SECURITY DEFINER` functions and still have EXECUTE for `authenticated` in the live catalog. The zero-argument helpers `is_owner()` and `is_active_admin()` also have authenticated EXECUTE and are called by active policy code. The UUID overload results support the bounded D-15 concern but do not authorize modifications in this read-only task.
+- No table privileges, function grants, RLS policies, schema, data, migrations, Edge Functions, branches, or PR states were changed; no test harness or operational cleanup script was run.
+
+## Remaining D-05/WP-11 work and exact continuation
+1. Find and validate an authoritative external/original schema archive if one exists; none was found in the tracked repository tree, and ADR-003 is only a baseline decision, not the artifact.
+2. Keep the exact `main` migration identity discrepancy open: 56 source migration files versus 57 live version/name records; live-only source identities `20261018075528` and `20261018075855`; main-only source file `20261018110000`. PR #120 contains a source reconciliation candidate but is OPEN / READY FOR REVIEW / UNMERGED and is not part of main/Production.
+3. Complete exact caller/dependency expansion beyond the 40 source files and statically identified paths, including stored function definitions, dynamic SQL, RPC EXECUTE grants, and external callers. Then run justified read-only integrity checks and complete effective-role/RLS verification.
+4. Keep the 18-table missing-initial-CREATE result as proven within the current 56 tracked migrations, but keep the original-schema provenance gap OPEN. No production-derived baseline, deletion/recreation, migration history rewrite/application, privilege/policy repair, or WP-12 start.
+
+---
+# CURRENT SESSION HANDOFF — D-05 FULL MIGRATION FILE SCAN — 2026-10-20
+
+**Current disposition: full tracked SQL migration scan completed; D-05 remains OPEN / BLOCKING RECONCILIATION. WP-11 remains IN PROGRESS / NOT CLOSED. WP-12 has NOT STARTED.** This checkpoint is the current continuation point and supersedes earlier immediate-next-action statements below when they refer to the initial table-by-table inventory or the first migration-source scan. It does not authorize Production changes, a baseline, migration-history changes, or PR merge.
+
+## Evidence committed on main
+- Full per-table worksheet and five batch-by-batch source scan entries: documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md.
+- Latest worksheet scan/conclusion commit: 866e1dd8420030b48b68999eee84f252c4a57a05.
+- The SQL migration files were fully fetched from pinned Git tree d9cd749ffffa358409b11e11cf405d5ae1be7d53 and scanned in five documented batches. A later tree comparison with main at 2eb0b6ed7bdc6f1e5416a04f69f0e59836c29dc1 showed no changed migration paths or blob hashes; all 56 scanned migration files are unchanged in that main snapshot.
+- The full-content source scan is textual and line-referenced. It does not replace effective-permission, caller, or runtime dependency verification.
+
+## Confirmed full-scan result — the 18 tables
+The 56 tracked supabase/migrations/*.sql files contain initial CREATE TABLE declarations for exactly seven live public tables:
+- assessment_families — 20261001100633_p2_assessment_family_versions.sql:7
+- assessment_session_access — 20261001120000_protected_assessment_access_foundation.sql:21
+- assessment_results — 20261002161455_p3_production_implementation.sql:10
+- admin_capabilities and admin_audit_log — 20261003170912_p5_admin_architecture.sql:4 and :12
+- assessment_config_releases and assessment_config_release_settings — 20261015100000_c03_hybrid_config_release_gate.sql:7 and :44
+
+The exact 18 live tables with no initial CREATE TABLE found in those 56 tracked migrations are: admin_users, answers, assessment_assets, assessment_settings, assessment_types, assessment_users, axes, experience_multipliers, historical_snapshots, insights_mapping, leads, options, questions, scores, sessions, specialty_profiles, team_capacity_factors, and traps. The same 18 names appear in the table array in 20261001190000_p0_security_closure.sql, confirming they existed by that migration. No full production DDL baseline was located.
+
+Nine tracked SQL files exist outside supabase/migrations/. CREATE TABLE statements there occur in explicitly scoped test harnesses/fixtures with partial or reduced table definitions, not an authoritative production schema. ADR-003 is an accepted decision to review/build a baseline later, not a baseline artifact. Other inspected provenance documents are design/history records, not a complete schema dump. No external archive or backup has been examined.
+
+## Exact main-vs-live migration identity reconciliation
+- Live Supabase ledger: 57 migration version/name entries.
+- Current main: 56 tracked SQL migration files.
+- 55 source paths match live ledger version and name exactly.
+- Live IDs with no same-version file on main: 20261018075528 / c03_service_role_api_key_compatibility and 20261018075855 / c03_verifier_api_key_compatibility.
+- Source-only file on main with no live ledger version: supabase/migrations/20261018110000_c03_verifier_api_key_compatibility.sql.
+- 20261018100000 / c03_service_role_api_key_compatibility does have a matching source path on main.
+- These are the exact known unmatched identity entries; no other version/name mismatch was found in the 56-vs-57 comparison.
+
+PR #120 at head 47c0a79dbee108149f9431ff4e86ac120c420f7a remains OPEN / READY FOR REVIEW / UNMERGED. Its branch contains source paths matching all 57 live identity pairs plus a separate proposed source-only migration 20261018120000_wp11_security_database_reconciliation.sql. It adds source files 20261018075528 and 20261018075855, retains 20261018100000, and removes 20261018110000; those changes are not on main/Production. Source comparison found that main 20261018100000 vs branch 20261018075528 differs only by the final newline, and main source-only 20261018110000 vs branch 20261018075855 differs by one comment line plus the final newline. The live migration listing returns version/name metadata, not the original executed SQL bodies, so exact historical byte-for-byte equality cannot be proven from that ledger alone.
+
+## Exact current row counts — read-only
+admin_audit_log=126, admin_capabilities=7, admin_users=2, answers=0, assessment_assets=0, assessment_config_release_settings=1, assessment_config_releases=15, assessment_families=5, assessment_results=0, assessment_session_access=0, assessment_settings=3, assessment_types=5, assessment_users=0, axes=22, experience_multipliers=4, historical_snapshots=0, insights_mapping=0, leads=0, options=370, questions=93, scores=0, sessions=0, specialty_profiles=7, team_capacity_factors=4, traps=1. Counts are time-specific and must not be used to infer table disuse. RLS is enabled on 25/25; catalog totals are 38 FKs (0 unvalidated), 71 policies, 15 non-internal triggers, 87 public functions/procedures, 0 views/materialized views, and 0 invalid indexes. All 25 have FORCE ROW LEVEL SECURITY=false; this is structural state, not a security PASS.
+
+## Still open before D-05 / WP-11 may close
+1. Find an authoritative original database schema or backup/source archive outside the tracked repository, if one exists; none was found in the inspected tracked tree.
+2. Reconcile the three exact unmatched migration paths/IDs on main against historical source and deployment evidence. Do not merge PR #120 or alter filenames/history without the required review/approval; do not infer applied SQL contents from version/name metadata.
+3. Expand call-site tracing beyond sampled core browser/admin/Edge files and text-matched SQL function bodies; distinguish active execution paths, dynamic SQL, test-only use, and retired callers.
+4. Review table/function grants, SECURITY DEFINER functions, policy semantics, and effective-role authorization; perform justified read-only integrity checks where applicable.
+5. Preserve each unresolved item as OPEN. No production writes, migration applications, schema/grant/policy modifications, deletions, recreations, speculative baseline, or deployment were performed. C-01/C-02/C-03 stay closed. WP-12 is not started.
 
 ## Exact continuation point
+Continue D-05 under WP-11 with source/caller/dependency and effective-permission reconciliation. Treat the 18-table initial-DDL absence as established within the 56 tracked migration files, but keep the authoritative pre-migration schema provenance unresolved. Keep migration identity mismatches on main OPEN, and do not treat PR #120 as merged. Stop before WP-12 until the owner separately authorizes that stage.
+## SESSION CLOSEOUT — D-05 / WP-11 SCHEMA RECONCILIATION WORKSHEET — 2026-10-19
 
-**Resume the existing WP-11 / D-05 reconciliation only. Do not start WP-12, create a schema baseline, delete tables, or mutate Production.**
+**Disposition: reconciliation worksheet committed; D-05 remains OPEN; WP-11 is in progress and not closed.** This entry supersedes the immediate next action in the prior 2026-10-19 read-only investigation closeout. WP-12 was not started.
 
-First action in the next session: run compact, non-truncated read-only catalog queries separately to capture (1) all 25 tables and every column/default/nullability, (2) all PK/FK/unique/check constraints and validation state, (3) all indexes, (4) every RLS policy and table RLS/force-RLS flag, (5) non-internal triggers and their function definitions, and (6) public SQL functions/views. Then reconcile each table against the complete tracked migration history and exact source references in the app and Edge Functions. Record a table-by-table result with evidence and uncertainty; only after that assess integrity anomalies. Treat “18 tables without CREATE TABLE” as unverified until this comparison is complete.
+### Repository artifacts committed
+- Added `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md`.
+- Worksheet commit: `e5072c3e238d37ca90941f668a6a7768f5302bc3`.
+- Added per-table indexed migration/source search references and evidence for the named 18-table candidate list in commit `e4dec91788245a0b4173208a6da80d74892a0309`.
+- This handoff update is the next documentation-only change. No production writes, schema/grant/policy changes, migration applications, deployments, deletions, or branch/PR changes were performed.
 
-## Repository / closeout gate
+### Live schema inventory completed for this bounded step
+A read-only PostgreSQL catalog snapshot was collected for all **25** live `public` tables. The worksheet records, table by table:
+- column names, types, nullability and defaults;
+- table-owned primary/unique/check/foreign-key constraints;
+- indexes and definitions;
+- RLS-enabled / FORCE-RLS flags and current policies;
+- non-internal triggers;
+- public stored-function definitions whose text mentions the table;
+- indexed repository source-file references;
+- indexed migration-file references and initial-CREATE search status.
 
-- Working branch: `wp-11/least-privilege-reconciliation`; PR #120 remains the current WP-11 review path. No merge was performed.
-- The documentation edits from this closeout are on the working branch only. **This session is not declared fully closed under the owner's step 6 until the updated files and resulting commit are verified on `main`.** Directly pushing documentation to `main` can trigger the configured Cloudflare Pages auto-deployment, which conflicts with the explicit instruction not to deploy during closeout. Therefore this session did not write to `main` or merge PR #120. Do not claim the documentation is on `main` or that final closeout verification is complete.
+The existing catalog totals remain structural evidence only: RLS enabled on 25/25, 38 foreign keys (0 unvalidated), 71 policies, 15 non-internal triggers, 87 public functions/procedures, 0 public views/materialized views, and 0 invalid indexes. They do not establish policy correctness, effective-role access, complete dependency graphs, or table usage.
 
-## Start prompt for the next conversation
+### The 18-table list — names now evidenced, absence claim still OPEN
+The tracked migration `supabase/migrations/20261001190000_p0_security_closure.sql` explicitly enumerates the following 18 existing tables in its privilege-revocation loop:
 
-```text
-MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md — SESSION CLOSEOUT 2026-10-19. استأنف فقط تدقيق WP-11 / D-05 لجداول قاعدة البيانات من نقطة “Exact continuation point” أعلاه. ابدأ باستعلامات كتالوج للقراءة فقط ومجزأة لتفادي اقتطاع النتائج، ثم طابق كل جدول مع الهجرات ومراجع الكود. لا تحذف أو تعِد إنشاء أي جدول، ولا تنفّذ أي تغيير إنتاجي أو نشر، ولا تبدأ WP-12، ولا تعِد فتح C-01 أو C-02 أو C-03. لم يكتمل التدقيق الشامل بعد.
-```
+`admin_users`, `answers`, `assessment_assets`, `assessment_settings`, `assessment_types`, `assessment_users`, `axes`, `experience_multipliers`, `historical_snapshots`, `insights_mapping`, `leads`, `options`, `questions`, `scores`, `sessions`, `specialty_profiles`, `team_capacity_factors`, `traps`.
 
----
+This corroborates the names of the candidate set and that these tables existed by the P0 migration. Repository search located initial CREATE TABLE declarations for seven other live tables: `admin_audit_log`, `admin_capabilities`, `assessment_families`, `assessment_results`, `assessment_session_access`, `assessment_config_releases`, and `assessment_config_release_settings`. Thus 25 minus 7 is consistent with the 18-table claim.
 
-# CURRENT SESSION HANDOFF — WP-11 SECURITY/DATABASE RECONCILIATION — IN PROGRESS — 2026-10-19
+**Important limitation:** the search-based absence of an initial CREATE TABLE is not yet proof that the 18 initial definitions are absent from every tracked migration or from an authoritative external/archive source. A table mentioned by an ALTER, grant, policy, trigger, function, or data migration is not thereby proven to have an initial DDL source. The worksheet marks the 18 as candidates and keeps D-05 OPEN.
 
-**This is the authoritative current continuation point and supersedes older stage-start instructions below wherever they conflict.** The owner explicitly instructed continuation into WP-11 after the bounded WP-10 execution. WP-09 and WP-10 remain closed in their recorded scopes. Do not reopen C-01, C-02 or C-03. Do not start WP-12 automatically.
+### Remaining work before D-05 / WP-11 can close
+1. Perform a complete file-level scan of every tracked `supabase/migrations/*.sql` file at current `main` (not only indexed search excerpts) and map each of the 25 tables to exact CREATE/ALTER/DROP/RENAME, constraint, index, policy, grant, trigger and function statements.
+2. Reconcile every repository migration identity and content with the live Supabase migration ledger; on `main`, the migration identity/source/order discrepancy still needs reconciliation. PR #120's current branch description claims that specific discrepancy is corrected on `wp-11/least-privilege-reconciliation`, but PR #120 remains OPEN / READY FOR REVIEW / UNMERGED, so its changes are not part of `main` or Production. The separate empty-database baseline gap remains OPEN on both references.
+3. Expand code-caller tracing beyond sampled core files and indexed search hits, distinguishing reachable runtime callers, SQL/RPC dependencies, tests, historical docs, and dead paths. Stored-function text matches do not prove a complete dependency graph; dynamic SQL and external callers may be missed.
+4. Verify table privileges, function EXECUTE grants, SECURITY DEFINER boundaries, RLS semantics and effective-role behavior. RLS being enabled on all tables is not a security PASS.
+5. Run justified read-only integrity checks and exact row counts where relevant. Do not interpret planner estimates as counts or infer non-use from zero estimates.
+6. Locate and verify an authoritative pre-migration schema/source archive if one exists. Do not construct a baseline from Production catalog output.
 
-## Owner clarification — D-14 historical migration authorization (2026-10-19)
+### Safety and stage boundary
+- No deletion, recreation, speculative baseline, applied migration-history rewrite, production mutation, grant/policy/schema change, or deployment.
+- D-05 remains **OPEN / BLOCKING RECONCILIATION**; WP-11 remains **IN PROGRESS / NOT CLOSED**.
+- WP-12 has **NOT STARTED**. Do not advance automatically.
+- C-01, C-02, and C-03 retain their existing closed dispositions; do not reopen them. C-03 live E2E remains WAIVED / NOT RUN, not PASS.
 
-The owner explicitly confirms that all three Production migrations dated 2026-10-09 — `20261009164918 / canonical_axis_weights`, `20261009164951 / structured_result_authority`, and `20261009170228 / reconstruct_final_assessment_versions` — were approved by the owner before execution. The prior wording that characterized them as applied without owner approval was a documentation error and is superseded. The inventory, handoff and reconciliation matrix now record the confirmation consistently; the D-14 documentation reconciliation is complete. No retroactive approval, rollback, rerun or live-ledger change is required for these already-applied migrations. This confirmation does not authorize any new Production mutation.
-
-## WP-11 reconciliation and review gate — 2026-10-19
-
-**Stage status: IN PROGRESS — review/reconciliation updated; not yet closed.** This checkpoint supersedes older “keep Draft until D-05/D-14 are dispositioned” statements below. PR #120 is **READY FOR REVIEW** on GitHub (open, `draft=false`, unmerged) for independent review of the bounded candidate; this does not mean approved, merged, deployed, or Production-verified.
-
-- **D-14 is reconciled:** the owner confirms the three historical 2026-10-09 Production migrations were approved before execution. The approval discrepancy is documentary and resolved. The D-14 inventory now describes the value-70 item as historical and notes the separately closed C-02 disposition. No new approval, rollback, replay, or migration-history mutation is required.
-- **D-05 is dispositioned, but not fully closed:** the migration ID/source/order mismatch is reconciled on this branch; the 57 live migration IDs map to source paths, with the two 2026-10-18 entries restored from recorded SQL and the harness sequence aligned to `075528 → 075855 → 100000`. The distinct remaining issue is that 18 of the 25 live public tables lack initial CREATE TABLE definitions in tracked migrations. Do not manufacture a baseline from Production metadata. First look for an authoritative pre-existing DDL artifact; if none exists, a separate owner-authorized, reviewed baseline/replay work package is required. This prevents a claim that the repo can reproduce the full schema from empty state; it is not the previously reported migration-order mismatch.
-- **D-07 dependency disposition:** `traps` is active in the Edge calculation path and assessment-version copy/delete lifecycle, so it is not a deletion candidate. The old protected P4 completion RPC remains exercised by the disposable regression workflow; the current Edge runtime uses the structured-result completion RPCs. `calculate_session_score(uuid)` and `duplicate_assessment(uuid)` have no active application caller found in source search, but their full definitions are not reconstructible from current migration source. Preserve them; missing Git callers alone do not authorize removal.
-- **D-12 dependency disposition:** source and unit-test evidence contradict the audit's broad allegation that `projectStoredResult` rebuilds a report from raw answers: it projects the persisted `userReport` and is used by completed-session restoration. WP-10 already removed the legacy `evSimulator: null` / `traps: []` response placeholders. The active admin workspace uses `update_draft_option_secure`; the older manager handler still mentions `update_option_secure`, whose service-role-only execution must not be broadened. Browser-runtime reachability of the old handler and any externally injected `window.adminServiceKey` remain unverified; preserve the guarded boundary and carry those checks to WP-12, only when authorized.
-- **Candidate and evidence:** PR #120 contains 11 changed paths. The implementation-bearing candidate passed WP-11 PostgreSQL-17/Node run #39214770585, P3/full Node run #39214770497, and existing C-03 isolated harness #39214770605. The code-bearing head `95d54a56b435ef9ff73f5cdb84c3e3d90acc1a83` and subsequent documentation-only head `63eead668b928c67ab3dfac987d8ef41383c5449` also passed all three workflows: WP-11 #39216778924 / #39223417796, P3/full Node #39216778893 / #39223417823, and existing C-03 isolated harness #39216778868 / #39223417838. The documentation changes did not alter application or test behavior. These are isolated CI results, not Production migration/E2E evidence.
-- **Review / change boundary:** no review has been submitted yet. Ready-for-review invites independent review; no automatic merge is permitted. Do not merge or apply the proposed migration in this closeout. No Production SQL, grant/policy change, migration application, Edge deployment, live ledger mutation, or WP-12 work occurred. Repository-level protection evidence previously reported `main.protected=false` and no repository rulesets; organization-level rules remain unverified.
-- **WP-11 exit criteria:** the code candidate and bounded source/dependency review are documented, but WP-11 is not declared closed until the independent review/gate outcome is recorded and remaining WP-11 items are either resolved with evidence or explicitly transferred with an exact action and destination. D-05’s schema baseline is a separate open prerequisite; D-07/D-12 runtime-only checks belong to WP-12’s assigned verification scope. WP-12 is not started here.
-
-## Current repository state
-
-- Repository: `core-system-md/clinic-evaluator`.
-- Working branch: `wp-11/least-privilege-reconciliation`, forked from `main` at `cf34521c2a5ff65c9aed6dbfa9b08a012ec7abaa`.
-- PR #120: [restrict admin table privileges and UUID identity probes](https://github.com/core-system-md/clinic-evaluator/pull/120). It is currently READY FOR REVIEW; no approval or merge is implied.
-- Candidate's security implementation and active admin-RPC path tests passed at `5872ff04b82dd0d3745b43704d74ef1d891442c2`: WP-11 [run #39133907020](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133907020) and P3/full Node [run #39133906976](https://github.com/core-system-md/clinic-evaluator/actions/runs/39133906976) were **SUCCESS**.
-- The D-05 history-reconciliation commit `808c8cdeffcbacdc3dd2437b8fe91e4734b1c91a` restored exact source files for live versions `20261018075528` and `20261018075855`, removed the unapplied source-only `20261018110000` migration file, and updated the existing PostgreSQL release harness and workflow filters to use the actual recorded sequence `075528 → 075855 → 100000`. CI on that head passed: WP-11 [run #39134884733](https://github.com/core-system-md/clinic-evaluator/actions/runs/39134884733), P3/full regression [run #39134884734](https://github.com/core-system-md/clinic-evaluator/actions/runs/39134884734), and the existing C-03 disposable PostgreSQL harness [run #39134884776](https://github.com/core-system-md/clinic-evaluator/actions/runs/39134884776), all **SUCCESS**. This does not reopen C-03; the harness reuses the existing bounded test.
-- The migration-provenance correction is documented on the PR branch. Candidate branch contains 58 SQL migration files: 57 map to the 57 live ledger IDs and one is the proposed, unapplied WP-11 migration `20261018120000`. The baseline gap described above remains a separate OPEN D-05 item. Production `main` is unchanged; the candidate migration has not been applied.
-- The later handoff/matrix-only head was fully checked by CI: P3 [run #39135149098](https://github.com/core-system-md/clinic-evaluator/actions/runs/39135149098), WP-11 [run #39135149227](https://github.com/core-system-md/clinic-evaluator/actions/runs/39135149227), and the existing C-03 isolated release harness [run #39135149169](https://github.com/core-system-md/clinic-evaluator/actions/runs/39135149169), all **SUCCESS**.
-- An earlier PR-branch preview was verified at [`https://298311b6.clinicevaluat.pages.dev`](https://298311b6.clinicevaluat.pages.dev), deployment `298311b6-4511-4520-bdac-e46f8c9c986d`, commit `f2d954aeb2d859abb81d64d18958243ed17ff882`. That is a **preview only**. The confirmed Production Pages deployment remains commit `cf34521c2a5ff65c9aed6dbfa9b08a012ec7abaa` at `https://454e5eb0.clinicevaluat.pages.dev`; no Production Pages deployment or Supabase/Edge change was initiated by this PR.
-- All Supabase SQL operations in this session were read-only. The candidate migration has **not** been applied to Production. No production grant/policy change, Edge deployment, deletion, release-gate change, or migration was run. Live Supabase reports PostgreSQL **17.6**, so the candidate's `MAINTAIN` privilege syntax is supported by the observed server version.
-- The canonical audit source has been verified at `documentation/governance/clinic-evaluator-full-audit-report-2026-10-11.md`, SHA `cd2297be4fb6c80efe4f53439481ba4904da6c3e`. Its D-10 and D-11 wording is now reconciled in the matrix; that does not close those findings.
-- Current Supabase `assessment-access`: ACTIVE v48, `verify_jwt=false`, deployed source SHA-256 `019e280fbc4ca859e332ebff40f5eb3ec73dd084548fdf411272d1014bddd370`. Its fetched live `source/index.ts` calls only `complete_p4_assessment_from_result` and `complete_p4_public_assessment_from_result`, not the legacy `complete_p4_*_assessment_session` functions.
-- The `admin-auth` Edge function is still reported ACTIVE v6, but the deployed handler deliberately returns HTTP 410 with a retirement message. Describe its behavior as retired/410; do not delete or redeploy it under this task.
-
-## Verified bounded findings
-
-### D-08 and D-15 — tested candidate, NOT DEPLOYED
-
-- Live ACL inspection confirms `authenticated` has excess `MAINTAIN`, `REFERENCES`, `TRIGGER` and `TRUNCATE` on `admin_audit_log` and `admin_capabilities`, in addition to SELECT. It does not have INSERT/UPDATE/DELETE on these two tables; `anon` has no direct table privileges.
-- The deployed `is_owner(uuid)` and `is_active_admin(uuid)` identity-check functions are SECURITY DEFINER and executable by any authenticated user who knows an arbitrary UUID. The zero-argument variants bind to `auth.uid()`; they already form the intended current-user check. Existing admin RLS policies pass `auth.uid()` into the parameterized variants.
-- A read-only scan of all public function bodies found no other application function calling the UUID overloads; the external callers are the 13 identified RLS policies. `has_admin_capability` and `require_owner` use the zero-argument helpers already, so the candidate revocation is not known to break a server-side function call path.
-- PR #120 narrowly revokes only the four excess privileges on the two named tables, keeps SELECT and service-role rights unchanged, rebinds the affected policies to current-user-only zero-argument helpers, and removes authenticated/anon EXECUTE on the UUID overloads. A disposable PostgreSQL 17 harness verifies the grants, direct-probe denial, and owner-versus-staff RLS visibility. CI passes on the code-bearing head. The migration identity/order discrepancy is now reconciled; the separate baseline gap remains open. The candidate is ready for independent review, but is not approved or deployed and must not be automatically merged or applied to Production.
-
-### D-09 — four bounded Production asset probes
-
-On `https://clinicevaluat.pages.dev`:
-- `/assets/data/comprehensive_assesstment.json` → 404
-- `/assets/data/admin_reception_assesstment.json` → 404
-- `/assets/data/medical_team_assesstment.json` → 404
-- `/assets/data/report_texts.json` → 200, `application/json`, version `2.2.0`
-
-These four exact path probes passed. This is not full WP-12 runtime/E2E proof. Do not remove the required `report_texts.json` file.
-
-### D-07 / D-12 — bounded dependency inventory, still PARTIAL; no deletions
-
-Evidence labels: **static** means repository source/caller search; **previous live evidence** means Production read-only observations already recorded in this handoff, not re-queried during this pass.
-
-- **`public.traps` — active, not dead (static + previous live evidence).** The Edge assessment source queries `traps` in `supabase/functions/assessment-access/engine.ts` and `index.ts`. The version-copy implementation in `20261001100633_p2_assessment_family_versions.sql` / later working-copy migrations copies trap rows, and draft deletion in `20261004074332_p5_admin_editor_completeness_2026_10_04.sql` and `20261004102003_p5_delete_draft_cascade_fix_2026_10_04.sql` removes draft-owned rows. `p2_traps_immutable` fires before INSERT/UPDATE/DELETE on `public.traps` and calls shared `p2_assert_draft_version()`, also used by axes, questions, options, insights mappings and assessment assets. The audited `import_assessment_secure` body does not reference `traps`; prior wording that grouped import with trap callers was too broad and is corrected here. Previous live inspection recorded RLS enabled and no direct anon/authenticated SELECT/INSERT/UPDATE/DELETE privileges. Trap data/metadata has multiple historical representations; no methodology-wide cleanup is authorized.
-- **`calculate_session_score(uuid)` — legacy, non-authoritative (static + previous live evidence).** The P0 security migration revokes client execution and grants only `service_role`; repository caller searches found no active app/RPC invocation. Its definition is not reconstructed by the current repository migration set, so its complete body/dependency graph cannot be proven from source alone. Preserve it; absence of a Git caller is not deletion authorization.
-- **Legacy completion RPCs — do not delete (static + previous live evidence).** `complete_p4_assessment_session(...)` and `complete_p4_public_assessment_session(...)` remain defined in the P4 submission migration and are service-role-only per the recorded live ACL evidence. Edge `assessment-access` v48 uses only `complete_p4_assessment_from_result` and `complete_p4_public_assessment_from_result`. The old protected `complete_p4_assessment_session(...)` is still exercised by the disposable P3/P4 regression workflow; no active app caller for the old public-completion function was found. Keep both unless a future scoped retirement explicitly replaces all test/runtime dependencies.
-- **`duplicate_assessment(uuid)` — no current caller found, disposition unresolved.** The P0 security migration revokes execution from public, anon, authenticated and service_role. Its function definition is not present in the current migration source and no application caller was found. Do not conflate it with the modern UI operation `duplicateAssessment(id)`, which calls `create_assessment_version_secure`, or the distinct `duplicate_assessment_secure(uuid,text)` signature.
-- **Legacy `update_option_secure` vs active draft path (static + previous live evidence).** `admin/admin.html` loads `assessment-manager.js → assessment-lifecycle.js → assessment-editor-workspace.js`; the workspace overrides `editAssessment` and saves draft options through `update_draft_option_secure`. The old `assessment-manager.js::updateOption` plus its legacy rendered `onblur` template still call `update_option_secure`; the active workspace does not use that template path. Both old overloads are service-role-only per prior live inspection. Do not grant authenticated EXECUTE to revive them. The Node test proves source/script ordering only, not browser-runtime unreachability.
-- **`assets/js/app.js::projectStoredResult` — referenced, not dead (static).** `checkExistingSession()` calls it to restore a completed result from persisted `result.userReport`. The function projects fields from that report into client state; it does not recalculate a score from raw answers in its own body. The original D-12 shorthand that this helper itself rebuilds the report from a raw result is therefore imprecise. Stored-report shape/version compatibility and completed-session browser behavior still require separate runtime coverage.
-- **`window.adminServiceKey` — source-orphan candidate, not proven globally unreachable (static).** The only repository use found is the fallback in `assets/js/supabase-client.js`; no assignment or `new SupabaseClient(true)` call was found in source search. Dynamic/external injection cannot be ruled out from static search. Do not add a key, expose a service role key, or make a security change on this evidence.
-- **Boundary / unresolved work.** No functions, tables, columns, triggers or grants were deleted/changed for this inventory. The full all-functions dependency graph, dynamic/external callers and all live ACLs were not re-queried; the previously attempted live ACL query is not to be bypassed through another mechanism. D-07/D-12 remain PARTIAL and carry into their assigned WP gates; this pass does not authorize deletion.
-
-### PR #120 — final-diff and review gate (reconciled 2026-10-19)
-
-- The cumulative diff contains **11 changed paths**: two migration-source provenance corrections, the candidate WP-11 migration, the existing C-03 release harness/workflow reconciliation, the WP-11 disposable PostgreSQL harness/test/workflow, and the three existing governance/handoff records.
-- Code-bearing head `1267894cfc6940c2fd5890c5c563c4de17b0de8f` passed WP-11 [run #39214770585](https://github.com/core-system-md/clinic-evaluator/actions/runs/39214770585), P3/full Node [run #39214770497](https://github.com/core-system-md/clinic-evaluator/actions/runs/39214770497), and the existing C-03 isolated harness [run #39214770605](https://github.com/core-system-md/clinic-evaluator/actions/runs/39214770605). The WP-11 run exercised Node contract tests plus the disposable PostgreSQL 17 privilege/RLS harness; the P3 run included the full Node suite, C-02 disposable SQL harness and P4 protected-completion harness; the C-03 run reused existing isolated checks only. None is Production migration/E2E evidence.
-- The branch's migration history correction restores recorded SQL for live versions `20261018075528` and `20261018075855`, keeps later applied `20261018100000` distinct, removes source-only/unapplied `20261018110000`, and aligns the test workflow order. The 18-table initial-DDL gap remains separately OPEN under D-05.
-- **Review state:** PR #120 is READY FOR REVIEW, with **no submitted reviews and no inline review threads** at the latest review query. Independent review remains outstanding; Ready does not mean approval, merge authorization, or Production deployment. No repository-level branch protection/ruleset was detected in the prior read; organization-level rules remain unverified.
-- **Merge / Production boundary:** D-14's historical authorization is confirmed and the record is reconciled; no authorization gap remains for those three already-applied migrations. D-05's migration ID/order issue is fixed, while full empty-database schema replay remains unproven and requires either authoritative original DDL or a separately authorized baseline/replay work package. Review can proceed on the bounded candidate. No Production SQL, migration application, grant/policy change, Edge deployment, data deletion, live migration-ledger change or WP-12 execution occurred in this work.
-
-## Blocking reconciliations
-
-### D-05 — timestamp/source identity discrepancy reconciled on PR branch; full schema baseline remains OPEN
-
-- Supabase's `supabase_migrations.schema_migrations.statements` column retains the exact SQL text of the live records. The source file `20261018075528_c03_service_role_api_key_compatibility.sql` was restored using the exact applied SQL from version `20261018075528`; after trimming the terminal newline its content equals the later applied/source file `20261018100000_c03_service_role_api_key_compatibility.sql`. The latter remains a separate applied record; neither applied migration identity/file was deleted or rewritten.
-- The source file `20261018075855_c03_verifier_api_key_compatibility.sql` was likewise restored from exact SQL text stored for live version `20261018075855`. The source-only file `20261018110000_c03_verifier_api_key_compatibility.sql` was not in the live ledger and is now removed from the candidate branch; its only difference from the recorded historical SQL was a comment, and the live function body/EXECUTE ACL were already verified.
-- Existing C-03 disposable PostgreSQL harness/workflow now load the matching recorded files in order `075528 → 075855 → 100000`. This is migration-provenance correction, not renewed C-03 feature work or live E2E. The subsequent CI runs #39135149098 (P3/full Node), #39135149227 (WP-11 migration + PostgreSQL 17 harness), and #39135149169 (existing C-03 isolated release harness) all completed **SUCCESS**.
-- Candidate branch contains 58 SQL migration files: all **57 live ledger versions** map to source paths, plus the proposed/unapplied `20261018120000_wp11_security_database_reconciliation.sql`. Current `main` remains unchanged until PR review/merge.
-- **D-05 read-only source-to-live inventory (2026-10-18):** Supabase `list_tables` returned 25 tables in `public`, all with RLS enabled. Current tracked migration source contains explicit `CREATE TABLE` definitions for seven live tables: `assessment_families`, `assessment_session_access`, `assessment_results`, `admin_capabilities`, `admin_audit_log`, `assessment_config_releases`, and `assessment_config_release_settings`. No source creation definition was found for the other 18 live public tables: `assessment_types`, `leads`, `sessions`, `answers`, `scores`, `assessment_settings`, `assessment_users`, `axes`, `questions`, `options`, `insights_mapping`, `assessment_assets`, `historical_snapshots`, `traps`, `specialty_profiles`, `experience_multipliers`, `team_capacity_factors`, and `admin_users`. The migration sources alter/reference these pre-existing tables but do not supply a full initial DDL definition. Consequently, the tracked migration sequence cannot currently be demonstrated to recreate the public schema from an empty database; disposable PostgreSQL CI fixtures do not establish that property. This supersedes the narrower eight-table shorthand in earlier D-05 notes.
-- **Retired Edge Function evidence:** the live Supabase function inventory reports `admin-auth` as ACTIVE v6, but read-only source retrieval confirms its handler always returns HTTP 410 with `This endpoint has been retired. Use Supabase Auth for administrator access.` This is a deliberate retired response, not proof the platform deployment is absent. The repository has no corresponding `supabase/functions/admin-auth` source path. Do not delete or redeploy it as part of D-05.
-- **D-05 disposition:** migration identity/source reconciliation is complete on PR #120, and the current live table coverage plus retired endpoint behavior are now documented. The full baseline portion remains OPEN because no authoritative initial schema artifact is present in the repository and the ADR-003 rule forbids blindly deriving a baseline from the live database. To close it, either locate an authoritative pre-existing DDL/schema artifact and verify it against the live schema, or authorize a separate reviewed baseline/replay work package with explicit schema-object coverage and isolated fresh-database validation. Do not dump Production to create a presumed baseline, infer missing DDL from partial metadata, rewrite the live ledger, rename/delete applied migrations, or apply Production changes under this read-only reconciliation.
-- Do not rewrite the live ledger, rename or delete applied migrations, infer a baseline from live objects, or apply a new Production migration as part of this read-only provenance reconciliation. This does **not** reopen C-03.
-
-### D-14 — prior owner approval confirmed; documentary reconciliation complete
-
-- Read-only comparison confirms the one stored SQL statement in each live migration-ledger row matches its existing repository source exactly after normalizing whitespace:
-  - `20261009164918 / canonical_axis_weights`: 8,470 characters; source blob `6715d7cedf8293ebf1686a4f1335eddb4502f3ee`.
-  - `20261009164951 / structured_result_authority`: 19,259 characters; source blob `c5a48db426707f937100b65f620d996061cadb23`.
-  - `20261009170228 / reconstruct_final_assessment_versions`: 97,267 characters; source blob `a81997122f61e652240829ce2a5173d0daf205eb`.
-- The existing D-14 inventory captures the main SQL effects and postconditions. Its value-70 finding was routed to C-02, which is CLOSED after Production value-70 persistence/scoring verification and constraint repair. SQL/source identity establishes provenance; the owner's explicit confirmation establishes prior authorization. The authorization and documentation reconciliation are complete.
-- The owner explicitly confirmed on 2026-10-19 that all three migrations were approved before execution. Earlier wording that treated approval as absent was a documentation/reconciliation error. This confirmation is the governing authorization disposition; no separate contemporaneous-artifact search or retroactive approval is an open task.
-- D-14 is not blocked: prior owner approval and its documentary reconciliation are recorded. No original approval artifact search, retroactive approval, rollback, rerun, or live-ledger change remains required for these already-applied migrations. This is separate from D-05, whose 2026-10-18 filename/version mismatch is reconciled on the candidate branch.
-
-### Schema-wide default privileges — owner decision required
-
-Live PostgreSQL default ACLs for `postgres` in `public` grant broad table privileges to `anon` and `authenticated`, sequence privileges to the same roles, and EXECUTE on new functions by default. This is a broader prospective security boundary than D-08’s two current-table grants. PR #120 deliberately does not change it. A change requires explicit owner direction and a complete compatibility/dependency review; do not perform a blanket default-privilege revocation.
-
-## Exact continuation point — 2026-10-19 (reconciled)
-
-1. **PR #120:** independent review is outstanding. The PR is OPEN / READY FOR REVIEW / UNMERGED. The latest CI-verified documentation head before this continuation-point edit was `63eead668b928c67ab3dfac987d8ef41383c5449`; WP-11 #39223417796, P3/full Node #39223417823 and existing C-03 isolated harness #39223417838 all passed. Record an independent review before any merge decision. Do not auto-merge or apply the migration to Production.
-2. **D-05 baseline:** migration ID/source/order reconciliation is complete, but no authoritative original DDL/schema baseline was found in tracked repository sources. The 18-table initial-DDL gap remains OPEN. Continue only by locating an authoritative pre-existing schema artifact and verifying full object coverage, or obtain explicit owner authorization for a separate reviewed baseline/replay work package with isolated fresh-database validation. Do not derive a baseline from Production dump/metadata or mutate the live migration ledger. This gap blocks a claim of complete empty-database replay and WP-11 full closure, but does not block independent review of the narrow PR candidate.
-3. **D-07 / D-12:** bounded static dependency inventory is complete for this pass; no safe deletion candidate was established. Preserve unresolved legacy functions and guarded RPC permissions. The missing-definition/external-caller uncertainties remain open; browser restoration, legacy handler reachability and dynamic `window.adminServiceKey` checks belong to WP-12 only after that stage is explicitly authorized. Do not start WP-12 here.
-4. **D-14:** CLOSED for the historical authorization/documentation question. No further approval search or production action is needed for the three already-applied migrations.
-5. Keep C-01/C-02/C-03 closed. No Production SQL, migration application, grant/policy change, Edge deployment, live ledger mutation, or WP-12 execution occurred in this reconciliation.
-2. **D-05:** keep the migration ID/source/order reconciliation as resolved on the branch. The initial-DDL gap remains OPEN. Locate authoritative pre-existing schema DDL and compare it to the live schema; if unavailable, request/record owner authorization for a separate reviewed baseline/replay work package. Do not generate DDL from a Production dump, rewrite the live ledger, or imply full empty-database replay is proven.
-3. **D-07:** preserve legacy schema objects. Any later retirement proposal must cite the exact function body/ACL and caller/dependency evidence; no current source finding justifies deleting `traps`, legacy completion RPCs, `calculate_session_score(uuid)`, or `duplicate_assessment(uuid)`.
-4. **D-12:** carry stored-report/browser-runtime and legacy admin handler reachability checks to WP-12 only when explicitly started. Preserve current-user/capability guards; never restore authenticated EXECUTE to `update_option_secure` to satisfy the old handler. Do not remove the service-key fallback solely from source absence.
-5. Preserve D-09's four exact asset probes. Keep WP-12 not started, and keep C-01/C-02/C-03 closed. C-03 live E2E remains **WAIVED / NOT RUN**, not PASS.
+### Exact continuation point
+Continue with the exhaustive file-level migration scan and migration-ledger reconciliation, using `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` as the table-by-table working register. Preserve the 18 named candidates and every unverified dependency/provenance item as OPEN. Stop at WP-11 until its own acceptance evidence is complete; do not begin WP-12.
 
 ---
 
-# HISTORICAL CHECKPOINT — WP-10 EXECUTION VERIFIED — 2026-10-18
+## SESSION CLOSEOUT — READ-ONLY DATABASE SCHEMA INVESTIGATION — 2026-10-19
+
+**Disposition: SESSION CLOSED AT A SAFE READ-ONLY BOUNDARY. No work package was closed by this session.** This entry supersedes any generic continuation text only for the immediate next action described here; it does not alter C-01/C-02/C-03 dispositions or authorize production changes.
+
+### Work actually performed
+- Read the current `main` handoff and audit-to-WP matrix before documenting this session.
+- Queried live Supabase project `oaqpzaarppccbnepffxx` read-only for the `public` schema using the table catalog and PostgreSQL catalog metadata.
+- Queried table-level metadata including columns/types/defaults where returned by the table listing; primary keys, foreign-key relationships, constraints, indexes, RLS policies, triggers, and public-schema functions/procedures were inspected in catalog output. The full detailed inventory was too large for a complete per-object review in this session; do not treat this as a completed table-by-table functional audit.
+- No repository code search results were obtained in this session. Runtime caller tracing across application code, Edge Functions, SQL function bodies, and deployed workflows remains NOT COMPLETED.
+- No SQL write, data mutation, schema/grant/policy change, migration, deployment, deletion, or branch/PR change was performed.
+
+### Live catalog snapshot — 2026-10-19
+Read-only PostgreSQL catalog query returned:
+- **25** public tables; RLS enabled on **25/25**; **0** tables with RLS disabled.
+- **38** foreign-key constraints; **0** unvalidated foreign keys.
+- **71** RLS policies, **15** non-internal triggers, **87** public functions/procedures, **0** public views/materialized views, and **0** invalid indexes.
+- These counts establish structural presence only. They do **not** establish that each policy is correct, each function is safe, every relationship is semantically correct, or each table is or is not used.
+- Estimated live-row statistics show populated operational/configuration tables (for example `options` ~370, `questions` ~93, `axes` ~22, `assessment_config_releases` ~15, `admin_audit_log` ~126) and zero-estimate tables including `answers`, `scores`, `sessions`, `leads`, `assessment_results`, and `assessment_session_access`. These are planner statistics, not exact row counts; zero estimates are **not** proof of disuse.
+- The schema inventory includes material relationships around `assessment_types`, `assessment_families`, `assessment_config_releases`, `sessions`, `leads`, `answers`, `scores`, `assessment_results`, and `assessment_session_access`. No table was classified as unused, deletable, or safe to rebuild from this evidence.
+
+### D-05 / the “18 tables” statement
+- The current PR #120 description states that 18 of the 25 live public tables lack an initial `CREATE TABLE` definition in tracked migrations and that the original authoritative schema DDL was not found in the repository search. PR #120 remains **OPEN / UNMERGED**; that branch description is not proof of the final main-branch disposition.
+- This session did **not** independently identify the exact 18 names or trace every table to its initial migration and all current callers. The claim remains a migration-provenance/baseline question, not a finding that the tables are unused.
+- No authoritative empty-database baseline was created or inferred from live metadata. Do not synthesize a baseline from Production catalog output, drop/recreate tables, or alter applied migration history.
+
+### What was not completed
+- Exhaustive per-table mapping of every column and constraint to source migrations and current repository source.
+- Complete function-body/dependency/caller analysis, including dynamic SQL and external callers.
+- Per-table data-integrity checks for orphaned rows, uniqueness/semantic consistency, and exact counts where appropriate.
+- Effective-role/RLS behavior tests and end-to-end tests for assessment create → answer save → submission → scoring → result/report → admin access.
+- Independent validation of all 25 table roles and the exact list of the alleged 18 tables.
+- No application tests or runtime E2E were run as part of this read-only investigation.
+
+### Exact continuation point
+**Next action: continue D-05 under WP-11, beginning with a reproducible 25-table reconciliation worksheet.** For each live table, record: exact name; live columns/PKs/unique/check constraints; inbound/outbound FKs; RLS and policies; triggers; indexes; functions that read/write it; repository and Edge Function callers; migration(s) creating/changing it; observed data role; integrity checks; and evidence/source paths. Then explicitly compare the resulting list with the 18-table claim and tracked migration history. Distinguish “initial CREATE TABLE absent from tracked migrations” from “not used” and from “no authoritative replay baseline.” Keep unknowns OPEN. Do not delete/recreate objects, modify Production, apply migrations, or start WP-12. Keep C-01, C-02 and C-03 closed.
+
+### Repository state at close
+- `main` was observed at `ae18c720fb814fa89c0a3eec452ad55ecdf12ad3` before this documentation closeout.
+- PR #120 was observed OPEN / UNMERGED, base `main`, head `wp-11/least-privilege-reconciliation`, head SHA `47c0a79dbee108149f9431ff4e86ac120c420f7a`. PR description reports earlier isolated CI successes but this session did not re-run or independently revalidate those workflows at the observed head.
+- No WP stage is newly closed by this session. The handoff and matrix must be re-read at the exact post-closeout commit before continuing.
+
+---
+
+# WP-10 EXECUTION CHECKPOINT — VERIFIED — 2026-10-18
 
 **WP-10 §40 scoped execution: COMPLETE; cross-stage findings remain open where specified below.** No Production database mutation, migration, deletion, Edge deployment, or security change was performed.
 
@@ -212,13 +384,13 @@ No persisted-semantics mismatch was found in the bounded WP-10 review. No renami
 
 ## Exact continuation point
 
-WP-10 §40 scoped work is complete. The instruction not to start WP-11 automatically was correct at the time of that checkpoint and was superseded by the owner's explicit subsequent instruction to begin WP-11, recorded in the current section at the top of this handoff. WP-12 remains a separate stage and has not been started by this WP-11 work. Keep C-01, C-02 and C-03 closed; C-03 live E2E remains **WAIVED / NOT RUN**, not PASS. No Production write, migration, deletion, Edge deployment, or security redesign was performed in WP-10.
+WP-10 §40 scoped work is complete. **STOP here. Do not start WP-11 or WP-12 automatically.** On the next owner instruction, continue with the already-assigned cross-stage findings and their gates. Keep C-01, C-02 and C-03 closed; C-03 live E2E remains **WAIVED / NOT RUN**, not PASS. D-10/D-11 source-wording reconciliation remains unresolved as recorded below. No Production write, migration, deletion, Edge deployment, or security redesign was performed in this WP-10 execution.
 
 ---
 
 # AUDIT-TO-WP TRACEABILITY RULE AND EXACT RESUMPTION POINT — 2026-10-18
 
-**Historical continuation point at WP-10 closeout; superseded by the later owner instruction to begin WP-11.** WP-09 and WP-10 are closed within their recorded bounded scopes. WP-11 is now the active stage as documented at the top of this handoff; WP-12 remains a separate, not-yet-started stage.
+**Historical continuation text superseded on 2026-10-19 by the verified WP-10 EXECUTION CHECKPOINT at the top of this file.** WP-10 §40 scoped execution is COMPLETE; WP-11 and WP-12 remain distinct stages and must not start automatically.
 
 ## Mandatory no-drop rule
 - The full set of findings C-01–C-03 and D-04–D-19 must remain traceable in [the audit-to-WP reconciliation matrix](../governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md). Every open/partial/unverified/decision-bound item must retain its original ID, responsible WP gate(s), exact remaining action, acceptance evidence, and next continuation point.
@@ -226,15 +398,19 @@ WP-10 §40 scoped work is complete. The instruction not to start WP-11 automatic
 - C-01, C-02 and C-03 remain closed under their recorded owner-approved dispositions unless new regression evidence and explicit owner direction justify reopening. The C-03 live E2E waiver remains WAIVED / NOT RUN, not PASS. WP-09 remains closed.
 - This matrix is a traceability overlay on the existing contract, not a parallel plan. No Production mutation, migration, deployment, deletion, release-gate change, or security redesign is authorized by this handoff.
 
-## Audit-source verification correction — 2026-10-18
-The canonical source is present at `documentation/governance/clinic-evaluator-full-audit-report-2026-10-11.md`, blob SHA `cd2297be4fb6c80efe4f53439481ba4904da6c3e`. D-10 refers to V2 identity remnants within final V1 content; D-11 refers to inconsistent interpretation/consistency/version registries and conflicting final contracts. The older statement that the source was not found and that D-11 was an identifier collision is superseded by the verified source. The substantive D-10/D-11 findings remain open; source verification alone does not close them.
+## Audit-source verification limitation
+The exact file named `clinic-evaluator-full-audit-report-2026-10-11.md` was not found in the current `main` tree or available file search. The matrix captures the audit details retained in repository/handoff records, but exact source wording—especially D-10 and D-11—must be checked against the original report when it is located. These items remain visibly unresolved; do not infer their wording or drop them.
 
-## WP-10 bounded start checklist
-1. Read contract §40 and the matrix before editing.
-2. Work only on findings assigned to WP-10: D-04, D-06, D-12, D-17, and D-16 only if persisted semantics are actually implicated. Confirm each against current source before implementation; do not assume matrix summaries alone are current runtime proof.
-3. Define the acceptance tests and any explicit migration rule before data mutation. Preserve historical business records absent such a rule; destructive deletion requires the approved reset policy and dependency checks.
-4. Keep cross-stage obligations visible for WP-11 (D-05, D-07, D-08, D-09, D-14, D-15 and the database-function aspect of D-12) and WP-12 (layered verification for D-04–D-18 as applicable). D-10 remains targeted evidence recheck; D-11 remains source/identifier reconciliation until the original wording is verified; D-19 remains documentation/decision-only.
-5. Close WP-10 with evidence and an updated matrix/handoff, then STOP. Do not begin WP-11 without a new explicit continuation instruction.
+## WP-10 closeout reconciliation
+WP-10 §40 is now COMPLETE within its bounded scope, as recorded in the checkpoint at the top of this file and matrix Section 7/8. The acceptance tests and CI evidence are recorded there. No Production data mutation, migration, deletion, Edge deployment, or security change was performed.
+
+Remaining cross-stage items stay assigned, not closed by WP-10:
+- WP-11: D-05, D-07, D-08, D-09, D-14, D-15, and D-12 database-function/permission reconciliation.
+- WP-12: layered verification for applicable D-04–D-18 findings. No WP-10 Production runtime E2E was run.
+- D-10: targeted evidence recheck; D-11: original audit source/identifier reconciliation. The named 2026-10-11 audit file remains NOT FOUND, so exact wording is unverified.
+- D-19 remains documentation/decision-only.
+
+STOP after WP-10. Do not begin WP-11 or WP-12 without a new explicit owner instruction. Keep C-01, C-02 and C-03 closed; C-03 E2E remains WAIVED / NOT RUN, not PASS.
 
 ---
 
@@ -865,48 +1041,106 @@ Implement and test the missing C-03-specific synthetic E2E runner plus exact-run
 MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md §Session closeout and exact continuation point — 2026-10-18T08:57:41Z. لا تعِد فحص أو تنفيذ ما أُغلق فيه بدليله. اعمل حصراً على NEXT CANONICAL ACTION المسجّل فيه بعد START/RESUME ENGINEERING والمصالحة مع الواقع.
 ```
 
+## CURRENT UPDATE — three secure assessment functions reviewed read-only — 2026-10-21
 
----
+The exact next action from the preceding closeout was completed as a bounded, read-only unit. Detailed evidence is appended to `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md` under “Read-only function-by-function security review — 2026-10-21” (worksheet commit `8c86c379801f16d4c0916ddf0c7e36dbd99e0ac2`).
 
-# SESSION CLOSEOUT — PARTIAL READ-ONLY DATABASE SCHEMA AUDIT — 2026-10-19
+### Verified live evidence
+- Retrieved `pg_get_functiondef`, owner, SECURITY DEFINER, function settings, ACL and effective anon/authenticated EXECUTE for `public.create_assessment_secure`, `public.update_published_assessment_content_secure`, and `public.update_assessment_working_copy_secure`.
+- All three are owned by `postgres`, SECURITY DEFINER, set `search_path=public, pg_temp`, have authenticated and service_role EXECUTE but no anon EXECUTE, and begin with `public.require_admin_capability('assessment.edit')`.
+- Verified creation inserts a draft family/version; published-content editing locks and requires a published row and updates only editorial metadata; working-copy editing locks and requires draft status. Each function writes an admin audit record.
+- Inspected live `require_admin_capability(text)` and `has_admin_capability(text)` definitions. The capability helper checks owner status or active admin role plus the requested capability for `auth.uid()`.
+- Live SQL function-body scan identified `public.save_assessment_secure` as the direct SQL-function caller. Its null-ID/published/draft/archived branches delegate to the reviewed functions; the wrapper reads/locks row state before the delegated capability check. This is consistent with the already recorded D-17 observation and does not independently establish exploitability or authorize a fix.
+- Repository callers verified by source search: `admin/assessment-manager.js` and `admin/assessment-editor-workspace.js` call `rpc/save_assessment_secure`.
 
-## Closeout state
-**No work package was closed by this session. WP-11 remains IN PROGRESS.** The requested comprehensive table/relationship/usage investigation was started but not completed. Stop here; do not begin WP-12 or another WP.
+### Limits / no-change statement
+No role-impersonation or negative-access runtime tests, unit/integration/E2E tests, or production write-path tests were run. Full dependency/RLS interactions, every possible non-SQL/dynamic caller, and historical executed migration bytes remain unverified. No production write, schema/grant/policy change, migration application, deployment, PR merge, deletion/recreation, or migration-history change was performed.
 
-## What was actually done
-- Queried the live Supabase `public` schema using read-only operations.
-- The live table-listing response returned **25 public tables**, all with RLS enabled.
-- A broader read-only catalog query requested live table metadata, foreign keys, constraints, indexes, RLS policies, triggers, and public-schema function metadata. The response was too large and was truncated; a complete durable per-object inventory was not created.
-- Repository table-usage searches were started but not completed into a verified table-by-table map.
-- The specific 18-table list behind the existing D-05 statement was not reconstructed or verified. This session neither proves nor disproves that claim.
-- No tests were run. No files, source code, migrations, workflows, database objects, data, grants, policies, Edge functions, or deployments were changed during the investigation. The two documentation files are being updated solely to record this accurate closeout and the next continuation point.
-- The live inventory query is not a full integrity test: no complete orphan-row checks, relationship-by-relationship data validation, end-to-end caller trace, or per-table operational proof was completed.
+### Stage and exact continuation
+- D-05: **OPEN / BLOCKING RECONCILIATION**.
+- WP-11: **IN PROGRESS / NOT CLOSED**.
+- WP-12: **NOT STARTED**.
+- Preserve C-01/C-02/C-03 as closed dispositions; do not reopen absent new regression evidence and explicit authorization.
+- Continue only the remaining WP-11 / D-05 reconciliation gaps already enumerated in the worksheet: per-object migration-to-live catalog reconciliation, authoritative provenance for the 18-table initial-DDL gap, three source/ledger migration identity discrepancies, and remaining function dependency/effective-role/RLS review. Do not repeat the completed three-function inspection unless new evidence identifies a specific gap. Stop at the WP-11 gate.
 
-## Finding/WP disposition
-- **WP-11: IN PROGRESS; NOT CLOSED.** The comprehensive schema inventory and caller/dependency map remain incomplete.
-- **D-05: OPEN.** Existing migration identity/order reconciliation and owner-confirmed D-14 disposition remain as recorded in the prior WP-11 checkpoint. The separate baseline gap statement (“18 of 25”) was not revalidated during this session. Do not manufacture a baseline from live metadata or infer that any table is unused.
-- **D-07: OPEN / PARTIAL.** No table or database function was proven safe to delete. Absence of a found source caller is not a deletion basis.
-- **D-08/D-15: candidate tested, not deployed; review gate remains outstanding.** No Production privilege/policy change occurred here.
-- **D-12: remains open at its previously documented WP-11/WP-12 boundaries.** No new runtime evidence was established.
-- **C-01, C-02 and C-03 remain closed** under their recorded dispositions. WP-09 and WP-10 remain closed in their documented scopes. Do not reopen them without the already-required regression evidence and owner direction.
-- All other D-04–D-19 findings retain their existing identifiers, statuses, evidence, assigned stages, and unresolved actions in the matrix. This closeout adds no inferred closure and drops no finding.
+## CURRENT UPDATE — WP-11 residual RLS/effective-privilege reconciliation — 2026-10-21
 
-## Tests and deployment
-- Tests executed in this session: **none**.
-- Tests not executed: all new/targeted tests for this investigation, data-integrity/orphan checks, table-specific runtime/caller verification, and end-to-end workflow tests.
-- Production database writes/migrations/DDL/ACL changes: **none**.
-- Edge deployment or manual release: **none**.
-- Note: repository history records that pushes to `main` can trigger Cloudflare Pages auto-deployment. To honor the no-deployment closeout boundary, these documentation updates are recorded on the existing WP-11 branch rather than pushed directly to `main`. Main remains unchanged by this closeout; no claim of a main commit is made.
+**New worksheet evidence:** `documentation/governance/D-05-LIVE-SCHEMA-RECONCILIATION-2026-10-19.md`, update commit `936cc20238961239a5304464d8f178001fdc5deb`. The commit message used Cloudflare's documented `[CF-Pages-Skip]` prefix to skip a Pages deployment for this documentation-only change; deployment state is to be checked, not assumed.
 
-## Exact next action — same WP-11 scope, read-only
-1. Start from the current WP-11 branch and this closeout section; do not repeat already recorded D-14, D-08/D-15 candidate-test, or D-07/D-12 findings unless new evidence directly requires it.
-2. Generate a compact, durable list of the exact 25 live `public` tables and map each to columns, PK/FK/unique/check constraints, indexes, RLS policies, triggers, dependent PostgreSQL functions/views, and the tracked migration file(s) that create or alter it.
-3. For each table, trace direct references in application code and Edge Functions, RPC/function calls, and its role in assessment authoring, published configuration, session/access, answer persistence, scoring/results, reporting, administration, or audit.
-4. Check data integrity with bounded read-only queries (including FK/orphan and semantic consistency checks where appropriate), keeping “currently zero rows” distinct from “unused.”
-5. Independently verify the alleged 18-table CREATE-definition gap against the complete migration history and authoritative schema artifacts. If the evidence is insufficient, preserve it as unverified; do not delete/recreate tables or synthesize a baseline from Production.
-6. Update the matrix and handoff with per-table evidence and explicit remaining gaps. Stop at WP-11’s existing gate; do not start WP-12 automatically.
+### New read-only evidence
+- Live catalog reconciliation identified seven tables with an effective authenticated SELECT path through a permissive `TO public`, `SELECT`, `USING (true)` policy despite the separate `p0_admin_select_*` policy: `answers`, `assessment_types`, `axes`, `leads`, `options`, `questions`, and `scores`. The role `authenticated` has direct SELECT on these tables; `anon` direct SELECT is false in the checked table privilege query. Since applicable permissive PostgreSQL policies combine by OR, the broad true policy defeats the intended row filter for authenticated SELECT. This is configuration-level evidence; no API row read or runtime role test was run.
+- Cross-check of applied source `supabase/migrations/20261001190000_p0_security_closure.sql` found that it creates the `p0_admin_select_*` policies but does not remove the broad legacy policies above. The 56-file migration DDL index does not record those exact policy identifiers; their original migration provenance remains OPEN.
+- PR #120 remains OPEN / UNMERGED. Its candidate WP-11 migration does not drop the seven broad policies, and its disposable harness does not define them; therefore its staff-hidden assertions do not test the live permissive-policy composition. No PR was merged and CI was not rerun.
+- Read-only SECURITY DEFINER summary: 65 public functions; 0 effective anon EXECUTE, 51 effective authenticated EXECUTE, 14 with `search_path = ''`, 51 with `search_path = public, pg_temp`. All 25 public base tables are owned by `postgres`, RLS enabled, FORCE RLS false; live role metadata shows postgres and service_role have BYPASSRLS. A bounded static scan did not identify unqualified access to the known public tables among the 14 empty-search-path SECURITY DEFINER bodies; this is not a complete parsed call/dependency graph or runtime proof.
+- The two anon-executable functions remain `p2_assert_draft_version()` and `p2_assessment_type_immutability()`; both are SECURITY INVOKER trigger-returning functions attached to user triggers. This ACL observation does not establish standalone RPC reachability.
+- `is_owner(uuid)` and `is_active_admin(uuid)` still have effective authenticated EXECUTE and test the passed UUID in their bodies. This reconfirms the existing D-15 identity-probe concern; no permission change was made.
 
-### Start prompt for the next conversation
-```text
-MD — تابع من documentation/handoff/CURRENT-SESSION-HANDOFF.md، قسم “SESSION CLOSEOUT — PARTIAL READ-ONLY DATABASE SCHEMA AUDIT — 2026-10-19”، وعلى فرع wp-11/least-privilege-reconciliation. ابدأ حصراً بجرد حيّ مختصر ومحفوظ للجداول الـ25 ثم طابق كل جدول مع القيود والعلاقات والسياسات والمشغلات والدوال والهجرات ومراجع التطبيق/Edge. تحقق من ادعاء الجداول الـ18 بالأدلة لا بالاستنتاج. قراءة فقط: لا حذف أو إعادة إنشاء أو تغيير إنتاجي أو نشر. لا تبدأ WP-12 ولا تعِد فتح C-01/C-02/C-03. حدّث الوثيقتين بالأدلة وتوقف عند بوابة WP-11.
-```
+### Decision and safe stop
+The existing `documentation/project-audit/03-p0-auth-data-rpc-decision.md` still records that an owner-approved trust-boundary architecture decision is required before production RLS/grant/function remediation. This evidence does not authorize choosing that architecture or changing policies. No tests or production writes were executed; no schema/grant/policy change, migration application, deployment, merge, deletion/recreation, baseline synthesis or migration-history rewrite was performed.
+
+**Stage unchanged:** D-05 **OPEN / BLOCKING RECONCILIATION**; WP-11 **IN PROGRESS / NOT CLOSED**; WP-12 **NOT STARTED**. C-01/C-02/C-03 remain closed. Exact remaining gates: owner decision before broad-policy remediation; authoritative original schema provenance (or separately owner-authorized baseline/replay package); migration source/ledger identity reconciliation without rewriting applied history or merging PR #120; runtime effective-role/RLS evidence. Do not repeat the three secure assessment function inspection absent a new specific gap, and do not start WP-12.
+
+
+## FOLLOW-UP — Option C selected; candidate RLS policy work updated — 2026-10-21
+
+The owner selected **Option C — Hybrid**. The decision is recorded in `documentation/project-audit/03-p0-auth-data-rpc-decision.md` (commit `af1c17640f38fd57c04999f5c7bdbe9cb9534022`). This closes the architecture-selection question only; it does not authorize Production execution.
+
+On branch `wp-11/least-privilege-reconciliation`, PR #120 candidate head is now `4cbebd0982428987f911a2d6f84b6b5ca400039c`. Its WP-11 migration removes nine broad RLS policy entries found in live Production, and its disposable SQL harness now reproduces those entries and asserts they are removed. The static contract test was updated accordingly. The commit-status query returned no check statuses at inspection time; no new CI success is confirmed yet.
+
+No Production SQL, policy/grant changes, migration application, deployment, merge, data deletion, or history rewrite occurred. The candidate still preserves narrow authenticated admin read policies and does not alter table grants; therefore Option C's complete server-gateway/sensitive-data boundary is **not yet proven by this change alone**. Verify the updated candidate in CI and complete caller/runtime reconciliation before any production release.
+
+**Status:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. Next action stays within WP-11: verify the candidate harness/CI, then reconcile remaining source/ledger provenance and runtime access-boundary evidence. Do not apply to Production or begin WP-12.
+
+
+### Candidate-head correction — 2026-10-21
+
+PR #120 latest head is `c293d6894bb10021c5795a23abe100666f10df18` (supersedes `4cbebd0982428987f911a2d6f84b6b5ca400039c`). The migration, harness, and static test were verified present on that exact head. GitHub returned no associated PR workflow runs and no commit status entries; **CI remains unverified**. Do not claim the candidate tests passed. No Production changes or PR merge occurred.
+
+
+### Final checkpoint — 2026-10-21
+
+Current PR #120 head is `82548fabe56e49abc2ce147732f7306286175c40`; migration, harness, and static test were re-fetched at that exact head. No associated PR workflow runs or commit status entries were returned, so CI is **unverified**. PR #120 remains OPEN / UNMERGED.
+
+A targeted live query found `sessions_public_select USING (true)`, but both `anon` and `authenticated` lack direct SELECT on `sessions`. It is a latent policy cleanup item, not a confirmed current direct-read path. It was not added to the candidate because the disposable harness does not model `sessions`; leave it open rather than making an untested change.
+
+No Production changes occurred. D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS / NOT CLOSED; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
+
+
+## CURRENT UPDATE — D-05 effective-role evidence and closure gate — 2026-10-23
+
+The D-05 worksheet was updated in commit `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` with a bounded read-only Production role check and a re-screen of authenticated-executable SECURITY DEFINER functions. No Production write or security change was performed.
+
+### New verified evidence
+- Under an explicit PostgreSQL `authenticated` role in a read-only transaction (`ROLLBACK`), `row_security=on`; SELECT privileges were true for `answers`, `leads`, and `scores`. Visible counts were 0, 0, and 0 respectively; `axes=22`, `questions=93`, `options=370`, `assessment_types=5`. This confirms the effective database-role SELECT path, but does not demonstrate retrieval of sensitive rows (the three sensitive tables currently returned zero rows) and is not an HTTP/PostgREST end-to-end test.
+- Under an explicit PostgreSQL `anon` role, SELECT privilege checks were false for all seven tested relations (`answers`, `leads`, `scores`, `axes`, `questions`, `options`, `assessment_types`).
+- A bounded literal-marker screen of authenticated-executable SECURITY DEFINER bodies returned three functions without the selected simple auth-marker strings: `is_active_admin(uuid)`, `is_owner(uuid)`, and `save_assessment_secure(...)`. The first two are the previously recorded D-15 caller-supplied-UUID identity-probe issue; the third is the previously recorded D-17 pre-delegation row-state read/lock note. This is triage evidence only, not a complete authorization proof or new fix authorization.
+- PR #120 remains OPEN / UNMERGED at `82548fabe56e49abc2ce147732f7306286175c40`. The commit workflow query returned no PR-triggered workflow runs and the combined status query returned no statuses for that SHA on 2026-10-23. CI is UNVERIFIED on the current head; historical CI results on an older head do not satisfy this gate.
+- The live migration ledger still contains 57 version/name entries while main has 56 tracked migration files. Main's two missing source identities are `20261018075528` and `20261018075855`; source-only main file `20261018110000` remains. PR #120 proposes the source reconciliation but is not part of main/Production.
+
+### Closure determination
+D-05 **cannot truthfully be closed yet**. The initial DDL for 18 of the 25 live public tables is absent from tracked migrations; no authoritative full schema artifact was found in the inspected repository, and no external archive/backup or Supabase editor/deployment history was available to verify here. The source/ledger discrepancy remains on main, the candidate lacks CI/review proof at its current head, and the complete table/function/effective-role dependency acceptance gate is not satisfied.
+
+No Production mutation, migration application, policy/grant change, deployment, PR merge, baseline synthesis, deletion/recreation, or migration-history rewrite occurred. WP-11 remains IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed.
+
+### Exact remaining blocking inputs/actions
+1. Obtain an authoritative pre-migration schema artifact or approved external backup/deployment record that contains complete original DDL for the 18 legacy tables and related objects; validate its identity and completeness against the live catalog. Do not synthesize DDL from Production catalog output.
+2. Independently review and verify PR #120's migration source/ledger reconciliation and current-head CI; then obtain the required review/approval before merging. No merge or Production application is implied by this handoff.
+3. Complete the remaining table-by-table function/RPC dependency and role/RLS acceptance checks and record each unproven point as OPEN.
+4. Only after all evidence gates pass, update the D-05 disposition, WP-11 status, and reconciliation matrix together. Do not start WP-12 automatically.
+
+
+## Operational correction — Pages deployment triggered by documentation commits — 2026-10-23
+
+The two documentation-only commits `5e0e77f8d7c75564bcd938f1253a07fe9601aba5` and `9e4e9cd8413c3faa990cd5764272905f75aaf553` were created without the required `[CF-Pages-Skip]` prefix. Read-only Cloudflare Pages inspection confirms both pushed commits triggered production deployments; both completed successfully. The latest deployed commit is `9e4e9cd8413c3faa990cd5764272905f75aaf553`. The commits modified only D-05/handoff Markdown documentation; they did not modify app/runtime code or the database, and no migration, schema, grant, policy, or data operation was performed. This deployment trigger was unintended and avoidable. No rollback was attempted. The corrective documentation commit uses `[CF-Pages-Skip]`; continue using that prefix for all documentation-only commits. Do not infer authorization for any further production deployment from this incident.
+
+
+### Follow-up — full 25-table effective privilege sweep — 2026-10-23
+
+The D-05 worksheet was extended in commit `4e0ddc35c3890ff9265848384a92992f80af1cb3` with a full live privilege matrix for all 25 public ordinary tables. Results: RLS enabled 25/25; FORCE RLS 0/25; owner postgres 25/25; anon direct SELECT 0/25; authenticated direct SELECT 12/25; direct INSERT/UPDATE/DELETE privileges false for anon and authenticated across all 25 in the queried privilege matrix. The 12 authenticated SELECT tables and all seven broad permissive-policy paths are listed in the worksheet. This does not cover function-mediated writes, service-role access, inherited/owner bypass, or prove semantic policy correctness. No DB permissions or policies were changed.
+
+D-05 remains blocked by the missing authoritative initial-DDL provenance for 18 tables, main/live migration source identity mismatch, unverified current-head CI/review for PR #120, and remaining full dependency/runtime acceptance. Do not mark closed or start WP-12 until those gates are met.
+
+
+### PR #120 current reviewability check — 2026-10-23
+
+A fresh GitHub PR metadata query confirms PR #120 is OPEN, UNMERGED, with head `82548fabe56e49abc2ce147732f7306286175c40`, base `cf34521c2a5ff65c9aed6dbfa9b08a012ec7abaa`, and `mergeable_state=dirty` (`mergeable=false`). No workflow runs or combined commit statuses exist for the current head. Therefore the candidate is not currently merge-ready and its current-head CI is unverified. Do not merge or treat the earlier successful workflows on an older head as current acceptance evidence.

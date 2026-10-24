@@ -3,9 +3,8 @@
 **Date:** 2026-10-12  
 **Repository:** `core-system-md/clinic-evaluator`  
 **Supabase project:** `oaqpzaarppccbnepffxx`  
-**Scope:** Read-only inventory of the three Production migrations applied on 2026-10-09, their impact, and a forward-only repair design.  
-**Owner authorization clarification (2026-10-19):** The owner explicitly confirms that all three migrations listed below were previously approved and that the approval existed at the time of execution. The apparent absence of approval evidence is a documentation/reconciliation defect; it must not be described as an unapproved Production change. This current confirmation is recorded as owner direction, and does not pretend to reconstruct or replace the original contemporaneous evidence.  
-**Status (reconciled 2026-10-19):** Historical migration-impact inventory and authorization-record reconciliation complete. The owner’s explicit confirmation resolves the authorization-record discrepancy. The value-70 finding below is historical and was subsequently repaired and closed under C-02; it is not open work for D-14/WP-11. No Production mutation was performed by this inventory.
+**Scope:** Read-only inventory of the three Production migrations applied on 2026-10-09 without the owner's approval, followed by repair design only.  
+**Status:** Inventory evidence collected; one concrete compatibility defect routed to C-02. No Production mutation performed.
 
 ## Executive result
 
@@ -17,7 +16,7 @@ The live migration ledger confirms all three versions are applied, in order:
 
 The live schema and content match the main intended postconditions of the first and third migrations: the current assessment versions are published V1 records, family pointers target the current records, and every current assessment's axis weights sum to 100 percentage points. The two Structured Result RPCs introduced by the second migration exist and are granted to `service_role`; the deployed `assessment-access` Edge Function is version 35 and imports `engine.ts` and calls the `*_from_result` RPCs. No current API-name mismatch was found in this inspection.
 
-At the time of this read-only inventory, the cross-migration contract defect was recorded as 57 options with value 70 against the then-observed `answers_answer_value_compat_check` set `0, 1, 2, 3, 4, 5, 40, 100`. The later authoritative handoff and reconciliation matrix record C-02 as CLOSED: the Production value-70 persistence/scoring path was exercised and the compatibility constraint includes 70. This paragraph is preserved as a historical observation, not a claim about the current constraint or an open defect. Do not reopen C-02 absent new regression evidence and explicit owner direction.
+One concrete cross-migration contract defect remains: the reconstructed assessment content contains 57 options with value 70, while the live `answers_answer_value_compat_check` permits only `0, 1, 2, 3, 4, 5, 40, 100`. The existing answer-save function writes `options.option_value` into both `answers.option_value` and `answers.answer_value`. A choice of 70 therefore fails the current `answers.answer_value` CHECK constraint. This is the already-planned C-02 fix; it is not implemented by D-14.
 
 ## Evidence and boundaries
 
@@ -95,38 +94,42 @@ This is read-only inspection. No migration was applied, replayed, reverted, or e
 - The migration's precondition guards are present in source; the applied migration ledger and successful current state are consistent with the transaction having completed. The live database cannot reveal exact counts of deleted child content after the fact. Do not invent historical deletion counts or infer causality for the separately recorded historical lead/session/answer deletion.
 - The change removed the old V1/V2 database identities and child content; approved artifacts and Git history remain the available source evidence. Do not restore old versions or repeat deletion without a separately justified decision.
 
-## Historical cross-migration compatibility finding — C-02 later closed
+## Cross-migration contract defect — route to C-02
 
-**Historical observation from the 2026-10-12 inventory:** the then-live constraint definition was:
+The live constraint definition is:
 
 `answers_answer_value_compat_check: answer_value IN (0, 1, 2, 3, 4, 5, 40, 100)`
 
-The reconstructed Comprehensive and Patient Journey content then contained 36 and 21 options with `option_value = 70` respectively (57 total). The answer-save function writes the selected option value to both `answers.option_value` and `answers.answer_value`, so that historical constraint would reject value 70. At the time of observation, `answers` was empty; this inventory did not claim a reproduced failed Production row.
+The final Comprehensive and Patient Journey options contain respectively 36 and 21 options with `option_value = 70` (57 total). The existing answer-save migration `20261003082558_20261003090000_p4_submission_foundation.sql` writes the selected option's value into both `option_value` and `answer_value`. Thus selecting one of those 70-valued options violates the live CHECK constraint. Current `answers` is empty, so this inventory does not claim a current failed row or a live reproduction of the error.
 
-**Current disposition:** the authoritative current handoff and reconciliation matrix record C-02 as **CLOSED**. Production value-70 persistence/scoring was verified, and the compatibility constraint was repaired to accept 70. This D-14 report preserves original evidence and the historical constraint/design; it does not assert that the old constraint remains live. Do not restart, rerun, or reopen C-02 without new regression evidence and explicit owner direction.
+### Forward-only repair design (not executed)
 
-### Original forward-only repair proposal — superseded by C-02 closure
-
-The proposal below records the design considered when this inventory was written. It is retained for audit history only and is superseded by the later C-02 implementation and closure. The proposed contract was:
+C-02 should add 70 to the accepted compatibility set while preserving legacy values. Candidate constraint contract:
 
 `answer_value IN (0, 1, 2, 3, 4, 5, 40, 70, 100)`
 
-The original plan required reconfirming the then-live constraint and existing values, adding a forward-only migration (not editing an applied migration), testing retained and unsupported values in disposable PostgreSQL, and exercising the answer-save RPC. Its approval gate applied before the subsequent Production execution; the current project record now treats the C-02 repair as completed and owner-authorized. This inventory itself did not apply DDL, write data, change migration history, deploy Edge, or change Cloudflare.
+Before producing the migration, C-02 must:
+1. Reconfirm the live constraint name and definition.
+2. Check existing rows for values outside the proposed set.
+3. Create a new forward-only migration; do not edit any applied migration.
+4. Test constraint replacement and inserts for `0, 40, 70, 100` plus retained legacy values on disposable PostgreSQL.
+5. Assert unsupported values still fail and the answer-save RPC can persist a 70-valued option.
+6. Verify no data rewrite is needed; current `answers` count is zero.
+7. Obtain explicit owner approval before any Production execution.
 
-No new Production change is authorized by this historical design. The current C-02 status and evidence are governed by the current handoff and matrix, not by the original “repair required” wording retained above.
+No Production DDL, data write, migration-history change, Edge Function deployment, or Cloudflare change is authorized by this D-14 inventory.
 
 ## Verification limitations
 
 - All live database observations above were read-only SQL/catalog queries or Supabase migration/function metadata.
 - No submission E2E test was run in Production.
 - Current zero-row counts do not prove what exact records existed before the three migrations.
-- The migration ledger establishes applied versions, not authorization by itself. The owner explicitly confirmed on 2026-10-19 that all three migrations were approved before execution; the earlier contrary statement in this report was a documentation error and is superseded by this clarification.
+- The migration ledger establishes applied versions, not owner authorization; this report preserves the owner's statement that the three migrations were not approved.
 - No compensating migration was authored or applied in D-14. The 70-value defect is specified for C-02.
 
 ## D-14 decision
 
 **Inventory:** complete for the three specified migration files and the relevant live contract.  
-**Compensating repair design:** a forward-only constraint correction was proposed in the original inventory and was subsequently implemented and closed under C-02; no D-14 repair remains active.  
+**Compensating repair design:** one concrete forward-only constraint correction identified and assigned to C-02.  
 **Production status:** unchanged by this work; no mutation performed.  
-**Authorization disposition (2026-10-19):** The owner confirms prior approval for all three historical migrations. No new approval is required for those already-executed changes, and no rollback or re-execution is authorized or indicated merely to address the documentation defect.  
-**Remaining technical finding:** no D-14/C-02 value-70 repair remains open in the current status register. C-02 is closed. Reopen only if new regression evidence and explicit owner direction justify it. The owner’s confirmation concerns the three already-executed 2026-10-09 migrations only; it does not authorize unrelated Production mutation.
+**Next step:** review this report and implement C-02 as a separate bounded work package. Do not execute any Production repair without explicit approval.

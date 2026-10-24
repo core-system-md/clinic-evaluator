@@ -169,6 +169,19 @@ Before any remediation, the project owner must decide:
 9. Should privileged database functions remain exposed through the Data API at all?
 10. What audit trail is required for administrative actions?
 
+## Owner decision — 2026-10-21
+
+**Selected architecture: Option C — Hybrid.** The project owner selected C in the continuation conversation on 2026-10-21.
+
+Implementation interpretation for WP-11:
+- Keep public assessment resolution/configuration and submission operations limited to the purpose-built `assessment-access` server gateway and explicitly approved public capabilities.
+- Sensitive leads, answers, scores, and administrative mutations must not be exposed through broad public Data API policies. Administrative access remains tied to the existing Supabase Auth identity and authorization model; any operation requiring privileged data access must be server-authorized.
+- Preserve the separate protected/paid assessment access subsystem where it remains required by the existing contract.
+- Remove broad permissive public-read policies that bypass the intended admin RLS predicates, and remove the observed broad `ALL` policy on `axes`; retain only narrow, evidenced policies required by the selected hybrid boundary.
+- This decision authorizes implementation work within the approved WP-11 candidate and isolated tests. It does **not** authorize applying migrations or changing Production grants, policies, functions, data, or deployments. Production changes still require the explicit release/production gate in the governing contract.
+
+The selection closes the **architecture-selection question only**. It does not close D-05, prove runtime behavior, resolve migration provenance, or authorize WP-12.
+
 ## Architectural Decision Required
 
 Select **A, B, C, or a custom trust-boundary architecture**.
