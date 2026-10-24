@@ -2897,3 +2897,16 @@ These are isolated CI/disposable-PostgreSQL tests, not proof of Production migra
 ### Current-head freshness rule
 
 The 2026-10-24 candidate checkpoint at `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed the recorded CI runs, but subsequent documentation commits advanced `main`. Treat that SHA as a historical tested checkpoint only. Before acceptance, refresh PR #120's actual head/base, mergeability, review state, and CI results on the exact current head. Do not repeat the schema-provenance search; the owner decision remains in force.
+
+
+## Final disposition — 2026-10-24 (supersedes prior OPEN checkpoints)
+
+D-05 is **CLOSED within the scoped reconciliation**. The missing initial DDL for 18/25 tables is an accepted non-blocking historical-provenance limitation under `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md`; no baseline was synthesized from Production.
+
+- PR #120 merged at `40acea30853a13ef78b029fbb936a724bec80516`; the WP-11 migration was applied to Production.
+- Actual Supabase migration ledger identity: `20261024095410_wp11_security_database_reconciliation`. PR #121 merged at `73e0fa2f7f26ac1d28dd0a2606fdf41a751db8c6` to align source with the applied ledger version. Current source/ledger parity is 58/58 unique versions, no missing source files, no source-only files.
+- Targeted broad policies were removed, including the seven identified permissive SELECT paths, the unrestricted anonymous assessment-type read, the broad anonymous lead-update policy, and latent `sessions_public_select`. Live catalog query reports zero remaining policies in this targeted set.
+- Live privilege checks confirm RLS enabled on 25/25 tables, no anonymous direct SELECT on checked sensitive tables, approved authenticated audit SELECT preserved, excess audit/capability table privileges revoked, UUID identity probes denied to authenticated/anon, and service_role execution preserved.
+- Rolled-back live PostgreSQL negative-access checks and current-main WP-11/P3 CI passed. No direct HTTP/PostgREST request was executed; this is documented as an evidence limitation, not claimed as a passed test.
+
+Authoritative evidence and boundaries are recorded in `documentation/handoff/WP-11-CLOSEOUT-2026-10-24.md`. **WP-11 CLOSED; WP-12 NOT STARTED.** No further production change is authorized by this closeout.
