@@ -324,3 +324,16 @@ Authority: owner instruction in the 2026-10-24 continuation; full decision: `doc
 ### Exact-head acceptance rule — 2026-10-24
 
 Candidate `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed its three recorded CI workflows, but later documentation-only commits advanced `main`. The candidate SHA's CI remains historical evidence, not current-head acceptance after a branch sync. Re-check PR #120's current head/base, mergeability, review state, and CI after the next sync. This does not reinstate the missing historical schema as a blocker.
+
+
+## Final WP-11 disposition — 2026-10-24 (authoritative over prior checkpoints)
+
+**WP-11 §41 CLOSED. D-05 CLOSED within scoped reconciliation. WP-12 §42 NOT STARTED.** C-01/C-02/C-03 remain CLOSED.
+
+- Historical provenance for 18/25 tables is accepted as a non-blocking limitation; do not re-request unavailable DDL/backups or synthesize a Production-derived baseline.
+- PR #120 merged at `40acea30853a13ef78b029fbb936a724bec80516`; production migration applied as ledger version `20261024095410`. PR #121 merged at `73e0fa2f7f26ac1d28dd0a2606fdf41a751db8c6` to match tracked source to the actual applied version. Ledger/source parity is 58/58, with no missing or source-only migration versions.
+- Live checks confirm RLS on 25/25 tables; targeted broad SELECT/update policies and latent `sessions_public_select` removed; targeted policy residue count 0; excess admin table privileges revoked; authenticated UUID identity probes denied while zero-argument current-user helpers and service_role execution remain available as intended.
+- Live rolled-back negative-access SQL checks passed. Current-main CI: WP-11 #40083968057 SUCCESS; P3 #40083968073 SUCCESS. HTTP/PostgREST was not independently exercised and is not represented as passed.
+- Cloudflare Pages automatically deployed merge commits `40acea3...` and `73e0fa2...`; both deployments succeeded, and neither PR changed frontend application source. Future documentation-only commits must use `[CF-Pages-Skip]`.
+
+See `documentation/handoff/WP-11-CLOSEOUT-2026-10-24.md` for the complete evidence boundary. No WP-12 work or further Production changes are authorized by this closeout.
