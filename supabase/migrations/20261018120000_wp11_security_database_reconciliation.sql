@@ -26,7 +26,7 @@ begin
     values
       ('admin_users'),('admin_audit_log'),('admin_capabilities'),
       ('answers'),('assessment_settings'),('assessment_types'),('axes'),
-      ('leads'),('options'),('questions'),('scores')
+      ('leads'),('options'),('questions'),('scores'),('sessions')
   )
   select count(*) into v_expected_count
   from expected_rls_tables e
@@ -34,8 +34,8 @@ begin
   join pg_namespace n on n.oid = c.relnamespace and n.nspname = 'public'
   where c.relkind in ('r','p') and c.relrowsecurity;
 
-  if v_expected_count <> 11 then
-    raise exception 'WP-11 preflight failed: expected RLS enabled on 11 protected tables, found %', v_expected_count;
+  if v_expected_count <> 12 then
+    raise exception 'WP-11 preflight failed: expected RLS enabled on 12 protected tables, found %', v_expected_count;
   end if;
 
   with expected(tablename, policyname) as (
@@ -74,12 +74,15 @@ $wp11_preflight$;
 drop policy if exists answers_public_select on public.answers;
 drop policy if exists "Allow public read access" on public.assessment_types;
 drop policy if exists assessment_types_public_read on public.assessment_types;
+drop policy if exists "Allow anon read assessment_types" on public.assessment_types;
 drop policy if exists "Allow public read access" on public.axes;
 drop policy if exists "Allow all on axes" on public.axes;
 drop policy if exists "Allow public read access" on public.options;
 drop policy if exists "Allow public read access" on public.questions;
 drop policy if exists leads_owner_read on public.leads;
+drop policy if exists "Allow anon update leads" on public.leads;
 drop policy if exists scores_public_select on public.scores;
+drop policy if exists sessions_public_select on public.sessions;
 
 -- D-08: these tables are SELECT-only for authenticated clients. Mutation remains
 -- behind guarded RPCs; the service_role privileges are intentionally unchanged.
