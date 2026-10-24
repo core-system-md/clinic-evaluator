@@ -319,3 +319,8 @@ Authority: owner instruction in the 2026-10-24 continuation; full decision: `doc
 - PR #120 remains open/unmerged and independent review is absent. CI evidence is isolated/disposable, not Production acceptance. No Production migration, grants/policy change, deployment, or live ledger mutation was performed. WP-12 remains NOT STARTED; C-01/C-02/C-03 remain CLOSED.
 - **D-05 status:** OPEN pending PR review/merge and authorized live verification of the proposed policy/function changes. The missing historical schema source is no longer a blocking dependency.
 
+
+
+### Exact-head acceptance rule — 2026-10-24
+
+Candidate `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed its three recorded CI workflows, but later documentation-only commits advanced `main`. The candidate SHA's CI remains historical evidence, not current-head acceptance after a branch sync. Re-check PR #120's current head/base, mergeability, review state, and CI after the next sync. This does not reinstate the missing historical schema as a blocker.
