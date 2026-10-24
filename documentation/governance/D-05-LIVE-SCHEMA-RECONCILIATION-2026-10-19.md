@@ -2871,3 +2871,29 @@ The live definitions in this worksheet remain a time-bounded observation only; t
 4. No Production change, migration application/history rewrite, policy/grant change, deployment, PR merge, deletion/recreation, or WP-12 start is authorized by the provenance decision.
 
 **Disposition:** provenance gap = non-blocking accepted limitation; D-05 = OPEN until the remaining technical and migration-reconciliation criteria are actually satisfied. Do not report D-05 closed solely because this owner decision was recorded.
+
+
+## Latest migration reconciliation and CI checkpoint — 2026-10-24
+
+Read-only comparison of the current live Supabase migration ledger against the Git tree for PR #120 head `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7`:
+
+- Live migration ledger: **57 unique applied version IDs**.
+- PR candidate tracked migration SQL files: **58**.
+- Live IDs without a same-version tracked source path: **0**.
+- Source-only paths: **1**, the proposed unapplied `supabase/migrations/20261018120000_wp11_security_database_reconciliation.sql`.
+- The former source-only `20261018110000_c03_verifier_api_key_compatibility.sql` is absent from the candidate; no live migration ledger row was altered.
+- Candidate base is current `main` `92146ff4ef792112fe3a6113b41996f23722c86d`; PR #120 is open/unmerged and GitHub reports `mergeable=true`.
+
+Current-head CI passed:
+- [WP-11 security/database reconciliation — run #40082964599](https://github.com/core-system-md/clinic-evaluator/actions/runs/40082964599) — SUCCESS.
+- [C-03 hybrid config release gate — run #40082964353](https://github.com/core-system-md/clinic-evaluator/actions/runs/40082964353) — SUCCESS.
+- [P3 kernel verification — run #40082964346](https://github.com/core-system-md/clinic-evaluator/actions/runs/40082964346) — SUCCESS.
+
+These are isolated CI/disposable-PostgreSQL tests, not proof of Production migration application, live RLS after change, negative HTTP/API access, or full empty-database replay. The missing historical DDL remains a non-blocking accepted limitation under the owner decision dated 2026-10-24.
+
+**Disposition:** the source/ledger identity discrepancy is reconciled in the candidate, not yet in `main` or Production. D-05 remains OPEN pending review/merge and authorized live policy/function verification. No Production migration or grant/policy change was applied; WP-12 remains NOT STARTED.
+
+
+### Current-head freshness rule
+
+The 2026-10-24 candidate checkpoint at `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed the recorded CI runs, but subsequent documentation commits advanced `main`. Treat that SHA as a historical tested checkpoint only. Before acceptance, refresh PR #120's actual head/base, mergeability, review state, and CI results on the exact current head. Do not repeat the schema-provenance search; the owner decision remains in force.

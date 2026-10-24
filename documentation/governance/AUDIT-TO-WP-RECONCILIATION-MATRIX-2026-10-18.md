@@ -308,3 +308,19 @@ Authority: owner instruction in the 2026-10-24 continuation; full decision: `doc
 - This decision does not authorize Production writes, schema/grant/policy changes, migration application/history rewrite, deployment, PR merge, or WP-12. Preserve C-01/C-02/C-03 CLOSED and WP-12 NOT STARTED.
 
 **Acceptance rule:** the provenance limitation is not a blocking dependency; D-05 can close only after its remaining technical gates have evidence-backed dispositions. Do not close D-05 based on documentation alone.
+
+
+## Latest D-05 / WP-11 checkpoint — 2026-10-24
+
+- Historical provenance for 18 tables is now an **accepted non-blocking limitation** per `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md`. Do not repeat the unavailable-source search or use it as a blocker for unrelated future work.
+- PR #120 was reconciled onto current `main` with a conflict-free merge commit; current head `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7`, base `92146ff4ef792112fe3a6113b41996f23722c86d`, `mergeable=true`.
+- Current read-only source/ledger comparison: 57 unique live applied IDs; 58 migration SQL files in candidate; zero live IDs missing source; one source-only file, the proposed unapplied WP-11 migration `20261018120000_wp11_security_database_reconciliation.sql`. No applied migration ledger rows were changed.
+- Current-head CI passed: WP-11 #40082964599, C-03 #40082964353, and P3/full suite #40082964346.
+- PR #120 remains open/unmerged and independent review is absent. CI evidence is isolated/disposable, not Production acceptance. No Production migration, grants/policy change, deployment, or live ledger mutation was performed. WP-12 remains NOT STARTED; C-01/C-02/C-03 remain CLOSED.
+- **D-05 status:** OPEN pending PR review/merge and authorized live verification of the proposed policy/function changes. The missing historical schema source is no longer a blocking dependency.
+
+
+
+### Exact-head acceptance rule — 2026-10-24
+
+Candidate `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed its three recorded CI workflows, but later documentation-only commits advanced `main`. The candidate SHA's CI remains historical evidence, not current-head acceptance after a branch sync. Re-check PR #120's current head/base, mergeability, review state, and CI after the next sync. This does not reinstate the missing historical schema as a blocker.
