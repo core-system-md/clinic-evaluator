@@ -2892,3 +2892,8 @@ Current-head CI passed:
 These are isolated CI/disposable-PostgreSQL tests, not proof of Production migration application, live RLS after change, negative HTTP/API access, or full empty-database replay. The missing historical DDL remains a non-blocking accepted limitation under the owner decision dated 2026-10-24.
 
 **Disposition:** the source/ledger identity discrepancy is reconciled in the candidate, not yet in `main` or Production. D-05 remains OPEN pending review/merge and authorized live policy/function verification. No Production migration or grant/policy change was applied; WP-12 remains NOT STARTED.
+
+
+### Current-head freshness rule
+
+The 2026-10-24 candidate checkpoint at `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed the recorded CI runs, but subsequent documentation commits advanced `main`. Treat that SHA as a historical tested checkpoint only. Before acceptance, refresh PR #120's actual head/base, mergeability, review state, and CI results on the exact current head. Do not repeat the schema-provenance search; the owner decision remains in force.
