@@ -2854,3 +2854,20 @@ A fresh catalog query enumerated all 25 ordinary tables in `public`, reporting R
 - Per-table policy counts ranged from 0 to 8; counts alone do not prove policy correctness. The seven previously identified broad authenticated SELECT paths remain confirmed: `answers`, `assessment_types`, `axes`, `leads`, `options`, `questions`, `scores`. The separate `sessions_public_select USING (true)` policy remains latent because both tested client roles lack direct SELECT on `sessions`.
 
 This is catalog/effective-privilege evidence, not an HTTP API test and not a semantic PASS for all 25 tables. The 12 authenticated SELECT grants include intentional admin/read paths as well as the seven broad-policy defects; each policy's caller authorization must be reviewed independently. No privilege, RLS policy, schema object, or data was changed.
+
+
+## Owner decision — historical schema provenance is non-blocking (2026-10-24)
+
+Decision record: `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md`.
+
+The owner has directed that unavailable original DDL/backups must not block current or future work. Accordingly, the 18-table initial-DDL gap is classified **NON-BLOCKING / HISTORICAL PROVENANCE UNPROVEN**. Do not repeat the same search or ask the owner for the same unavailable artifact. Do not create a historical baseline from Production or infer missing DDL.
+
+The live definitions in this worksheet remain a time-bounded observation only; they do not establish original intent or prove clean empty-database replay. Future changes must validate relevant objects against current catalog evidence, tracked source, callers, and isolated tests. Full historical replay is required only if a future explicitly scoped deliverable truly requires it, and must not block unrelated work.
+
+**D-05 remains OPEN pending independent technical gates, not pending discovery of the missing historical artifact:**
+1. Migration source/ledger discrepancy is still not merged into `main`. PR #120 remains open/unmerged, `mergeable=false`; its exact current head is `82548fabe56e49abc2ce147732f7306286175c40`, with no status checks or PR-triggered workflow runs on that SHA and no submitted reviews. Runs reported for `8ae5009508929da000f0bfc772b0404a317779a2` do not prove acceptance of the current PR head.
+2. The recorded broad authenticated SELECT policy paths and latent `sessions_public_select USING (true)` still require a disposition consistent with WP-11 scope and existing owner constraints.
+3. Delegated SECURITY DEFINER authorization/state boundaries and negative-access/API behavior remain incompletely verified. Static marker scans and role-level catalog checks are not substitutes for targeted runtime tests.
+4. No Production change, migration application/history rewrite, policy/grant change, deployment, PR merge, deletion/recreation, or WP-12 start is authorized by the provenance decision.
+
+**Disposition:** provenance gap = non-blocking accepted limitation; D-05 = OPEN until the remaining technical and migration-reconciliation criteria are actually satisfied. Do not report D-05 closed solely because this owner decision was recorded.
