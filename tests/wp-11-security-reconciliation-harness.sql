@@ -43,6 +43,7 @@ create table public.leads (id integer primary key);
 create table public.options (id integer primary key);
 create table public.questions (id integer primary key);
 create table public.scores (id integer primary key);
+create table public.sessions (id integer primary key);
 
 create or replace function public.is_active_admin()
 returns boolean language sql stable security definer
@@ -108,6 +109,7 @@ alter table public.leads enable row level security;
 alter table public.options enable row level security;
 alter table public.questions enable row level security;
 alter table public.scores enable row level security;
+alter table public.sessions enable row level security;
 
 grant select on public.admin_users, public.answers, public.assessment_settings,
   public.assessment_types, public.axes, public.leads, public.options,
@@ -155,13 +157,16 @@ $initial_p0_policies$;
 -- Reproduce the live permissive-policy composition found during D-05 review.
 create policy answers_public_select on public.answers for select to public using (true);
 create policy "Allow public read access" on public.assessment_types for select to public using (true);
+create policy "Allow anon read assessment_types" on public.assessment_types for select to anon using (true);
 create policy assessment_types_public_read on public.assessment_types for select to public using (is_active = true);
 create policy "Allow public read access" on public.axes for select to public using (true);
 create policy "Allow all on axes" on public.axes for all to anon, authenticated using (true) with check (true);
 create policy "Allow public read access" on public.options for select to public using (true);
 create policy "Allow public read access" on public.questions for select to public using (true);
 create policy leads_owner_read on public.leads for select to public using (true);
+create policy "Allow anon update leads" on public.leads for update to anon using (true) with check (true);
 create policy scores_public_select on public.scores for select to public using (true);
+create policy sessions_public_select on public.sessions for select to public using (true);
 
 insert into public.admin_users(user_id, role, active) values
   ('11111111-1111-4111-8111-111111111111', 'owner', true),
@@ -253,12 +258,13 @@ begin
     where schemaname = 'public'
       and (
         (tablename = 'answers' and policyname = 'answers_public_select')
-        or (tablename = 'assessment_types' and policyname in ('Allow public read access','assessment_types_public_read'))
+        or (tablename = 'assessment_types' and policyname in ('Allow public read access','Allow anon read assessment_types','assessment_types_public_read'))
         or (tablename = 'axes' and policyname in ('Allow public read access','Allow all on axes'))
         or (tablename = 'options' and policyname = 'Allow public read access')
         or (tablename = 'questions' and policyname = 'Allow public read access')
-        or (tablename = 'leads' and policyname = 'leads_owner_read')
+        or (tablename = 'leads' and policyname in ('leads_owner_read','Allow anon update leads'))
         or (tablename = 'scores' and policyname = 'scores_public_select')
+        or (tablename = 'sessions' and policyname = 'sessions_public_select')
       )
   ) then
     raise exception 'a broad permissive public policy survived WP-11 migration';
