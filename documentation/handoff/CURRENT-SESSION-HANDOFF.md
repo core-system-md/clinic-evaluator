@@ -1,3 +1,15 @@
+# CURRENT OWNER DECISION — D-05 HISTORICAL SCHEMA PROVENANCE — 2026-10-24
+
+The owner has directed that the absence of original schema DDL/backups must not repeatedly block current or future work. Decision record: `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md` (commit `0015c91dd0ea1071c030f2f571e5b7269d04b5a1`).
+
+- The missing initial DDL for 18/25 tables is now a **non-blocking historical-provenance limitation**, not a prerequisite for future work. Do not ask the owner again to locate the same unavailable artifacts; do not synthesize a historical baseline from Production.
+- The live-schema worksheet remains an observational record, not proof of original schema intent or complete empty-database replay.
+- **D-05 is not yet technically closed:** the source/ledger discrepancy remains represented by open, unmerged PR #120; current PR head is `82548fabe56e49abc2ce147732f7306286175c40`, `mergeable=false`, with no status checks or PR workflow runs on that exact head. Reviews are absent. Do not use successful runs on another SHA as current-head acceptance.
+- Remaining WP-11 technical acceptance also includes the recorded RLS/function authorization review and required targeted negative-access/API evidence. No Production writes, migration-history rewrite, policy/grant changes, deployment, PR merge, or WP-12 start was authorized by this decision.
+- Continue only the concrete remaining technical gates. Do not repeat historical provenance searches absent a newly identified source. WP-12 remains NOT STARTED; C-01/C-02/C-03 remain CLOSED.
+
+---
+
 # SESSION CLOSEOUT — 2026-10-21 — EXACT CONTINUATION POINT
 
 ## Safe stop and actual scope
