@@ -1,12 +1,20 @@
-# CURRENT OWNER DECISION — D-05 HISTORICAL SCHEMA PROVENANCE — 2026-10-24
+# CURRENT SESSION STATUS — WP-11 CLOSED — 2026-10-24
 
-The owner has directed that the absence of original schema DDL/backups must not repeatedly block current or future work. Decision record: `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md` (commit `0015c91dd0ea1071c030f2f571e5b7269d04b5a1`).
+**WP-11 §41: CLOSED. D-05: CLOSED with accepted non-blocking historical provenance limitation. WP-12 §42: NOT STARTED.** C-01/C-02/C-03 remain CLOSED.
 
-- The missing initial DDL for 18/25 tables is now a **non-blocking historical-provenance limitation**, not a prerequisite for future work. Do not ask the owner again to locate the same unavailable artifacts; do not synthesize a historical baseline from Production.
-- The live-schema worksheet remains an observational record, not proof of original schema intent or complete empty-database replay.
-- **D-05 is not yet technically closed:** PR #120 now reconciles migration source identities in its current candidate `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` on current `main` base `92146ff4ef792112fe3a6113b41996f23722c86d`; GitHub reports `mergeable=true`. A fresh tree-to-ledger comparison confirms all 57 live migration IDs have tracked source paths; the only source-only path is the proposed unapplied WP-11 migration `20261018120000_wp11_security_database_reconciliation.sql`. Current-head CI passed: WP-11 #40082964599, C-03 #40082964353, and P3/full suite #40082964346. PR #120 remains open/unmerged and has no independent submitted review. These are isolated CI results, not Production application or live API/E2E evidence.
-- Remaining WP-11 technical acceptance also includes the recorded RLS/function authorization review and required targeted negative-access/API evidence. No Production writes, applied-ledger rewrite, policy/grant changes, deployment, PR merge, or WP-12 start was authorized by this decision.
-- Continue only the concrete remaining technical gates. Do not repeat historical provenance searches absent a newly identified source. WP-12 remains NOT STARTED; C-01/C-02/C-03 remain CLOSED.
+Authoritative closeout: `documentation/handoff/WP-11-CLOSEOUT-2026-10-24.md`.
+
+- Owner decision: unavailable original DDL/backups for 18/25 tables must not block current/future work; do not repeat the same search or synthesize a Production-derived baseline.
+- PR #120 merged: `40acea30853a13ef78b029fbb936a724bec80516`.
+- PR #121 merged: `73e0fa2f7f26ac1d28dd0a2606fdf41a751db8c6`.
+- Supabase Production migration recorded as `20261024095410_wp11_security_database_reconciliation`; source now matches the ledger. Read-only comparison: 58 unique live versions, 58 tracked SQL migration files, no missing source identities and no source-only migrations.
+- Live catalog/role checks: 25/25 public tables retain RLS; targeted broad policies removed; no targeted broad policies remain; UUID identity probes denied to authenticated/anon while service_role grants remain; approved admin SELECT preserved and excess admin-table privileges revoked.
+- Live PostgreSQL negative checks and isolated PostgreSQL CI passed. A direct live HTTP/PostgREST request was not run and is explicitly not claimed as passed.
+- Current-main CI on `73e0fa2f7f26ac1d28dd0a2606fdf41a751db8c6`: WP-11 #40083968057 SUCCESS; P3 #40083968073 SUCCESS.
+- Cloudflare Pages automatically deployed merge commits `40acea3...` and `73e0fa2...` (deployments `65651bb2`, `bcc87438`); no frontend source changed. Use `[CF-Pages-Skip]` on documentation-only commits.
+- Do not make further Production changes from this closeout. Do not start WP-12.
+
+Historical sections below are retained as an audit trail; where they say WP-11/D-05 was open, that status is superseded by the 2026-10-24 closeout linked above.
 
 ---
 
