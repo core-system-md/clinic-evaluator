@@ -337,3 +337,29 @@ Candidate `29ba1c6e33b12503f43f2f9c765c3c16a04b18a7` passed its three recorded C
 - Cloudflare Pages automatically deployed merge commits `40acea3...` and `73e0fa2...`; both deployments succeeded, and neither PR changed frontend application source. Future documentation-only commits must use `[CF-Pages-Skip]`.
 
 See `documentation/handoff/WP-11-CLOSEOUT-2026-10-24.md` for the complete evidence boundary. No WP-12 work or further Production changes are authorized by this closeout.
+
+## Session closeout — WP-12 scope explanation only — 2026-10-24
+
+**Disposition:** No WP-12 execution occurred in this session. WP-11 §41 and D-05 remain CLOSED as recorded in the authoritative 2026-10-24 closeout above. WP-12 §42 remains NOT STARTED. This addendum records the session boundary; it does not change any Audit finding's status, ownership, evidence, or residual work.
+
+### Work actually performed in this session
+- Read the current handoff and the final implementation contract, including §42 (WP-12), §43 (product acceptance), and §44 (engineering acceptance), and reviewed the reconciliation matrix's existing WP-10/WP-11 dispositions.
+- Explained WP-12's contract-defined layers: source/static checks; unit tests; integration tests; E2E per in-scope V1 assessment; failure/retry cases; and runtime verification of the deployed Edge Function and public/admin behavior.
+- Identified the previously assigned cross-stage verification obligations for D-04, D-06, D-12, and D-17, without claiming they were closed.
+- No repository source, test, migration, configuration, or documentation file was changed during the explanatory work itself before this closeout update. No test command, CI run, E2E, direct HTTP/PostgREST request, deployment, or Production mutation was performed in this session.
+- No finding was removed, reclassified, or closed based on absent evidence. C-01, C-02, and C-03 remain CLOSED under their approved dispositions.
+
+### WP-12 obligations to carry forward
+Use §42 of `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md` as the controlling scope. Before executing tests, inspect the existing test inventory and CI workflows and map existing evidence to each requirement to avoid duplicating completed work. Keep each gate explicitly PASS / FAIL / NOT RUN / BLOCKED with its exact evidence and commit/version context.
+
+1. **Source/static:** imports, ownership, forbidden engine paths, forbidden Leakage fields, report references, and version naming.
+2. **Unit:** scoring, weights, interpretation, consistency, KPI, EV, diagnostics, report selection, and report validation.
+3. **Integration:** session creation, answer storage, completion, engine, Structured Result, and persistence.
+4. **E2E:** for every in-scope V1 assessment, `open → answer → save → complete → calculate → persist → produce report`.
+5. **Failure/retry:** missing/malformed answer, partial coverage, repeated/concurrent completion, stale version, and invalid configuration.
+6. **Runtime:** deployed Edge Function and final public/admin behavior. A direct HTTP/PostgREST check was not performed in the WP-11 closeout and must not be represented as already passed.
+
+D-04: verify admin report has no Trap/Leakage output and uses the authoritative result. D-06: verify annual visits/economic assumptions across input, calculation, and report, including boundary cases. D-12: verify no legacy/competing report or engine path and confirm the already-closed WP-11 database-function/permission work is not inadvertently reopened; complete the remaining layered behavioral verification. D-17: verify Structured Result precision through persistence and reporting, including the agreed legacy integer-field boundary. These are verification obligations, not authorization for new architecture or production changes.
+
+### Exact continuation point
+WP-12 has not started. The next session's first action is **read the current `CURRENT-SESSION-HANDOFF.md` and §42–§44 of the final implementation contract, then build a requirement-to-existing-test/evidence inventory from the repository and CI without changing code or Production**. Identify coverage gaps only after that inventory. Do not start implementation, merge, deploy, or mutate Production without the required explicit authorization. Preserve all existing Audit IDs and dispositions, and do not reopen C-01/C-02/C-03.
