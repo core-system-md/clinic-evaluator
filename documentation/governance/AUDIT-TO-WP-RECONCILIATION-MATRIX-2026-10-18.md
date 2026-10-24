@@ -294,3 +294,17 @@ The D-05 worksheet records a fresh read-only Production role check and full 25-t
 PR #120 remains OPEN / UNMERGED at `82548fabe56e49abc2ce147732f7306286175c40`; no current-head workflow runs or commit statuses were returned. Main still has 56 migration files against 57 live migration ledger entries, with source identity discrepancies `20261018075528`, `20261018075855`, and source-only `20261018110000`. The initial CREATE TABLE definitions for 18 live public tables remain absent from tracked migrations, and no authoritative external schema archive was located in the available repository/Library search. No baseline was synthesized from Production metadata.
 
 **Disposition unchanged:** D-05 OPEN / BLOCKING RECONCILIATION; WP-11 IN PROGRESS; WP-12 NOT STARTED. C-01/C-02/C-03 remain closed. No database permissions/policies/schema were changed, no migration was applied, and PR #120 was not merged. The required `[CF-Pages-Skip]` prefix must be used for documentation-only commits.
+
+
+## OWNER DECISION ADDENDUM — D-05 SCHEMA PROVENANCE NON-BLOCKING — 2026-10-24
+
+Authority: owner instruction in the 2026-10-24 continuation; full decision: `documentation/governance/D-05-OWNER-DECISION-NONBLOCKING-SCHEMA-PROVENANCE-2026-10-24.md`.
+
+- The missing original DDL/backup for 18 of 25 live public tables is accepted as a **non-blocking historical-provenance limitation**. It must not be re-raised as a prerequisite for unrelated current/future work, and the same unavailable artifact must not be requested again.
+- No historical baseline may be synthesized from Production; no table deletion/recreation or applied migration-history rewrite is permitted.
+- The current live-schema worksheet is observational, not proof of original schema intent or full empty-database replay. Revisit provenance only if a new authoritative source appears, a concrete regression/defect is evidenced, or a separately scoped requirement explicitly needs replay.
+- D-05 itself remains OPEN for its separate technical gates: source/ledger reconciliation in PR #120 is not merged or current-head CI-verified; the documented broad authenticated SELECT policy paths and latent sessions policy remain to be dispositioned; delegated function authorization and targeted negative-access/API evidence remain incomplete.
+- Current PR #120 head: `82548fabe56e49abc2ce147732f7306286175c40`; GitHub reports `mergeable=false`, no status checks or PR-triggered runs for that exact SHA, and no submitted reviews. Successful workflows tied to a different SHA do not satisfy the current-head gate.
+- This decision does not authorize Production writes, schema/grant/policy changes, migration application/history rewrite, deployment, PR merge, or WP-12. Preserve C-01/C-02/C-03 CLOSED and WP-12 NOT STARTED.
+
+**Acceptance rule:** the provenance limitation is not a blocking dependency; D-05 can close only after its remaining technical gates have evidence-backed dispositions. Do not close D-05 based on documentation alone.
