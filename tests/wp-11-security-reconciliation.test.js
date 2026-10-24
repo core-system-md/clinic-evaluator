@@ -78,6 +78,9 @@ test("WP-11 D-05 removes the observed broad public RLS policies", () => {
     /drop policy if exists answers_public_select on public\.answers/i,
     /drop policy if exists "Allow public read access" on public\.assessment_types/i,
     /drop policy if exists assessment_types_public_read on public\.assessment_types/i,
+    /drop policy if exists "Allow anon read assessment_types" on public\.assessment_types/i,
+    /drop policy if exists "Allow anon update leads" on public\.leads/i,
+    /drop policy if exists sessions_public_select on public\.sessions/i,
     /drop policy if exists "Allow public read access" on public\.axes/i,
     /drop policy if exists "Allow all on axes" on public\.axes/i,
     /drop policy if exists "Allow public read access" on public\.options/i,
@@ -89,6 +92,9 @@ test("WP-11 D-05 removes the observed broad public RLS policies", () => {
   for (const policy of [
     "answers_public_select",
     "assessment_types_public_read",
+    "Allow anon read assessment_types",
+    "Allow anon update leads",
+    "sessions_public_select",
     "leads_owner_read",
     "scores_public_select",
     "Allow all on axes",
@@ -102,7 +108,7 @@ test("WP-11 migration fails closed on missing expected schema objects or policie
   assert.match(migration, /to_regprocedure\('public\.is_active_admin\(uuid\)'\)/i);
   assert.match(migration, /to_regprocedure\('public\.is_owner\(uuid\)'\)/i);
   assert.match(migration, /expected 13 known admin identity policies/i);
-  assert.match(migration, /expected RLS enabled on 11 protected tables/i);
+  assert.match(migration, /expected RLS enabled on 12 protected tables/i);
   assert.match(migration, /c\.relrowsecurity/i);
   assert.match(migration, /begin;/i);
   assert.match(migration, /commit;/i);
