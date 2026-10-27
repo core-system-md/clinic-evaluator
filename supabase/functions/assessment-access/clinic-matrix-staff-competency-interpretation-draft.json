@@ -1,6 +1,6 @@
 {
   "schemaVersion": "P3_RESPONSE_INTERPRETATION_REGISTRY_V2",
-  "status": "draft-review-only",
+  "status": "implementation-authoritative",
   "entries": [
     {
       "assessmentSlug": "clinic-matrix-staff-competency",
@@ -665,11 +665,11 @@
       "anchorScaleId": "ANCHOR_0_40_70_100_V2",
       "anchorScore": 70,
       "scoreEligible": true,
-      "criticality": "NORMAL",
+      "criticality": "CRITICAL_FINDING",
       "consistencyRole": "NONE",
       "evidenceRole": "PRACTICE_CLAIM",
       "contextRequired": false,
-      "scoringRationale": "Draft Clinic Matrix scoring anchor; requires owner content review before publication.",
+      "scoringRationale": "Draft Clinic Matrix scoring anchor; requires owner content review before publication. This selection also raises a separate professional-conduct review flag; it does not independently subtract points.",
       "interpretationVersion": 2,
       "anchorMax": 100,
       "axisCode": "A3"
@@ -805,11 +805,11 @@
       "anchorScaleId": "ANCHOR_0_40_70_100_V2",
       "anchorScore": 70,
       "scoreEligible": true,
-      "criticality": "NORMAL",
+      "criticality": "CRITICAL_FINDING",
       "consistencyRole": "NONE",
       "evidenceRole": "PRACTICE_CLAIM",
       "contextRequired": false,
-      "scoringRationale": "Draft Clinic Matrix scoring anchor; requires owner content review before publication.",
+      "scoringRationale": "Draft Clinic Matrix scoring anchor; requires owner content review before publication. This selection also raises a separate professional-conduct review flag; it does not independently subtract points.",
       "interpretationVersion": 2,
       "anchorMax": 100,
       "axisCode": "A4"
@@ -1057,11 +1057,11 @@
       "anchorScaleId": "ANCHOR_0_40_70_100_V2",
       "anchorScore": 40,
       "scoreEligible": true,
-      "criticality": "NORMAL",
+      "criticality": "CRITICAL_FINDING",
       "consistencyRole": "NONE",
       "evidenceRole": "PRACTICE_CLAIM",
       "contextRequired": false,
-      "scoringRationale": "Draft Clinic Matrix scoring anchor; requires owner content review before publication.",
+      "scoringRationale": "Draft Clinic Matrix scoring anchor; requires owner content review before publication. This selection also raises a separate professional-conduct review flag; it does not independently subtract points.",
       "interpretationVersion": 2,
       "anchorMax": 100,
       "axisCode": "A5"
