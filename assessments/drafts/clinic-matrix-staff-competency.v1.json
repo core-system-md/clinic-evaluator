@@ -15,35 +15,35 @@
         {
           "code": "Q1",
           "text_ar": "وصل استفسار عبر واتساب عن إجراء تجميلي وسعره فقط. ما أفضل رد أولي؟",
-          "text": "وصل استفسار عبر واتساب عن إجراء تجميلي وسعره فقط. ما أفضل رد أولي؟",
+          "text": "A patient asks via WhatsApp only about a cosmetic procedure and its price. What is the best initial response?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000001",
               "label_ar": "إرسال السعر فقط وإنهاء المحادثة",
-              "label": "إرسال السعر فقط وإنهاء المحادثة",
-              "value": 70,
+              "label": "Send only the price and end the conversation.",
+              "value": 40,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000002",
               "label_ar": "سؤال المراجع عن تفاصيل كثيرة قبل الرد",
-              "label": "سؤال المراجع عن تفاصيل كثيرة قبل الرد",
+              "label": "Ask many detailed questions before answering.",
               "value": 40,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000003",
               "label_ar": "إرسال قائمة طويلة بكل الخدمات",
-              "label": "إرسال قائمة طويلة بكل الخدمات",
+              "label": "Send a long list of all available services.",
               "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000004",
               "label_ar": "الترحيب والإجابة عن السؤال بوضوح ثم طرح سؤال قصير لفهم احتياجه واقتراح الخطوة المناسبة",
-              "label": "الترحيب والإجابة عن السؤال بوضوح ثم طرح سؤال قصير لفهم احتياجه واقتراح الخطوة المناسبة",
+              "label": "Welcome the patient, answer clearly, then ask one brief question to understand their needs and suggest an appropriate next step.",
               "value": 100,
               "is_trap": false
             }
@@ -52,36 +52,36 @@
         {
           "code": "Q2",
           "text_ar": "المراجع يقرأ الرسائل لكنه لا يؤكد الموعد. كيف تتابع؟",
-          "text": "المراجع يقرأ الرسائل لكنه لا يؤكد الموعد. كيف تتابع؟",
+          "text": "The patient reads messages but does not confirm the appointment. How do you follow up?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000005",
               "label_ar": "إرسال تذكيرات متكررة حتى يرد",
-              "label": "إرسال تذكيرات متكررة حتى يرد",
+              "label": "Send repeated reminders until they reply.",
               "value": 40,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000006",
               "label_ar": "رسالة واحدة مهذبة تتضمن خيارين مناسبين وتترك له حرية القرار",
-              "label": "رسالة واحدة مهذبة تتضمن خيارين مناسبين وتترك له حرية القرار",
+              "label": "Send one polite message with two suitable options and leave the decision to the patient.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000007",
               "label_ar": "إغلاق المحادثة دون متابعة",
-              "label": "إغلاق المحادثة دون متابعة",
-              "value": 70,
+              "label": "Close the conversation without following up.",
+              "value": 40,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000008",
               "label_ar": "إرسال عرض تخفيض فوري دون معرفة سبب التردد",
-              "label": "إرسال عرض تخفيض فوري دون معرفة سبب التردد",
-              "value": 70,
+              "label": "Offer an immediate discount without understanding the hesitation.",
+              "value": 40,
               "is_trap": false
             }
           ]
@@ -97,36 +97,36 @@
         {
           "code": "Q3",
           "text_ar": "وصل مراجع للعيادة ويقول إنه غير متأكد من الخدمة التي يحتاجها. ماذا تفعل؟",
-          "text": "وصل مراجع للعيادة ويقول إنه غير متأكد من الخدمة التي يحتاجها. ماذا تفعل؟",
+          "text": "A patient arrives at the clinic and is unsure which service they need. What do you do?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000009",
               "label_ar": "الترحيب به وطرح أسئلة موجزة لفهم هدف الزيارة ثم توجيهه للمختص المناسب",
-              "label": "الترحيب به وطرح أسئلة موجزة لفهم هدف الزيارة ثم توجيهه للمختص المناسب",
+              "label": "Welcome them, ask brief questions to understand the purpose of the visit, then direct them to the appropriate specialist.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000010",
               "label_ar": "اقتراح الإجراء الأكثر طلباً مباشرة",
-              "label": "اقتراح الإجراء الأكثر طلباً مباشرة",
-              "value": 70,
+              "label": "Immediately recommend the most popular procedure.",
+              "value": 40,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000011",
               "label_ar": "إحالته إلى الطبيب دون توضيح أي معلومات",
-              "label": "إحالته إلى الطبيب دون توضيح أي معلومات",
-              "value": 40,
+              "label": "Refer them to the doctor without explaining any information.",
+              "value": 70,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000012",
               "label_ar": "افتراض أنه جاء للحجز الذي شاهده على الإنترنت",
-              "label": "افتراض أنه جاء للحجز الذي شاهده على الإنترنت",
-              "value": 70,
+              "label": "Assume they came to book the service they saw online.",
+              "value": 40,
               "is_trap": false
             }
           ]
@@ -134,36 +134,36 @@
         {
           "code": "Q4",
           "text_ar": "المراجع متأخر والانتظار مزدحم، وهو منزعج من التأخير. ما التصرف الأفضل؟",
-          "text": "المراجع متأخر والانتظار مزدحم، وهو منزعج من التأخير. ما التصرف الأفضل؟",
+          "text": "The patient is upset about a delay while the waiting area is crowded. What is the best response?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000013",
               "label_ar": "إخباره أن التأخير ليس مسؤوليتك",
-              "label": "إخباره أن التأخير ليس مسؤوليتك",
+              "label": "Tell them the delay is not your responsibility.",
               "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000014",
               "label_ar": "تجاهل انزعاجه حتى يحين دوره",
-              "label": "تجاهل انزعاجه حتى يحين دوره",
-              "value": 70,
+              "label": "Ignore their frustration until their turn comes.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000015",
               "label_ar": "الاعتذار وتوضيح وقت الانتظار المتوقع بصدق وعرض الخيارات المتاحة",
-              "label": "الاعتذار وتوضيح وقت الانتظار المتوقع بصدق وعرض الخيارات المتاحة",
+              "label": "Apologize, honestly explain the expected wait, and offer the available options.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000016",
               "label_ar": "وعده بأنه سيدخل خلال دقائق دون التأكد",
-              "label": "وعده بأنه سيدخل خلال دقائق دون التأكد",
-              "value": 40,
+              "label": "Promise they will be seen within minutes without checking.",
+              "value": 0,
               "is_trap": false
             }
           ]
@@ -179,36 +179,36 @@
         {
           "code": "Q5",
           "text_ar": "يشرح المراجع تجربة سابقة لم تكن مرضية ويبدو متخوفاً. كيف تستجيب؟",
-          "text": "يشرح المراجع تجربة سابقة لم تكن مرضية ويبدو متخوفاً. كيف تستجيب؟",
+          "text": "The patient describes a previous unsatisfactory experience and seems apprehensive. How do you respond?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000017",
               "label_ar": "الاستماع دون مقاطعة وتلخيص ما فهمته ثم تنسيق ما يلزم مع الفريق الطبي",
-              "label": "الاستماع دون مقاطعة وتلخيص ما فهمته ثم تنسيق ما يلزم مع الفريق الطبي",
-              "value": 40,
+              "label": "Listen without interrupting, summarize what you understood, and coordinate with the clinical team as needed.",
+              "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000018",
               "label_ar": "طمأنته بأن النتيجة هذه المرة مضمونة",
-              "label": "طمأنته بأن النتيجة هذه المرة مضمونة",
-              "value": 100,
+              "label": "Reassure them that the result is guaranteed this time.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000019",
               "label_ar": "الانتقال سريعاً إلى شرح العروض المتاحة",
-              "label": "الانتقال سريعاً إلى شرح العروض المتاحة",
-              "value": 70,
+              "label": "Quickly move on to explaining the available offers.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000020",
               "label_ar": "إخباره أن التجربة السابقة لا تعني شيئاً",
-              "label": "إخباره أن التجربة السابقة لا تعني شيئاً",
-              "value": 100,
+              "label": "Tell them the previous experience means nothing.",
+              "value": 0,
               "is_trap": false
             }
           ]
@@ -216,36 +216,36 @@
         {
           "code": "Q6",
           "text_ar": "يسألك المراجع عن ملاءمة إجراء طبي لحالته، وأنت لست من الفريق السريري. ماذا تقول؟",
-          "text": "يسألك المراجع عن ملاءمة إجراء طبي لحالته، وأنت لست من الفريق السريري. ماذا تقول؟",
+          "text": "The patient asks whether a medical procedure is suitable for their condition, but you are not part of the clinical team. What do you say?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000021",
               "label_ar": "تقديم رأيك الشخصي كي لا ينتظر",
-              "label": "تقديم رأيك الشخصي كي لا ينتظر",
-              "value": 70,
+              "label": "Give your personal opinion so they do not have to wait.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000022",
               "label_ar": "تخمين الإجابة بناءً على حالات مشابهة",
-              "label": "تخمين الإجابة بناءً على حالات مشابهة",
+              "label": "Guess based on similar cases.",
               "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000023",
               "label_ar": "توضيح حدود دورك وترتيب إجابة من المختص السريري",
-              "label": "توضيح حدود دورك وترتيب إجابة من المختص السريري",
+              "label": "Explain the limits of your role and arrange an answer from a qualified clinical professional.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000024",
               "label_ar": "تأكيد أن الإجراء مناسب ما دام شائعاً",
-              "label": "تأكيد أن الإجراء مناسب ما دام شائعاً",
-              "value": 70,
+              "label": "Confirm the procedure is suitable because it is commonly performed.",
+              "value": 0,
               "is_trap": false
             }
           ]
@@ -261,36 +261,36 @@
         {
           "code": "Q7",
           "text_ar": "بعد الاستشارة، يسأل المراجع عن الفرق بين خيارين والتكلفة النهائية. ما الأفضل؟",
-          "text": "بعد الاستشارة، يسأل المراجع عن الفرق بين خيارين والتكلفة النهائية. ما الأفضل؟",
+          "text": "After the consultation, the patient asks about the difference between two options and the final cost. What is best?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000025",
               "label_ar": "توجيهه إلى الخيار الأعلى سعراً لأنه أشمل",
-              "label": "توجيهه إلى الخيار الأعلى سعراً لأنه أشمل",
-              "value": 70,
+              "label": "Direct them to the more expensive option because it is more comprehensive.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000026",
               "label_ar": "شرح الفروق والحدود والتكاليف المتوقعة بوضوح والتحقق من فهمه",
-              "label": "شرح الفروق والحدود والتكاليف المتوقعة بوضوح والتحقق من فهمه",
+              "label": "Clearly explain the differences, limitations, and expected costs, then check their understanding.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000027",
               "label_ar": "ذكر السعر الأساسي فقط وترك الرسوم الأخرى لاحقاً",
-              "label": "ذكر السعر الأساسي فقط وترك الرسوم الأخرى لاحقاً",
-              "value": 100,
+              "label": "Quote only the base price and leave other fees until later.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000028",
               "label_ar": "شرح الخيارات بلغة بسيطة مع توضيح التكلفة والقيود لكل خيار",
-              "label": "شرح الخيارات بلغة بسيطة مع توضيح التكلفة والقيود لكل خيار",
-              "value": 70,
+              "label": "Explain the options in simple language and clarify the cost and limitations of each.",
+              "value": 100,
               "is_trap": false
             }
           ]
@@ -298,36 +298,36 @@
         {
           "code": "Q8",
           "text_ar": "تغيّرت تكلفة أحد عناصر الخطة بعد توضيح التفاصيل. كيف تتعامل؟",
-          "text": "تغيّرت تكلفة أحد عناصر الخطة بعد توضيح التفاصيل. كيف تتعامل؟",
+          "text": "The cost of one part of the plan changes after the details are clarified. How do you handle this?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000029",
               "label_ar": "تجنب ذكر التغيير حتى يوافق",
-              "label": "تجنب ذكر التغيير حتى يوافق",
-              "value": 70,
+              "label": "Avoid mentioning the change until the patient agrees.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000030",
               "label_ar": "إبلاغه عند الدفع فقط",
-              "label": "إبلاغه عند الدفع فقط",
-              "value": 40,
+              "label": "Tell the patient only when they pay.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000031",
               "label_ar": "توضيح سبب التغيير والتكلفة المحدّثة قبل أي التزام وأخذ موافقته",
-              "label": "توضيح سبب التغيير والتكلفة المحدّثة قبل أي التزام وأخذ موافقته",
+              "label": "Explain the reason and updated cost before any commitment, and obtain the patient's agreement.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000032",
               "label_ar": "عرض رقم تقريبي دون توضيح ما يشمله",
-              "label": "عرض رقم تقريبي دون توضيح ما يشمله",
-              "value": 70,
+              "label": "Give an approximate figure without explaining what it includes.",
+              "value": 40,
               "is_trap": false
             }
           ]
@@ -343,36 +343,36 @@
         {
           "code": "Q9",
           "text_ar": "يقول المراجع إن السعر أعلى مما توقع. كيف ترد؟",
-          "text": "يقول المراجع إن السعر أعلى مما توقع. كيف ترد؟",
+          "text": "The patient says the price is higher than expected. How do you respond?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000033",
               "label_ar": "فهم ما يقلقه وشرح ما يشمله السعر والبدائل المتاحة دون ضغط",
-              "label": "فهم ما يقلقه وشرح ما يشمله السعر والبدائل المتاحة دون ضغط",
+              "label": "Understand their concern and explain what the price includes and which alternatives are available, without pressure.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000034",
               "label_ar": "عرض خصم فوراً قبل فهم اعتراضه",
-              "label": "عرض خصم فوراً قبل فهم اعتراضه",
-              "value": 100,
+              "label": "Offer a discount immediately before understanding the objection.",
+              "value": 40,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000035",
               "label_ar": "القول إن السعر المرتفع يضمن نتيجة أفضل",
-              "label": "القول إن السعر المرتفع يضمن نتيجة أفضل",
-              "value": 70,
+              "label": "Say that the higher price guarantees a better result.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000036",
               "label_ar": "توضيح مكونات السعر وإتاحة الوقت له لاتخاذ القرار",
-              "label": "توضيح مكونات السعر وإتاحة الوقت له لاتخاذ القرار",
-              "value": 70,
+              "label": "Explain the price components and give the patient time to decide.",
+              "value": 100,
               "is_trap": false
             }
           ]
@@ -380,36 +380,36 @@
         {
           "code": "Q10",
           "text_ar": "يتردد المراجع لأن النتيجة غير مضمونة ويطلب منك تأكيداً. ما التصرف الأنسب؟",
-          "text": "يتردد المراجع لأن النتيجة غير مضمونة ويطلب منك تأكيداً. ما التصرف الأنسب؟",
+          "text": "The patient hesitates because the outcome is not guaranteed and asks you to reassure them. What is the most appropriate response?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000037",
               "label_ar": "توضيح أن النتائج تختلف وأن المختص يشرح التوقعات والمخاطر الواقعية",
-              "label": "توضيح أن النتائج تختلف وأن المختص يشرح التوقعات والمخاطر الواقعية",
+              "label": "Explain that outcomes vary and that the clinical professional can discuss realistic expectations and risks.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000038",
               "label_ar": "تأكيد أنه سيحصل على النتيجة التي يريدها",
-              "label": "تأكيد أنه سيحصل على النتيجة التي يريدها",
-              "value": 40,
+              "label": "Promise that they will get the result they want.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000039",
               "label_ar": "استخدام صور نتائج الآخرين لإقناعه بأن النتيجة مضمونة",
-              "label": "استخدام صور نتائج الآخرين لإقناعه بأن النتيجة مضمونة",
-              "value": 100,
+              "label": "Use photos of other patients' results to persuade them that the outcome is guaranteed.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000040",
               "label_ar": "توضيح حدود النتائج الممكنة وإحالته إلى المختص لأي أسئلة سريرية",
-              "label": "توضيح حدود النتائج الممكنة وإحالته إلى المختص لأي أسئلة سريرية",
-              "value": 70,
+              "label": "Clarify the limits of possible outcomes and refer clinical questions to the appropriate specialist.",
+              "value": 100,
               "is_trap": false
             }
           ]
@@ -425,35 +425,35 @@
         {
           "code": "Q11",
           "text_ar": "انتهت الزيارة والمراجع مهتم لكنه لم يقرر الحجز. كيف تنهي المحادثة؟",
-          "text": "انتهت الزيارة والمراجع مهتم لكنه لم يقرر الحجز. كيف تنهي المحادثة؟",
+          "text": "The visit has ended and the patient is interested but has not decided to book. How do you close the conversation?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000041",
               "label_ar": "طلب قرار فوري حتى لا يفقد العرض",
-              "label": "طلب قرار فوري حتى لا يفقد العرض",
-              "value": 70,
+              "label": "Demand an immediate decision so they do not lose the offer.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000042",
               "label_ar": "تلخيص الخطوة التالية المتاحة وسؤاله إن كان يرغب في الحجز أو وقت للتفكير",
-              "label": "تلخيص الخطوة التالية المتاحة وسؤاله إن كان يرغب في الحجز أو وقت للتفكير",
+              "label": "Summarize the available next step and ask whether they would like to book or take time to think.",
               "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000043",
               "label_ar": "تركه دون توضيح طريقة التواصل لاحقاً",
-              "label": "تركه دون توضيح طريقة التواصل لاحقاً",
-              "value": 70,
+              "label": "Leave without explaining how they can contact the clinic later.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000044",
               "label_ar": "إتاحة خيار الحجز أو المتابعة لاحقاً وتوضيح كيفية التواصل",
-              "label": "إتاحة خيار الحجز أو المتابعة لاحقاً وتوضيح كيفية التواصل",
+              "label": "Offer the choice to book now or follow up later, and explain how to get in touch.",
               "value": 100,
               "is_trap": false
             }
@@ -462,36 +462,36 @@
         {
           "code": "Q12",
           "text_ar": "لم يحضر المراجع موعده ولم يرد على الاتصال الأول. ما المتابعة الأفضل؟",
-          "text": "لم يحضر المراجع موعده ولم يرد على الاتصال الأول. ما المتابعة الأفضل؟",
+          "text": "The patient missed their appointment and did not answer the first call. What is the best follow-up?",
           "question_type": "select",
           "is_required": true,
           "options": [
             {
               "id": "90000000-0000-4000-8000-000000000045",
               "label_ar": "إرسال رسالة لوم على عدم الحضور",
-              "label": "إرسال رسالة لوم على عدم الحضور",
-              "value": 70,
+              "label": "Send a message blaming them for missing the appointment.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000046",
               "label_ar": "حجز موعد جديد له دون موافقته",
-              "label": "حجز موعد جديد له دون موافقته",
-              "value": 100,
+              "label": "Book another appointment without their consent.",
+              "value": 0,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000047",
               "label_ar": "إرسال رسالة مهذبة تسأل إن كان يرغب بإعادة الجدولة وتوضح سهولة التواصل",
-              "label": "إرسال رسالة مهذبة تسأل إن كان يرغب بإعادة الجدولة وتوضح سهولة التواصل",
-              "value": 70,
+              "label": "Send a polite message asking whether they would like to reschedule and making it easy to contact the clinic.",
+              "value": 100,
               "is_trap": false
             },
             {
               "id": "90000000-0000-4000-8000-000000000048",
               "label_ar": "مواصلة الاتصال عدة مرات في اليوم حتى يرد",
-              "label": "مواصلة الاتصال عدة مرات في اليوم حتى يرد",
-              "value": 100,
+              "label": "Keep calling several times a day until they answer.",
+              "value": 0,
               "is_trap": false
             }
           ]
