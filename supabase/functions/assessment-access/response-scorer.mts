@@ -14,9 +14,10 @@
 import registryV1 from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
+import clinicMatrixRegistryV2 from "./clinic-matrix-staff-competency-interpretation-draft.json" with { type: "json" };
 import { aggregateP3Profile, type P3ResolvedMeasurement } from "./component-aggregation-engine.mts";
 
-type RegistryEntry = (typeof registryV1.entries)[number] | (typeof registryV2.entries)[number] | (typeof patientJourneyRegistryV2.entries)[number];
+type RegistryEntry = (typeof registryV1.entries)[number] | (typeof registryV2.entries)[number] | (typeof patientJourneyRegistryV2.entries)[number] | (typeof clinicMatrixRegistryV2.entries)[number];
 
 export type P3Selection = {
   questionCode: string;
@@ -51,6 +52,7 @@ function registryEntriesForVersion(assessmentSlug: string, interpretationVersion
   if (interpretationVersion === 1) return registryV1.entries as RegistryEntry[];
   if (interpretationVersion === 2 && assessmentSlug === "patient-journey") return patientJourneyRegistryV2.entries as RegistryEntry[];
   if (interpretationVersion === 2 && assessmentSlug === "comprehensive-clinic-assessment") return registryV2.entries as RegistryEntry[];
+  if (interpretationVersion === 2 && assessmentSlug === "clinic-matrix-staff-competency") return clinicMatrixRegistryV2.entries as RegistryEntry[];
   throw new Error(`Unsupported interpretation binding: ${assessmentSlug} / ${interpretationVersion}`);
 }
 
