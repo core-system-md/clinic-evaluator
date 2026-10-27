@@ -508,6 +508,7 @@ export async function calculateAssessment(
     assessmentSlug: runtime.family.slug,
     interpretationVersion: interpretationBinding.interpretationVersion,
     selections,
+    expectedQuestionCodes: runtime.questions.map((question) => question.code),
     axes: runtime.axes.map((axis) => ({
       code: axis.code,
       weight: Number(axis.weight),
