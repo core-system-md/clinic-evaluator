@@ -19,10 +19,10 @@ test('Clinic Matrix draft has six weighted axes and twelve required questions', 
       assert.equal(question.is_required, true, question.code);
       assert.equal(question.options.length, 4, question.code);
       assert.deepEqual(question.options.map(option => option.value), {
-        Q1:[70,40,0,100], Q2:[40,100,70,70], Q3:[100,70,40,70],
-        Q4:[0,70,100,40], Q5:[40,100,70,100], Q6:[70,0,100,70],
-        Q7:[70,100,100,70], Q8:[70,40,100,70], Q9:[100,100,70,70],
-        Q10:[100,40,100,70], Q11:[70,100,70,100], Q12:[70,100,70,100]
+        Q1:[40,40,0,100], Q2:[40,100,40,40], Q3:[100,40,70,40],
+        Q4:[0,0,100,0], Q5:[100,0,0,0], Q6:[0,0,100,0],
+        Q7:[0,100,0,100], Q8:[0,0,100,40], Q9:[100,40,0,100],
+        Q10:[100,0,0,100], Q11:[0,100,0,100], Q12:[0,0,100,0]
       }[question.code], question.code);
     }
   }
@@ -71,4 +71,24 @@ test('canonical import preserves supplied option UUIDs and remains compatible wi
   assert.ok(importMigration.includes('gen_random_uuid()'));
   assert.ok(importMigration.includes("require_admin_capability('assessment.import')"));
   assert.ok(importMigration.includes("'draft'"));
+});
+
+
+test('Arabic and English question/option fields are distinct and scoring anchors match the canonical draft', () => {
+  const arabic = /[\\u0600-\\u06FF]/;
+  for (const axis of assessment.axes) {
+    assert.ok(axis.title && !arabic.test(axis.title), axis.code + ' English axis title');
+    for (const question of axis.questions) {
+      assert.ok(question.text && !arabic.test(question.text), question.code + ' English question text');
+      assert.notEqual(question.text, question.text_ar, question.code + ' bilingual question fields must differ');
+      for (const option of question.options) {
+        assert.ok(option.label && !arabic.test(option.label), question.code + ' English option label');
+        assert.notEqual(option.label, option.label_ar, question.code + ' bilingual option fields must differ');
+        const entry = registry.entries.find(item => item.questionCode === question.code && item.optionId === option.id);
+        assert.ok(entry, question.code + ' option registry entry');
+        assert.equal(entry.anchorScore, option.value, question.code + ' score anchor parity');
+        assert.equal(entry.sourceOptionValue, option.value, question.code + ' source value parity');
+      }
+    }
+  }
 });
