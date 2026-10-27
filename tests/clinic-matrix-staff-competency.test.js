@@ -95,7 +95,7 @@ test('Arabic and English question/option fields are distinct and scoring anchors
 
 
 test('draft-only content correction migration is guarded and never publishes', () => {
-  const migration = fs.readFileSync('supabase/migrations/20261027133000_clinic_matrix_draft_content_correction.sql', 'utf8');
+  const migration = fs.readFileSync('supabase/migrations/20261027114146_clinic_matrix_draft_content_correction.sql', 'utf8');
   assert.match(migration, /v_status <> 'draft'/);
   assert.match(migration, /v_question_count <> 12/);
   assert.match(migration, /v_option_count <> 48/);
