@@ -16,6 +16,7 @@ import { type P3ConsistencyRule } from "./consistency-engine.mts";
 import registry from "./response-interpretation-registry-v1.json" with { type: "json" };
 import registryV2 from "./response-interpretation-registry-v2.json" with { type: "json" };
 import patientJourneyRegistryV2 from "./patient-journey-interpretation-registry-v2.json" with { type: "json" };
+import clinicMatrixRegistryV2 from "./clinic-matrix-staff-competency-interpretation-draft.json" with { type: "json" };
 import consistencyRuleRegistry from "./consistency-rule-registry-v2.json" with { type: "json" };
 import consistencyPairRegistry from "./consistency-pair-registry-v1.json" with { type: "json" };
 import { assertPinnedAssessmentRelease, buildAssessmentConfigProjection, canonicalizeAssessmentConfig, CONFIG_CANONICALIZER_VERSION, sha256Hex } from "./assessment-config-digest.mjs";
@@ -117,7 +118,7 @@ const ENGINE_IDENTITY = "MD_CODE_ASSESSMENT_ENGINE";
 const SCORING_CONTRACT_ID = "FINAL_IMPLEMENTATION_CONTRACT-2026-10-07";
 
 type InterpretationBinding = {
-  registry: typeof registry | typeof registryV2 | typeof patientJourneyRegistryV2;
+  registry: typeof registry | typeof registryV2 | typeof patientJourneyRegistryV2 | typeof clinicMatrixRegistryV2;
   interpretationVersion: number;
 };
 
@@ -146,6 +147,11 @@ const INTERPRETATION_BINDINGS: Record<string, InterpretationBinding> = {
   "patient-journey:1": {
     // Current published product V1 uses the family-specific interpretation V2 registry.
     registry: patientJourneyRegistryV2,
+    interpretationVersion: 2,
+  },
+  "clinic-matrix-staff-competency:1": {
+    // Draft-only family binding; publication remains an explicit owner action after review.
+    registry: clinicMatrixRegistryV2,
     interpretationVersion: 2,
   },
 };
