@@ -1,3 +1,20 @@
+# CURRENT UPDATE — CLINIC MATRIX DRAFT CONTENT CORRECTION — 2026-10-27
+
+**Assessment remains a draft. No release was created, nothing was published, and no Edge Function deployment was performed.**
+
+- Confirmed production draft identity: family `14637c94-36cd-429c-bd3c-9adc18253a89`; assessment version `0485d166-e628-4171-9cac-e87c18752d71`; slug `clinic-matrix-staff-competency`.
+- Found and corrected a real source/database defect: the English question and option fields duplicated Arabic. All 12 English question texts and 48 English option labels are now populated; the Arabic fields remain unchanged.
+- Corrected clearly contradictory provisional scoring anchors for coercive, misleading, non-consensual, and clinically overreaching responses. These anchors remain **draft/provisional and require owner review before publication**.
+- PR #123 merged: `d9d376fedbe921639067bc6eaedbecdf72cd1a0f`. Main P3 kernel verification passed on `340031117ae2b4d901a1bdc3ddddc46f7c0ebf20`, run #40498155510.
+- Applied draft-only migration `20261027114146_clinic_matrix_draft_content_correction`; the repository filename now matches the applied ledger identity. Audit log entry `assessment.draft_content.corrected` records 12 question and 48 option updates, `published=false`, `release_created=false`.
+- Post-write read-only checks: 6 axes, 12 questions, 48 options; 0 English question fields equal their Arabic counterpart; 0 English option fields equal their Arabic counterpart; all 48 stable option UUIDs preserved; all 48 option values remain in the supported 0/40/70/100 anchor set.
+- No row exists in `assessment_config_releases` for this family. Production `assessment-access` remains deployed at v48 and was **not** redeployed; the corrected registry/runtime binding has not been verified in the deployed Edge bundle. Do not publish or bypass the C-03 release gate.
+- Cloudflare Pages deployment was not intended; source commits used `[CF-Pages-Skip]`. Verify deployment status only if needed; do not trigger a new deployment as part of this content correction.
+
+**Next narrow step:** before publication, review the corrected Arabic/English content and provisional anchors as owner, then separately resolve the missing eligible-family release path and deploy/attest the exact Edge runtime through the approved release workflow. This update does not reopen C-01/C-02/C-03 or authorize publication.
+
+---
+
 # SESSION CLOSEOUT — WP-12 SCOPE EXPLANATION ONLY — 2026-10-24
 
 **Safe stop:** This session explained the scope of WP-12; it did not execute WP-12. No source code, tests, CI, E2E, runtime HTTP/PostgREST, deployment, or Production operation was performed. WP-11 §41 and D-05 remain CLOSED according to the authoritative closeout below. WP-12 §42 remains NOT STARTED. C-01/C-02/C-03 remain CLOSED.
