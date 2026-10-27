@@ -1,6 +1,6 @@
 {
   "schemaVersion": "P3_RESPONSE_INTERPRETATION_REGISTRY_V2",
-  "status": "implementation-authoritative",
+  "status": "draft-owner-review-required",
   "entries": [
     {
       "assessmentSlug": "clinic-matrix-staff-competency",
