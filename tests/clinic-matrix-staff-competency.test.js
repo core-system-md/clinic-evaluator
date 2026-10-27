@@ -75,7 +75,7 @@ test('canonical import preserves supplied option UUIDs and remains compatible wi
 
 
 test('Arabic and English question/option fields are distinct and scoring anchors match the canonical draft', () => {
-  const arabic = /[\\u0600-\\u06FF]/;
+  const arabic = /[؀-ۿ]/;
   for (const axis of assessment.axes) {
     assert.ok(axis.title && !arabic.test(axis.title), axis.code + ' English axis title');
     for (const question of axis.questions) {
@@ -91,4 +91,16 @@ test('Arabic and English question/option fields are distinct and scoring anchors
       }
     }
   }
+});
+
+
+test('draft-only content correction migration is guarded and never publishes', () => {
+  const migration = fs.readFileSync('supabase/migrations/20261027133000_clinic_matrix_draft_content_correction.sql', 'utf8');
+  assert.match(migration, /v_status <> 'draft'/);
+  assert.match(migration, /v_question_count <> 12/);
+  assert.match(migration, /v_option_count <> 48/);
+  assert.match(migration, /published',false/);
+  assert.match(migration, /release_created',false/);
+  assert.doesNotMatch(migration, /UPDATE public\.assessment_families/i);
+  assert.doesNotMatch(migration, /INSERT INTO public\.assessment_config_releases/i);
 });
