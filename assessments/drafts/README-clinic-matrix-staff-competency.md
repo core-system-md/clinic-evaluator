@@ -1,0 +1,27 @@
+# Clinic Matrix Staff Competency — Draft implementation
+
+Status: implementation draft for owner review. Do not publish or deploy as part of this change.
+
+## Assessment design
+- Public key: `clinic-matrix-staff-competency`, version 1.
+- Six axes, two required situational questions per axis (12 questions total).
+- Weights: A1 20%, A2 15%, A3 15%, A4 20%, A5 20%, A6 10% (sum 100%).
+- Option anchors: 0 / 40 / 70 / 100. Some questions intentionally have more than one high-scoring response.
+- No pass/fail cutoff or novice/advanced label is defined.
+- Critical professional-conduct responses are surfaced as separate review flags and do not independently subtract score.
+
+## Files
+- Canonical admin-import draft: `assessments/drafts/clinic-matrix-staff-competency.v1.json`
+- Interpretation registry: `supabase/functions/assessment-access/clinic-matrix-staff-competency-interpretation-draft.json`
+- Official engine/scorer bindings: `engine.ts` and `response-scorer.mts`
+- Import identity compatibility migration: `20261027120000_clinic_matrix_stable_option_identity.sql`
+- Structural and binding tests: `tests/clinic-matrix-staff-competency.test.js`
+
+## Scoring
+The registry is the scoring authority; the source `option_value` is retained for audit/legacy compatibility and is not the official interpretation source. Each option has a fixed UUID so the canonical import and the registry resolve the same identity. Axis scores should be derived by the official Structured Result pipeline; reporting must not independently recalculate them.
+
+## Owner review before publication
+Review Arabic wording, clinical/ethical appropriateness, translation quality, all option anchors, and the three separate critical-conduct flags (Q6 option D: overstepping role; Q8 option A: withholding updated cost; Q10 option B: promising a guaranteed result). This draft does not set a performance threshold. Confirm that the existing reporting surface presents axis/overall scores and critical flags correctly before publication.
+
+## Safety boundary
+No database migration was applied, no production records were created, no assessment was published, and no deployment was initiated by preparing these files. The migration is staged for review only.
