@@ -6,7 +6,9 @@ Status: implementation draft for owner review. Do not publish or deploy as part 
 - Public key: `clinic-matrix-staff-competency`, version 1.
 - Six axes, two required situational questions per axis (12 questions total).
 - Weights: A1 20%, A2 15%, A3 15%, A4 20%, A5 20%, A6 10% (sum 100%).
-- Option anchors: 0 / 40 / 70 / 100. Some questions intentionally have more than one high-scoring response.
+- Option anchors: 0 / 40 / 70 / 100. More than one response may receive a high score only when each response demonstrates the required patient-centred and ethical practice.
+- Arabic and English fields must contain actual language-specific content; the English fields are not copies of the Arabic text.
+- Draft anchor review corrected clear contradictions where coercive, misleading, non-consensual, or clinically overreaching responses had been assigned high scores. The scoring remains provisional pending owner review.
 - No pass/fail cutoff or novice/advanced label is defined.
 - Critical professional-conduct responses are surfaced as separate review flags and do not independently subtract score.
 
