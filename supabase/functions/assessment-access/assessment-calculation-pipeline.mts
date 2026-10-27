@@ -240,6 +240,8 @@ export function scoreP3IntegratedV1(input: {
   assessmentConfigDigest: string;
   assessmentSlug: string;
   selections: P3Selection[];
+  /** Full configured question set, including unanswered items, for accurate coverage. */
+  expectedQuestionCodes?: string[];
   axes: P3AxisConfig[];
   axisRoles: Record<string, string>;
   kpiMappings: Record<string, Record<string, number>>;
@@ -263,6 +265,18 @@ export function scoreP3IntegratedV1(input: {
     interpretationVersion: input.interpretationVersion,
     selections: input.selections,
   });
+
+  if (input.expectedQuestionCodes) {
+    const expectedCodes = new Set(input.expectedQuestionCodes);
+    if (expectedCodes.size !== input.expectedQuestionCodes.length) {
+      throw new Error("Duplicate expected question code");
+    }
+    for (const selection of input.selections) {
+      if (!expectedCodes.has(selection.questionCode)) {
+        throw new Error(`Selection is outside the configured question set: ${selection.questionCode}`);
+      }
+    }
+  }
 
   // Consistency is evaluated against the original interpreted selections.
   // Any declared score effect is then applied once, before numeric aggregation.
@@ -342,7 +356,7 @@ export function scoreP3IntegratedV1(input: {
 
   const coverage = buildP3Coverage(
     coverageItems,
-    effectiveSelections.length,
+    input.expectedQuestionCodes?.length ?? effectiveSelections.length,
   );
 
   const criticalityItems: P3CriticalityItem[] = effectiveSelections.map(
