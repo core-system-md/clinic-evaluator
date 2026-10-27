@@ -35,6 +35,7 @@ function run(selections) {
     assessmentConfigDigest: "clinic-matrix-e2e-fixture-digest",
     assessmentSlug: SLUG,
     selections,
+    expectedQuestionCodes: assessment.axes.flatMap((axis) => axis.questions.map((question) => question.code)),
     axes,
     axisRoles: {},
     kpiMappings: {},
@@ -135,10 +136,22 @@ test("Clinic Matrix E2E: unanswered questions are not imputed as zero and unknow
   ).filter((selection) => selection.questionCode !== "Q1");
 
   const partial = run(selections);
-  assert.equal(partial.coverage.expectedApplicableItems, 11);
+  assert.equal(partial.coverage.expectedApplicableItems, 12);
   assert.equal(partial.coverage.answeredItems, 11);
+  assert.equal(partial.coverage.missingItems, 1);
+  assert.equal(partial.coverage.coverageStatus, "PARTIAL");
   assert.equal(partial.scores.axes.find((axis) => axis.axisCode === "A1")?.percentage,
     registry.entries.find((entry) => entry.assessmentSlug === SLUG && entry.questionCode === "Q2" && entry.optionIndex === 0)?.anchorScore);
+
+  const noAxisA1 = run(selections.filter((selection) => !["Q1", "Q2"].includes(selection.questionCode)));
+  const unavailableA1 = noAxisA1.scores.axes.find((axis) => axis.axisCode === "A1");
+  assert.equal(unavailableA1?.status, "unavailable");
+  assert.equal(unavailableA1?.percentage, null);
+  assert.equal(noAxisA1.scores.overallScore,
+    noAxisA1.scores.axes.filter((axis) => axis.status === "measured" && axis.weight > 0)
+      .reduce((sum, axis) => sum + axis.percentage * axis.weight, 0) /
+    noAxisA1.scores.axes.filter((axis) => axis.status === "measured" && axis.weight > 0)
+      .reduce((sum, axis) => sum + axis.weight, 0));
 
   assert.throws(() => run([
     { questionCode: "Q1", optionId: "00000000-0000-4000-8000-000000000000", optionIndex: 0 },
