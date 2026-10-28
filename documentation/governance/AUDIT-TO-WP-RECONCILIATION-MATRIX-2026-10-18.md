@@ -363,3 +363,37 @@ D-04: verify admin report has no Trap/Leakage output and uses the authoritative 
 
 ### Exact continuation point
 WP-12 has not started. The next session's first action is **read the current `CURRENT-SESSION-HANDOFF.md` and §42–§44 of the final implementation contract, then build a requirement-to-existing-test/evidence inventory from the repository and CI without changing code or Production**. Identify coverage gaps only after that inventory. Do not start implementation, merge, deploy, or mutate Production without the required explicit authorization. Preserve all existing Audit IDs and dispositions, and do not reopen C-01/C-02/C-03.
+
+
+
+# SESSION CLOSEOUT — CLINIC MATRIX MANUAL-HANDOFF — 2026-10-28
+
+**Scope boundary:** This session stopped implementation work at the user's request. The only task completed in this session was read-only repository inspection and delivery of a manual administration guide for the existing Clinic Matrix draft. This addendum preserves the existing Audit inventory and does not change any Audit finding's status, responsible WP, or accepted disposition.
+
+## Actual work performed in this session
+
+- Retrieved the current main versions of this matrix, documentation/handoff/CURRENT-SESSION-HANDOFF.md, admin/assessment-manager.js, assessments/drafts/clinic-matrix-staff-competency.v1.json, assessments/drafts/README-clinic-matrix-staff-competency.md, and the draft-only correction migration 20261027114146_clinic_matrix_draft_content_correction.sql.
+- Restored the six Clinic Matrix axis definitions and weights, all 12 Arabic question prompts, all 48 option labels and stored anchor values, and described the admin import/edit/save/publish flow based on the repository implementation.
+- Confirmed the current repository handoff records the target assessment as the existing draft: family 14637c94-36cd-429c-bd3c-9adc18253a89; version 0485d166-e628-4171-9cac-e87c18752d71; slug clinic-matrix-staff-competency. The documented production state is draft-only, with no release row, no publication, and the deployed assessment-access runtime's target-specific interpretation binding not yet verified.
+- No repository application/source/test/migration changes were made during the explanatory work. No tests, CI, E2E, live HTTP/PostgREST calls, deployment, publication, database mutation, or release-gate change were performed in this session. No PR was created or merged by this session.
+- This closeout documentation update itself does not execute a test or alter application behavior.
+
+## Clinic Matrix disposition at closeout
+
+- **Assessment content handoff:** COMPLETED as documentation/manual guidance only. This is not a technical publication-readiness PASS.
+- **Production assessment:** remains an existing draft; do not create a duplicate, delete/recreate it, manually alter production state, or publish by bypassing the existing owner-authenticated release flow.
+- **Runtime interpretation/report readiness:** NOT VERIFIED. The previous recorded production observation says assessment-access was v48 and did not contain the target-specific merged report model; the explicit “No explicit interpretation binding for clinic-matrix-staff-competency:1” error remains an assessment-specific blocker until the deployed runtime and proper release path are verified. The current session did not recheck live runtime or attempt a deployment.
+- **Owner review still needed:** review Arabic/English wording and provisional 0/40/70/100 anchors, and verify critical-conduct flags/report output. No pass/fail threshold or calibrated proficiency classification is defined.
+- **C-01/C-02/C-03:** remain CLOSED under their recorded dispositions. This target-specific draft/report readiness issue does not reopen C-03 or authorize activation of the five other assessment releases.
+
+## Audit/WP status preserved
+
+- The original finding-by-finding inventory in Section 3 remains intact; no Audit ID is removed, merged, renumbered, or reclassified by this addendum.
+- WP-11 §41 and D-05 remain CLOSED under the authoritative 2026-10-24 closeout and its accepted historical-provenance limitation. Do not repeat the accepted D-05 investigation or reopen it absent new regression evidence.
+- WP-12 §42 remains NOT STARTED. This session did not run the WP-12 test inventory or any test layer. Do not infer WP-12 completion from prior CI results or from this manual guide.
+- Remaining WP-12 obligations and existing D-finding ownership/actions remain as recorded in the original matrix and the latest WP-12 addendum, including D-04, D-06, D-12 and D-17 cross-stage verification. No new WP was started or closed.
+- C-01, C-02, C-03 and WP-09 retain their recorded closed dispositions. D-13's historical deletion is not to be repeated. D-05's accepted limitation is not to be reopened merely because this session reviewed unrelated Clinic Matrix files.
+
+## Exact next action
+
+The next conversation should begin by reading the top Clinic Matrix status in documentation/handoff/CURRENT-SESSION-HANDOFF.md and the relevant existing assessment-specific release/runtime contracts. First, establish a read-only, current evidence snapshot for the deployed assessment-access version and target-specific binding/report model, and inspect the supported assessment-config-release flow for this new family without changing Production. Then report the precise blocker and required owner decision before any deployment/publication action. Do not start WP-12 automatically; do not activate other assessment releases; do not reopen C-01/C-02/C-03.
