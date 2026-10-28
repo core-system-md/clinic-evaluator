@@ -1,3 +1,33 @@
+# SESSION UPDATE — GENERAL C-03 ASSESSMENT RELEASE PATH — 2026-10-28
+
+**Status: CODE AND ISOLATED CI PASS ON PR #126; NOT MERGED OR DEPLOYED. TFI PRODUCTION FIX NOT YET APPLIED.**
+
+## Owner direction and scope
+The owner rejected a Clinic-Matrix-only release exception and directed correction of the release path so any newly published assessment can be released only after direct verification. This is a general C-03 path correction, not an assessment-specific bypass. The fixed five-family slug allowlist is not an acceptable future contract.
+
+## Changes on branch `fix/c03-dynamic-assessment-release`
+- Removed the fixed family allowlist from `.github/scripts/c03-production-release.mjs`. The runner now inventories every current published family, validates unique/stable family identity, verifies each version needing a release, and confirms the family/version/pointer inventory did not change before activation.
+- Supports releases while the C-03 gate is already enabled without trying to enable it again or overwriting its original activation audit identity.
+- Makes exact-SHA reruns idempotent when the active release already has matching verification evidence.
+- Added migration `20261028170000_c03_dynamic_assessment_release.sql` so a verified release transitions to `PUBLISHED` on activation even when the gate is already enabled. The original applied migration was not edited.
+- Bumped the attested release contract to `C03_RELEASE_CONTRACT_V2`.
+- Added dynamic-family, idempotency, post-gate activation, pointer, and preserved-gate-audit regression coverage.
+
+## Verified CI evidence
+PR #126 head `7a87bd7e5af5216b509da8969887c4ba31fe3593` completed the three PR-triggered workflows successfully:
+- C-03 hybrid release gate, run [40725708263](https://github.com/core-system-md/clinic-evaluator/actions/runs/40725708263): **SUCCESS**. The disposable PostgreSQL harness loaded the new migration and printed `C03_HYBRID_CONFIG_RELEASE_HARNESS_PASS`; assertions for post-gate verification, `PUBLISHED` state, active pointer update, and preserved gate audit identity passed.
+- C-03 full runtime digest coverage: **SUCCESS**, including 23 passing Node tests and generation of an attestation with `C03_RELEASE_CONTRACT_V2`.
+- P3 kernel verification, run [40725708363](https://github.com/core-system-md/clinic-evaluator/actions/runs/40725708363): **SUCCESS**, including the full Node test suite.
+- WP-09 obsolete engine references, run [40725708313](https://github.com/core-system-md/clinic-evaluator/actions/runs/40725708313): **SUCCESS**.
+
+## Production boundary and exact continuation
+- PR #126 is still open and unmerged. The migration has **not** been applied to Production; neither Edge function has been deployed; no release was registered or activated; the gate and current release pointers were not changed.
+- TFI remains unavailable in the existing Production result. No KPI mapping, published assessment configuration, report model, saved result, or digest was modified by this release-path work.
+- Next, review and merge the generic release-path correction under the repository's approved merge process. Then apply the new migration and deploy/attest the Edge bundle through the guarded sequence. Only after that should the Clinic Matrix correction be made as a new working/published version (not an in-place edit to the attested published version), with the existing approved TFI formula and report-model exposure, followed by guarded release and a live end-to-end assertion that TFI is available in both Structured Result and the user report.
+- Do not apply the migration or deploy Edge code through a direct shortcut, do not bypass the C-03 attestation, and do not claim TFI fixed until the new published version and final report are verified in Production.
+
+---
+
 # SESSION UPDATE — CLINIC MATRIX REPORT VERIFICATION AND WP-06 GATE REPAIR — 2026-10-28
 
 **Current status: PRODUCTION RESULT VERIFIED; REPORT PAGE/ASSET SERVED FROM PRODUCTION; REPORT VALIDATION GATE PASS.** This update supersedes the earlier statement that the public Clinic Matrix page/cache-busted asset had not been fetched. It does not close WP-12, calibrate score bands, or change any Audit finding disposition.
