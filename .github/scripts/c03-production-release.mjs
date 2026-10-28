@@ -268,7 +268,6 @@ export async function executeC03ProductionRelease({
       throw new Error("Published-family inventory changed during release: " + String(family.slug));
     }
     finalFamilyIds.add(String(family.id));
-    const initialFamily = initialFamilyById.get(String(family.id));
     if (
       String(family.current_published_version_status || "") !== String(initialFamily?.current_published_version_status || "") ||
       family.current_published_version_is_active !== initialFamily?.current_published_version_is_active
