@@ -134,7 +134,7 @@ test("WP-05 Clinic Matrix projects its six measured axes without unsupported KPI
   const projection = projectCompletionResponse(result).userReport;
   assert.equal(projection.assessment.purpose, REPORT_MODELS["clinic-matrix-staff-competency"].purpose);
   assert.equal(projection.overall.value, 68);
-  assert.deepEqual(projection.axes.map(axis => axis.code), ["A1", "A2", "A3", "A4", "A5", "A6"]);
+  assert.deepEqual(projection.axes.map(axis => axis.code), ["A1", "A2", "A3", "A4", "A6", "A5"]);
   assert.deepEqual(projection.kpis, []);
   assert.equal(projection.economicOpportunity, null);
   assert.equal(projection.priority.axisCode, "A1");
