@@ -143,6 +143,23 @@ Deno.test("release registration derives digest and deployment metadata server-si
   if (serviceCalls.length !== 0) throw new Error("Registration must use the authenticated owner client, not service-role RPC.");
 });
 
+Deno.test("first publication accepts a null expected published pointer and preserves compare-and-swap", async () => {
+  const { handler, userCalls } = fakeDependencies();
+  const response = await handler(request({
+    action: "publish",
+    release_id: "release-1",
+    expected_published_version_id: null,
+  }));
+  if (response.status !== 200) {
+    throw new Error("First publication with null expected pointer returned " + response.status);
+  }
+  const call = userCalls.find(item => item.name === "publish_assessment_config_release_secure");
+  if (!call) throw new Error("Secure publication RPC was not called.");
+  if (call.payload.p_expected_published_version_id !== null) {
+    throw new Error("Null expected pointer must be preserved for a first publication.");
+  }
+});
+
 Deno.test("release activation, compare-and-swap publication, and gate enablement use owner-authenticated RPCs", async () => {
   const { handler, userCalls } = fakeDependencies();
   const actions = [
