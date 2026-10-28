@@ -1,3 +1,48 @@
+# SESSION CLOSEOUT — CLINIC MATRIX PRODUCTION RECOVERY — 2026-10-28
+
+**Production digest recovery: VERIFIED. Permanent configuration-mutation guard: APPLIED AND NEGATIVE-TESTED. Final report persistence: NOT YET VERIFIED.** This addendum supersedes the older Clinic Matrix draft-only status below; it does not change Audit finding dispositions or automatically start a work package.
+
+## Governing process read
+
+Before implementation, reread `documentation/governance/AI-ENGINEERING-OPERATING-CONTRACT.md`, `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`, this handoff, the audit-to-WP reconciliation matrix, and the Clinic Matrix source/production files. Follow the contract inspect→reconcile→design→implement→verify→document sequence, direct-to-main scope authorized by the owner, release attestation, and least-privilege boundaries. No branches or PRs were created.
+
+## Clinic Matrix root cause and live repair
+
+- Family / slug: `14637c94-36cd-429c-bd3c-9adc18253a89` / `clinic-matrix-staff-competency`.
+- Published assessment V1: `0485d166-e628-4171-9cac-e87c18752d71`.
+- Current release: `33def0a3-086c-4861-bcc2-2b185769e293`, state `PUBLISHED`; C-03 gate remains enabled.
+- Production audit event `ba383115-3150-4030-a02b-405546cb4ad1` proves the assessment description was changed at `2026-10-28 12:39:30 UTC`, after its release had been verified and published at `12:34:54/55 UTC`. The edit changed a digest-projected field. Runtime correctly rejected submission because current-vs-verified configuration digest comparisons failed.
+- Restored the exact pre-edit description from the audit record, without changing the release row or any stored digest. Recovery audit event: `b02b3297-b1c8-4252-8b1e-3a81d001f476`.
+- Reconstructed the production config projection using the matching canonicalizer and source registries, then hashed the canonical payload through PostgreSQL SHA-256. **Current configuration digest `6f973110bedb0ee6786db2240d0d4e47f27f4e377c09355a1d6d3f301e2da449` matches both stored `config_digest` and `verified_config_digest`.** Registry digest `66bdf6f96aed580873425fb82c355738141333322e8564d98f861060e1cac90b` also matches both stored registry digests. Projection counts: 6 axes, 12 questions, 48 options, 0 traps, 48 interpretation entries.
+- Read-only runtime inspection confirmed deployed `assessment-access` v50 has the explicit Clinic Matrix V1 interpretation binding and the `REPORT_MODELS` entry; `assessment-config-release` is v11. No Edge code was changed or redeployed, so the pinned Edge artifact identity was not altered.
+
+## Permanent guard added and verified
+
+- Added `supabase/migrations/20261028131555_prevent_attested_published_config_mutations.sql` directly on `main`. Its filename/version exactly matches the applied Production migration ledger identity `20261028131555 / prevent_attested_published_config_mutations`.
+- Applied the migration to Supabase Production successfully. The guard blocks edits to digest-projected fields on `assessment_types`, `axes`, `questions`, and `options` when the current published version is pinned to a VERIFIED/PUBLISHED C-03 release and the gate is enabled. The user-visible exception tells the editor in Arabic to create a new working version rather than edit an attested published version in place.
+- Live negative regression test attempted an assessment-description update, axis-title update, question-text update, and option-label update. All four raised the intended SQLSTATE `55000` guard message; the test block would fail if any update succeeded. It passed, and no probe text persisted.
+- This guard does not alter the C-03 gate, release digests, release pointers, current assessment version, or any other family. The original pinned release remains PUBLISHED.
+
+## Current submission and exact remaining step
+
+- Session `c0fa94cf-88aa-4fe6-b5b3-7dd1facd545f` remains `status=in_progress`, `submission_state=processing`; it has 12 answer rows, a 12-answer frozen submission snapshot, a fingerprint, and valid access until `2026-10-29 12:45:31.831 UTC`. It has no `assessment_results` row and `completed_at` remains null. No answers were deleted or recreated.
+- The submission preparation RPC returns the existing frozen snapshot/fingerprint for a session already in `processing`; the normal completion action can re-run calculation and persist the result once the existing session submits again. Do not create a new session or ask for answers again.
+- **A successful browser-to-Production `complete` request and final report row have not yet been observed.** The database stores only the one-way token hash; the raw active browser token is not exposed through the connected read/SQL tools, and no Edge-function POST/browser-control tool is available in this execution environment. No token was synthesized and no access check was bypassed. The remaining action for this existing attempt is to press **إرسال التقييم وعرض النتائج** once again in the same still-valid session; then verify the resulting `assessment_results` row and returned user report. Do not describe the E2E as PASS until that evidence exists.
+
+## Report semantics caution
+
+The deployed runtime has the Clinic Matrix report model and binding, but the canonical source README still describes the anchors as provisional and explicitly says no calibrated pass/fail or novice/advanced threshold is defined. The shared report projection currently derives global Q1–Q4 performance bands. This recovery did not change those scoring/report semantics or deploy a new Edge bundle, because the runtime bundle identity is shared across pinned release rows and any Edge change must use the approved attestation/rotation path. Do not claim the bands are Clinic-Matrix-calibrated.
+
+## Audit and stage boundary
+
+- WP-11 §41 / D-05 retain their prior CLOSED dispositions. No broad D-05 re-review was started.
+- WP-12 §42 remains NOT STARTED as a work package; the missing browser-to-database E2E observation is recorded above without silently closing it.
+- C-01, C-02, C-03 and WP-09 retain their existing recorded dispositions. The release gate behaved fail-closed; this assessment-specific recovery does not relabel a waived E2E as passed.
+- All Audit IDs and their statuses, assigned stages, existing evidence, and remaining actions remain in the matrix. No other family release was activated.
+
+**Next action:** reuse the existing session to obtain its first persisted report; confirm the database row and returned report, then only continue the separately tracked report-band calibration decision. Do not re-run completed historical investigations or start WP-12 automatically.
+
+---
 
 # SESSION CLOSEOUT — CLINIC MATRIX MANUAL-HANDOFF — 2026-10-28
 
