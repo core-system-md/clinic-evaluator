@@ -92,29 +92,20 @@ jobs:
           cache: npm
       - name: Prepare immutable runtime attestation for this exact main commit
         run: node .github/scripts/c03-release-attestation.mjs prepare
-      - name: Require the guarded Supabase deployment credential
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      - name: Wait for both Edge bundles deployed from this exact attested checkout
         shell: bash
         run: |
           set -euo pipefail
-          if [ -z "${SUPABASE_ACCESS_TOKEN:-}" ]; then
-            echo "::error::Missing production-e2e secret SUPABASE_ACCESS_TOKEN; refusing to attempt an unverified release."
-            exit 1
-          fi
-      - name: Deploy assessment scorer from the exact attested checkout
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: npx --yes supabase@latest functions deploy assessment-access --project-ref "$SUPABASE_PROJECT_REF" --use-api
-      - name: Deploy guarded configuration release verifier from the exact attested checkout
-        env:
-          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-        run: npx --yes supabase@latest functions deploy assessment-config-release --project-ref "$SUPABASE_PROJECT_REF" --use-api
-      - name: Verify both deployed Edge bundles against this exact attested checkout
-        shell: bash
-        run: |
-          set -euo pipefail
-          node .github/scripts/c03-release-attestation.mjs verify
+          for attempt in $(seq 1 60); do
+            if node .github/scripts/c03-release-attestation.mjs verify; then
+              echo "Both deployed Edge identities match this exact main commit."
+              exit 0
+            fi
+            echo "Waiting for both Edge functions to be deployed from the prepared checkout (attempt $attempt/60)."
+            sleep 20
+          done
+          echo "::error::Timed out waiting for the exact attested Edge bundles; no release writes were attempted."
+          exit 1
       - name: Register, verify, and activate every current published assessment; enable the gate only on first activation
         id: production_release
         run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
