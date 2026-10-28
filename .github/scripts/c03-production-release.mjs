@@ -2,14 +2,6 @@ import { pathToFileURL } from "node:url";
 import { verifyDeployedAttestation } from "./c03-release-attestation.mjs";
 import { getC03GithubOidcToken } from "./c03-github-oidc-token.mjs";
 
-export const REQUIRED_FAMILY_SLUGS = Object.freeze([
-  "admin-reception-assessment",
-  "clinic-performance",
-  "comprehensive-clinic-assessment",
-  "medical-team-assessment",
-  "patient-journey",
-]);
-
 const CONFIRMATION = "ENABLE-C03-PRODUCTION";
 
 function requireValue(value, name) {
@@ -133,9 +125,11 @@ export async function executeC03ProductionRelease({
     activated.push({ slug: family.slug, versionId: family.current_published_version_id, releaseId: family.releaseId });
   }
 
-  const enabled = await invokeCi({ action: "ci_enable_gate" });
-  if (enabled?.success !== true) {
-    throw new Error("C-03 gate activation was rejected: " + JSON.stringify(enabled));
+  if (!gateWasEnabled) {
+    const enabled = await invokeCi({ action: "ci_enable_gate" });
+    if (enabled?.success !== true) {
+      throw new Error("C-03 gate activation was rejected: " + JSON.stringify(enabled));
+    }
   }
 
   const finalInventoryResponse = await invokeCi({ action: "ci_inventory" });
@@ -186,7 +180,8 @@ export async function executeC03ProductionRelease({
     workflowRunId: finalInventory.settings.enabled_by_workflow_run_id,
     workflowSha: finalInventory.settings.enabled_by_workflow_sha,
     verifiedFamilyCount: finalFamilies.length,
-    note: "Runtime attestation, all five releases, active pointers, gate audit identity, and post-write read-back were verified.",
+    gateWasAlreadyEnabled: gateWasEnabled,
+    note: "Runtime attestation, every current published family, verified active pointers, immutable gate audit identity, and post-write read-back were verified.",
   };
 }
 
