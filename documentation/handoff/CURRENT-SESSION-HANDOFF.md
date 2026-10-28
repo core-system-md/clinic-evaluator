@@ -1,3 +1,24 @@
+# PRODUCTION READ-BACK CORRECTION — C-03 DYNAMIC RELEASE MIGRATION — 2026-10-28
+
+**Post-merge observation:** The repository-to-Supabase deployment integration applied migration `20261028170000_c03_dynamic_assessment_release` after PR #126 was merged. This migration was not manually applied through the Supabase tool. The earlier PR handoff correctly described the pre-merge state; this section supersedes that state after merge.
+
+## Live verification
+- Production migration ledger now contains `20261028170000 / c03_dynamic_assessment_release`.
+- Live `public.activate_existing_assessment_release_ci_secure(uuid,uuid,text,text,text,text)` definition matches the migration: a verified release is transitioned to `PUBLISHED` regardless of whether the gate is already enabled.
+- C-03 gate remains `enabled=true`, with its prior activation audit identity unchanged: workflow run `39109714790`, SHA `4b6ac2e7c6b5bce91591c64dfcd1075a11db30f7`. Current release-row count is 16. No release was registered or activated by this session.
+- Deployed Edge versions remain `assessment-access v50` and `assessment-config-release v11`; they have **not** been deployed with the new `C03_RELEASE_CONTRACT_V2` bundle. Therefore the new generic release path is **not yet live end-to-end**. Do not start a guarded release until both deployed Edge bundles attest the exact current `main` SHA and source digest.
+- Clinic Matrix remains published V1 with `kpi_mappings={"TFI":{"ROLE":1}}`; `axis_roles` remains `A1=COMMUNICATION, A2=RECEPTION, A3=TRUST, A4/A5=PROFESSIONALISM, A6=RETENTION`. Its current release pointer and digests are unchanged. TFI is still not correctly mapped or exposed in the report.
+
+## Required continuation
+1. Confirm the post-merge main SHA and all current-head CI checks.
+2. Deploy and attest the exact current Edge source through the approved guarded C-03 process; do not use a direct deployment or release bypass.
+3. Create a new Clinic Matrix working version, preserving published V1 and its historical result. Correct only the approved TFI role weights (TRUST 0.40, COMMUNICATION 0.40, RECEPTION 0.20) and the Clinic Matrix report model's KPI allowlist/template entry. Verify the Structured Result and report projection against tests before publishing.
+4. Use the generalized guarded release flow, then run a bounded live E2E check proving TFI is `available` with complete coverage and the correct computed value in both Structured Result and user report. No old result rewrite.
+
+The only Production mutation observed from PR #126 is the additive release activation function migration above. No assessment content, KPI mapping, result, family pointer, release row, gate setting, or Edge bundle was changed by this session.
+
+---
+
 # SESSION UPDATE — GENERAL C-03 ASSESSMENT RELEASE PATH — 2026-10-28
 
 **Status: CODE AND ISOLATED CI PASS ON PR #126; NOT MERGED OR DEPLOYED. TFI PRODUCTION FIX NOT YET APPLIED.**
