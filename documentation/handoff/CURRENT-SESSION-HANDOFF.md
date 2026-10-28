@@ -1,3 +1,27 @@
+# C-03 guarded release outcome — 2026-10-29
+
+## Verified outcome
+- Guarded workflow run [#40784774516](https://github.com/core-system-md/clinic-evaluator/actions/runs/40784774516) completed **SUCCESS** on `main` SHA `40cd1234da786f257250de08d5f60e44a9d5f23e`.
+- Exact deployed runtime attestation passed for both Edge Functions: `assessment-access` v53 and `assessment-config-release` v14; source digest `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989`.
+- The guarded runner verified and activated five active published families and read back their current release pointers. The C-03 gate was already enabled and its original activation audit identity was preserved.
+- The runner now reports `inactiveFamilyCount=1` and deliberately leaves `clinic-matrix-staff-competency` untouched. Live audit evidence records an owner `assessment.stop_public` action on 2026-10-28 18:11 UTC (`is_active=false`); the release runner must not undo that decision.
+- The prior partial run `#40783801482` failed on that inactive version after one activation. The corrected guarded run recovered by releasing the active families under the current exact SHA; no manual release-pointer writes were used.
+- The unapproved `SUPABASE_ACCESS_TOKEN` requirement is removed. Do not reintroduce it.
+
+## Matrix comprehensive assessment — still not published
+- Live read-back: `matrix-comprehensive-assessment` remains `draft`; `current_published_version_id=NULL` and `current_release_id=NULL`.
+- The deployed source includes the explicit `matrix-comprehensive-assessment:1` interpretation binding in `supabase/functions/assessment-access/engine.ts`; runtime deployment/attestation is now current and verified.
+- The guarded C-03 runner releases already-published active versions; it does not publish a draft. A successful authenticated admin publish of the Matrix draft and a live result/report E2E have **not** been evidenced in this session. Do not claim the Matrix assessment is published until those checks pass.
+- No direct SQL publication, owner-auth bypass, or reactivation of the stopped Clinic Matrix Staff Competency assessment is permitted.
+
+## Engineering changes in this continuation
+- Restored the OIDC-only guarded workflow and removed the unapproved PAT gate.
+- Added published-version status/active evidence to CI inventory; inactive/stopped assessments are preserved rather than reactivated.
+- The runner reuses exact-SHA PREPARED/VERIFIED rows left by a partial attempt and checks inactive pointers remain unchanged.
+- The successful guarded release artifact records five activations, one inactive family preserved, and the unchanged gate activation identity.
+
+---
+
 # C-03 correction — unapproved deployment-token requirement removed — 2026-10-29
 
 The prior session introduced an incorrect requirement for `SUPABASE_ACCESS_TOKEN` in commit `ab5815c85401560637c60a4cb6475147bbe2aba2`. This requirement was not part of the preceding OIDC-only guarded workflow and must not be requested from the owner.
