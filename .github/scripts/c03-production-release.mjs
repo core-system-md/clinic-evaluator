@@ -76,6 +76,10 @@ export async function executeC03ProductionRelease({
     if (!id || !slug || !versionId) {
       throw new Error("A published family has no stable family/version identity: " + slug);
     }
+    if (!["published"].includes(String(family.current_published_version_status || "")) ||
+        typeof family.current_published_version_is_active !== "boolean") {
+      throw new Error("C-03 inventory is missing published-version status/active evidence for " + slug);
+    }
     if (familyIds.has(id) || familySlugs.has(slug)) {
       throw new Error("Production published-family inventory contains duplicate family identity: " + slug);
     }
@@ -109,19 +113,39 @@ export async function executeC03ProductionRelease({
       release.verified_edge_release_ref === release.edge_release_ref
     );
   };
-  const familiesToRelease = families.filter((family) => !isAlreadyReleased(family));
+  const activeFamilies = families.filter((family) =>
+    family.current_published_version_status === "published" &&
+    family.current_published_version_is_active === true
+  );
+  const inactiveFamilies = families.filter((family) => !activeFamilies.includes(family));
+  const familiesToRelease = activeFamilies.filter((family) => !isAlreadyReleased(family));
 
-  // Runtime attestation is independent of family slug. One current published version
-  // is sufficient to verify the two deployed Edge bundles before release writes.
-  await verifyAttestation({
-    assessmentTypeId: families[0].current_published_version_id,
+  // Runtime attestation is independent of family slug. One current active published
+  // version is sufficient to verify the two deployed Edge bundles before release writes.
+  const attestationResult = await verifyAttestation({
+    assessmentTypeId: activeFamilies[0]?.current_published_version_id || families[0].current_published_version_id,
     baseUrl: url,
     anonKey: anon,
     fetchImpl,
   });
+  if (activeFamilies.length === 0) {
+    throw new Error("C-03 inventory contains no active published assessment versions to release.");
+  }
 
   const registered = [];
   for (const family of familiesToRelease) {
+    // Reuse an exact-SHA PREPARED/VERIFIED row left by a previous fail-closed run.
+    // The following ci_verify call rechecks its live config and attestation before activation.
+    const existing = initial.releases.find((entry) =>
+      entry.family_id === family.id &&
+      entry.assessment_type_id === family.current_published_version_id &&
+      entry.git_commit_sha === workflowShaAtStart &&
+      ["PREPARED", "VERIFIED"].includes(String(entry.state || ""))
+    );
+    if (existing) {
+      registered.push({ ...family, releaseId: String(existing.id) });
+      continue;
+    }
     const result = await invokeCi({
       action: "ci_register",
       assessment_type_id: family.current_published_version_id,
@@ -172,6 +196,8 @@ export async function executeC03ProductionRelease({
       !before ||
       String(family.slug) !== String(before.slug) ||
       String(family.current_published_version_id) !== String(before.current_published_version_id) ||
+      String(family.current_published_version_status || "") !== String(before.current_published_version_status || "") ||
+      family.current_published_version_is_active !== before.current_published_version_is_active ||
       String(family.current_release_id || "") !== String(before.current_release_id || "")
     ) {
       throw new Error("C-03 family version or active release pointer changed after verification: " + String(family.slug));
@@ -242,6 +268,19 @@ export async function executeC03ProductionRelease({
       throw new Error("Published-family inventory changed during release: " + String(family.slug));
     }
     finalFamilyIds.add(String(family.id));
+    const initialFamily = initialFamilyById.get(String(family.id));
+    if (
+      String(family.current_published_version_status || "") !== String(initialFamily?.current_published_version_status || "") ||
+      family.current_published_version_is_active !== initialFamily?.current_published_version_is_active
+    ) {
+      throw new Error("C-03 published-version active/status state changed during release: " + String(family.slug));
+    }
+    if (family.current_published_version_is_active !== true) {
+      if (String(family.current_release_id || "") !== String(initialFamily?.current_release_id || "")) {
+        throw new Error("C-03 attempted to change the release pointer of a stopped/inactive assessment: " + String(family.slug));
+      }
+      continue;
+    }
     const release = finalReleases.find((entry) => entry.id === family.current_release_id);
     if (
       !family.current_release_id ||
@@ -255,7 +294,7 @@ export async function executeC03ProductionRelease({
       release.verified_git_commit_sha !== release.git_commit_sha ||
       release.verified_edge_release_ref !== release.edge_release_ref
     ) {
-      throw new Error("C-03 final read-back failed for published family " + String(family.slug) + ".");
+      throw new Error("C-03 final read-back failed for active published family " + String(family.slug) + ".");
     }
   }
 
@@ -265,7 +304,8 @@ export async function executeC03ProductionRelease({
     activated,
     workflowRunId,
     workflowSha,
-    verifiedFamilyCount: finalFamilies.length,
+    verifiedFamilyCount: activeFamilies.length,
+    inactiveFamilyCount: inactiveFamilies.length,
     gateWasAlreadyEnabled: gateWasEnabled,
     gateActivationRunId: expectedGateRunId,
     gateActivationSha: expectedGateSha,
