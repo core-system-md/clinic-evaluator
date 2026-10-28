@@ -1,0 +1,748 @@
+{
+  "slug": "clinic-matrix-staff-competency",
+  "title_ar": "كفاءة فريق العيادة — Clinic Matrix (مقترح 18 سؤالاً)",
+  "title_en": "Clinic Matrix Staff Competency (18-question proposal)",
+  "description": "مقترح تصميمي للمراجعة فقط: 18 سؤالاً على 9 محاور. ليس ملف استيراد معتمداً، ولا يمثل إصداراً منشوراً. ربط المؤشرات وأولوياتها ومعايرة التفسير ما زالت غير محسومة.",
+  "has_traps": false,
+  "has_ev_simulator": false,
+  "axes": [
+    {
+      "code": "A1",
+      "title_ar": "التواصل",
+      "title": "Communication",
+      "weight": 11.12,
+      "questions": [
+        {
+          "code": "Q1",
+          "text_ar": "وصل استفسار عبر واتساب عن سعر إجراء فقط. كيف ترد عادةً؟",
+          "text": "A patient asks via WhatsApp only about the price of a procedure. How do you usually respond?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000001",
+              "label_ar": "ذكر نطاق السعر المتاح ثم طرح سؤال قصير لتحديد الخدمة والخطوة التالية",
+              "label": "Give the available price range, then ask a brief question to clarify the service and next step",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000002",
+              "label_ar": "إرسال السعر المعتاد من دون التحقق من الخدمة المقصودة",
+              "label": "Send the usual price without checking which service they mean",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000003",
+              "label_ar": "طلب تفاصيل كثيرة عن الحالة قبل توضيح أي نطاق للسعر",
+              "label": "Ask for many details about the case before giving any price range",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000004",
+              "label_ar": "ذكر رقم واحد بوصفه السعر النهائي رغم اختلاف التكلفة حسب الخطة",
+              "label": "Give one figure as the final price even though the cost varies by plan",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q2",
+          "text_ar": "يقول المراجع إن رسالة الموعد والتعليمات غير واضحة. ماذا تفعل؟",
+          "text": "A patient says the appointment message and instructions are unclear. What do you do?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000005",
+              "label_ar": "إعادة إرسال الرسالة مع تغيير ترتيب المعلومات",
+              "label": "Resend the message with the information in a different order",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000006",
+              "label_ar": "إعادة شرح الخطوات بكلمات أبسط، ثم سؤال المراجع إن كانت هناك نقطة ما زالت غير واضحة",
+              "label": "Explain the steps in simpler words, then ask whether anything is still unclear",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000007",
+              "label_ar": "اختصار الرسالة إلى النقاط الأساسية من دون التحقق من فهمها",
+              "label": "Shorten the message to the main points without checking understanding",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000008",
+              "label_ar": "إضافة معلومات من الخبرة الشخصية لتوضيح ما لم تذكره الرسالة",
+              "label": "Add information from personal experience to explain something the message did not cover",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A2",
+      "title_ar": "الثقة",
+      "title": "Trust",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q3",
+          "text_ar": "يذكر المراجع تجربة سابقة غير مرضية ويبدو متخوفاً. كيف تتعامل مع الحديث؟",
+          "text": "A patient describes a previous unsatisfactory experience and seems concerned. How do you handle the conversation?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000009",
+              "label_ar": "الاستماع ثم تلخيص ما فهمته وتوضيح الخطوة التالية ومن سيتابع الموضوع",
+              "label": "Listen, summarize what you understood, and clarify the next step and who will follow up",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000010",
+              "label_ar": "الإشارة إلى أن كثيراً من المراجعين راضون عن الخدمة",
+              "label": "Point out that many patients are satisfied with the service",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000011",
+              "label_ar": "إظهار التفهم وتسجيل ملاحظته من دون تحديد متابعة واضحة",
+              "label": "Show understanding and note the concern without setting a clear follow-up",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000012",
+              "label_ar": "تحويل الحديث إلى الخدمات أو العروض الحالية",
+              "label": "Shift the conversation to current services or offers",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q4",
+          "text_ar": "يسأل المراجع إن كانت النتيجة مضمونة قبل أن يقرر. ماذا تقول؟",
+          "text": "A patient asks whether the outcome is guaranteed before deciding. What do you say?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000013",
+              "label_ar": "توضيح أن النتيجة قد تختلف بين الأشخاص، وأن التوقعات تُناقش قبل اتخاذ القرار",
+              "label": "Explain that outcomes can differ between people and expectations are discussed before a decision",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000014",
+              "label_ar": "طمأنة المراجع بأن النتيجة ستكون كما يتوقع غالباً",
+              "label": "Reassure the patient that the result will probably be what they expect",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000015",
+              "label_ar": "ذكر أن كثيراً من الحالات تحقق نتائج جيدة",
+              "label": "Mention that many cases achieve good results",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000016",
+              "label_ar": "الانتقال إلى الحديث عن الموعد والخطوات التالية قبل الإجابة عن القلق الأساسي",
+              "label": "Move to the appointment and next steps before addressing the main concern",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A3",
+      "title_ar": "الاستقبال",
+      "title": "Reception",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q5",
+          "text_ar": "وصل مراجع إلى العيادة وهو غير متأكد من الخدمة التي يحتاجها. كيف تبدأ؟",
+          "text": "A patient arrives unsure which service they need. How do you begin?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000017",
+              "label_ar": "اقتراح الخدمة الأكثر طلباً مباشرةً",
+              "label": "Immediately suggest the most popular service",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000018",
+              "label_ar": "سؤاله باختصار عن هدف الزيارة ثم توجيهه إلى المختص المناسب",
+              "label": "Briefly ask about the purpose of the visit, then direct them to the appropriate specialist",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000019",
+              "label_ar": "إحالته إلى الطبيب من دون توضيح ما سيحدث بعد ذلك",
+              "label": "Refer them to the doctor without explaining what happens next",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000020",
+              "label_ar": "افتراض أنه يريد الخدمة التي شاهدها في إعلان",
+              "label": "Assume they want the service they saw in an advertisement",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q6",
+          "text_ar": "تأخر الدور وصالة الانتظار مزدحمة، وأحد المراجعين منزعج. كيف تتعامل؟",
+          "text": "The queue is delayed, the waiting area is crowded, and a patient is upset. How do you respond?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000021",
+              "label_ar": "إخباره أن التأخير ليس من مسؤوليتك",
+              "label": "Tell them the delay is not your responsibility",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000022",
+              "label_ar": "التحقق من وقت الانتظار الفعلي وشرحه بهدوء مع عرض الخيارات المتاحة",
+              "label": "Check the actual wait time, explain it calmly, and offer available options",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000023",
+              "label_ar": "شرح أن هناك ضغطاً في المواعيد من دون مناقشة البدائل",
+              "label": "Explain that appointments are busy without discussing alternatives",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000024",
+              "label_ar": "وعده بأن دوره سيأتي خلال دقائق قبل التحقق",
+              "label": "Promise they will be seen within minutes before checking",
+              "value": 40,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A4",
+      "title_ar": "التحويل إلى الحجز",
+      "title": "Conversion",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q7",
+          "text_ar": "بعد الاستشارة يسأل المراجع عن الفرق بين خيارين وتكلفتهما. كيف تتابع؟",
+          "text": "After a consultation, a patient asks about the differences and costs of two options. How do you respond?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000025",
+              "label_ar": "توضيح الفروق والتكاليف، ثم سؤال المراجع عن النقطة التي ستساعده على المقارنة",
+              "label": "Explain the differences and costs, then ask what would help the patient compare the options",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000026",
+              "label_ar": "التركيز على الخيار الأعلى تكلفةً باعتباره الأكثر شمولاً",
+              "label": "Focus on the more expensive option as the more comprehensive one",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000027",
+              "label_ar": "ذكر تكلفة كل خيار وترك المقارنة للمراجع",
+              "label": "State the cost of each option and leave the comparison to the patient",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000028",
+              "label_ar": "الإشارة إلى أن فرصة الحصول على السعر الحالي قد لا تستمر طويلاً من دون التأكد من ذلك",
+              "label": "Suggest the current price may not last long without confirming that this is true",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q8",
+          "text_ar": "يقول المراجع إن السعر أعلى مما توقع. كيف ترد؟",
+          "text": "A patient says the price is higher than expected. How do you respond?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000029",
+              "label_ar": "توضيح العناصر التي يتضمنها السعر، ثم الاستفسار عما وجده المراجع غير متوقع",
+              "label": "Explain what the price includes, then ask what the patient did not expect",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000030",
+              "label_ar": "اقتراح تخفيض السعر مباشرةً حتى يستمر المراجع في الحجز",
+              "label": "Offer a price reduction immediately to keep the patient booking",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000031",
+              "label_ar": "تكرار السعر نفسه مع التأكيد أنه السعر المتاح",
+              "label": "Repeat the same price and emphasize that it is the available price",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000032",
+              "label_ar": "عرض أكثر من طريقة للدفع قبل معرفة سبب الاعتراض",
+              "label": "Offer several payment methods before understanding the concern",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A5",
+      "title_ar": "الاحتفاظ والمتابعة",
+      "title": "Retention",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q9",
+          "text_ar": "انتهت الزيارة والمراجع مهتم لكنه لم يقرر الحجز. كيف تنهي الحديث؟",
+          "text": "The visit has ended and the patient is interested but has not decided to book. How do you close the conversation?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000033",
+              "label_ar": "الاتفاق على وقت وقناة متابعة يفضلهما وتسجيل السؤال الذي ما زال يحتاج إجابة",
+              "label": "Agree on a preferred follow-up time and channel, and note the question that still needs an answer",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000034",
+              "label_ar": "إعطاؤه وسيلة التواصل ليعود عندما يكون مستعداً",
+              "label": "Give the patient contact details to reach out when ready",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000035",
+              "label_ar": "تسجيل أنه لم يقرر ثم إنهاء المتابعة",
+              "label": "Record that the patient has not decided and end follow-up",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000036",
+              "label_ar": "إرسال رسائل واتصالات متكررة من دون الاتفاق على ذلك",
+              "label": "Send repeated messages and calls without agreeing on them",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q10",
+          "text_ar": "لم يحضر المراجع موعده ولم يرد على الاتصال الأول. ما الخطوة التالية؟",
+          "text": "A patient missed an appointment and did not answer the first call. What is the next step?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000037",
+              "label_ar": "معاودة الاتصال عدة مرات خلال فترة قصيرة",
+              "label": "Call repeatedly over a short period",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000038",
+              "label_ar": "إرسال رسالة متابعة مناسبة، مع إتاحة فرصة لتحديد موعد آخر وتسجيل ما تم",
+              "label": "Send an appropriate follow-up message, offer rescheduling, and record what was done",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000039",
+              "label_ar": "تسجيل عدم الحضور وعدم التواصل مرة أخرى",
+              "label": "Record the no-show and make no further contact",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000040",
+              "label_ar": "إجراء محاولة اتصال أخرى في وقت لاحق من دون تحديد ما سيحدث بعدها",
+              "label": "Try calling again later without deciding what happens next",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A6",
+      "title_ar": "تنسيق المواعيد",
+      "title": "Scheduling",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q11",
+          "text_ar": "الجدول ممتلئ ووصل طلب موعد جديد. كيف تحدد ما يمكن عرضه؟",
+          "text": "The schedule is full and a new appointment request arrives. What options do you offer?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000041",
+              "label_ar": "مراجعة المواعيد القائمة ووقت المختص، ثم عرض الخيارات التي يمكن تأكيدها",
+              "label": "Review existing appointments and the specialist's time, then offer options that can be confirmed",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000042",
+              "label_ar": "وضع المراجع في أقرب خانة ظاهرة في الجدول",
+              "label": "Place the patient in the nearest visible slot",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000043",
+              "label_ar": "عرض المواعيد المتاحة وإمكانية الانتظار إذا لم تناسبه",
+              "label": "Offer available appointments and a wait-list option if they do not fit",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000044",
+              "label_ar": "إبلاغ المراجع بأن موعداً قريباً قد يتوفر، ثم مراجعة الجدول لاحقاً",
+              "label": "Tell the patient an early slot may be available, then check the schedule later",
+              "value": 40,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q12",
+          "text_ar": "أبلغ الطبيب عن تأخره، ولديك عدة مواعيد متأثرة. ماذا تفعل؟",
+          "text": "The doctor reports a delay and several appointments are affected. What do you do?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000045",
+              "label_ar": "إبلاغ المراجعين المتأثرين بالوقت المتوقع، ومناقشة الخيارات المتاحة معهم، ثم إعادة ترتيب المواعيد",
+              "label": "Tell affected patients the expected wait, discuss available options, and rearrange appointments",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000046",
+              "label_ar": "طلب الانتظار مع الإشارة إلى أن مدة التأخير لم تتضح بعد",
+              "label": "Ask patients to wait and say the delay duration is not yet clear",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000047",
+              "label_ar": "تغيير المواعيد في الجدول من دون التواصل مع أصحابها",
+              "label": "Change appointments in the schedule without contacting the patients",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000048",
+              "label_ar": "إبلاغ المراجعين بوجود تأخير من دون إعطائهم وقتاً متوقعاً أو خيارات أخرى",
+              "label": "Tell patients there is a delay without an estimated time or alternatives",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A7",
+      "title_ar": "الولاء والتوصية",
+      "title": "Loyalty",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q13",
+          "text_ar": "يقول المراجع إنه يفكر في التعامل مع عيادة أخرى بسبب تجربة مزعجة. كيف ترد؟",
+          "text": "A patient says they may use another clinic after an upsetting experience. How do you respond?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000049",
+              "label_ar": "شرح أسباب ما حدث من وجهة نظر العيادة قبل الاستماع إلى التفاصيل",
+              "label": "Explain the clinic's view of what happened before hearing the details",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000050",
+              "label_ar": "الاستماع إلى التجربة، وتلخيص المشكلة، والاتفاق على خطوة واضحة لمتابعتها",
+              "label": "Listen to the experience, summarize the problem, and agree on a clear follow-up step",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000051",
+              "label_ar": "تقديم ميزة إضافية لإنهاء الاعتراض بسرعة",
+              "label": "Offer an extra benefit to end the objection quickly",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000052",
+              "label_ar": "الاعتذار عن التجربة وسؤال المراجع عما قد يحسنها",
+              "label": "Apologize for the experience and ask what might improve it",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q14",
+          "text_ar": "أبدى المراجع رضاه وقال إنه قد يوصي بالعيادة لأصدقائه. كيف تتعامل؟",
+          "text": "A patient expresses satisfaction and says they may recommend the clinic to friends. What do you do?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000053",
+              "label_ar": "شكر المراجع وإتاحة مادة تعريفية يمكنه مشاركتها إن أراد",
+              "label": "Thank the patient and offer informational material they can share if they wish",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000054",
+              "label_ar": "طلب كتابة مراجعة تتضمن تفاصيل من تجربته الصحية",
+              "label": "Ask them to write a review containing details of their health experience",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000055",
+              "label_ar": "شكره على كلامه وإنهاء الحديث",
+              "label": "Thank them and end the conversation",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000056",
+              "label_ar": "اقتراح مقابل أو ميزة لقاء التوصية بالعيادة",
+              "label": "Suggest a reward or benefit in exchange for recommending the clinic",
+              "value": 40,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A8",
+      "title_ar": "الدقة الإدارية",
+      "title": "Administration",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q15",
+          "text_ar": "تغيرت تكلفة أحد عناصر الخطة بعد مراجعة التفاصيل. كيف تتعامل؟",
+          "text": "The cost of one part of a plan changes after the details are reviewed. How do you handle it?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000057",
+              "label_ar": "تأجيل توضيح التكلفة الجديدة إلى حين حضور المراجع",
+              "label": "Delay explaining the new cost until the patient arrives",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000058",
+              "label_ar": "إبلاغ المراجع بأن التكلفة تغيّرت من دون شرح الفرق",
+              "label": "Tell the patient the cost has changed without explaining the difference",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000059",
+              "label_ar": "مراجعة تفاصيل التكلفة، وشرح ما تغيّر قبل استكمال القرار",
+              "label": "Review the cost details and explain what changed before proceeding with the decision",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000060",
+              "label_ar": "إبلاغ المراجع بأن التفاصيل قيد المراجعة، ثم العودة إليه بعد اتضاحها",
+              "label": "Tell the patient the details are being reviewed and get back to them when clarified",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q16",
+          "text_ar": "لاحظت اختلافاً بين الفاتورة والتفاصيل المسجلة في النظام. ما الإجراء الذي تتبعه؟",
+          "text": "You notice a discrepancy between the invoice and the recorded details. What do you do?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000061",
+              "label_ar": "مقارنة البنود بالتفاصيل المسجلة، ومعالجة الفرق قبل إبلاغ المراجع بالنتيجة",
+              "label": "Compare the items with the recorded details and resolve the discrepancy before informing the patient of the result",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000062",
+              "label_ar": "تعديل المبلغ بالاعتماد على ما تتذكره من المحادثة",
+              "label": "Change the amount based on what you remember from the conversation",
+              "value": 0,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000063",
+              "label_ar": "إبلاغ المراجع بوجود اختلاف، من دون تحديد متى سيُحسم",
+              "label": "Tell the patient there is a discrepancy without specifying when it will be resolved",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000064",
+              "label_ar": "شرح المبلغ الظاهر في السجل مع ترك سبب الاختلاف غير محسوم",
+              "label": "Explain the amount shown in the record while leaving the discrepancy unresolved",
+              "value": 70,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "A9",
+      "title_ar": "التنسيق وتسليم المهام",
+      "title": "Coordination",
+      "weight": 11.11,
+      "questions": [
+        {
+          "code": "Q17",
+          "text_ar": "يسأل المراجع إن كان إجراء طبي مناسباً لحالته، وأنت لست من الفريق السريري. كيف تتعامل؟",
+          "text": "A patient asks whether a medical procedure is suitable for their condition, and you are not part of the clinical team. How do you respond?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000065",
+              "label_ar": "توجيه المراجع إلى المختص وتركه يتابع الاستفسار بنفسه",
+              "label": "Direct the patient to the specialist and leave them to follow up themselves",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000066",
+              "label_ar": "توضيح المعلومات العامة المتاحة، وترتيب وصول السؤال إلى المختص، ثم متابعة الرد",
+              "label": "Explain available general information, arrange for the question to reach the specialist, then follow up on the response",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000067",
+              "label_ar": "إبلاغ المراجع بأن المختص يستطيع مناقشة الأمر عند الزيارة",
+              "label": "Tell the patient the specialist can discuss it during the visit",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000068",
+              "label_ar": "إعطاء رأي شخصي بشأن ملاءمة الإجراء اعتماداً على حالات مشابهة",
+              "label": "Give a personal opinion on suitability based on similar cases",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        },
+        {
+          "code": "Q18",
+          "text_ar": "تحتاج المناوبة التالية إلى متابعة اتصال مع مراجع. كيف تسلم المهمة؟",
+          "text": "The next shift needs to follow up with a patient by phone. How do you hand over the task?",
+          "question_type": "select",
+          "is_required": true,
+          "options": [
+            {
+              "id": "91000000-0000-4000-8000-000000000069",
+              "label_ar": "تسجيل ما يحتاجه الزميل لمتابعة الاتصال، مع توضيح من سيتولاه ومتى",
+              "label": "Record what the colleague needs to make the call, including who will handle it and when",
+              "value": 100,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000070",
+              "label_ar": "إخبار الزميل شفهياً بما حدث",
+              "label": "Tell the colleague verbally what happened",
+              "value": 40,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000071",
+              "label_ar": "ترك ملاحظة عامة عن الحاجة إلى الاتصال بالمراجع",
+              "label": "Leave a general note that the patient needs a call",
+              "value": 70,
+              "is_trap": false
+            },
+            {
+              "id": "91000000-0000-4000-8000-000000000072",
+              "label_ar": "افتراض أن الزميل سيعرف أن هناك اتصالاً يحتاج إلى متابعة",
+              "label": "Assume the colleague will know a call needs follow-up",
+              "value": 0,
+              "is_trap": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
