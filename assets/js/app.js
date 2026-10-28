@@ -824,10 +824,10 @@ class ClinicEvaluatorApp {
     document.getElementById('view-results')?.classList.add('fade-in');
 
     const isClinicMatrixReport = this.currentAssessmentKey === 'clinic-matrix-staff-competency';
-    // Clinic Matrix anchors and shared Q1–Q4 bands are still uncalibrated. Keep
-    // the measured percentage, but do not present a global band as a validated stage.
-    const q = !isClinicMatrixReport && ['Q1', 'Q2', 'Q3', 'Q4'].includes(res.classification) ? res.classification : null;
-    const qData = isClinicMatrixReport
+    const isMatrixComprehensiveReport = this.currentAssessmentKey === 'matrix-comprehensive-assessment';
+    const isDescriptiveScoreReport = isClinicMatrixReport || isMatrixComprehensiveReport;
+    const q = !isDescriptiveScoreReport && ['Q1', 'Q2', 'Q3', 'Q4'].includes(res.classification) ? res.classification : null;
+    const qData = isDescriptiveScoreReport
       ? { label: 'نتيجة وصفية أولية', color: '#64748b' }
       : q
         ? (this.texts?.quartiles?.[q] || { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' })
@@ -866,7 +866,7 @@ class ClinicEvaluatorApp {
     const body = document.getElementById('result-body');
     
     if (body) {
-      const calibrationNote = isClinicMatrixReport
+      const calibrationNote = isDescriptiveScoreReport
         ? '<div role="note" class="report-calibration-note">هذه نتيجة وصفية أولية؛ لم تُعاير بعد حدود التصنيف ومرتكزات الأداء لهذا التقييم.</div>'
         : '';
       body.innerHTML = `<div>${this.t('report.overall_sentence', { score, label: qData.label })}</div>${calibrationNote}${trendHtml}`;
@@ -877,7 +877,7 @@ class ClinicEvaluatorApp {
       axesContainer.innerHTML = '';
       report.axes.forEach((axis) => {
         const score = Number(axis.percentage);
-        const qClass = isClinicMatrixReport ? '' : String(axis.bandCode || '').toLowerCase();
+        const qClass = isDescriptiveScoreReport ? '' : String(axis.bandCode || '').toLowerCase();
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
         row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis.nameAr || axis.code}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
@@ -972,10 +972,12 @@ class ClinicEvaluatorApp {
     
     if (Array.isArray(report.axes)) {
       const isClinicMatrixReport = this.currentAssessmentKey === 'clinic-matrix-staff-competency';
+      const isMatrixComprehensiveReport = this.currentAssessmentKey === 'matrix-comprehensive-assessment';
+      const isDescriptiveScoreReport = isClinicMatrixReport || isMatrixComprehensiveReport;
       const data = report.axes.map((axis) => ({
         label: axis.nameAr || axis.code,
         value: Number(axis.percentage),
-        bandCode: isClinicMatrixReport ? null : axis.bandCode
+        bandCode: isDescriptiveScoreReport ? null : axis.bandCode
       }));
 
       const chartDiv = document.createElement('div');

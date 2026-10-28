@@ -7,16 +7,18 @@ const page = fs.readFileSync('clinic-matrix-staff-competency.html', 'utf8');
 
 test('Clinic Matrix report shows measured scores without presenting uncalibrated Q1–Q4 bands as validated stages', () => {
   assert.match(app, /const isClinicMatrixReport = this\.currentAssessmentKey === 'clinic-matrix-staff-competency'/);
-  assert.match(app, /const q = !isClinicMatrixReport &&/);
+  assert.match(app, /const isDescriptiveScoreReport = isClinicMatrixReport \|\| isMatrixComprehensiveReport/);
+  assert.match(app, /const q = !isDescriptiveScoreReport &&/);
   assert.match(app, /نتيجة وصفية أولية/);
   assert.match(app, /لم تُعاير بعد حدود التصنيف ومرتكزات الأداء لهذا التقييم/);
-  assert.match(app, /const qClass = isClinicMatrixReport \? '' : String\(axis\.bandCode/);
-  assert.match(app, /bandCode: isClinicMatrixReport \? null : axis\.bandCode/);
+  assert.match(app, /const qClass = isDescriptiveScoreReport \? '' : String\(axis\.bandCode/);
+  assert.match(app, /bandCode: isDescriptiveScoreReport \? null : axis\.bandCode/);
+  assert.match(app, /this\.currentAssessmentKey === 'matrix-comprehensive-assessment'/);
   assert.match(page, /report-interpretation\.js\?v=20261028-clinic-matrix-tfi-1/);
   assert.match(page, /app\.js\?v=20261028-clinic-matrix-report-calibration-1/);
 });
 
 test('Other assessment families retain the existing Q1–Q4 label and color path', () => {
   assert.match(app, /this\.texts\?\.quartiles\?\.\[q\]/);
-  assert.match(app, /const qClass = isClinicMatrixReport \? '' : String\(axis\.bandCode/);
+  assert.match(app, /const qClass = isDescriptiveScoreReport \? '' : String\(axis\.bandCode/);
 });
