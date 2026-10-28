@@ -88,6 +88,28 @@ export async function executeC03ProductionRelease({
   )) {
     throw new Error("The enabled C-03 gate has no valid immutable activation audit identity.");
   }
+  if (!Array.isArray(initial.releases)) {
+    throw new Error("Production release inventory for the current workflow SHA is malformed.");
+  }
+  const workflowShaAtStart = String(initial.releaseIdentity?.sha || "");
+  if (!/^[0-9a-f]{40}$/.test(workflowShaAtStart)) {
+    throw new Error("The verified GitHub workload identity has no valid full commit SHA.");
+  }
+  const isAlreadyReleased = (family) => {
+    const release = initial.releases.find((entry) => entry.id === family.current_release_id);
+    return Boolean(
+      release &&
+      release.family_id === family.id &&
+      release.assessment_type_id === family.current_published_version_id &&
+      release.git_commit_sha === workflowShaAtStart &&
+      release.state === "PUBLISHED" &&
+      release.verified_config_digest === release.config_digest &&
+      release.verified_registry_digest === release.interpretation_registry_digest &&
+      release.verified_git_commit_sha === release.git_commit_sha &&
+      release.verified_edge_release_ref === release.edge_release_ref
+    );
+  };
+  const familiesToRelease = families.filter((family) => !isAlreadyReleased(family));
 
   // Runtime attestation is independent of family slug. One current published version
   // is sufficient to verify the two deployed Edge bundles before release writes.
@@ -99,7 +121,7 @@ export async function executeC03ProductionRelease({
   });
 
   const registered = [];
-  for (const family of families) {
+  for (const family of familiesToRelease) {
     const result = await invokeCi({
       action: "ci_register",
       assessment_type_id: family.current_published_version_id,
@@ -116,7 +138,7 @@ export async function executeC03ProductionRelease({
     registered.push({ ...family, releaseId });
   }
 
-  // Verify every current published version before activating any family.
+  // Verify every family needing a new release before activating any of them.
   const verified = [];
   for (const family of registered) {
     const result = await invokeCi({ action: "ci_verify", release_id: family.releaseId });
