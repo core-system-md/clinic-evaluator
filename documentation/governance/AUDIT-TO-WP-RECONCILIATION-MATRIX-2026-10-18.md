@@ -1,3 +1,27 @@
+# CLINIC MATRIX PRODUCTION RECOVERY ADDENDUM — 2026-10-28
+
+**Traceability-only update:** This addendum records a proven assessment-specific production regression and its repair. It does not replace the finding-by-finding matrix below, alter any C/D finding status, reopen a closed WP, or start WP-12.
+
+## Evidence and result
+
+- Live audit event `ba383115-3150-4030-a02b-405546cb4ad1` recorded a published assessment description edit at `2026-10-28 12:39:30 UTC`, after release `33def0a3-086c-4861-bcc2-2b185769e293` was published at `12:34:55 UTC`. The edit changed a digest-projected field, so the submit guard correctly rejected the original pinned session.
+- Restored the exact pre-edit description, recorded recovery event `b02b3297-b1c8-4252-8b1e-3a81d001f476`, and recalculated the canonical configuration digest. Current `config_digest` and `verified_config_digest` both equal `6f973110bedb0ee6786db2240d0d4e47f27f4e377c09355a1d6d3f301e2da449`; the registry digest matches both stored registry digests at `66bdf6f96aed580873425fb82c355738141333322e8564d98f861060e1cac90b`.
+- Added and applied `supabase/migrations/20261028131555_prevent_attested_published_config_mutations.sql` (Production ledger identity `20261028131555 / prevent_attested_published_config_mutations`). The guard prevents digest-projected config edits to the currently pinned published assessment/type, axes, questions and options without creating a new version.
+- Direct live negative tests attempted changes to assessment description, axis title, question text, and option label. Each was rejected by the new guard with SQLSTATE `55000`; the test block would have failed if an update succeeded. No test changes persisted.
+- Deployed Edge `assessment-access` v50 contains the target-specific Clinic Matrix V1 binding and report model. No Edge redeployment or C-03 release rotation was needed for this database-only recovery; no other family or release pointer was changed.
+
+## Current limitation — do not overstate verification
+
+Session `c0fa94cf-88aa-4fe6-b5b3-7dd1facd545f` remains in progress/processing with 12 answer rows, a 12-answer frozen snapshot, a submission fingerprint, and access valid until `2026-10-29 12:45:31.831 UTC`. No result row exists. The restored configuration now hashes exactly to the pinned release, so the existing submission can be retried without answering again. The raw access token is not stored by the database and no connected tool can issue the browser-authenticated Edge POST; thus browser-to-database completion and final report persistence are **NOT RUN / NOT VERIFIED**, not PASS. Do not create a fresh session, bypass access authentication, or mark report E2E complete until an actual result/report is observed.
+
+The Clinic Matrix design README says the score anchors remain provisional and no calibrated pass/fail or novice/advanced threshold is defined, while the shared report projection emits global Q1–Q4 bands. That report-semantics mismatch remains explicit; do not present those bands as Clinic-Matrix-calibrated. Resolving a new report model requires a separate authorized Edge attestation/release rotation because the deployed runtime identity is shared across current pinned families.
+
+## Existing audit/stage dispositions preserved
+
+WP-11 §41 / D-05 remain CLOSED. WP-12 §42 remains NOT STARTED; this bounded incident recovery is not completion of the six-layer verification stage. C-01/C-02/C-03/WP-09 dispositions remain unchanged; the C-03 gate stayed enabled and fail-closed. The underlying Audit IDs, previous status/evidence, responsible stage, and remaining work in Section 3 are preserved below without deletion or reclassification.
+
+---
+
 # SESSION CLOSEOUT ADDENDUM — 2026-10-21 (D-05 / WP-11)
 
 **This addendum records the session closeout; it does not replace the original audit inventory below.** Every C/D finding remains represented in Section 3. Keep its original ID, prior status/evidence, responsible gate and remaining action. Where later evidence supersedes an earlier summary, append evidence rather than deleting the audit trail.
