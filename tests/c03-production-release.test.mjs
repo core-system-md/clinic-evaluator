@@ -169,7 +169,7 @@ test("C-03 production release performs no writes when deployed bundle attestatio
 });
 
 test("C-03 release stops before any activation if one published version fails verification", async () => {
-  const rejectedSlug = "patient-journey";
+  const rejectedSlug = "clinic-performance";
   const { fetchImpl, calls, isEnabled } = fakeFetch({ rejectVerifySlug: rejectedSlug });
   await assert.rejects(
     executeC03ProductionRelease(common(fetchImpl)),
