@@ -390,14 +390,79 @@ class AssessmentManager {
         }
     }
 
+    async invokeAssessmentConfigRelease(payload) {
+        const token = window.AdminSession?.session?.access_token;
+        if (!token) throw new Error('جلسة الإدارة غير صالحة.');
+        const baseUrl = this.supabase?.url || 'https://oaqpzaarppccbnepffxx.supabase.co';
+        const anonKey = this.supabase?.anonKey || this.supabase?.key;
+        if (!anonKey) throw new Error('إعداد اتصال قاعدة البيانات غير متوفر.');
+        const response = await fetch(baseUrl + '/functions/v1/assessment-config-release', {
+            method: 'POST',
+            headers: {
+                apikey: anonKey,
+                Authorization: 'Bearer ' + token,
+                'Content-Type': 'application/json'
+            },
+            cache: 'no-store',
+            body: JSON.stringify(payload)
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data?.success !== true) {
+            throw new Error(data?.error || data?.message || ('فشل التحقق من إصدار التقييم: ' + response.status));
+        }
+        return data.data;
+    }
+
     async publishAssessment(id) {
         if (!confirm("نشر هذه المسودة سيجعلها الإصدار الحالي، وسيتم أرشفة الإصدار المنشور السابق. متابعة؟")) return;
         try {
-            await this.supabase.request('rpc/publish_assessment_version_secure', {
-                method: 'POST',
-                body: JSON.stringify({ p_version_id: id })
+            // Use the existing owner-authenticated verifier and release state machine.
+            const evidence = await this.invokeAssessmentConfigRelease({
+                action: 'export',
+                assessment_type_id: id
             });
-            this.showToast("تم نشر الإصدار الجديد وتثبيت الرابط العام.");
+            if (!evidence?.familyId || evidence.assessmentTypeId !== id) {
+                throw new Error('تعذر التحقق من هوية عائلة التقييم وإصداره.');
+            }
+
+            const token = window.AdminSession?.session?.access_token;
+            const baseUrl = this.supabase?.url || 'https://oaqpzaarppccbnepffxx.supabase.co';
+            const anonKey = this.supabase?.anonKey || this.supabase?.key;
+            const familyResponse = await fetch(
+                baseUrl + '/rest/v1/assessment_families?id=eq.' +
+                    encodeURIComponent(evidence.familyId) + '&select=current_published_version_id',
+                { headers: { apikey: anonKey, Authorization: 'Bearer ' + token }, cache: 'no-store' }
+            );
+            const familyRows = await familyResponse.json().catch(() => []);
+            if (!familyResponse.ok || !Array.isArray(familyRows) || familyRows.length !== 1) {
+                throw new Error('تعذر قراءة الإصدار المنشور الحالي لهذه العائلة؛ لم يتم النشر.');
+            }
+            const expectedPublishedVersionId = familyRows[0].current_published_version_id ?? null;
+
+            const registration = await this.invokeAssessmentConfigRelease({
+                action: 'register',
+                assessment_type_id: id
+            });
+            const releaseId = registration?.release_id;
+            if (!releaseId || registration.assessment_type_id !== id ||
+                !['PREPARED', 'VERIFIED'].includes(String(registration.state || ''))) {
+                throw new Error('لم يُنشأ سجل إصدار مطابق للمسودة؛ لم يتم النشر.');
+            }
+
+            const verification = await this.invokeAssessmentConfigRelease({
+                action: 'verify',
+                release_id: releaseId
+            });
+            if (verification?.state !== 'VERIFIED') {
+                throw new Error('لم يجتز الإصدار التحقق؛ لم يتم النشر.');
+            }
+
+            await this.invokeAssessmentConfigRelease({
+                action: 'publish',
+                release_id: releaseId,
+                expected_published_version_id: expectedPublishedVersionId
+            });
+            this.showToast("اجتازت المسودة التحقق ونُشرت بنجاح.");
             await this.renderAssessmentsTable();
             this.populateFilterDropdown();
         } catch (err) {
