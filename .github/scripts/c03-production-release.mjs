@@ -148,6 +148,36 @@ export async function executeC03ProductionRelease({
     verified.push(family);
   }
 
+  // Re-read the live inventory after verification and before any pointer changes.
+  // Abort without activation if a family/version/pointer or gate state changed mid-run.
+  const preActivationResponse = await invokeCi({ action: "ci_inventory" });
+  const preActivation = preActivationResponse?.data;
+  const initialById = new Map(families.map((family) => [String(family.id), family]));
+  if (
+    preActivationResponse?.success !== true ||
+    preActivation?.settings?.singleton !== true ||
+    preActivation.settings.enabled !== gateWasEnabled ||
+    !Array.isArray(preActivation.families) ||
+    preActivation.families.length !== families.length ||
+    preActivation?.releaseIdentity?.runId !== initial.releaseIdentity?.runId ||
+    preActivation?.releaseIdentity?.sha !== initial.releaseIdentity?.sha ||
+    preActivation.settings.enabled_by_workflow_run_id !== initial.settings.enabled_by_workflow_run_id ||
+    preActivation.settings.enabled_by_workflow_sha !== initial.settings.enabled_by_workflow_sha
+  ) {
+    throw new Error("C-03 live family/gate inventory changed after verification; no release activation was attempted.");
+  }
+  for (const family of preActivation.families) {
+    const before = initialById.get(String(family.id));
+    if (
+      !before ||
+      String(family.slug) !== String(before.slug) ||
+      String(family.current_published_version_id) !== String(before.current_published_version_id) ||
+      String(family.current_release_id || "") !== String(before.current_release_id || "")
+    ) {
+      throw new Error("C-03 family version or active release pointer changed after verification: " + String(family.slug));
+    }
+  }
+
   const activated = [];
   for (const family of verified) {
     const result = await invokeCi({
