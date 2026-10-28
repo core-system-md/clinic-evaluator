@@ -1,3 +1,55 @@
+
+# SESSION CLOSEOUT — CLINIC MATRIX MANUAL-HANDOFF — 2026-10-28
+
+**Safe stop:** The user requested that all implementation work stop for manual correction. This session delivered a repository-grounded manual setup guide only. No tests, deployment, publication, production mutation, release-gate change, source edit, or PR action was performed in this session. This addendum is the current resume point and supersedes no earlier technical closeout or Audit disposition.
+
+## Actual work and evidence
+
+- Read from current main: assessments/drafts/clinic-matrix-staff-competency.v1.json, assessments/drafts/README-clinic-matrix-staff-competency.md, admin/assessment-manager.js, supabase/migrations/20261027114146_clinic_matrix_draft_content_correction.sql, this handoff, and the audit-to-WP matrix.
+- Delivered the manual setup guide for the existing Clinic Matrix V1 draft, including the six axes/weights, 12 questions, 48 options and their provisional scoring anchors, plus admin edit/save/publish steps. This is guidance, not proof that the assessment was changed, validated, or published in this session.
+- No application/source/test/migration files changed during this session. No tests/CI/E2E, live HTTP/PostgREST checks, Edge deployment, publication, or database mutation were performed. No WP was started or closed.
+
+## Clinic Matrix — exact current boundary
+
+- Slug: clinic-matrix-staff-competency; version 1.
+- Family ID: 14637c94-36cd-429c-bd3c-9adc18253a89.
+- Assessment version ID: 0485d166-e628-4171-9cac-e87c18752d71.
+- Source content: assessments/drafts/clinic-matrix-staff-competency.v1.json; design notes: assessments/drafts/README-clinic-matrix-staff-competency.md.
+- Six axes, 12 questions, 48 options; weights A1–A6 are 20/15/15/20/20/10 percent. Option anchors are 0/40/70/100. Thresholds/classifications are not calibrated. Provisional anchors and critical-conduct flags require owner review.
+- The repository's latest recorded production status says this remains a draft, no release row exists for its family, nothing was published, and production assessment-access was v48 without the verified target-specific interpretation binding/report model. This session did not re-query live production; treat that as the last recorded observation, not a fresh live check.
+- Do not create a duplicate assessment, delete/recreate the draft, write production rows manually, bypass the owner-authenticated release flow, or enable the C-03 workflow that activates the five other releases.
+- The report model was merged in PR #125 at 0f2b467dc6e151803c58330bd8a10cd101479dda, but merge/CI evidence does not prove that the live Edge runtime contains the model or resolves clinic-matrix-staff-competency:1. The prior explicit missing-binding error remains unverified in the deployed runtime.
+
+## Stage and Audit status
+
+- WP-11 §41 and D-05 remain **CLOSED** under the authoritative 2026-10-24 closeout; do not repeat accepted D-05 provenance searches or reopen without new regression evidence.
+- WP-12 §42 remains **NOT STARTED**. The six-layer test/evidence inventory required by the contract has not been performed in this session. Prior CI results remain tied to their recorded commits and do not imply runtime/E2E PASS.
+- C-01, C-02, C-03, and WP-09 remain **CLOSED** under their recorded dispositions. C-03 live E2E remains WAIVED / NOT RUN, not PASS. The Clinic Matrix-specific publication issue does not by itself reopen C-03.
+- All D-04–D-19 identifiers, dispositions, evidence limits, stage ownership, and remaining actions remain in the reconciliation matrix. No audit finding is dropped or reclassified here.
+
+## Tests, deployments, and changes
+
+| Category | This session's status |
+|---|---|
+| Repository inspection | READ ONLY; current main files retrieved as listed above |
+| Source / database changes | NOT MADE in this session |
+| Automated tests / CI | NOT RUN in this session |
+| Browser-to-database / report E2E | NOT RUN in this session |
+| Live Edge version/binding check | NOT RUN in this session; last recorded observation only |
+| Edge deployment / publication | NOT PERFORMED in this session |
+| Production DB / release-gate mutation | NOT PERFORMED in this session |
+| WP transition | NONE; WP-12 remains NOT STARTED |
+
+## Exact next action and copy-ready start command
+
+First perform a **read-only** current-state check for Clinic Matrix: verify the deployed assessment-access version and whether its actual deployed files include both the merged REPORT_MODELS entry and an explicit interpretation binding for clinic-matrix-staff-competency:1; inspect the existing owner-authenticated assessment-config-release export/register/verify/publish flow and the family pointer without mutating them. Use the current repository release-attestation contract rather than constructing or bypassing an attestation. Report the exact missing prerequisite and owner decision before any deployment/publication. Do not enable the C-03 multi-release workflow, do not publish automatically, do not start WP-12, and do not reopen C-01/C-02/C-03.
+
+Copy-ready instruction for the next conversation:
+
+> استأنف مشروع core-system-md/clinic-evaluator من أحدث قسم في documentation/handoff/CURRENT-SESSION-HANDOFF.md، عنوانه “SESSION CLOSEOUT — CLINIC MATRIX MANUAL-HANDOFF — 2026-10-28”. لا تكرر إعداد المحتوى أو فحوص D-05 المقبولة. نفّذ أولاً تحققاً read-only من نسخة assessment-access المنشورة فعلياً ووجود نموذج التقرير وربط التفسير الصريح لـ clinic-matrix-staff-competency:1، ثم راجع مسار assessment-config-release وعقد attestations المعتمد دون تعديل الإنتاج. حدّد الدليل والمانع بدقة قبل أي نشر أو تفعيل، ولا تنشر تلقائياً، ولا تشغّل مسار C-03 الذي يفعّل خمس عائلات أخرى، ولا تبدأ WP-12، ولا تعِد فتح C-01/C-02/C-03. حافظ على جميع Audit IDs وحالاتها في مصفوفة المصالحة.
+
+---
+
 # CURRENT UPDATE — CLINIC MATRIX DRAFT CONTENT CORRECTION — 2026-10-27
 
 **Assessment remains a draft. No release was created, nothing was published, and no Edge Function deployment was performed.**
