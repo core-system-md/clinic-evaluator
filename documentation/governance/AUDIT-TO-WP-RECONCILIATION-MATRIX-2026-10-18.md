@@ -1,3 +1,28 @@
+# CLINIC MATRIX REPORT VERIFICATION / WP-06 GATE REPAIR — 2026-10-28
+
+**Traceability-only addendum.** This records verification and correction of the Clinic Matrix report validation gate. It does not change any Audit item ID, status, assigned work package, owner, or remaining action; it does not reopen a closed stage or start WP-12.
+
+## Verified production evidence
+- Session `c0fa94cf-88aa-4fe6-b5b3-7dd1facd545f` is completed; 12 answers persist.
+- Structured Result `01cd2c0c-1907-4284-ae51-f6dbc6d7f3ee` is `PRODUCTION`, coverage `FULL` (12/12), six measured axes, overall score 66.5. Its assessment configuration digest matches the pinned published/verified release digest.
+- `TFI` is `unavailable` and economic output is `NOT_COMPUTED`; neither is fabricated in the user report.
+- The completion RPC and outer `assessment-access` request returned HTTP 200. The production Clinic Matrix page and cache-busted `app.js` were fetched via Cloudflare Browser Rendering. The served page references `app.js?v=20261028-clinic-matrix-report-calibration-1`; served source contains the neutral descriptive label, calibration disclosure, and Clinic-Matrix-only suppression of Q1–Q4 band styling.
+- Successful Pages deployments: `5c8cf324-c18a-4b7e-bae4-c9e967455327` (report-presentation source `b8a3e37b0701505f2bd3af361ba4d7184508941c`) and `febb79e7-c118-4798-a56f-965dfcc15024` (latest traceability/test-gate source `e732633e47ed03fe8a9dbd933532cbd0f4d6c021`).
+
+## Report gate correction and verification
+- WP-06 run `40697375692` failed because two tests asserted a superseded source expression for reading the persisted result. The actual handler resolves the persisted assessment slug, projects the Structured Result through `projectCompletionResponse`, and returns the sanitized `safeStoredResult.userReport`.
+- Corrected `tests/wp-06-report-validation.test.mjs` to assert that actual path, and added that test file to the WP-06 workflow's `push.paths` filter so its changes trigger the gate.
+- WP-06 run `40700435905`: **PASS**; both report validation test files and JavaScript syntax checks passed.
+- P3 kernel run `40700403263`: **PASS** for the full Node test suite, isolated P3 kernel, C-02 answer-save RPC, and P4 protected completion.
+
+## Boundaries
+- No production assessment rows, answers, Structured Result, release digest, release pointer, C-03 gate, or Edge bundle were changed in this repair.
+- The UI hides uncalibrated Q1–Q4 stage presentation for Clinic Matrix only. Do not describe current scores as calibrated stages, and do not invent pass/fail thresholds or unsupported KPI/economic values.
+- The authenticated original session's browser result screen was not independently captured because its token is available only in the user's browser session. Server completion/report response, persisted result, served page and asset, and automated report gate are verified. No session or token was fabricated, and no access check was bypassed.
+- Existing Audit dispositions remain unchanged; WP-12 remains NOT STARTED.
+
+---
+
 # CLINIC MATRIX PRODUCTION RECOVERY ADDENDUM — 2026-10-28
 
 **Traceability-only update:** This addendum records a proven assessment-specific production regression and its repair. It does not replace the finding-by-finding matrix below, alter any C/D finding status, reopen a closed WP, or start WP-12.
