@@ -1,3 +1,40 @@
+# SESSION UPDATE — CLINIC MATRIX REPORT VERIFICATION AND WP-06 GATE REPAIR — 2026-10-28
+
+**Current status: PRODUCTION RESULT VERIFIED; REPORT PAGE/ASSET SERVED FROM PRODUCTION; REPORT VALIDATION GATE PASS.** This update supersedes the earlier statement that the public Clinic Matrix page/cache-busted asset had not been fetched. It does not close WP-12, calibrate score bands, or change any Audit finding disposition.
+
+## Contract and assessment sources reviewed
+- Read `documentation/governance/AI-ENGINEERING-OPERATING-CONTRACT.md` and `documentation/governance/FINAL-IMPLEMENTATION-CONTRACT-2026-10-07.md`.
+- Read the Clinic Matrix source/design record, canonical draft JSON, interpretation registry, migration guard, `engine.ts`, `report-interpretation.mjs`, deployed entrypoint `index.ts`, `assets/js/app.js`, `assets/js/report-validation.js`, Clinic Matrix presentation test, WP-06 report validation test, and its workflow.
+- Preserved the canonical scoring engine, existing production release and result. No new assessment session was created; no answers or result rows were rewritten; no Edge bundle or release digest was changed.
+
+## Live Production result
+- Session `c0fa94cf-88aa-4fe6-b5b3-7dd1facd545f`: `status=completed`, `submission_state=completed`, 12 persisted answers.
+- Structured Result `01cd2c0c-1907-4284-ae51-f6dbc6d7f3ee`: `result_status=PRODUCTION`, `FULL` coverage (12/12), six measured axes, overall score 66.5; stored configuration digest matches the published/verified release digest `6f973110bedb0ee6786db2240d0d4e47f27f4e377c09355a1d6d3f301e2da449`.
+- KPI `TFI` remains `unavailable`; economics remain `NOT_COMPUTED`. The report does not fabricate either output. Scoring anchors and Q1–Q4 cutoffs remain uncalibrated; the user-facing report must describe the score as descriptive, not as a validated maturity stage.
+- Existing Production logs record `complete_p4_public_assessment_from_result` HTTP 200 and the outer `assessment-access` completion request HTTP 200 at 2026-10-28 13:22 UTC.
+
+## Production presentation verification
+- Cloudflare Pages Production deployment `5c8cf324-c18a-4b7e-bae4-c9e967455327` succeeded for report-presentation commit `b8a3e37b0701505f2bd3af361ba4d7184508941c`.
+- The canonical Production URL `https://clinicevaluat.pages.dev/clinic-matrix-staff-competency.html` was fetched using Cloudflare Browser Rendering; the page serves the expected cache-busted `app.js?v=20261028-clinic-matrix-report-calibration-1`.
+- The deployed JavaScript asset was fetched from the successful deployment URL. It contains the Clinic Matrix-specific neutral overall label, calibration disclosure, and logic that suppresses shared Q1–Q4 axis/chart colors for this assessment only. Other assessment-family rendering remains on the shared band path.
+- A browser-rendered result screen using the original user's session token was not independently captured; the token remains browser-session-only and was not reconstructed or bypassed. Server completion/report response and persisted result are verified, and the deployed page/asset are verified.
+
+## CI defect found and corrected
+- The first WP-06 report validation run `40697375692` failed in two source-contract assertions because the test still expected the old expression `projectCompletionResponse(storedResult.result, ...)`, while current production code correctly resolves the persisted assessment slug before projection and returns only `safeStoredResult.userReport`.
+- Updated `tests/wp-06-report-validation.test.mjs` to assert the actual persisted-result projection path. Updated `.github/workflows/wp-06-report-validation-gate.yml` so changes to that test trigger the gate on pushes to `main`; previously the push-path filter omitted that test file.
+- WP-06 gate run `40700435905` on commit `e732633e47ed03fe8a9dbd933532cbd0f4d6c021`: **PASS**. Both `tests/wp-06-report-validation.test.mjs` and `tests/clinic-matrix-report-presentation.test.js`, plus all three JavaScript syntax checks, passed.
+- P3 kernel verification run `40700403263`: all jobs passed, including the full Node test suite, isolated P3 kernel, C-02 answer-save RPC, and P4 protected completion.
+- Cloudflare Pages Production deployment `febb79e7-c118-4798-a56f-965dfcc15024` for commit `e732633e47ed03fe8a9dbd933532cbd0f4d6c021` succeeded through queued, initialize, clone, build, and deploy stages. This latest deployment includes the test/workflow traceability changes; the assessment UI assets remain the already verified report-presentation version.
+
+## Scope and next canonical state
+- Clinic Matrix scoring, persistence, server report projection, and public report presentation have production evidence; the WP-06 test-gate mismatch is repaired and the gate passes.
+- Do not create another session, repeat answers, rewrite the persisted result, alter release digests, or deploy Edge code outside the guarded C-03 attestation/rotation workflow.
+- Do not claim calibrated bands, pass/fail thresholds, novice/advanced classification, unavailable KPI values, or uncomputed economic values.
+- WP-12 remains NOT STARTED. No Audit finding status was changed, no closed WP was reopened, and no unrelated stage was started.
+- Any future calibration of Clinic Matrix score anchors/bands remains a distinct content/business decision; the current production report is explicitly descriptive and does not require inventing thresholds to be usable.
+
+---
+
 # SESSION UPDATE — CLINIC MATRIX REPORT PERSISTENCE AND PRESENTATION — 2026-10-28
 
 **Current status: PRODUCTION COMPLETION/REPORT REQUEST VERIFIED; RESULT PERSISTED; REPORT PRESENTATION DEPLOYED; BROWSER VISUAL CHECK UNAVAILABLE.** This addendum supersedes only the earlier claims that the existing session has no persisted result. It does not close WP-12 or change any Audit finding disposition.
