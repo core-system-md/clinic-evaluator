@@ -823,10 +823,15 @@ class ClinicEvaluatorApp {
     this.showView('view-results');
     document.getElementById('view-results')?.classList.add('fade-in');
 
-    const q = ['Q1', 'Q2', 'Q3', 'Q4'].includes(res.classification) ? res.classification : null;
-    const qData = q
-      ? (this.texts?.quartiles?.[q] || { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' })
-      : { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' };
+    const isClinicMatrixReport = this.currentAssessmentKey === 'clinic-matrix-staff-competency';
+    // Clinic Matrix anchors and shared Q1–Q4 bands are still uncalibrated. Keep
+    // the measured percentage, but do not present a global band as a validated stage.
+    const q = !isClinicMatrixReport && ['Q1', 'Q2', 'Q3', 'Q4'].includes(res.classification) ? res.classification : null;
+    const qData = isClinicMatrixReport
+      ? { label: 'نتيجة وصفية أولية', color: '#64748b' }
+      : q
+        ? (this.texts?.quartiles?.[q] || { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' })
+        : { label: report.overall?.label || this.t('report.unavailable_label'), color: '#C67D47' };
     const score = Number.isFinite(res.overallScore) ? res.overallScore.toFixed(1) : '—';
 
     let trendHtml = "";
@@ -861,7 +866,10 @@ class ClinicEvaluatorApp {
     const body = document.getElementById('result-body');
     
     if (body) {
-      body.innerHTML = `<div>${this.t('report.overall_sentence', { score, label: qData.label })}</div>${trendHtml}`;
+      const calibrationNote = isClinicMatrixReport
+        ? '<div role="note" class="report-calibration-note">هذه نتيجة وصفية أولية؛ لم تُعاير بعد حدود التصنيف ومرتكزات الأداء لهذا التقييم.</div>'
+        : '';
+      body.innerHTML = `<div>${this.t('report.overall_sentence', { score, label: qData.label })}</div>${calibrationNote}${trendHtml}`;
     }
 
     const axesContainer = document.getElementById('axes-scores');
@@ -869,7 +877,7 @@ class ClinicEvaluatorApp {
       axesContainer.innerHTML = '';
       report.axes.forEach((axis) => {
         const score = Number(axis.percentage);
-        const qClass = String(axis.bandCode || '').toLowerCase();
+        const qClass = isClinicMatrixReport ? '' : String(axis.bandCode || '').toLowerCase();
         const row = document.createElement('div');
         row.className = 'axis-score-row fade-in';
         row.innerHTML = `<div class="axis-score-info"><div class="axis-score-name">${axis.nameAr || axis.code}</div><div class="axis-score-bar-bg"><div class="axis-score-bar-fill ${qClass}" style="width:${score}%;"></div></div></div><div class="axis-score-value">${score.toFixed(1)}%</div>`;
@@ -963,10 +971,11 @@ class ClinicEvaluatorApp {
     benchmarkContainer.innerHTML = `<h3 class="card-title">${this.t('report.visual_benchmark_title')}</h3>`;
     
     if (Array.isArray(report.axes)) {
+      const isClinicMatrixReport = this.currentAssessmentKey === 'clinic-matrix-staff-competency';
       const data = report.axes.map((axis) => ({
         label: axis.nameAr || axis.code,
         value: Number(axis.percentage),
-        bandCode: axis.bandCode
+        bandCode: isClinicMatrixReport ? null : axis.bandCode
       }));
 
       const chartDiv = document.createElement('div');
@@ -976,10 +985,11 @@ class ClinicEvaluatorApp {
       data.forEach((item) => {
         const pct = (item.value / maxVal) * 100;
         const qClass = String(item.bandCode || '').toLowerCase();
+        const qTextClass = qClass ? qClass + '-text' : '';
 
         const row = document.createElement('div');
         row.style.cssText = 'margin-bottom:12px;';
-        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qClass}-text">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
+        row.innerHTML = `<div style="display:flex;justify-content:space-between;margin-bottom:4px;font-size:0.9rem;font-weight:600;"><span>${item.label}</span><span class="${qTextClass}">${item.value.toFixed(1)}%</span></div><div style="width:100%;height:12px;background:#f3f4f6;border-radius:6px;overflow:hidden;"><div class="${qClass}" style="width:${pct}%;height:100%;border-radius:6px;transition:width 0.5s ease;"></div></div>`;
         chartDiv.appendChild(row);
       });
 
