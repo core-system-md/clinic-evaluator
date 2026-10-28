@@ -1,3 +1,15 @@
+# C-03 correction — unapproved deployment-token requirement removed — 2026-10-29
+
+The prior session introduced an incorrect requirement for `SUPABASE_ACCESS_TOKEN` in commit `ab5815c85401560637c60a4cb6475147bbe2aba2`. This requirement was not part of the preceding OIDC-only guarded workflow and must not be requested from the owner.
+
+- Workflow restored to its previous OIDC-only authorization + deployed-runtime attestation wait in commit `f0f2fc5780daa7094f069f68f4d42aaf99165cab`.
+- Corrected detailed status: `documentation/handoff/C03-GUARDED-DEPLOYMENT-BLOCKER-2026-10-29.md`.
+- Run `40774239607` is not evidence of a missing owner credential; it only proves the incorrectly-added credential gate failed. It performed no deployment and no release writes.
+- C-03 is **not released by this correction**. The approved next action is to establish/execute the already-approved exact-source Edge deployment path, verify both deployed runtime attestations against the exact current `main` SHA and digest, and only then run the guarded release flow. Do not use a direct release bypass, add a PAT requirement, or claim Matrix is published.
+- No Production data, release pointers, gate state, Edge functions, or assessment content were changed by this correction. WP-12 remains NOT STARTED.
+
+---
+
 # PRODUCTION READ-BACK CORRECTION — C-03 DYNAMIC RELEASE MIGRATION — 2026-10-28
 
 **Post-merge observation:** The repository-to-Supabase deployment integration applied migration `20261028170000_c03_dynamic_assessment_release` after PR #126 was merged. This migration was not manually applied through the Supabase tool. The earlier PR handoff correctly described the pre-merge state; this section supersedes that state after merge.
