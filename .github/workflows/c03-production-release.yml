@@ -1,5 +1,5 @@
 name: C-03 guarded Production configuration release
-# Explicit owner-triggered, confirmation-gated configuration release; requires verified GitHub OIDC workload identity.
+# Explicit owner-triggered, confirmation-gated release for every current published assessment family; requires verified GitHub OIDC workload identity.
 
 on:
   workflow_dispatch:
@@ -106,7 +106,7 @@ jobs:
           done
           echo "::error::Timed out waiting for the exact attested Edge bundles; no release writes were attempted."
           exit 1
-      - name: Register, verify, activate all five current releases, then enable the gate
+      - name: Register, verify, and activate every current published assessment; enable the gate only on first activation
         id: production_release
         run: node .github/scripts/c03-production-release.mjs > c03-production-release-result.json
       - name: Upload Production release evidence

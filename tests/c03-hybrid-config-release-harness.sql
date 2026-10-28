@@ -80,6 +80,7 @@ returns jsonb language sql as $c03$ select jsonb_build_object('valid', true) $c0
 \i supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql
 \i supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql
 \i supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql
+\i supabase/migrations/20261028170000_c03_dynamic_assessment_release.sql
 \i supabase/migrations/20261018075528_c03_service_role_api_key_compatibility.sql
 \i supabase/migrations/20261018075855_c03_verifier_api_key_compatibility.sql
 \i supabase/migrations/20261018100000_c03_service_role_api_key_compatibility.sql
@@ -151,7 +152,7 @@ select public.register_assessment_config_release_secure(
   '22222222-2222-4222-8222-222222222222',
   repeat('a',40), repeat('b',64), 'C03_CANONICAL_V1', 1, repeat('c',64),
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','edge-v1'
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','edge-v1'
 ) as release1 \gset
 
 select set_config('request.jwt.claim.role','',false);
@@ -161,7 +162,7 @@ select public.verify_assessment_config_release_secure(
   '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 1,
   repeat('b',64), 'C03_CANONICAL_V1', repeat('c',64), repeat('a',40), 'edge-v1', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','{"fixture":"matching"}'::jsonb
 ) as verified1 \gset
 reset role;
 select 1 / (((:'verified1'::jsonb->>'state')='VERIFIED')::int) as release_verified;
@@ -194,7 +195,7 @@ select public.register_assessment_config_release_ci_secure(
   '22222222-2222-4222-8222-222222222222',
   repeat('a',40), repeat('b',64), 'C03_CANONICAL_V1', 1, repeat('c',64),
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','edge-v1',
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','edge-v1',
   '12345','1',repeat('a',40),'ENABLE-C03-PRODUCTION'
 ) as ci_release1 \gset
 select 1 / (((:'ci_release1'::jsonb->>'release_id') = (:'release1'::jsonb->>'release_id'))::int) as ci_registration_idempotent;
@@ -213,6 +214,7 @@ select 1 / ((
     and enabled_by_workflow_sha=repeat('a',40)
   from public.assessment_config_release_settings where singleton
 )::int) as ci_gate_audit_persisted;
+
 select set_config('request.jwt.claim.role','authenticated',false);
 insert into public.sessions(id,assessment_type_id)
 values ('55555555-5555-4555-8555-555555555555','22222222-2222-4222-8222-222222222222');
@@ -225,7 +227,7 @@ select public.register_assessment_config_release_secure(
   '33333333-3333-4333-8333-333333333333',
   repeat('d',40), repeat('e',64), 'C03_CANONICAL_V1', 1, repeat('f',64),
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','edge-v2'
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','edge-v2'
 ) as release2 \gset
 select set_config('request.jwt.claim.role','service_role',false);
 select public.verify_assessment_config_release_secure(
@@ -233,7 +235,7 @@ select public.verify_assessment_config_release_secure(
   '11111111-1111-4111-8111-111111111111', '33333333-3333-4333-8333-333333333333', 2,
   repeat('e',64), 'C03_CANONICAL_V1', repeat('f',64), repeat('d',40), 'edge-v2', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"matching"}'::jsonb
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','{"fixture":"matching"}'::jsonb
 ) as verified2 \gset
 select set_config('request.jwt.claim.role','authenticated',false);
 select public.publish_assessment_config_release_secure(
@@ -277,7 +279,7 @@ select public.register_assessment_config_release_secure(
   '44444444-4444-4444-8444-444444444444',
   repeat('1',40), repeat('2',64), 'C03_CANONICAL_V1', 1, repeat('3',64),
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','edge-bad'
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','edge-bad'
 ) as release_bad \gset
 select set_config('request.jwt.claim.role','service_role',false);
 select public.verify_assessment_config_release_secure(
@@ -285,7 +287,7 @@ select public.verify_assessment_config_release_secure(
   '11111111-1111-4111-8111-111111111111', '44444444-4444-4444-8444-444444444444', 3,
   repeat('9',64), 'C03_CANONICAL_V1', repeat('3',64), repeat('1',40), 'edge-bad', 1,
   'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
-  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V1','{"fixture":"intentional mismatch"}'::jsonb
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','{"fixture":"intentional mismatch"}'::jsonb
 ) as rejected_bad \gset
 select 1 / (((:'rejected_bad'::jsonb)::jsonb->>'state') = 'REJECTED')::int as drift_rejected;
 
@@ -301,6 +303,48 @@ begin
   if not v_blocked then raise exception 'verified release identity unexpectedly mutable'; end if;
 end
 $assert_immutable$;
+
+
+-- A second assessment release remains possible after the C-03 gate is already enabled.
+-- The active pointer must reference a PUBLISHED release; gate audit identity must not be rewritten.
+select set_config('request.jwt.claim.role','',false);
+set role service_role;
+select public.register_assessment_config_release_ci_secure(
+  '22222222-2222-4222-8222-222222222222',
+  repeat('d',40), repeat('e',64), 'C03_CANONICAL_V1', 1, repeat('f',64),
+  'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','edge-v2',
+  '12346','1',repeat('d',40),'ENABLE-C03-PRODUCTION'
+) as ci_release_after_gate \gset
+select public.verify_assessment_config_release_secure(
+  (:'ci_release_after_gate'::jsonb->>'release_id')::uuid,
+  '11111111-1111-4111-8111-111111111111', '22222222-2222-4222-8222-222222222222', 1,
+  repeat('e',64), 'C03_CANONICAL_V1', repeat('f',64), repeat('d',40), 'edge-v2', 1,
+  'MD_CODE_ASSESSMENT_ENGINE','FINAL_IMPLEMENTATION_CONTRACT-2026-10-07',
+  'REPORT_MODEL_V1','P3_FIXTURE_SET_V1','C03_RELEASE_CONTRACT_V2','{"fixture":"matching-after-gate"}'::jsonb
+) as ci_verified_after_gate \gset
+select 1 / (((:'ci_verified_after_gate'::jsonb->>'state')='VERIFIED')::int) as ci_release_verified_after_gate;
+select public.activate_existing_assessment_release_ci_secure(
+  (:'ci_release_after_gate'::jsonb->>'release_id')::uuid,
+  '22222222-2222-4222-8222-222222222222',
+  '12346','1',repeat('d',40),'ENABLE-C03-PRODUCTION'
+) as ci_activation_after_gate;
+reset role;
+select 1 / ((
+  select state='PUBLISHED' and verified_config_digest=config_digest
+     and verified_registry_digest=interpretation_registry_digest
+  from public.assessment_config_releases
+  where id=(:'ci_release_after_gate'::jsonb->>'release_id')::uuid
+)::int) as ci_release_published_after_gate;
+select 1 / ((
+  select current_release_id=(:'ci_release_after_gate'::jsonb->>'release_id')::uuid
+  from public.assessment_families where id='11111111-1111-4111-8111-111111111111'
+)::int) as ci_pointer_updated_after_gate;
+select 1 / ((
+  select enabled and enabled_by_workflow_run_id='12345'
+    and enabled_by_workflow_sha=repeat('a',40)
+  from public.assessment_config_release_settings where singleton
+)::int) as ci_gate_audit_identity_preserved;
 
 
 select 'C03_HYBRID_CONFIG_RELEASE_HARNESS_PASS' as result;

@@ -1,25 +1,41 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import {
-  executeC03ProductionRelease,
-  REQUIRED_FAMILY_SLUGS,
-} from "../.github/scripts/c03-production-release.mjs";
+import { executeC03ProductionRelease } from "../.github/scripts/c03-production-release.mjs";
 
 const workflowSha = "a".repeat(40);
 const workflowRunId = "12345";
-const families = REQUIRED_FAMILY_SLUGS.map((slug, index) => ({
-  id: "family-" + index,
-  slug,
-  current_published_version_id: "version-" + index,
-  current_release_id: null,
-}));
+const families = [
+  { id: "family-0", slug: "admin-reception-assessment", current_published_version_id: "version-0", current_release_id: null },
+  { id: "family-1", slug: "clinic-performance", current_published_version_id: "version-1", current_release_id: null },
+  { id: "family-2", slug: "clinic-matrix-staff-competency", current_published_version_id: "version-2", current_release_id: null },
+];
 
-function fakeFetch({ rejectVerifySlug = null } = {}) {
+function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, preexistingCurrentRelease = false } = {}) {
   const calls = [];
   const releases = [];
-  let enabled = false;
-  let enabledByRunId = null;
-  let enabledBySha = null;
+  let enabled = gateInitiallyEnabled;
+  let enabledByRunId = gateInitiallyEnabled ? "98765" : null;
+  let enabledBySha = gateInitiallyEnabled ? "e".repeat(40) : null;
+  if (preexistingCurrentRelease) {
+    for (const family of families) {
+      const release = {
+        id: "current-release-" + family.id,
+        family_id: family.id,
+        assessment_type_id: family.current_published_version_id,
+        git_commit_sha: workflowSha,
+        config_digest: "b".repeat(64),
+        interpretation_registry_digest: "c".repeat(64),
+        edge_release_ref: "sha256:" + "d".repeat(64),
+        state: "PUBLISHED",
+        verified_config_digest: "b".repeat(64),
+        verified_registry_digest: "c".repeat(64),
+        verified_git_commit_sha: workflowSha,
+        verified_edge_release_ref: "sha256:" + "d".repeat(64),
+      };
+      releases.push(release);
+      family.current_release_id = release.id;
+    }
+  }
 
   const fetchImpl = async (url, options = {}) => {
     const body = options.body ? JSON.parse(options.body) : null;
@@ -151,7 +167,8 @@ test("C-03 release requires no service-role key in the workflow runner", async (
   const result = await executeC03ProductionRelease(common(fetchImpl));
   assert.equal(result.success, true);
   assert.equal(result.gateEnabled, true);
-  assert.equal(result.verifiedFamilyCount, 5);
+  assert.equal(result.verifiedFamilyCount, families.length);
+  assert.equal(result.gateWasAlreadyEnabled, false);
   assert.equal(isEnabled(), true);
 });
 
@@ -172,7 +189,7 @@ test("C-03 production release performs no writes when deployed bundle attestatio
 });
 
 test("C-03 release stops before any activation if one published version fails verification", async () => {
-  const rejectedSlug = "patient-journey";
+  const rejectedSlug = "clinic-performance";
   const { fetchImpl, calls, isEnabled } = fakeFetch({ rejectVerifySlug: rejectedSlug });
   await assert.rejects(
     executeC03ProductionRelease(common(fetchImpl)),
@@ -184,6 +201,37 @@ test("C-03 release stops before any activation if one published version fails ve
   assert.equal(actions.includes("ci_activate_existing"), false);
   assert.equal(actions.includes("ci_enable_gate"), false);
   assert.equal(isEnabled(), false);
+});
+
+test("C-03 release accepts newly added family slugs and preserves an already-enabled gate audit identity", async () => {
+  const { fetchImpl, calls, isEnabled } = fakeFetch({ gateInitiallyEnabled: true });
+  const result = await executeC03ProductionRelease(common(fetchImpl));
+  assert.equal(result.success, true);
+  assert.equal(result.gateEnabled, true);
+  assert.equal(result.gateWasAlreadyEnabled, true);
+  assert.equal(result.verifiedFamilyCount, families.length);
+  assert.equal(isEnabled(), true);
+  const finalInventory = calls
+    .filter((call) => call.body?.action === "ci_inventory")
+    .at(-1);
+  assert.ok(finalInventory);
+  assert.equal(finalInventory.body.action, "ci_inventory");
+  assert.equal(calls.some((call) => call.body?.action === "ci_enable_gate"), false);
+  assert.equal(families.find((family) => family.slug === "clinic-matrix-staff-competency").current_release_id,
+    "release-version-2");
+});
+
+test("C-03 release is idempotent when every current family already has a verified release for this exact SHA", async () => {
+  const { fetchImpl, calls } = fakeFetch({ gateInitiallyEnabled: true, preexistingCurrentRelease: true });
+  const result = await executeC03ProductionRelease(common(fetchImpl));
+  assert.equal(result.success, true);
+  assert.equal(result.gateWasAlreadyEnabled, true);
+  assert.equal(result.activated.length, 0);
+  assert.equal(result.verifiedFamilyCount, families.length);
+  assert.equal(calls.some((call) => call.body?.action === "ci_register"), false);
+  assert.equal(calls.some((call) => call.body?.action === "ci_verify"), false);
+  assert.equal(calls.some((call) => call.body?.action === "ci_activate_existing"), false);
+  assert.equal(calls.some((call) => call.body?.action === "ci_enable_gate"), false);
 });
 
 test("the release runner sends only anon API authorization and a verified OIDC header", async () => {

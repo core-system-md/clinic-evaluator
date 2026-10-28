@@ -182,7 +182,7 @@ test('C-03 pinned release guard accepts exact verified identity and rejects drif
     gitCommitSha: 'a'.repeat(40),
     edgeReleaseRef: 'edge-v1',
     fixtureSetVersion: 'P3_FIXTURE_SET_V1',
-    migrationContractVersion: 'C03_RELEASE_CONTRACT_V1',
+    migrationContractVersion: 'C03_RELEASE_CONTRACT_V2',
   };
   const release = {
     id: 'release-1',
