@@ -123,6 +123,26 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
         if (familiesResult.error) throw familiesResult.error;
         if (releasesResult.error) throw releasesResult.error;
 
+        const familyRows = familiesResult.data || [];
+        const currentVersionIds = familyRows
+          .map((family: any) => String(family.current_published_version_id || "").trim())
+          .filter(Boolean);
+        const versionStatusResult = currentVersionIds.length
+          ? await dbClient.from("assessment_types").select("id,status,is_active").in("id", currentVersionIds)
+          : { data: [], error: null };
+        if (versionStatusResult.error) throw versionStatusResult.error;
+        const versionStatusById = new Map(
+          (versionStatusResult.data || []).map((version: any) => [String(version.id), version]),
+        );
+        const familiesWithStatus = familyRows.map((family: any) => {
+          const version = versionStatusById.get(String(family.current_published_version_id));
+          return {
+            ...family,
+            current_published_version_status: version?.status ?? null,
+            current_published_version_is_active: version?.is_active === true,
+          };
+        });
+
         const rpcProbe = await dbClient.rpc("c03_require_ci_release_context", {
           p_workflow_run_id: ciIdentity!.runId,
           p_workflow_run_attempt: ciIdentity!.runAttempt,
@@ -142,7 +162,7 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
           data: {
             settings: settingsResult.data,
             releaseRows: Number(releaseCountResult.count ?? 0),
-            families: familiesResult.data || [],
+            families: familiesWithStatus,
             releases: releasesResult.data || [],
             ciRpcReady,
             releaseIdentity: ciIdentity,
