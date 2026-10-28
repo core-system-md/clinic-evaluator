@@ -1,10 +1,15 @@
-# C-03 guarded deployment blocker — 2026-10-29
+# C-03 guarded deployment status — correction — 2026-10-29
 
-Status: NOT RELEASED. Do not bypass the guarded release process.
+Status: NOT RELEASED. This correction supersedes the previous instruction in this file to create `SUPABASE_ACCESS_TOKEN`.
 
-- Run 40754502541 passed OIDC preflight but failed while waiting for the exact Edge runtime attestations. The workflow had no deployment steps, so both production release writes were skipped.
-- Main commit ab5815c85401560637c60a4cb6475147bbe2aba2 corrects .github/workflows/c03-production-release.yml: prepare the immutable attestation, deploy both Edge functions from the exact checkout, verify both deployed attestations, and only then run release registration/verification/activation.
-- Authorized run 40774239607 passed OIDC preflight and exact-main check, then failed closed because the GitHub Actions production-e2e environment did not supply SUPABASE_ACCESS_TOKEN. Both deployments and release writes were skipped.
-- Owner action: add a valid Supabase Personal Access Token as the GitHub Actions secret SUPABASE_ACCESS_TOKEN (repository or production-e2e environment scope). Do not paste the token into chat. Then post the exact owner confirmation ENABLE-C03-PRODUCTION on a repository issue to rerun the guarded workflow.
-- Live DB read-back: Matrix assessment remains draft; its family has current_published_version_id=NULL and current_release_id=NULL. No release pointer or gate write occurred in either failed run.
-- Do not use direct deployment as a workaround. Close only after both deployed runtime attestations pass and live release state is read back.
+## Correction of the deployment-path deviation
+- Commit `ab5815c85401560637c60a4cb6475147bbe2aba2` added a `SUPABASE_ACCESS_TOKEN` requirement and direct Supabase CLI deployment steps. Those were not present in the prior guarded workflow and are not an approved requirement established by the governing project path.
+- The incorrect requirement has been removed in commit `f0f2fc5780daa7094f069f68f4d42aaf99165cab`. The workflow is restored to its prior OIDC-only authorization and read-only runtime-attestation wait before any release write.
+- Do not ask the owner to create `SUPABASE_ACCESS_TOKEN`. Do not substitute `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_ANON_KEY` for a deployment credential.
+- The restored workflow still fails closed unless both deployed Edge Functions attest the exact current `main` commit and source digest. The mechanism that deploys those exact Edge bundles must follow the already approved deployment path; this correction does not claim that deployment has occurred.
+
+## Evidence and remaining work
+- Run 40754502541 passed OIDC preflight but failed while waiting for the exact Edge runtime attestations. No release writes occurred.
+- Run 40774239607 failed at the unapproved credential gate introduced by commit `ab5815c85401560637c60a4cb6475147bbe2aba2`; it did not deploy either Edge Function or write release state. That credential failure is not a valid project blocker.
+- Previous live read-back showed the Matrix assessment remained draft with `current_published_version_id=NULL` and `current_release_id=NULL`. Re-read current Production state after the exact Edge bundles have been deployed and attested.
+- Do not rerun the release workflow until the deployed Edge bundles are confirmed to match the exact current `main` attestation. Do not bypass attestation or write release state directly.
