@@ -5,19 +5,25 @@ import { executeC03ProductionRelease } from "../.github/scripts/c03-production-r
 const workflowSha = "a".repeat(40);
 const workflowRunId = "12345";
 const families = [
-  { id: "family-0", slug: "admin-reception-assessment", current_published_version_id: "version-0", current_release_id: null },
-  { id: "family-1", slug: "clinic-performance", current_published_version_id: "version-1", current_release_id: null },
-  { id: "family-2", slug: "clinic-matrix-staff-competency", current_published_version_id: "version-2", current_release_id: null },
+  { id: "family-0", slug: "admin-reception-assessment", current_published_version_id: "version-0", current_release_id: null, current_published_version_status: "published", current_published_version_is_active: true },
+  { id: "family-1", slug: "clinic-performance", current_published_version_id: "version-1", current_release_id: null, current_published_version_status: "published", current_published_version_is_active: true },
+  { id: "family-2", slug: "clinic-matrix-staff-competency", current_published_version_id: "version-2", current_release_id: null, current_published_version_status: "published", current_published_version_is_active: true },
 ];
 
-function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, preexistingCurrentRelease = false } = {}) {
+function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, preexistingCurrentRelease = false, preexistingVerified = false, inactiveSlug = null } = {}) {
   const calls = [];
   const releases = [];
+  const testFamilies = families.map((family) => ({
+    ...family,
+    current_release_id: null,
+    current_published_version_status: "published",
+    current_published_version_is_active: family.slug !== inactiveSlug,
+  }));
   let enabled = gateInitiallyEnabled;
   let enabledByRunId = gateInitiallyEnabled ? "98765" : null;
   let enabledBySha = gateInitiallyEnabled ? "e".repeat(40) : null;
   if (preexistingCurrentRelease) {
-    for (const family of families) {
+    for (const family of testFamilies) {
       const release = {
         id: "current-release-" + family.id,
         family_id: family.id,
@@ -34,6 +40,24 @@ function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, pree
       };
       releases.push(release);
       family.current_release_id = release.id;
+    }
+  }
+  if (preexistingVerified) {
+    for (const family of testFamilies.filter((item) => item.current_published_version_is_active)) {
+      releases.push({
+        id: "verified-release-" + family.id,
+        family_id: family.id,
+        assessment_type_id: family.current_published_version_id,
+        git_commit_sha: workflowSha,
+        config_digest: "b".repeat(64),
+        interpretation_registry_digest: "c".repeat(64),
+        edge_release_ref: "sha256:" + "d".repeat(64),
+        state: "VERIFIED",
+        verified_config_digest: "b".repeat(64),
+        verified_registry_digest: "c".repeat(64),
+        verified_git_commit_sha: workflowSha,
+        verified_edge_release_ref: "sha256:" + "d".repeat(64),
+      });
     }
   }
 
@@ -66,7 +90,7 @@ function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, pree
             enabled_by_workflow_sha: enabledBySha,
           },
           releaseRows: releases.length,
-          families,
+          families: testFamilies,
           releases: releases.filter((release) => release.git_commit_sha === workflowSha),
           ciRpcReady: true,
           releaseIdentity: { runId: workflowRunId, sha: workflowSha },
@@ -75,7 +99,7 @@ function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, pree
     }
 
     if (body.action === "ci_register") {
-      const family = families.find((item) => item.current_published_version_id === body.assessment_type_id);
+      const family = testFamilies.find((item) => item.current_published_version_id === body.assessment_type_id);
       if (!family) return response({ error: "unknown assessment version" }, 404);
       let release = releases.find((item) => item.assessment_type_id === family.current_published_version_id);
       if (!release) {
@@ -106,7 +130,7 @@ function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, pree
     }
     if (body.action === "ci_verify") {
       const release = releases.find((item) => item.id === body.release_id);
-      const family = families.find((item) => item.slug === rejectVerifySlug);
+      const family = testFamilies.find((item) => item.slug === rejectVerifySlug);
       if (!release) return response({ error: "release not found" }, 404);
       if (family && release.assessment_type_id === family.current_published_version_id) {
         return response({ success: false, data: { state: "REJECTED" } });
@@ -120,7 +144,7 @@ function fakeFetch({ rejectVerifySlug = null, gateInitiallyEnabled = false, pree
     }
     if (body.action === "ci_activate_existing") {
       const release = releases.find((item) => item.id === body.release_id);
-      const family = families.find((item) => item.id === release?.family_id);
+      const family = testFamilies.find((item) => item.id === release?.family_id);
       if (!release || !family) return response({ error: "release not found" }, 404);
       release.state = "PUBLISHED";
       family.current_release_id = release.id;
@@ -245,3 +269,26 @@ test("the release runner sends only anon API authorization and a verified OIDC h
     assert.equal(Object.keys(call.headers).some((key) => /service.role/i.test(key)), false);
   }
 });
+
+
+test("C-03 reuses verified releases after a partial run and never reactivates a stopped assessment", async () => {
+  const stoppedSlug = "clinic-matrix-staff-competency";
+  const { fetchImpl, calls } = fakeFetch({
+    gateInitiallyEnabled: true,
+    preexistingVerified: true,
+    inactiveSlug: stoppedSlug,
+  });
+  const result = await executeC03ProductionRelease(common(fetchImpl));
+  assert.equal(result.success, true);
+  assert.equal(result.verifiedFamilyCount, 2);
+  assert.equal(result.inactiveFamilyCount, 1);
+  assert.equal(calls.some((call) => call.body?.action === "ci_register"), false);
+  const actions = calls.filter((call) => call.body).map((call) => call.body.action);
+  assert.equal(actions.includes("ci_activate_existing"), true);
+  const stoppedFamily = testFamilyBySlug(stoppedSlug);
+  assert.equal(stoppedFamily.current_release_id, null);
+});
+
+function testFamilyBySlug(slug) {
+  return families.find((family) => family.slug === slug);
+}
