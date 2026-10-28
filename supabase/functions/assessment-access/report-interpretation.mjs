@@ -50,13 +50,13 @@ export const REPORT_MODELS = Object.freeze({
   },
   "clinic-matrix-staff-competency": {
     modelVersion: "REPORT_MODEL_V1", purpose: "كفاءة فريق العيادة في التواصل وتجربة المراجع والتنسيق والشرح والبيع الأخلاقي والمتابعة",
-    axisRoles: { A1: "DIGITAL_COMMUNICATION", A2: "RECEPTION", A3: "TRUST_AND_COORDINATION", A4: "PLAN_AND_COST_EXPLANATION", A5: "ETHICAL_OBJECTION_HANDLING", A6: "FOLLOW_UP" },
-    measuredConstructs: ["DIGITAL_COMMUNICATION", "RECEPTION", "TRUST_AND_COORDINATION", "PLAN_AND_COST_EXPLANATION", "ETHICAL_OBJECTION_HANDLING", "FOLLOW_UP"],
-    userKpis: [],
+    axisRoles: { A1: "COMMUNICATION", A2: "RECEPTION", A3: "TRUST", A4: "PROFESSIONALISM", A5: "PROFESSIONALISM", A6: "RETENTION" },
+    measuredConstructs: ["COMMUNICATION", "RECEPTION", "TRUST", "PROFESSIONALISM", "PROFESSIONALISM", "RETENTION"],
+    userKpis: ["TFI"],
     economicAllowed: false, economicPolicySource: "assessment_types.has_ev_simulator",
     diagnosticMeanings: { lowestMeasuredAxis: "lowest_measured_axis_only", highestMeasuredAxis: "highest_measured_axis_only" },
     permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
-    textTemplateCatalog: ["quartiles.Q1", "quartiles.Q2", "quartiles.Q3", "quartiles.Q4", "report.overall_score", "report.axis_summary"]
+    textTemplateCatalog: ["quartiles.Q1", "quartiles.Q2", "quartiles.Q3", "quartiles.Q4", "kpis.TFI", "report.overall_score", "report.axis_summary"]
   },
   "patient-journey": {
     modelVersion: "REPORT_MODEL_V1", purpose: "جودة رحلة المريض من الثقة إلى الولاء",
