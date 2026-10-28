@@ -80,6 +80,7 @@ returns jsonb language sql as $c03$ select jsonb_build_object('valid', true) $c0
 \i supabase/migrations/20261003175645_p5_p2_immutability_lifecycle_compat.sql
 \i supabase/migrations/20261015100000_c03_hybrid_config_release_gate.sql
 \i supabase/migrations/20261015120000_c03_github_oidc_release_authorization.sql
+\i supabase/migrations/20261028170000_c03_dynamic_assessment_release.sql
 \i supabase/migrations/20261018075528_c03_service_role_api_key_compatibility.sql
 \i supabase/migrations/20261018075855_c03_verifier_api_key_compatibility.sql
 \i supabase/migrations/20261018100000_c03_service_role_api_key_compatibility.sql
