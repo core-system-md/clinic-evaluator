@@ -444,9 +444,29 @@ class AssessmentManager {
                 assessment_type_id: id
             });
             const releaseId = registration?.release_id;
+            const registrationState = String(registration?.state || '');
             if (!releaseId || registration.assessment_type_id !== id ||
-                !['PREPARED', 'VERIFIED'].includes(String(registration.state || ''))) {
+                !['PREPARED', 'VERIFIED', 'PUBLISHED'].includes(registrationState)) {
                 throw new Error('لم يُنشأ سجل إصدار مطابق للمسودة؛ لم يتم النشر.');
+            }
+
+            // Registration is idempotent and may return an already-published release.
+            // Confirm the live family pointer before treating that state as success.
+            if (registrationState === 'PUBLISHED') {
+                const confirmResponse = await fetch(
+                    baseUrl + '/rest/v1/assessment_families?id=eq.' +
+                        encodeURIComponent(evidence.familyId) + '&select=current_published_version_id',
+                    { headers: { apikey: anonKey, Authorization: 'Bearer ' + token }, cache: 'no-store' }
+                );
+                const confirmRows = await confirmResponse.json().catch(() => []);
+                if (!confirmResponse.ok || !Array.isArray(confirmRows) || confirmRows.length !== 1 ||
+                    confirmRows[0].current_published_version_id !== id) {
+                    throw new Error('سجل الإصدار منشور، لكن لم يتأكد أن مؤشر النشر الحالي يطابقه.');
+                }
+                this.showToast("هذا الإصدار منشور بالفعل وتم تأكيده.");
+                await this.renderAssessmentsTable();
+                this.populateFilterDropdown();
+                return;
             }
 
             const verification = await this.invokeAssessmentConfigRelease({
