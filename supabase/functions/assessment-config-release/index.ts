@@ -229,8 +229,12 @@ export function createAssessmentConfigReleaseHandler(dependencies: {
 
       if (action === "publish") {
         const releaseId = String(body?.release_id || "").trim();
-        const expectedVersionId = String(body?.expected_published_version_id || "").trim();
-        if (!releaseId || !expectedVersionId) return json({ error: "release_id and expected_published_version_id are required" }, 400);
+        const hasExpectedVersion = Object.prototype.hasOwnProperty.call(body || {}, "expected_published_version_id");
+        const rawExpectedVersion = body?.expected_published_version_id;
+        const expectedVersionId = rawExpectedVersion == null ? null : String(rawExpectedVersion).trim();
+        if (!releaseId || !hasExpectedVersion || (expectedVersionId !== null && !expectedVersionId)) {
+          return json({ error: "release_id and expected_published_version_id (nullable for a first publication) are required" }, 400);
+        }
         const { data, error } = await owner!.userClient.rpc(
           "publish_assessment_config_release_secure",
           { p_release_id: releaseId, p_expected_published_version_id: expectedVersionId },
