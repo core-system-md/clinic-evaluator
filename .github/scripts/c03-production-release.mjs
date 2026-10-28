@@ -61,22 +61,36 @@ export async function executeC03ProductionRelease({
   ) {
     throw new Error("C-03 guarded read-only inventory or release-RPC preflight failed.");
   }
-  if (initial.settings.enabled === true) {
-    throw new Error("C-03 release gate is already enabled; refusing to repeat activation.");
-  }
+
+  const gateWasEnabled = initial.settings.enabled === true;
   const families = initial.families;
-  if (!Array.isArray(families)) throw new Error("Current published family inventory response is malformed.");
-  const slugs = families.map((family) => String(family.slug)).sort();
-  if (JSON.stringify(slugs) !== JSON.stringify([...REQUIRED_FAMILY_SLUGS].sort())) {
-    throw new Error("Production published-family inventory drifted from the reviewed five-family contract: " + JSON.stringify(slugs));
+  if (!Array.isArray(families) || families.length === 0) {
+    throw new Error("Production published-family inventory is empty or malformed.");
   }
+  const familyIds = new Set();
+  const familySlugs = new Set();
   for (const family of families) {
-    if (!family.id || !family.current_published_version_id) {
-      throw new Error("A published family has no stable family/version identity: " + String(family.slug));
+    const id = String(family?.id || "").trim();
+    const slug = String(family?.slug || "").trim();
+    const versionId = String(family?.current_published_version_id || "").trim();
+    if (!id || !slug || !versionId) {
+      throw new Error("A published family has no stable family/version identity: " + slug);
     }
+    if (familyIds.has(id) || familySlugs.has(slug)) {
+      throw new Error("Production published-family inventory contains duplicate family identity: " + slug);
+    }
+    familyIds.add(id);
+    familySlugs.add(slug);
+  }
+  if (gateWasEnabled && (
+    !/^\d+$/.test(String(initial.settings.enabled_by_workflow_run_id || "")) ||
+    !/^[0-9a-f]{40}$/.test(String(initial.settings.enabled_by_workflow_sha || ""))
+  )) {
+    throw new Error("The enabled C-03 gate has no valid immutable activation audit identity.");
   }
 
-  // Read-only preflight must attest both deployed Edge bundles before any release writes.
+  // Runtime attestation is independent of family slug. One current published version
+  // is sufficient to verify the two deployed Edge bundles before release writes.
   await verifyAttestation({
     assessmentTypeId: families[0].current_published_version_id,
     baseUrl: url,
@@ -102,7 +116,7 @@ export async function executeC03ProductionRelease({
     registered.push({ ...family, releaseId });
   }
 
-  // Verify all five first. Do not activate any family if any attestation is rejected.
+  // Verify every current published version before activating any family.
   const verified = [];
   for (const family of registered) {
     const result = await invokeCi({ action: "ci_verify", release_id: family.releaseId });
@@ -119,12 +133,14 @@ export async function executeC03ProductionRelease({
       release_id: family.releaseId,
       expected_published_version_id: family.current_published_version_id,
     });
-    if (result?.success !== true) {
+    if (result?.success !== true || result?.data?.state !== "PUBLISHED") {
       throw new Error("Release activation failed for " + family.slug + ": " + JSON.stringify(result));
     }
     activated.push({ slug: family.slug, versionId: family.current_published_version_id, releaseId: family.releaseId });
   }
 
+  // Bootstrap the gate only once. Later releases preserve its original activation
+  // audit identity while still verifying and publishing the current family inventory.
   if (!gateWasEnabled) {
     const enabled = await invokeCi({ action: "ci_enable_gate" });
     if (enabled?.success !== true) {
@@ -134,35 +150,53 @@ export async function executeC03ProductionRelease({
 
   const finalInventoryResponse = await invokeCi({ action: "ci_inventory" });
   const finalInventory = finalInventoryResponse?.data;
+  const expectedGateRunId = gateWasEnabled
+    ? String(initial.settings.enabled_by_workflow_run_id)
+    : String(finalInventory?.releaseIdentity?.runId || "");
+  const expectedGateSha = gateWasEnabled
+    ? String(initial.settings.enabled_by_workflow_sha)
+    : String(finalInventory?.releaseIdentity?.sha || "");
+  const workflowRunId = String(finalInventory?.releaseIdentity?.runId || "");
+  const workflowSha = String(finalInventory?.releaseIdentity?.sha || "");
   if (
     finalInventoryResponse?.success !== true ||
     finalInventory?.settings?.singleton !== true ||
     finalInventory.settings.enabled !== true ||
-    finalInventory.settings.enabled_by_workflow_run_id !== finalInventory.releaseIdentity?.runId ||
-    finalInventory.settings.enabled_by_workflow_sha !== finalInventory.releaseIdentity?.sha ||
-    !/^[0-9a-f]{40}$/.test(String(finalInventory.releaseIdentity?.sha || "")) ||
-    !/^\d+$/.test(String(finalInventory.releaseIdentity?.runId || ""))
+    finalInventory.settings.enabled_by_workflow_run_id !== expectedGateRunId ||
+    finalInventory.settings.enabled_by_workflow_sha !== expectedGateSha ||
+    !/^[0-9a-f]{40}$/.test(workflowSha) ||
+    !/^\d+$/.test(workflowRunId) ||
+    !/^[0-9a-f]{40}$/.test(expectedGateSha) ||
+    !/^\d+$/.test(expectedGateRunId)
   ) {
-    throw new Error("C-03 final gate and exact workload-audit read-back did not pass.");
+    throw new Error("C-03 final gate, release-workload identity, or immutable gate-audit read-back did not pass.");
   }
 
   const finalFamilies = finalInventory.families;
   const finalReleases = finalInventory.releases;
-  if (!Array.isArray(finalFamilies) || finalFamilies.length !== REQUIRED_FAMILY_SLUGS.length || !Array.isArray(finalReleases)) {
-    throw new Error("C-03 final release inventory is incomplete.");
+  if (!Array.isArray(finalFamilies) || finalFamilies.length !== families.length || !Array.isArray(finalReleases)) {
+    throw new Error("C-03 final release inventory is incomplete or the published-family inventory changed during release.");
   }
-  const finalSlugs = finalFamilies.map((family) => String(family.slug)).sort();
-  if (JSON.stringify(finalSlugs) !== JSON.stringify([...REQUIRED_FAMILY_SLUGS].sort())) {
-    throw new Error("C-03 final family inventory differs from the five-family contract.");
-  }
+  const initialFamilyById = new Map(families.map((family) => [String(family.id), family]));
+  const finalFamilyIds = new Set();
   for (const family of finalFamilies) {
+    const initialFamily = initialFamilyById.get(String(family.id));
+    if (
+      !initialFamily ||
+      String(family.slug) !== String(initialFamily.slug) ||
+      String(family.current_published_version_id) !== String(initialFamily.current_published_version_id) ||
+      finalFamilyIds.has(String(family.id))
+    ) {
+      throw new Error("Published-family inventory changed during release: " + String(family.slug));
+    }
+    finalFamilyIds.add(String(family.id));
     const release = finalReleases.find((entry) => entry.id === family.current_release_id);
     if (
       !family.current_release_id ||
       !release ||
       release.family_id !== family.id ||
       release.assessment_type_id !== family.current_published_version_id ||
-      release.git_commit_sha !== finalInventory.settings.enabled_by_workflow_sha ||
+      release.git_commit_sha !== workflowSha ||
       release.state !== "PUBLISHED" ||
       release.verified_config_digest !== release.config_digest ||
       release.verified_registry_digest !== release.interpretation_registry_digest ||
@@ -177,10 +211,12 @@ export async function executeC03ProductionRelease({
     success: true,
     gateEnabled: true,
     activated,
-    workflowRunId: finalInventory.settings.enabled_by_workflow_run_id,
-    workflowSha: finalInventory.settings.enabled_by_workflow_sha,
+    workflowRunId,
+    workflowSha,
     verifiedFamilyCount: finalFamilies.length,
     gateWasAlreadyEnabled: gateWasEnabled,
+    gateActivationRunId: expectedGateRunId,
+    gateActivationSha: expectedGateSha,
     note: "Runtime attestation, every current published family, verified active pointers, immutable gate audit identity, and post-write read-back were verified.",
   };
 }
@@ -189,7 +225,6 @@ async function main() {
   const result = await executeC03ProductionRelease({
     baseUrl: process.env.SUPABASE_URL,
     anonKey: process.env.SUPABASE_ANON_KEY,
-
     confirmation: process.env.C03_PRODUCTION_RELEASE_CONFIRMATION,
   });
   console.log(JSON.stringify(result, null, 2));
