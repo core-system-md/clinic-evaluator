@@ -12,6 +12,7 @@ test('Clinic Matrix report shows measured scores without presenting uncalibrated
   assert.match(app, /لم تُعاير بعد حدود التصنيف ومرتكزات الأداء لهذا التقييم/);
   assert.match(app, /const qClass = isClinicMatrixReport \? '' : String\(axis\.bandCode/);
   assert.match(app, /bandCode: isClinicMatrixReport \? null : axis\.bandCode/);
+  assert.match(page, /report-interpretation\.js\?v=20261028-clinic-matrix-tfi-1/);
   assert.match(page, /app\.js\?v=20261028-clinic-matrix-report-calibration-1/);
 });
 
