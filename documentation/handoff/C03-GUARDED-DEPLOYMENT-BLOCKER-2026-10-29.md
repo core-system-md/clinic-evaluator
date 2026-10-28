@@ -1,15 +1,18 @@
-# C-03 guarded deployment status — correction — 2026-10-29
+# C-03 guarded deployment outcome — 2026-10-29
 
-Status: NOT RELEASED. This correction supersedes the previous instruction in this file to create `SUPABASE_ACCESS_TOKEN`.
+Status: **GUARDED RELEASE SUCCESSFUL; Matrix draft publication remains unverified.**
 
-## Correction of the deployment-path deviation
-- Commit `ab5815c85401560637c60a4cb6475147bbe2aba2` added a `SUPABASE_ACCESS_TOKEN` requirement and direct Supabase CLI deployment steps. Those were not present in the prior guarded workflow and are not an approved requirement established by the governing project path.
-- The incorrect requirement has been removed in commit `f0f2fc5780daa7094f069f68f4d42aaf99165cab`. The workflow is restored to its prior OIDC-only authorization and read-only runtime-attestation wait before any release write.
-- Do not ask the owner to create `SUPABASE_ACCESS_TOKEN`. Do not substitute `SUPABASE_SERVICE_ROLE_KEY` or `SUPABASE_ANON_KEY` for a deployment credential.
-- The restored workflow still fails closed unless both deployed Edge Functions attest the exact current `main` commit and source digest. The mechanism that deploys those exact Edge bundles must follow the already approved deployment path; this correction does not claim that deployment has occurred.
+## Deployment-path correction
+- Commit `ab5815c85401560637c60a4cb6475147bbe2aba2` introduced an unapproved `SUPABASE_ACCESS_TOKEN` requirement and direct CLI deployment. This was a deviation and has been removed. Do not ask the owner to add that secret.
+- The approved connected Supabase deployment tool was used to deploy exact source and runtime attestation, then the guarded OIDC workflow verified both deployed Edge bundles before release writes.
+- Current verified release run: [#40784774516](https://github.com/core-system-md/clinic-evaluator/actions/runs/40784774516), SHA `40cd1234da786f257250de08d5f60e44a9d5f23e`.
+- Live Edge versions: `assessment-access` v53; `assessment-config-release` v14. Exact runtime source digest: `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989`.
+- Five active published families were registered/verified/activated and read back successfully. The existing C-03 gate remains enabled with its prior immutable activation audit identity.
+- `clinic-matrix-staff-competency` was intentionally left untouched because its live audit log records `assessment.stop_public` and `is_active=false`. The release runner now preserves stopped assessments and can recover exact-SHA verified rows from partial runs.
 
-## Evidence and remaining work
-- Run 40754502541 passed OIDC preflight but failed while waiting for the exact Edge runtime attestations. No release writes occurred.
-- Run 40774239607 failed at the unapproved credential gate introduced by commit `ab5815c85401560637c60a4cb6475147bbe2aba2`; it did not deploy either Edge Function or write release state. That credential failure is not a valid project blocker.
-- Previous live read-back showed the Matrix assessment remained draft with `current_published_version_id=NULL` and `current_release_id=NULL`. Re-read current Production state after the exact Edge bundles have been deployed and attested.
-- Do not rerun the release workflow until the deployed Edge bundles are confirmed to match the exact current `main` attestation. Do not bypass attestation or write release state directly.
+## Matrix comprehensive assessment
+- Live state remains `draft`, with `current_published_version_id=NULL` and `current_release_id=NULL`.
+- Explicit `matrix-comprehensive-assessment:1` interpretation binding is present in the deployed source.
+- This guarded run does not publish drafts; authenticated admin publication and a live Structured Result/report E2E remain outstanding. Do not claim publication before that evidence exists.
+- No direct database publication, owner-auth bypass, or reactivation of the stopped Clinic Matrix Staff Competency assessment was performed.
+
