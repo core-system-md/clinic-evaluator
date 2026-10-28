@@ -72,6 +72,15 @@
       userKpis: ['TFI'],
       economicAllowed: false
     },
+    'matrix-comprehensive-assessment': {
+      purpose:'تقييم وصفي لكفاءة الفريق عبر تسعة محاور',
+      measuredConstructs:['COMMUNICATION','TRUST','RECEPTION','CONVERSION','RETENTION','SCHEDULING','LOYALTY','ADMIN','COORDINATION'],
+      axisRoles:{A1:'COMMUNICATION',A2:'TRUST',A3:'RECEPTION',A4:'CONVERSION',A5:'RETENTION',A6:'SCHEDULING',A7:'LOYALTY',A8:'ADMIN',A9:'COORDINATION'},
+      diagnosticMeanings:{lowestMeasuredAxis:'lowest_measured_axis_only',highestMeasuredAxis:'highest_measured_axis_only'},
+      permittedConclusions:COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog:['quartiles.Q1','quartiles.Q2','quartiles.Q3','quartiles.Q4','kpis.TFI','kpis.TAP','kpis.PRP','kpis.PLI','kpis.PSI','kpis.NPI','kpis.EVI','kpis.TCI','kpis.RRI','report.overall_score','report.axis_summary'],
+      userKpis:['TFI','TAP','PRP','PLI','PSI','NPI','EVI','TCI','RRI'],economicAllowed:false,uncalibratedBands:true
+    },
     'patient-journey': {
       purpose: 'جودة رحلة المريض من الثقة إلى الولاء',
       measuredConstructs: ['TRUST', 'COMMUNICATION', 'CONVERSION', 'RETENTION', 'LOYALTY'],
@@ -176,7 +185,7 @@
     const lowest = axes[0] || null;
     const highest = axes.length ? axes[axes.length - 1] : null;
     const overall = Number.isFinite(current.scores.overallScore) ? Number(current.scores.overallScore) : null;
-    const bandCode = current.classification.bandCode || null;
+    const bandCode = model.uncalibratedBands ? null : (current.classification.bandCode || null);
 
     return {
       audience: 'user',
@@ -188,7 +197,7 @@
       overall: {
         value: overall,
         bandCode,
-        label: bandCode ? (BAND_LABELS[bandCode] || bandCode) : 'غير متاح'
+        label: model.uncalibratedBands ? 'نتيجة وصفية أولية' : (bandCode ? (BAND_LABELS[bandCode] || bandCode) : 'غير متاح')
       },
       axes,
       priority: lowest ? {

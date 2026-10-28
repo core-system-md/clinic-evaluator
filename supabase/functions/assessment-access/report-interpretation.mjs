@@ -58,6 +58,16 @@ export const REPORT_MODELS = Object.freeze({
     permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
     textTemplateCatalog: ["quartiles.Q1", "quartiles.Q2", "quartiles.Q3", "quartiles.Q4", "kpis.TFI", "report.overall_score", "report.axis_summary"]
   },
+  "matrix-comprehensive-assessment": {
+    modelVersion: "REPORT_MODEL_V1", purpose: "تقييم وصفي لكفاءة الفريق عبر تسعة محاور",
+    axisRoles: { A1:"COMMUNICATION",A2:"TRUST",A3:"RECEPTION",A4:"CONVERSION",A5:"RETENTION",A6:"SCHEDULING",A7:"LOYALTY",A8:"ADMIN",A9:"COORDINATION" },
+    measuredConstructs: ["COMMUNICATION","TRUST","RECEPTION","CONVERSION","RETENTION","SCHEDULING","LOYALTY","ADMIN","COORDINATION"],
+    userKpis: ["TFI","TAP","PRP","PLI","PSI","NPI","EVI","TCI","RRI"],
+    economicAllowed: false, economicPolicySource: "assessment_types.has_ev_simulator", uncalibratedBands: true,
+    diagnosticMeanings: { lowestMeasuredAxis: "lowest_measured_axis_only", highestMeasuredAxis: "highest_measured_axis_only" },
+    permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+    textTemplateCatalog: ["quartiles.Q1","quartiles.Q2","quartiles.Q3","quartiles.Q4","kpis.TFI","kpis.TAP","kpis.PRP","kpis.PLI","kpis.PSI","kpis.NPI","kpis.EVI","kpis.TCI","kpis.RRI","report.overall_score","report.axis_summary"]
+  },
   "patient-journey": {
     modelVersion: "REPORT_MODEL_V1", purpose: "جودة رحلة المريض من الثقة إلى الولاء",
     axisRoles: { A1: "TRUST", A2: "COMMUNICATION", A3: "CONVERSION", A4: "RETENTION", A5: "LOYALTY" },
@@ -157,7 +167,7 @@ export function projectCompletionResponse(structuredResult, previousSession = nu
       nameAr: String(axis.axisNameAr || axis.axisCode),
       nameEn: String(axis.axisNameEn || axis.axisCode),
       percentage: Number(axis.percentage),
-      bandCode: axisBandCode(Number(axis.percentage)),
+      bandCode: model.uncalibratedBands ? null : axisBandCode(Number(axis.percentage)),
       status: "measured"
     }))
     .sort((a, b) => a.percentage - b.percentage || a.code.localeCompare(b.code));
@@ -179,7 +189,7 @@ export function projectCompletionResponse(structuredResult, previousSession = nu
     ? { status: "available", value: Number(economic.output.value), unit: "currency", visitsPerYear, referralPercentage }
     : null;
 
-  const bandCode = structuredResult.classification.bandCode || null;
+  const bandCode = model.uncalibratedBands ? null : (structuredResult.classification.bandCode || null);
   const userReport = {
     audience: "user",
     assessment: {
@@ -190,7 +200,7 @@ export function projectCompletionResponse(structuredResult, previousSession = nu
     overall: {
       value: Number.isFinite(structuredResult.scores.overallScore) ? Number(structuredResult.scores.overallScore) : null,
       bandCode,
-      label: bandCode ? (BAND_LABELS[bandCode] || bandCode) : "غير متاح"
+      label: model.uncalibratedBands ? "نتيجة وصفية أولية" : (bandCode ? (BAND_LABELS[bandCode] || bandCode) : "غير متاح")
     },
     axes,
     priority: axes.length ? {

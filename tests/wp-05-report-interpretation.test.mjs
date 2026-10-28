@@ -17,6 +17,7 @@ const AXES_BY_FAMILY = {
   "clinic-matrix-staff-competency": ["A1", "A2", "A3", "A4", "A5", "A6"],
   "clinic-performance": ["A1", "A2", "A3"],
   "comprehensive-clinic-assessment": ["AX6f5aa5", "AX80c09a", "AXaadfb4", "AX2572cc", "AX6a52b4", "AX15afd8"],
+  "matrix-comprehensive-assessment": ["A1","A2","A3","A4","A5","A6","A7","A8","A9"],
   "medical-team-assessment": ["A1", "A2", "A3", "A4"],
   "patient-journey": ["A1", "A2", "A3", "A4", "A5"]
 };
@@ -48,8 +49,8 @@ function makeResult(slug = "patient-journey", overrides = {}) {
         axisCode,
         axisNameAr: "محور " + (index + 1),
         axisNameEn: "Axis " + (index + 1),
-        percentage: [35, 48, 62, 78, 90, 84][index],
-        score: [35, 48, 62, 78, 90, 84][index],
+        percentage: [35, 48, 62, 78, 90, 84, 72, 66, 54][index],
+        score: [35, 48, 62, 78, 90, 84, 72, 66, 54][index],
         rawScore: 35 + index,
         maxPossible: 100,
         weight: 0.2,
@@ -236,4 +237,13 @@ test("WP-05 axis score bands have explicit boundary behavior", () => {
   assert.equal(axisBandCode(50), "Q3");
   assert.equal(axisBandCode(25), "Q2");
   assert.equal(axisBandCode(24.99), "Q1");
+});
+
+test("Matrix Comprehensive report projects all available KPIs without uncalibrated bands",()=>{
+ const codes=["TFI","TAP","PRP","PLI","PSI","NPI","EVI","TCI","RRI"];
+ const result=makeResult("matrix-comprehensive-assessment",{kpis:codes.map((kpiCode,i)=>({kpiCode,status:"available",value:60+i})),economics:{status:"COMPUTED",modelCode:"EV_V1",output:{value:1000,unit:"currency"}}});
+ const report=projectCompletionResponse(result).userReport;
+ assert.equal(report.overall.bandCode,null);assert.equal(report.overall.label,"نتيجة وصفية أولية");assert.ok(report.axes.every(a=>a.bandCode===null));
+ assert.deepEqual(report.kpis.map(k=>k.code),codes);assert.equal(report.economicOpportunity,null);
+ assert.deepEqual(CLIENT_REPORT_MODELS["matrix-comprehensive-assessment"].userKpis,codes);
 });
