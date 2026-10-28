@@ -24,7 +24,7 @@ test("C-03 runtime attestation binds immutable commit, source digest, and versio
   assert.equal(attestation.gitCommitSha, commit);
   assert.match(attestation.edgeReleaseRef, /^sha256:[0-9a-f]{64}$/);
   assert.equal(attestation.fixtureSetVersion, "P3_FIXTURE_SET_V1");
-  assert.equal(attestation.migrationContractVersion, "C03_RELEASE_CONTRACT_V1");
+  assert.equal(attestation.migrationContractVersion, "C03_RELEASE_CONTRACT_V2");
   const rendered = renderRuntimeAttestation(attestation);
   assert.match(rendered, /C03_RUNTIME_ATTESTATION/);
   assert.match(rendered, new RegExp(commit));
