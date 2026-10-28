@@ -7,6 +7,7 @@ on:
       - "assets/js/app.js"
       - "*.html"
       - "tests/clinic-matrix-report-presentation.test.js"
+      - "tests/wp-06-report-validation.test.mjs"
       - ".github/workflows/wp-06-report-validation-gate.yml"
   pull_request:
     branches: [main]
