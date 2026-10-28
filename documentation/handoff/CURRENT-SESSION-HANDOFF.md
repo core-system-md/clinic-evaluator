@@ -1,6 +1,6 @@
 # SESSION UPDATE — CLINIC MATRIX REPORT PERSISTENCE AND PRESENTATION — 2026-10-28
 
-**Current status: RESULT PERSISTED; REPORT PRESENTATION IMPLEMENTED ON MAIN; CACHE-BUSTED PRODUCTION DEPLOYMENT VERIFICATION PENDING.** This addendum supersedes only the earlier claims that the existing session has no persisted result. It does not close WP-12 or change any Audit finding disposition.
+**Current status: RESULT PERSISTED; REPORT PRESENTATION DEPLOYED TO CLOUDFLARE PRODUCTION; DIRECT HTTP/BROWSER RENDERING NOT INDEPENDENTLY VERIFIED.** This addendum supersedes only the earlier claims that the existing session has no persisted result. It does not close WP-12 or change any Audit finding disposition.
 
 ## Production evidence
 - Read the engineering operating contract, final implementation contract report/verification requirements (§14–§22, §35–§45), current handoff, Clinic Matrix draft/design record, interpretation registry, runtime report model, and deployed Edge files.
@@ -13,7 +13,7 @@
 - Commit `b8a3e37b0701505f2bd3af361ba4d7184508941c` updates the Clinic Matrix page's app.js cache key so the browser requests the revised asset.
 - Regression test `tests/clinic-matrix-report-presentation.test.js` is on main and is wired into the existing WP-06 report-validation workflow's push path by commit `d39470a745d451b6825bed5aa06b781361f2d959`.
 - Source-level assertions for neutral label, calibration disclosure, suppressed band colors, cache key, and preserved non-Clinic-Matrix band path all passed in the connected source check. The available GitHub connector has not provided an Actions check result for this push.
-- Cloudflare Pages deployment for commit `c57d9f50a3e5fae654a4fd17666886a9f642ff94` succeeded, but that deployment predates the HTML cache-key bump. Deployment `685d5607-6b30-485a-b3c0-ab42deb649c4` for the cache-bumped page was still in `clone_repo` / active when checked; therefore **the final public-page artifact is not yet verified**. Do not call the presentation fix Production Verified until the latest cache-bumped deployment succeeds and its served HTML is checked.
+- Cloudflare Pages Production deployment `5c8cf324-c18a-4b7e-bae4-c9e967455327` succeeded for commit `b8a3e37b0701505f2bd3af361ba4d7184508941c` (all stages, including build/deploy, `success`). The prior deployment `685d5607-6b30-485a-b3c0-ab42deb649c4` failed during `clone_repo`; retry deployment succeeded. The deployed `assets/js/app.js` and `clinic-matrix-staff-competency.html` blob hashes exactly match current `main`, including the cache-busted URL. Direct HTTP/browser fetch of the public Pages artifact was unavailable in this tool session, so record deployment artifact as **DEPLOYED / SOURCE-PARITY VERIFIED**, not browser-rendered runtime verified.
 
 ## Boundaries retained
 - No scoring anchor, cutoff, pass/fail label, novice/advanced classification, or new KPI/economic output was invented. Anchors remain provisional and require owner review/calibration before they may be described as calibrated.
