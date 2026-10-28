@@ -62,6 +62,16 @@
       userKpis: ['TFI', 'TAP', 'TCI', 'PSI', 'NPI'],
       economicAllowed: true
     },
+    'clinic-matrix-staff-competency': {
+      purpose: 'كفاءة فريق العيادة في التواصل وتجربة المراجع والتنسيق والشرح والبيع الأخلاقي والمتابعة',
+      measuredConstructs: ['COMMUNICATION', 'RECEPTION', 'TRUST', 'PROFESSIONALISM', 'PROFESSIONALISM', 'RETENTION'],
+      axisRoles: { A1: 'COMMUNICATION', A2: 'RECEPTION', A3: 'TRUST', A4: 'PROFESSIONALISM', A5: 'PROFESSIONALISM', A6: 'RETENTION' },
+      diagnosticMeanings: { lowestMeasuredAxis: 'lowest_measured_axis_only', highestMeasuredAxis: 'highest_measured_axis_only' },
+      permittedConclusions: COMMON_PERMITTED_CONCLUSIONS,
+      textTemplateCatalog: ['quartiles.Q1', 'quartiles.Q2', 'quartiles.Q3', 'quartiles.Q4', 'kpis.TFI', 'report.overall_score', 'report.axis_summary'],
+      userKpis: ['TFI'],
+      economicAllowed: false
+    },
     'patient-journey': {
       purpose: 'جودة رحلة المريض من الثقة إلى الولاء',
       measuredConstructs: ['TRUST', 'COMMUNICATION', 'CONVERSION', 'RETENTION', 'LOYALTY'],

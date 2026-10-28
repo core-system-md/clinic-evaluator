@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import test from "node:test";
 import {
   REPORT_MODELS,
@@ -7,6 +8,9 @@ import {
   compatibleTrend,
   projectCompletionResponse
 } from "../supabase/functions/assessment-access/report-interpretation.mjs";
+
+const require = createRequire(import.meta.url);
+const CLIENT_REPORT_MODELS = require("../assets/js/report-interpretation.js").REPORT_MODELS;
 
 const AXES_BY_FAMILY = {
   "admin-reception-assessment": ["AX85a6e9", "AX765ca8", "AXa23fa3", "AXc39190"],
@@ -112,7 +116,7 @@ test("WP-05 report models fully define deployed families and the Clinic Matrix r
     assert.equal(model.modelVersion, "REPORT_MODEL_V1", slug);
     assert.deepEqual(Object.keys(model.axisRoles), AXES_BY_FAMILY[slug], slug);
     assert.deepEqual(model.measuredConstructs, Object.values(model.axisRoles), slug);
-    if (slug === "clinic-matrix-staff-competency") assert.deepEqual(model.userKpis, [], slug);
+    if (slug === "clinic-matrix-staff-competency") assert.deepEqual(model.userKpis, ["TFI"], slug);
     else assert.ok(model.userKpis.length > 0, slug);
     assert.equal(typeof model.economicAllowed, "boolean", slug);
     assert.equal(model.economicPolicySource, "assessment_types.has_ev_simulator", slug);
@@ -126,19 +130,33 @@ test("WP-05 report models fully define deployed families and the Clinic Matrix r
   assert.equal(REPORT_MODELS["clinic-matrix-staff-competency"].economicAllowed, false);
 });
 
-test("WP-05 Clinic Matrix projects its six measured axes without unsupported KPI or economic claims", () => {
+test("WP-05 Clinic Matrix exposes only an available TFI and no unsupported KPI or economic claims", () => {
   const result = makeResult("clinic-matrix-staff-competency", {
-    kpis: [],
-    economics: { status: "NOT_CONFIGURED", output: null }
+    kpis: [
+      { kpiCode: "TFI", status: "available", value: 66.5 },
+      { kpiCode: "PSI", status: "available", value: 91 },
+      { kpiCode: "TAP", status: "unavailable", value: null }
+    ],
+    economics: { status: "NOT_COMPUTED", output: null }
   });
   const projection = projectCompletionResponse(result).userReport;
   assert.equal(projection.assessment.purpose, REPORT_MODELS["clinic-matrix-staff-competency"].purpose);
   assert.equal(projection.overall.value, 68);
   assert.deepEqual(projection.axes.map(axis => axis.code), ["A1", "A2", "A3", "A4", "A6", "A5"]);
-  assert.deepEqual(projection.kpis, []);
+  assert.deepEqual(projection.kpis, [{ code: "TFI", value: 66.5 }]);
   assert.equal(projection.economicOpportunity, null);
   assert.equal(projection.priority.axisCode, "A1");
   assert.equal(projection.strength.axisCode, "A5");
+});
+
+test("WP-05 client report model exposes the same Clinic Matrix TFI allowlist and role bindings", () => {
+  const serverModel = REPORT_MODELS["clinic-matrix-staff-competency"];
+  const clientModel = CLIENT_REPORT_MODELS["clinic-matrix-staff-competency"];
+  assert.ok(clientModel);
+  assert.deepEqual(clientModel.userKpis, ["TFI"]);
+  assert.deepEqual(clientModel.axisRoles, serverModel.axisRoles);
+  assert.deepEqual(clientModel.measuredConstructs, serverModel.measuredConstructs);
+  assert.ok(clientModel.textTemplateCatalog.includes("kpis.TFI"));
 });
 
 test("WP-05 fails closed for an unknown family, duplicate axes, and axes outside its report model", () => {
