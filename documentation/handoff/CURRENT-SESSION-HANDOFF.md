@@ -1,11 +1,12 @@
 # SESSION UPDATE — CLINIC MATRIX REPORT PERSISTENCE AND PRESENTATION — 2026-10-28
 
-**Current status: RESULT PERSISTED; REPORT PRESENTATION DEPLOYED TO CLOUDFLARE PRODUCTION; DIRECT HTTP/BROWSER RENDERING NOT INDEPENDENTLY VERIFIED.** This addendum supersedes only the earlier claims that the existing session has no persisted result. It does not close WP-12 or change any Audit finding disposition.
+**Current status: PRODUCTION COMPLETION/REPORT REQUEST VERIFIED; RESULT PERSISTED; REPORT PRESENTATION DEPLOYED; BROWSER VISUAL CHECK UNAVAILABLE.** This addendum supersedes only the earlier claims that the existing session has no persisted result. It does not close WP-12 or change any Audit finding disposition.
 
 ## Production evidence
 - Read the engineering operating contract, final implementation contract report/verification requirements (§14–§22, §35–§45), current handoff, Clinic Matrix draft/design record, interpretation registry, runtime report model, and deployed Edge files.
 - Existing session `c0fa94cf-88aa-4fe6-b5b3-7dd1facd545f` is `completed` with `submission_state=completed`, 12 answer rows, and `completed_at=2026-10-28 13:22:18.828125+00`.
 - Production Structured Result `01cd2c0c-1907-4284-ae51-f6dbc6d7f3ee` exists for that session; `result_status=PRODUCTION`, coverage `FULL` (12/12), six measured axes, overall score 66.5. The lead is completed at 66.50%. TFI is `unavailable`; economics are `NOT_COMPUTED`. The report model correctly excludes unsupported KPI/economic outputs.
+- Production log evidence for the same completion at `2026-10-28 13:22:18 UTC`: `complete_p4_public_assessment_from_result` returned HTTP 200 at `13:22:18.789`, and the outer `POST /functions/v1/assessment-access` returned HTTP 200 at `13:22:18.952`. Combined with the persisted result row, this verifies the server completion/report response path, not merely the database row.
 - Stored result digest equals the currently published/verified release digest `6f973110bedb0ee6786db2240d0d4e47f27f4e377c09355a1d6d3f301e2da449`. No release row or Edge bundle was modified during this presentation fix.
 
 ## Report presentation repair on main
