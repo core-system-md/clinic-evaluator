@@ -1,6 +1,13 @@
 name: WP-06 report validation gate
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "assets/js/app.js"
+      - "*.html"
+      - "tests/clinic-matrix-report-presentation.test.js"
+      - ".github/workflows/wp-06-report-validation-gate.yml"
   pull_request:
     branches: [main]
     paths:
@@ -28,6 +35,7 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test tests/wp-06-report-validation.test.mjs
+      - run: node --test tests/clinic-matrix-report-presentation.test.js
       - run: node --check assets/js/report-validation.js
       - run: node --check assets/js/report-interpretation.js
       - run: node --check assets/js/app.js
