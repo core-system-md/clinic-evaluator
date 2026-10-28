@@ -285,10 +285,8 @@ test("C-03 reuses verified releases after a partial run and never reactivates a 
   assert.equal(calls.some((call) => call.body?.action === "ci_register"), false);
   const actions = calls.filter((call) => call.body).map((call) => call.body.action);
   assert.equal(actions.includes("ci_activate_existing"), true);
-  const stoppedFamily = testFamilyBySlug(stoppedSlug);
-  assert.equal(stoppedFamily.current_release_id, null);
+  assert.equal(calls.some((call) =>
+    call.body?.action === "ci_activate_existing" &&
+    call.body.release_id === "verified-release-family-2"
+  ), false);
 });
-
-function testFamilyBySlug(slug) {
-  return families.find((family) => family.slug === slug);
-}
