@@ -446,3 +446,28 @@ WP-12 has not started. The next session's first action is **read the current `CU
 ## Exact next action
 
 The next conversation should begin by reading the top Clinic Matrix status in documentation/handoff/CURRENT-SESSION-HANDOFF.md and the relevant existing assessment-specific release/runtime contracts. First, establish a read-only, current evidence snapshot for the deployed assessment-access version and target-specific binding/report model, and inspect the supported assessment-config-release flow for this new family without changing Production. Then report the precise blocker and required owner decision before any deployment/publication action. Do not start WP-12 automatically; do not activate other assessment releases; do not reopen C-01/C-02/C-03.
+
+
+---
+
+# SESSION CLOSEOUT TRACEABILITY ADDENDUM — 2026-10-29
+
+This is a traceability addendum only. It preserves every existing Audit item ID, status, owner, responsible WP/stage, and remaining-work disposition in the matrix. It does not reopen closed findings, change scope, or start WP-12.
+
+## Current evidence recorded at close
+
+- Current `main` HEAD observed: `b4d2c43370920ce2aad7615c3b46939dd8daa5bf`.
+- Guarded C-03 workflow run [#40785072438](https://github.com/core-system-md/clinic-evaluator/actions/runs/40785072438) succeeded on that SHA. Its logs show successful OIDC preflight, stale-head protection, immutable runtime-attestation preparation, exact deployed-runtime attestation verification, and completion of the guarded release runner.
+- Attested runtime identity: `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989`, contract `C03_RELEASE_CONTRACT_V2`. Live Edge versions read at close: `assessment-access v54`, `assessment-config-release v15`.
+- The unapproved `SUPABASE_ACCESS_TOKEN` requirement was removed; do not ask the owner to add a PAT secret. The approved path is OIDC-guarded and waits for an independently deployed exact-source runtime to attest successfully.
+- Live read-back confirms `matrix-comprehensive-assessment` version 1 (`8453ee41-a6f0-4fb0-88c2-1988fe462d0f`) is `published` and active; family current release is `acf9f734-88b8-4b45-ac76-576e261c2d86`. That release row is `PUBLISHED`, with its config digest, registry digest, Git SHA (`b4d2c43370920ce2aad7615c3b46939dd8daa5bf`) and Edge runtime ref matching the verified values.
+- The release row's `published_at` is `2026-10-28 23:14:35.181432+00`, later than the successful workflow run's end. This addendum records live state only and does not infer that workflow run #40785072438 caused the draft-to-published transition.
+
+## Remaining verification — not closed by this evidence
+
+- No live assessment-submission E2E was run during this closeout. Engine scoring, Structured Result completeness, and final user-report projection remain unproven for `matrix-comprehensive-assessment` until tested end to end.
+- The separate Clinic Matrix TFI issue remains open per its existing disposition: create a new working version while preserving published V1 and historical results; apply only approved TFI role weights and the Clinic Matrix report model's KPI allowlist/template update; run relevant engine/scoring/report parity tests; then perform bounded live E2E proving the correct TFI value and coverage in Structured Result and user report. Do not rewrite old results.
+- The owner-stopped `clinic-matrix-staff-competency` assessment remains inactive; no automation may reactivate it.
+- WP-12 remains **NOT STARTED**. No existing finding status is changed by this addendum.
+
+Formal closeout and exact continuation instructions: `documentation/handoff/SESSION-CLOSEOUT-2026-10-29-C03.md` and `documentation/handoff/CURRENT-SESSION-HANDOFF.md`.
