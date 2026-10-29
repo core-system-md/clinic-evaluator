@@ -1,3 +1,14 @@
+# STATUS SUPERSESSION — 2026-10-29 closeout
+
+The historical blocker described below is **resolved/superseded** for the guarded C-03 runtime path. Do not follow the historical instruction to request `SUPABASE_ACCESS_TOKEN`; that requirement was an erroneous deviation and was removed.
+
+- Current successful guarded run: [#40785072438](https://github.com/core-system-md/clinic-evaluator/actions/runs/40785072438), main SHA `b4d2c43370920ce2aad7615c3b46939dd8daa5bf`.
+- OIDC preflight and deployed-runtime attestation verification succeeded before the guarded release runner executed.
+- Live Edge versions read at close: `assessment-access v54`, `assessment-config-release v15`; verified runtime ref `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989`.
+- See the formal session closeout and exact resume point in `SESSION-CLOSEOUT-2026-10-29-C03.md` and `CURRENT-SESSION-HANDOFF.md`.
+
+---
+
 # C-03 guarded deployment outcome — 2026-10-29
 
 Status: **GUARDED RELEASE SUCCESSFUL; Matrix draft publication remains unverified.**
