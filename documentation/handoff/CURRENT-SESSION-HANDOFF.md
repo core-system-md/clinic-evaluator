@@ -1,24 +1,30 @@
 # C-03 guarded release outcome — 2026-10-29
 
 ## Verified outcome
-- Guarded workflow run [#40784774516](https://github.com/core-system-md/clinic-evaluator/actions/runs/40784774516) completed **SUCCESS** on `main` SHA `40cd1234da786f257250de08d5f60e44a9d5f23e`.
-- Exact deployed runtime attestation passed for both Edge Functions: `assessment-access` v53 and `assessment-config-release` v14; source digest `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989`.
-- The guarded runner verified and activated five active published families and read back their current release pointers. The C-03 gate was already enabled and its original activation audit identity was preserved.
-- The runner now reports `inactiveFamilyCount=1` and deliberately leaves `clinic-matrix-staff-competency` untouched. Live audit evidence records an owner `assessment.stop_public` action on 2026-10-28 18:11 UTC (`is_active=false`); the release runner must not undo that decision.
-- The prior partial run `#40783801482` failed on that inactive version after one activation. The corrected guarded run recovered by releasing the active families under the current exact SHA; no manual release-pointer writes were used.
-- The unapproved `SUPABASE_ACCESS_TOKEN` requirement is removed. Do not reintroduce it.
+- Guarded workflow run [#40785072438](https://github.com/core-system-md/clinic-evaluator/actions/runs/40785072438) completed **SUCCESS** on runtime/release SHA `b4d2c43370920ce2aad7615c3b46939dd8daa5bf`. The workflow's OIDC preflight, stale-head protection, immutable attestation preparation, exact deployed-runtime verification, and guarded release runner all passed.
+- Exact deployed runtime attestation passed: `assessment-access v54` and `assessment-config-release v15`; source digest `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989`, contract `C03_RELEASE_CONTRACT_V2`.
+- The owner-stopped `clinic-matrix-staff-competency` assessment remains inactive. Do not reverse that owner decision.
+- The unapproved `SUPABASE_ACCESS_TOKEN` requirement was removed. Do not reintroduce it or ask the owner to add a PAT secret.
+- The current `main` branch has since advanced through documentation-only closeout commits; those commits do not change the runtime attestation above.
 
-## Matrix comprehensive assessment — still not published
-- Live read-back: `matrix-comprehensive-assessment` remains `draft`; `current_published_version_id=NULL` and `current_release_id=NULL`.
-- The deployed source includes the explicit `matrix-comprehensive-assessment:1` interpretation binding in `supabase/functions/assessment-access/engine.ts`; runtime deployment/attestation is now current and verified.
-- The guarded C-03 runner releases already-published active versions; it does not publish a draft. A successful authenticated admin publish of the Matrix draft and a live result/report E2E have **not** been evidenced in this session. Do not claim the Matrix assessment is published until those checks pass.
-- No direct SQL publication, owner-auth bypass, or reactivation of the stopped Clinic Matrix Staff Competency assessment is permitted.
+## Matrix comprehensive assessment — published state verified; E2E still outstanding
+- Live read-back: `matrix-comprehensive-assessment` version 1 is `published`, `is_active=true`; current version ID `8453ee41-a6f0-4fb0-88c2-1988fe462d0f`; current release ID `acf9f734-88b8-4b45-ac76-576e261c2d86`.
+- The release row is `PUBLISHED`. Its config digest `8c6c0ffb1ec877e7bb1c6f350b92d862b775c3a79ebd3671e8a3a026ccb9ea5a`, interpretation registry digest `d8caf2d211f9b0c02fa1a957ea07bb0abca437ee41e6aa8e47caf08e0dd2fe94`, verified Git SHA `b4d2c43370920ce2aad7615c3b46939dd8daa5bf`, and verified Edge ref `sha256:c43080f6ae12a5950b9f9a69da1bb4897ba18a6b5f9ba30600bdf92e999c8989` match.
+- The release row's published timestamp is `2026-10-28 23:14:35.181432+00`, later than the successful guarded workflow run #40785072438. Record the live state but do not claim that run caused the draft-to-published transition without evidence.
+- The explicit `matrix-comprehensive-assessment:1` interpretation binding is in the deployed source and runtime attestation matches. However, a live submission → scoring → Structured Result → final user-report E2E has **not** been demonstrated in this closeout. Do not claim full report compatibility until that test passes.
+
+## SESSION CLOSEOUT / EXACT NEXT ACTION
+1. Read `documentation/handoff/SESSION-CLOSEOUT-2026-10-29-C03.md`.
+2. Read the newest addendum in `documentation/governance/AUDIT-TO-WP-RECONCILIATION-MATRIX-2026-10-18.md`.
+3. Continue only the authorized remaining verification: check engine/report compatibility for `matrix-comprehensive-assessment`, and finish the separate Clinic Matrix TFI correction using a new working version while preserving published V1 and historical results. Correct only the approved TFI role weights and Clinic Matrix report model KPI allowlist/template entry; run automated parity tests and bounded live E2E proving correct TFI coverage/value in both Structured Result and user report.
+4. Do not re-run the completed C-03 attestation investigation, do not re-open closed findings, do not alter old results, do not publish through direct SQL or bypass authenticated admin controls, do not reactivate `clinic-matrix-staff-competency`, and do not start WP-12. Before ending the next session, save actual changes/test evidence and update this handoff plus the matrix.
 
 ## Engineering changes in this continuation
 - Restored the OIDC-only guarded workflow and removed the unapproved PAT gate.
 - Added published-version status/active evidence to CI inventory; inactive/stopped assessments are preserved rather than reactivated.
-- The runner reuses exact-SHA PREPARED/VERIFIED rows left by a partial attempt and checks inactive pointers remain unchanged.
-- The successful guarded release artifact records five activations, one inactive family preserved, and the unchanged gate activation identity.
+- The runner reuses exact-SHA PREPARED/VERIFIED rows left by a partial run and checks inactive pointers remain unchanged.
+- Successful guarded run #40785072438 verified the deployed runtime identity and completed the guarded release runner. See the linked run and closeout record for evidence.
+
 
 ---
 
